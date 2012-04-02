@@ -39,7 +39,9 @@
   <ItemGroup>
     <Compile Include="PageantException.cs" />
     <Compile Include="PageantWindow.cs" />
+    <Compile Include="PpkFileFormatException.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="PpkFile.cs" />
   </ItemGroup>
   <ItemGroup>
     <Reference Include="System" />
