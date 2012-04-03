@@ -37,6 +37,7 @@
     <StartupObject />
   </PropertyGroup>
   <ItemGroup>
+    <Compile Include="CryptoUtil.cs" />
     <Compile Include="PageantException.cs" />
     <Compile Include="PageantWindow.cs" />
     <Compile Include="PpkFileFormatException.cs" />

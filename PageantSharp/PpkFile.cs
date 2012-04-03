@@ -3,29 +3,163 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.IO;
+using System.Collections.ObjectModel;
+using System.Collections;
+using System.Security.Cryptography;
 
 namespace dlech.PageantSharp
 {
 	/// <summary>
 	/// Used to read PuTTY Private Key (.ppk) files
 	/// </summary>
-	public class PpkFile
+	public sealed class PpkFile
 	{
-		private char[] delimeters = { ':' };
-		private const string puttyUserKeyFile2Key = "PuTTY-User-Key-File-2";
-		private const string encryptionKey = "Encryption";
+
+		#region -- Constants --
+
+		/// <summary>
+		/// The delimeter(s) used in the file
+		/// </summary>
+		private static ReadOnlyCollection<char> delimeters =
+			Array.AsReadOnly<char>(new char[] { ':' });
+
+		/// <summary>
+		/// contains fields with valid file version strings
+		/// </summary>
+		public static class FileVersions
+		{
+			public const string v1 = "1";
+			public const string v2 = "2";
+		}
+
+		/// <summary>
+		/// Collection of supported file versions
+		/// </summary>
+		public static ReadOnlyCollection<string> supportedFileVersions =
+			Array.AsReadOnly<string>(new string[] { FileVersions.v1, FileVersions.v2 });
+
+		/// <summary>
+		/// Contains fields with valid pubilc key encryption algorithms
+		/// </summary>
+		public static class PublicKeyAlgorithms
+		{
+			public const string ssh_rsa = "ssh-rsa";
+			public const string ssh_dss = "ssh-dss";
+		}
+
+		/// <summary>
+		/// Collection of supported public key encryption algorithms
+		/// </summary>
+		private static ReadOnlyCollection<string> supportedPublicKeyAlgorithms =
+			Array.AsReadOnly<string>(new string[] { PublicKeyAlgorithms.ssh_rsa, PublicKeyAlgorithms.ssh_dss });
+
+		/// <summary>
+		/// Contains fields with valid private key encryption algorithms
+		/// </summary>
+		public static class PrivateKeyAlgorithms
+		{
+			public const string none = "none";
+			public const string aes256_cbc = "aes256-cbc";
+		}
+
+		/// <summary>
+		/// Collection of supported private key encryption algorithms
+		/// </summary>
+		private static ReadOnlyCollection<string> supportedPrivateKeyAlgorithms =
+			Array.AsReadOnly<string>(new string[] { PrivateKeyAlgorithms.none, PrivateKeyAlgorithms.aes256_cbc });
+
+		/// <summary>
+		/// Key that identifies the file version and the public key algorithm
+		/// It is the first thing in the file, so it can also be used as a signature
+		/// for a quick and dirty file format test.
+		/// </summary>
+		public const string puttyUserKeyFileKey = "PuTTY-User-Key-File-";
+
+		/// <summary>
+		/// Key that indicates the line containing the private key encryption algorithm
+		/// </summary>
+		private const string privateKeyEncryptionKey = "Encryption";
+
+		/// <summary>
+		/// Key that inticates the line containing the user comment
+		/// </summary>
 		private const string commentKey = "Comment";
-		private const string publicLinesKey = "Public-Lines";
-		private const string privateLinesKey = "Private-Lines";
+
+		/// <summary>
+		/// Key that indicates that the public key follows on the next line 
+		/// and the length of the key in lines
+		/// </summary>
+		private const string publicKeyLinesKey = "Public-Lines";
+
+		/// <summary>
+		/// Key that indicates that the private key follows on the next line 
+		/// and the length of the key in lines
+		/// </summary>
+		private const string privateKeyLinesKey = "Private-Lines";
+
+		/// <summary>
+		/// Key that indicates that the line contains the hash of the private key (version 2 file format only)
+		/// </summary>
 		private const string privateMACKey = "Private-MAC";
 
-		public string KeyType { get; private set; }
-		public string Encryption { get; private set; }
+		/// <summary>
+		/// Key that indicates that the line contains the hash of the private key (version 1 file format only)
+		/// </summary>
+		private const string privateHashKey = "Private-Hash";
+
+		#endregion -- Constants --
+
+
+		#region -- Properties --
+
+		/// <summary>
+		/// File format version (one of FileVersions members)
+		/// Callers of this method should warn user 
+		/// that version 1 has security issue and should not be used
+		/// </summary>
+		public string FileVersion { get; private set; }
+
+		/// <summary>
+		/// Public key algorithm
+		/// One of <see cref="PublicKeyAlgorithms"/>
+		/// </summary>
+		public string PublicKeyAlgorithm { get; private set; }
+
+		/// <summary>
+		/// Private key encryption algorithm
+		/// One of <see cref="PrivateKeyAlgorithms"/>
+		/// </summary>
+		public string PrivateKeyAlgorithm { get; private set; }
+
+		/// <summary>
+		/// User comment
+		/// </summary>
 		public string Comment { get; private set; }
+
+		/// <summary>
+		/// The public key
+		/// </summary>
 		public string PublicKey { get; private set; }
+
+		/// <summary>
+		/// The private key. Key is encrypted unless <see cref="PrivateKeyAlgorithm"/> is <see cref="PrivateKeyAlgorithms.none"/>.
+		/// </summary>
 		public string PrivateKey { get; private set; }
+
+		/// <summary>
+		/// The private key hash
+		/// </summary>
 		public string PrivateMAC { get; private set; }
 
+		/// <summary>
+		/// <see cref="PrivateMAC"/> is a MAC as opposed to the old format
+		/// </summary>
+		public bool IsMAC { get; private set; }
+
+		#endregion -- Properties --
+
+
+		#region -- Constructors --
 
 		/// <summary>
 		/// Creates new instance of PpkFile from data array
@@ -55,6 +189,67 @@ namespace dlech.PageantSharp
 			ProcessData(buffer);
 		}
 
+		#endregion -- Constructors --
+
+
+		#region -- Public Methods --
+
+		public byte[] DecryptPrivateKey(string passphrase)
+		{
+			if (passphrase == null) {
+				throw new ArgumentNullException("passphrase");
+			}
+
+			// only one valid type for now, possibly more in future
+			switch (this.PrivateKeyAlgorithm) {
+				case PrivateKeyAlgorithms.aes256_cbc:
+					SHA1 sha = SHA1.Create();
+					sha.Initialize();
+					byte[] hash;
+					byte[] key = new byte[sha.HashSize * 2];					
+					hash = sha.ComputeHash(Encoding.UTF8.GetBytes("\0\0\0\0" + passphrase));
+					Array.Copy(hash, key, hash.Length);
+					hash = sha.ComputeHash(Encoding.UTF8.GetBytes("\0\0\0\x1" + passphrase));
+					Array.Copy(hash, 0, key, sha.HashSize, hash.Length);
+					sha.Clear();
+
+					byte[] base64PrivateKeyBytes = CryptoUtil.DecodeBase64(this.PrivateKey);
+
+					Aes aes = Aes.Create();
+					aes.KeySize = 256;
+					aes.Mode = CipherMode.CBC;
+					Array.Copy(key, aes.Key, aes.Key.Length);
+					aes.IV = new byte[aes.IV.Length];
+					ICryptoTransform decryptor = aes.CreateDecryptor();
+					List<byte> decryptedKeyByteList = new List<byte>();
+					int inputLength = base64PrivateKeyBytes.Length;
+					int inputBlockSize = decryptor.InputBlockSize;
+					int inputOffset = 0;
+					byte[] outputBytes = new byte[decryptor.OutputBlockSize];
+					if (true || !decryptor.CanTransformMultipleBlocks) {
+						while (inputLength - inputOffset > inputBlockSize) {
+							decryptor.TransformBlock(base64PrivateKeyBytes, inputOffset, inputBlockSize,
+								outputBytes, 0);
+							decryptedKeyByteList.AddRange(outputBytes);
+							inputOffset += inputBlockSize;
+						}
+					}
+					outputBytes = decryptor.TransformFinalBlock(base64PrivateKeyBytes, inputOffset, inputLength - inputOffset);
+					decryptedKeyByteList.AddRange(outputBytes);
+					aes.Clear();
+
+					return decryptedKeyByteList.ToArray();
+				default:
+					// TODO make a specific exception type???
+					throw new Exception("encryption algorithm " + this.PrivateKeyAlgorithm + " not supported");
+			}
+		}
+
+		#endregion -- Public Methods --
+
+
+		#region -- Private Methods --
+
 		private void ProcessData(byte[] data)
 		{
 			string line;
@@ -65,57 +260,76 @@ namespace dlech.PageantSharp
 			StreamReader reader = new StreamReader(stream);
 
 			line = reader.ReadLine();
-			pair = line.Split(delimeters, 2);
-			if (pair[0] != puttyUserKeyFile2Key) {
+			pair = line.Split(delimeters.ToArray(), 2);
+			if (!pair[0].StartsWith(puttyUserKeyFileKey)) {
 				throw new PpkFileFormatException();
 			}
-			this.KeyType = pair[1].Trim();
-
-			line = reader.ReadLine();
-			pair = line.Split(delimeters, 2);
-			if (pair[0] != encryptionKey) {
+			this.FileVersion = pair[0].Remove(0, puttyUserKeyFileKey.Length);
+			if (!supportedFileVersions.Contains(this.FileVersion)) {
 				throw new PpkFileFormatException();
 			}
-			this.Encryption = pair[1].Trim();
+			this.PublicKeyAlgorithm = pair[1].Trim();
+			if (!supportedPublicKeyAlgorithms.Contains(this.PublicKeyAlgorithm)) {
+				throw new PpkFileFormatException();
+			}
 
 			line = reader.ReadLine();
-			pair = line.Split(delimeters, 2);
+			pair = line.Split(delimeters.ToArray(), 2);
+			if (pair[0] != privateKeyEncryptionKey) {
+				throw new PpkFileFormatException();
+			}
+			this.PrivateKeyAlgorithm = pair[1].Trim();
+			if (!supportedPrivateKeyAlgorithms.Contains(this.PrivateKeyAlgorithm)) {
+				throw new PpkFileFormatException();
+			}
+
+			line = reader.ReadLine();
+			pair = line.Split(delimeters.ToArray(), 2);
 			if (pair[0] != commentKey) {
 				throw new PpkFileFormatException();
 			}
 			this.Comment = pair[1].Trim();
 
 			line = reader.ReadLine();
-			pair = line.Split(delimeters, 2);
-			if (pair[0] != publicLinesKey) {
+			pair = line.Split(delimeters.ToArray(), 2);
+			if (pair[0] != publicKeyLinesKey) {
 				throw new PpkFileFormatException();
 			}
-			lineCount = int.Parse(pair[1]);
+			if (!int.TryParse(pair[1], out lineCount)) {
+				throw new PpkFileFormatException();
+			}
 			this.PublicKey = string.Empty;
 			for (i = 0; i < lineCount; i++) {
 				this.PublicKey += reader.ReadLine();
 			}
 
 			line = reader.ReadLine();
-			pair = line.Split(delimeters, 2);
-			if (pair[0] != privateLinesKey) {
+			pair = line.Split(delimeters.ToArray(), 2);
+			if (pair[0] != privateKeyLinesKey) {
 				throw new PpkFileFormatException();
 			}
-			lineCount = int.Parse(pair[1]);
+			if (!int.TryParse(pair[1], out lineCount)) {
+				throw new PpkFileFormatException();
+			}
 			this.PrivateKey = string.Empty;
 			for (i = 0; i < lineCount; i++) {
 				this.PrivateKey += reader.ReadLine();
 			}
 
 			line = reader.ReadLine();
-			pair = line.Split(delimeters, 2);
+			pair = line.Split(delimeters.ToArray(), 2);
 			if (pair[0] != privateMACKey) {
-				throw new PpkFileFormatException();
+				this.IsMAC = false;
+				if (pair[0] != privateHashKey || this.FileVersion != FileVersions.v1) {
+					throw new PpkFileFormatException();
+				}
+			} else {
+				this.IsMAC = true;
 			}
 			this.PrivateMAC = pair[1].Trim();
 		}
+
+		# endregion -- Private Methods --
 	}
-
-
 }
 

@@ -5,6 +5,7 @@ using System.Reflection;
 using System.Diagnostics;
 using System.IO;
 using PageantSharpTestProject.Properties;
+using System.Text;
 
 namespace PageantSharpTestProject
 {
@@ -79,8 +80,8 @@ namespace PageantSharpTestProject
 			string fileName = Path.Combine(dir, @"Resources\withoutPassphrase.ppk");
 			try {
 				PpkFile target = new PpkFile(fileName);
-				Assert.AreEqual("ssh-rsa", target.KeyType);
-				Assert.AreEqual("none", target.Encryption);
+				Assert.AreEqual("ssh-rsa", target.PublicKeyAlgorithm);
+				Assert.AreEqual("none", target.PrivateKeyAlgorithm);
 				Assert.AreEqual("without passphrase", target.Comment);
 				Assert.AreEqual("AAAAB3NzaC1yc2EAAAABJQAAAIEAqtfJwYLL9N6UyMYIrYoGu9eEZCIT3pS5OI0V" +
 											  "4t80baJDXPkdUBqkokcHoDjXKOy620c6MmFROBZ6AZHRvlGztefIT2+oVGJxR3TR" +
@@ -95,6 +96,7 @@ namespace PageantSharpTestProject
 											  "OaEtSNGh9qtYIPuYilRFbiIU55Az5iujw8c7LCpNycSGeo6GGLAt6VCjp8v8abb0" +
 												"wOqJ", target.PrivateKey);
 				Assert.AreEqual("f7c9bf63097216304a05c1426ac9d42c4b3825cd", target.PrivateMAC);
+				Assert.IsTrue(target.IsMAC);
 			} catch (Exception ex) {
 				Assert.Fail(ex.ToString());
 			}
@@ -109,7 +111,32 @@ namespace PageantSharpTestProject
 		{
 			byte[] data = Resources.withoutPassphrase_ppk;
 			PpkFile target = new PpkFile(data);
+		}
 
+		/// <summary>
+		///A test for DecryptPrivateKey
+		///</summary>
+		[TestMethod()]
+		public void DecryptPrivateKeyTest()
+		{
+			Assembly asm = Assembly.GetExecutingAssembly();
+			string dir = Path.GetDirectoryName(asm.Location);
+			string fileName = Path.Combine(dir, @"Resources\withPassphrase.ppk");
+			PpkFile target = new PpkFile(fileName);
+			string passphrase = "PageantSharp";
+			byte[] expected = Encoding.UTF8.GetBytes(
+				"AAAAgFF6/QXWuNWKrmZfKfQPSyXrgCuplYu3V9WXRiHJHV++MoccjYFZPjSg63QY" +
+				"1nJ5gHT6mFVlMYHQ3vHz4MARegmAQ33bxTmwzRszLXua1W2hRgqCTDsG89MNe2Fn" +
+				"iAaFjZcBP/eqXoknZdlnEbq7cV2A+qbLHxfVY0GZ3jvAzyx9AAAAQQDOrnDIH4x5" +
+				"gJIKYn0Qfs2WYD9tioS11TnReWSzgmkeKILHhrCfPm4ZIkZNdGnC5wyuqh03HWSe" +
+				"izsU7+hTbT0PAAAAQQCpvBtWZ0bFq8IKtxjfvMh0HEwrKpuYlj54M0cu8BED9xbl" +
+				"8KNut/b5rY5aZD4TmY1IxiYii5+QvCqjSK9PAh2VAAAAQD1GlJSv/erLvQYO1nsL" +
+				"aF2ooZ9Dg1m/NOnKDWJ8MOhMrLmqIxs6bKcKjVoEjgx5FqPI0pMwK0tpMH2slx92" +
+				"JIM=");
+			byte[] actual;
+			actual = target.DecryptPrivateKey(passphrase);
+			Assert.AreEqual(expected, actual);
+			Assert.Inconclusive("Verify the correctness of this test method.");
 		}
 	}
 }

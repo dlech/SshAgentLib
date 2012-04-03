@@ -171,7 +171,6 @@ namespace dlech.PageantSharp
 						this.disposed = true;
 					}
 				}
-
 			}
 		}
 
