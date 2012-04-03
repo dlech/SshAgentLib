@@ -84,18 +84,18 @@ namespace PageantSharpTestProject
 				Assert.AreEqual("none", target.PrivateKeyAlgorithm);
 				Assert.AreEqual("without passphrase", target.Comment);
 				Assert.AreEqual("AAAAB3NzaC1yc2EAAAABJQAAAIEAqtfJwYLL9N6UyMYIrYoGu9eEZCIT3pS5OI0V" +
-											  "4t80baJDXPkdUBqkokcHoDjXKOy620c6MmFROBZ6AZHRvlGztefIT2+oVGJxR3TR" +
-									      "dPmQhhPzgyvsdWAzjQBIj7rZz5Dzu/sDOa2wm5PRHSMrk7G4f2b2/uaGuUvC+Ga5" +
-												"aKXEDnc=", target.PublicKey);
+												"4t80baJDXPkdUBqkokcHoDjXKOy620c6MmFROBZ6AZHRvlGztefIT2+oVGJxR3TR" +
+												"dPmQhhPzgyvsdWAzjQBIj7rZz5Dzu/sDOa2wm5PRHSMrk7G4f2b2/uaGuUvC+Ga5" +
+												"aKXEDnc=", target.PublicKeyString);
 				Assert.AreEqual("AAAAgHyrTgnAT6TZxoSsL9iVJ4InpcyHkfVzcmeJjIL15/z53iFAKiWyk9BdWJeD" +
-											  "bJN8UQDg8x3YUAZVl01A5SoERN18aB7lgajejzJgQFOP5Ad7vA/83dFbrzAf10Ah" +
-											  "dbtaqHUdMwMWqdkqVa2EYCZ+O+0PeewHA3uBJECHlP/NN+GdAAAAQQDtQNlZb5AD" +
-											  "d9RthpU1X6+ePcR7POnz01GrUPRARzRB2h5JP+mwFnfjANSKhZhrzePpIL1jKYyI" +
-											  "o12b1qV/IXY5AAAAQQC4V5eZV62MzOuf1kdUVysFCVzt3mMLLcn57RQwRpqQfp5j" +
-											  "0r2JNiAFBYo4k/9phYYJ0FziDIz/MEvYMwXLCiovAAAAQQDMYEQojQraSZDbcUwy" +
-											  "OaEtSNGh9qtYIPuYilRFbiIU55Az5iujw8c7LCpNycSGeo6GGLAt6VCjp8v8abb0" +
-												"wOqJ", target.PrivateKey);
-				Assert.AreEqual("f7c9bf63097216304a05c1426ac9d42c4b3825cd", target.PrivateMAC);
+												"bJN8UQDg8x3YUAZVl01A5SoERN18aB7lgajejzJgQFOP5Ad7vA/83dFbrzAf10Ah" +
+												"dbtaqHUdMwMWqdkqVa2EYCZ+O+0PeewHA3uBJECHlP/NN+GdAAAAQQDtQNlZb5AD" +
+												"d9RthpU1X6+ePcR7POnz01GrUPRARzRB2h5JP+mwFnfjANSKhZhrzePpIL1jKYyI" +
+												"o12b1qV/IXY5AAAAQQC4V5eZV62MzOuf1kdUVysFCVzt3mMLLcn57RQwRpqQfp5j" +
+												"0r2JNiAFBYo4k/9phYYJ0FziDIz/MEvYMwXLCiovAAAAQQDMYEQojQraSZDbcUwy" +
+												"OaEtSNGh9qtYIPuYilRFbiIU55Az5iujw8c7LCpNycSGeo6GGLAt6VCjp8v8abb0" +
+												"wOqJ", target.PrivateKeyString);
+				Assert.AreEqual("f7c9bf63097216304a05c1426ac9d42c4b3825cd", target.PrivateMACString);
 				Assert.IsTrue(target.IsMAC);
 			} catch (Exception ex) {
 				Assert.Fail(ex.ToString());
@@ -124,7 +124,7 @@ namespace PageantSharpTestProject
 			string fileName = Path.Combine(dir, @"Resources\withPassphrase.ppk");
 			PpkFile target = new PpkFile(fileName);
 			string passphrase = "PageantSharp";
-			byte[] expected = Encoding.UTF8.GetBytes(
+			byte[] expected = PSUtil.FromBase64(
 				"AAAAgFF6/QXWuNWKrmZfKfQPSyXrgCuplYu3V9WXRiHJHV++MoccjYFZPjSg63QY" +
 				"1nJ5gHT6mFVlMYHQ3vHz4MARegmAQ33bxTmwzRszLXua1W2hRgqCTDsG89MNe2Fn" +
 				"iAaFjZcBP/eqXoknZdlnEbq7cV2A+qbLHxfVY0GZ3jvAzyx9AAAAQQDOrnDIH4x5" +
@@ -135,8 +135,9 @@ namespace PageantSharpTestProject
 				"JIM=");
 			byte[] actual;
 			actual = target.DecryptPrivateKey(passphrase);
-			Assert.AreEqual(expected, actual);
-			Assert.Inconclusive("Verify the correctness of this test method.");
+			for (int i = 0; i < expected.Length; i++) {
+				Assert.AreEqual(expected[i], actual[i]);
+			}
 		}
 	}
 }

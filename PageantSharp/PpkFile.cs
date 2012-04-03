@@ -6,6 +6,7 @@ using System.IO;
 using System.Collections.ObjectModel;
 using System.Collections;
 using System.Security.Cryptography;
+using System.Security;
 
 namespace dlech.PageantSharp
 {
@@ -16,6 +17,10 @@ namespace dlech.PageantSharp
 	{
 
 		#region -- Constants --
+
+		private const string privKeyDecryptSalt1 = "\0\0\0\0";
+		private const string privKeyDecryptSalt2 = "\0\0\0\x1";
+		private const string macKeySalt = "putty-private-key-file-mac-key";
 
 		/// <summary>
 		/// The delimeter(s) used in the file
@@ -139,20 +144,35 @@ namespace dlech.PageantSharp
 		/// <summary>
 		/// The public key
 		/// </summary>
-		public string PublicKey { get; private set; }
+		public byte[] PublicKey { get; private set; }
+
+		/// <summary>
+		/// The public key as a base64 encoded string
+		/// </summary>
+		public string PublicKeyString { get; private set; }
 
 		/// <summary>
 		/// The private key. Key is encrypted unless <see cref="PrivateKeyAlgorithm"/> is <see cref="PrivateKeyAlgorithms.none"/>.
 		/// </summary>
-		public string PrivateKey { get; private set; }
+		public byte[] PrivateKey { get; private set; }
+
+		/// <summary>
+		/// The private key as a base64 encoded string. Key is encrypted unless <see cref="PrivateKeyAlgorithm"/> is <see cref="PrivateKeyAlgorithms.none"/>.
+		/// </summary>
+		public string PrivateKeyString { get; private set; }
 
 		/// <summary>
 		/// The private key hash
 		/// </summary>
-		public string PrivateMAC { get; private set; }
+		public byte[] PrivateMAC { get; private set; }
 
 		/// <summary>
-		/// <see cref="PrivateMAC"/> is a MAC as opposed to the old format
+		/// The private key hash as string of hex digits
+		/// </summary>
+		public string PrivateMACString { get; private set; }
+
+		/// <summary>
+		/// <see cref="PrivateMACString"/> is a MAC as opposed to the old format
 		/// </summary>
 		public bool IsMAC { get; private set; }
 
@@ -202,49 +222,115 @@ namespace dlech.PageantSharp
 
 			// only one valid type for now, possibly more in future
 			switch (this.PrivateKeyAlgorithm) {
+
 				case PrivateKeyAlgorithms.aes256_cbc:
+
+					/* create key from passphrase */
+
 					SHA1 sha = SHA1.Create();
 					sha.Initialize();
 					byte[] hash;
-					byte[] key = new byte[sha.HashSize * 2];					
-					hash = sha.ComputeHash(Encoding.UTF8.GetBytes("\0\0\0\0" + passphrase));
-					Array.Copy(hash, key, hash.Length);
-					hash = sha.ComputeHash(Encoding.UTF8.GetBytes("\0\0\0\x1" + passphrase));
-					Array.Copy(hash, 0, key, sha.HashSize, hash.Length);
+					List<byte> key = new List<byte>();
+					hash = sha.ComputeHash(Encoding.Default.GetBytes(privKeyDecryptSalt1 + passphrase));
+					key.AddRange(hash);
+					hash = sha.ComputeHash(Encoding.Default.GetBytes(privKeyDecryptSalt2 + passphrase));
+					key.AddRange(hash);
 					sha.Clear();
 
-					byte[] base64PrivateKeyBytes = CryptoUtil.DecodeBase64(this.PrivateKey);
+					/* decrypt private key */
 
-					Aes aes = Aes.Create();
+					AesCryptoServiceProvider aes = new AesCryptoServiceProvider();
 					aes.KeySize = 256;
 					aes.Mode = CipherMode.CBC;
-					Array.Copy(key, aes.Key, aes.Key.Length);
+					aes.Padding = PaddingMode.None;
+					int keySize = aes.KeySize / 8; // convert bits to bytes
+					key.RemoveRange(keySize, key.Count - keySize); // remmove extra bytes
+					aes.Key = key.ToArray();
 					aes.IV = new byte[aes.IV.Length];
 					ICryptoTransform decryptor = aes.CreateDecryptor();
-					List<byte> decryptedKeyByteList = new List<byte>();
-					int inputLength = base64PrivateKeyBytes.Length;
-					int inputBlockSize = decryptor.InputBlockSize;
-					int inputOffset = 0;
-					byte[] outputBytes = new byte[decryptor.OutputBlockSize];
-					if (true || !decryptor.CanTransformMultipleBlocks) {
-						while (inputLength - inputOffset > inputBlockSize) {
-							decryptor.TransformBlock(base64PrivateKeyBytes, inputOffset, inputBlockSize,
-								outputBytes, 0);
-							decryptedKeyByteList.AddRange(outputBytes);
-							inputOffset += inputBlockSize;
-						}
-					}
-					outputBytes = decryptor.TransformFinalBlock(base64PrivateKeyBytes, inputOffset, inputLength - inputOffset);
-					decryptedKeyByteList.AddRange(outputBytes);
+					byte[] result = PSUtil.GenericTransform(decryptor, this.PrivateKey);
 					aes.Clear();
 
-					return decryptedKeyByteList.ToArray();
+					/* verify MAC */
+
+					List<byte> macData = new List<byte>();
+					if (this.FileVersion != FileVersions.v1) {
+						macData.AddRange(PSUtil.IntToBytes(this.PublicKeyAlgorithm.Length));
+						macData.AddRange(Encoding.Default.GetBytes(this.PublicKeyAlgorithm));
+						macData.AddRange(PSUtil.IntToBytes(this.PrivateKeyAlgorithm.Length));
+						macData.AddRange(Encoding.Default.GetBytes(this.PrivateKeyAlgorithm));
+						macData.AddRange(PSUtil.IntToBytes(this.Comment.Length));
+						macData.AddRange(Encoding.Default.GetBytes(this.Comment));
+						macData.AddRange(PSUtil.IntToBytes(this.PublicKey.Length));
+						macData.AddRange(this.PublicKey);
+						macData.AddRange(PSUtil.IntToBytes(result.Length));
+					}
+					macData.AddRange(result); // private key					
+
+					byte[] computedHash;
+					if (this.IsMAC) {
+						HMAC hmac = HMACSHA1.Create();
+						sha = SHA1.Create();
+						hmac.Key = sha.ComputeHash(Encoding.Default.GetBytes(macKeySalt + passphrase));
+						sha.Clear();
+						computedHash = hmac.ComputeHash(macData.ToArray());
+						hmac.Clear();
+					} else {
+						sha = SHA1.Create();
+						computedHash = sha.ComputeHash(macData.ToArray());
+						sha.Clear();
+					}
+					macData.Clear();
+
+					if (this.PrivateMACString != PSUtil.ToHex(computedHash)) {
+						Array.Clear(result, 0, result.Length);
+						throw new PpkFileMacException();
+					}
+					return result;
 				default:
 					// TODO make a specific exception type???
 					throw new Exception("encryption algorithm " + this.PrivateKeyAlgorithm + " not supported");
 			}
 		}
 
+		public RSAParameters GetRSAParameters()
+		{
+			return GetRSAParameters(null);
+		}
+
+		public RSAParameters GetRSAParameters(string passphrase)
+		{			
+			KeyParser parser = new KeyParser(this.PublicKey);
+			string algorithm = Encoding.Default.GetString(parser.CurrentData);
+			parser.MoveNext();
+
+			if ((this.PublicKeyAlgorithm != PublicKeyAlgorithms.ssh_rsa) || 
+		  	(algorithm != PublicKeyAlgorithms.ssh_rsa)) {
+				throw new InvalidOperationException("key is not rsa");
+			}
+			
+			RSAParameters parameters = new RSAParameters();
+			parameters.Exponent = parser.CurrentData;
+			parser.MoveNext();
+			parameters.Modulus = parser.CurrentData;
+			//parser.MoveNext();
+
+			if (passphrase == null) {
+				parser = new KeyParser(this.PrivateKey);
+			} else {
+				parser = new KeyParser(DecryptPrivateKey(passphrase));
+			}
+			parameters.D = parser.CurrentData;			
+			parser.MoveNext();
+			parameters.P = parser.CurrentData;
+			parser.MoveNext();
+			parameters.Q = parser.CurrentData;
+			parser.MoveNext();
+			parameters.InverseQ = parser.CurrentData;
+			//parser.MoveNext();
+						
+			return parameters;
+		}
 		#endregion -- Public Methods --
 
 
@@ -298,10 +384,11 @@ namespace dlech.PageantSharp
 			if (!int.TryParse(pair[1], out lineCount)) {
 				throw new PpkFileFormatException();
 			}
-			this.PublicKey = string.Empty;
+			this.PublicKeyString = string.Empty;
 			for (i = 0; i < lineCount; i++) {
-				this.PublicKey += reader.ReadLine();
+				this.PublicKeyString += reader.ReadLine();
 			}
+			this.PublicKey = PSUtil.FromBase64(this.PublicKeyString);
 
 			line = reader.ReadLine();
 			pair = line.Split(delimeters.ToArray(), 2);
@@ -311,10 +398,12 @@ namespace dlech.PageantSharp
 			if (!int.TryParse(pair[1], out lineCount)) {
 				throw new PpkFileFormatException();
 			}
-			this.PrivateKey = string.Empty;
+			this.PrivateKeyString = string.Empty;
 			for (i = 0; i < lineCount; i++) {
-				this.PrivateKey += reader.ReadLine();
+				this.PrivateKeyString += reader.ReadLine();
 			}
+
+			this.PrivateKey = PSUtil.FromBase64(this.PrivateKeyString);
 
 			line = reader.ReadLine();
 			pair = line.Split(delimeters.ToArray(), 2);
@@ -326,7 +415,8 @@ namespace dlech.PageantSharp
 			} else {
 				this.IsMAC = true;
 			}
-			this.PrivateMAC = pair[1].Trim();
+			this.PrivateMACString = pair[1].Trim();
+			this.PrivateMAC = PSUtil.FromHex(this.PrivateMACString);
 		}
 
 		# endregion -- Private Methods --

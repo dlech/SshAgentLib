@@ -37,7 +37,9 @@
     <StartupObject />
   </PropertyGroup>
   <ItemGroup>
-    <Compile Include="CryptoUtil.cs" />
+    <Compile Include="KeyParser.cs" />
+    <Compile Include="PpkFileMacException.cs" />
+    <Compile Include="PSUtil.cs" />
     <Compile Include="PageantException.cs" />
     <Compile Include="PageantWindow.cs" />
     <Compile Include="PpkFileFormatException.cs" />
