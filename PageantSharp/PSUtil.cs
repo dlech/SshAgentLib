@@ -136,21 +136,21 @@ namespace dlech.PageantSharp
 		public static byte[] FromBase64(byte[] base64Data)
 		{
 			FromBase64Transform base64Transform = new FromBase64Transform();
-			byte[] result = GenericTransform(base64Transform, base64Data);
+			GenericTransform(base64Transform, ref base64Data);
 			base64Transform.Clear();
-			return result;
+			return base64Data;
 		}
 
 
 		public static byte[] ToBase64(byte[] binaryData)
 		{
 			ToBase64Transform base64Transform = new ToBase64Transform();
-			byte[] result = GenericTransform(base64Transform, binaryData);
+			GenericTransform(base64Transform, ref binaryData);
 			base64Transform.Clear();
-			return result;
+			return binaryData;
 		}
 
-		internal static byte[] GenericTransform(ICryptoTransform transform, byte[] data)
+		internal static void GenericTransform(ICryptoTransform transform, ref byte[] data)
 		{
 			List<byte> byteList = new List<byte>();
 			byte[] outputBytes;
@@ -173,8 +173,22 @@ namespace dlech.PageantSharp
 			}
 			outputBytes = transform.TransformFinalBlock(data, inputOffset, inputLength - inputOffset);
 			byteList.AddRange(outputBytes);
+			Array.Clear(data, 0, data.Length);
+			data = byteList.ToArray();
+			ClearByteList(ref byteList);			
+		}
 
-			return byteList.ToArray();
+		/// <summary>
+		/// writes over all values in list with 0 then call list.Clear()
+		/// </summary>
+		/// <param name="list">list to be cleared</param>
+		public static void ClearByteList(ref List<byte> list)
+		{
+			int length = list.Count;
+			for (int i = 0; i< length; i++) {
+				 list[i] = 0;
+			}
+			list.Clear();
 		}
 	}
 }

@@ -26,15 +26,15 @@
   <Class Name="dlech.PageantSharp.PpkFile" Collapsed="true">
     <Position X="1.25" Y="1.75" Width="1.5" />
     <TypeIdentifier>
-      <HashCode>UjAAACQEAQAAACAQEAEAAERQAAQAAAAAgISoRAAAAAA=</HashCode>
+      <HashCode>UDQBAGYEAAAAACAQFAEAAABQAABAAAAEgICIBAAUAEA=</HashCode>
       <FileName>PpkFile.cs</FileName>
     </TypeIdentifier>
   </Class>
-  <Class Name="dlech.PageantSharp.PpkFileFormatException" Collapsed="true">
+  <Class Name="dlech.PageantSharp.PpkFileException" Collapsed="true">
     <Position X="3" Y="1.75" Width="1.5" />
     <TypeIdentifier>
-      <HashCode>AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=</HashCode>
-      <FileName>PpkFileFormatException.cs</FileName>
+      <HashCode>AAAAAAAAAAAAAQAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=</HashCode>
+      <FileName>PpkFileException.cs</FileName>
     </TypeIdentifier>
   </Class>
   <Class Name="dlech.PageantSharp.PpkFileMacException" Collapsed="true">
@@ -47,7 +47,7 @@
   <Class Name="dlech.PageantSharp.PSUtil" Collapsed="true">
     <Position X="1.25" Y="2.75" Width="1.5" />
     <TypeIdentifier>
-      <HashCode>AAAAAAAAAgAAAAAAAMAAQIAAAAAAAAACAAAAAAAAgAA=</HashCode>
+      <HashCode>AAAAAAAAAgAAAAAAAMAAQIAAAAAAAAACEAAAAAAAgAA=</HashCode>
       <FileName>PSUtil.cs</FileName>
     </TypeIdentifier>
   </Class>

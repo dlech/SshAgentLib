@@ -60,9 +60,9 @@ namespace PageantSharpTestProject.Properties {
             }
         }
         
-        internal static byte[] badFile_ppk {
+        internal static byte[] emptyFile_ppk {
             get {
-                object obj = ResourceManager.GetObject("badFile_ppk", resourceCulture);
+                object obj = ResourceManager.GetObject("emptyFile_ppk", resourceCulture);
                 return ((byte[])(obj));
             }
         }
