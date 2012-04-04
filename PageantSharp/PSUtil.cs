@@ -130,7 +130,7 @@ namespace dlech.PageantSharp
 
 		public static byte[] FromBase64(string base64String)
 		{
-			return FromBase64(Encoding.Default.GetBytes(base64String));
+			return FromBase64(Encoding.UTF8.GetBytes(base64String));
 		}
 
 		public static byte[] FromBase64(byte[] base64Data)

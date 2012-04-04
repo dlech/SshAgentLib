@@ -78,41 +78,56 @@ namespace PageantSharpTestProject
 			Assembly asm = Assembly.GetExecutingAssembly();
 			string dir = Path.GetDirectoryName(asm.Location);
 			string fileName = Path.Combine(dir, @"Resources\withoutPassphrase.ppk");
+
+			string expectedFileVersion = PpkFile.FileVersions.v2;
+			string expectedPublicKeyAlgorithm = PpkFile.PublicKeyAlgorithms.ssh_rsa;
+			string expectedPublicKeyString = 
+				"AAAAB3NzaC1yc2EAAAABJQAAAIEAqtfJwYLL9N6UyMYIrYoGu9eEZCIT3pS5OI0V" +
+				"4t80baJDXPkdUBqkokcHoDjXKOy620c6MmFROBZ6AZHRvlGztefIT2+oVGJxR3TR" +
+				"dPmQhhPzgyvsdWAzjQBIj7rZz5Dzu/sDOa2wm5PRHSMrk7G4f2b2/uaGuUvC+Ga5" +
+				"aKXEDnc=";
+			string expectedComment = "without passphrase";
+			string expectedPrivateKeyAlgorithm = PpkFile.PrivateKeyAlgorithms.none;
+			string expectedPrivateKeyString =
+				"AAAAgHyrTgnAT6TZxoSsL9iVJ4InpcyHkfVzcmeJjIL15/z53iFAKiWyk9BdWJeD" +
+				"bJN8UQDg8x3YUAZVl01A5SoERN18aB7lgajejzJgQFOP5Ad7vA/83dFbrzAf10Ah" +
+				"dbtaqHUdMwMWqdkqVa2EYCZ+O+0PeewHA3uBJECHlP/NN+GdAAAAQQDtQNlZb5AD" +
+				"d9RthpU1X6+ePcR7POnz01GrUPRARzRB2h5JP+mwFnfjANSKhZhrzePpIL1jKYyI" +
+				"o12b1qV/IXY5AAAAQQC4V5eZV62MzOuf1kdUVysFCVzt3mMLLcn57RQwRpqQfp5j" +
+				"0r2JNiAFBYo4k/9phYYJ0FziDIz/MEvYMwXLCiovAAAAQQDMYEQojQraSZDbcUwy" +
+				"OaEtSNGh9qtYIPuYilRFbiIU55Az5iujw8c7LCpNycSGeo6GGLAt6VCjp8v8abb0" +
+				"wOqJ";
+			string expectedPrivateMACString ="f7c9bf63097216304a05c1426ac9d42c4b3825cd";
+			bool expectedIsMAC = true;
+
 			try {
 				PpkFile target = new PpkFile(fileName);
-				Assert.AreEqual("ssh-rsa", target.PublicKeyAlgorithm);
-				Assert.AreEqual("none", target.PrivateKeyAlgorithm);
-				Assert.AreEqual("without passphrase", target.Comment);
-				Assert.AreEqual("AAAAB3NzaC1yc2EAAAABJQAAAIEAqtfJwYLL9N6UyMYIrYoGu9eEZCIT3pS5OI0V" +
-												"4t80baJDXPkdUBqkokcHoDjXKOy620c6MmFROBZ6AZHRvlGztefIT2+oVGJxR3TR" +
-												"dPmQhhPzgyvsdWAzjQBIj7rZz5Dzu/sDOa2wm5PRHSMrk7G4f2b2/uaGuUvC+Ga5" +
-												"aKXEDnc=", target.PublicKeyString);
-				Assert.AreEqual("AAAAgHyrTgnAT6TZxoSsL9iVJ4InpcyHkfVzcmeJjIL15/z53iFAKiWyk9BdWJeD" +
-												"bJN8UQDg8x3YUAZVl01A5SoERN18aB7lgajejzJgQFOP5Ad7vA/83dFbrzAf10Ah" +
-												"dbtaqHUdMwMWqdkqVa2EYCZ+O+0PeewHA3uBJECHlP/NN+GdAAAAQQDtQNlZb5AD" +
-												"d9RthpU1X6+ePcR7POnz01GrUPRARzRB2h5JP+mwFnfjANSKhZhrzePpIL1jKYyI" +
-												"o12b1qV/IXY5AAAAQQC4V5eZV62MzOuf1kdUVysFCVzt3mMLLcn57RQwRpqQfp5j" +
-												"0r2JNiAFBYo4k/9phYYJ0FziDIz/MEvYMwXLCiovAAAAQQDMYEQojQraSZDbcUwy" +
-												"OaEtSNGh9qtYIPuYilRFbiIU55Az5iujw8c7LCpNycSGeo6GGLAt6VCjp8v8abb0" +
-												"wOqJ", target.PrivateKeyString);
-				Assert.AreEqual("f7c9bf63097216304a05c1426ac9d42c4b3825cd", target.PrivateMACString);
-				Assert.IsTrue(target.IsMAC);
+				Assert.AreEqual(expectedFileVersion, target.FileVersion);
+				Assert.AreEqual(expectedPublicKeyAlgorithm, target.PublicKeyAlgorithm);
+				Assert.AreEqual(expectedPrivateKeyAlgorithm, target.PrivateKeyAlgorithm);
+				Assert.AreEqual(expectedComment, target.Comment);
+				Assert.AreEqual(expectedPublicKeyString, target.PublicKeyString);
+				byte[] expectedPublicKey = PSUtil.FromBase64(expectedPublicKeyString);
+				for (int i = 0; i < expectedPublicKey.Length; i++) {
+					Assert.AreEqual(expectedPublicKey[i], target.PublicKey[i]);
+				}
+				Assert.AreEqual(expectedPrivateKeyString, target.PrivateKeyString);
+				byte[] expectedPrivateKey = PSUtil.FromBase64(expectedPrivateKeyString);
+				for (int i = 0; i < expectedPrivateKey.Length; i++) {
+					Assert.AreEqual(expectedPrivateKey[i], target.PrivateKey[i]);
+				}
+				Assert.AreEqual(expectedPrivateMACString, target.PrivateMACString);
+				byte[] expectedPrivateMAC = PSUtil.FromHex(expectedPrivateMACString);
+				for (int i = 0; i < expectedPrivateMAC.Length; i++) {
+					Assert.AreEqual(expectedPrivateMAC[i], target.PrivateMAC[i]);
+				}
+				Assert.AreEqual(expectedIsMAC, target.IsMAC);
 			} catch (Exception ex) {
 				Assert.Fail(ex.ToString());
 			}
 
 		}
-
-		/// <summary>
-		///A test for PpkFile Constructor
-		///</summary>
-		[TestMethod()]
-		public void PpkFileConstructorFromDataTest()
-		{
-			byte[] data = Resources.withoutPassphrase_ppk;
-			PpkFile target = new PpkFile(data);
-		}
-
+		
 		/// <summary>
 		///A test for DecryptPrivateKey
 		///</summary>

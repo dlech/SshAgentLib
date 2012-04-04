@@ -231,9 +231,9 @@ namespace dlech.PageantSharp
 					sha.Initialize();
 					byte[] hash;
 					List<byte> key = new List<byte>();
-					hash = sha.ComputeHash(Encoding.Default.GetBytes(privKeyDecryptSalt1 + passphrase));
+					hash = sha.ComputeHash(Encoding.UTF8.GetBytes(privKeyDecryptSalt1 + passphrase));
 					key.AddRange(hash);
-					hash = sha.ComputeHash(Encoding.Default.GetBytes(privKeyDecryptSalt2 + passphrase));
+					hash = sha.ComputeHash(Encoding.UTF8.GetBytes(privKeyDecryptSalt2 + passphrase));
 					key.AddRange(hash);
 					sha.Clear();
 
@@ -256,11 +256,11 @@ namespace dlech.PageantSharp
 					List<byte> macData = new List<byte>();
 					if (this.FileVersion != FileVersions.v1) {
 						macData.AddRange(PSUtil.IntToBytes(this.PublicKeyAlgorithm.Length));
-						macData.AddRange(Encoding.Default.GetBytes(this.PublicKeyAlgorithm));
+						macData.AddRange(Encoding.UTF8.GetBytes(this.PublicKeyAlgorithm));
 						macData.AddRange(PSUtil.IntToBytes(this.PrivateKeyAlgorithm.Length));
-						macData.AddRange(Encoding.Default.GetBytes(this.PrivateKeyAlgorithm));
+						macData.AddRange(Encoding.UTF8.GetBytes(this.PrivateKeyAlgorithm));
 						macData.AddRange(PSUtil.IntToBytes(this.Comment.Length));
-						macData.AddRange(Encoding.Default.GetBytes(this.Comment));
+						macData.AddRange(Encoding.UTF8.GetBytes(this.Comment));
 						macData.AddRange(PSUtil.IntToBytes(this.PublicKey.Length));
 						macData.AddRange(this.PublicKey);
 						macData.AddRange(PSUtil.IntToBytes(result.Length));
@@ -271,7 +271,7 @@ namespace dlech.PageantSharp
 					if (this.IsMAC) {
 						HMAC hmac = HMACSHA1.Create();
 						sha = SHA1.Create();
-						hmac.Key = sha.ComputeHash(Encoding.Default.GetBytes(macKeySalt + passphrase));
+						hmac.Key = sha.ComputeHash(Encoding.UTF8.GetBytes(macKeySalt + passphrase));
 						sha.Clear();
 						computedHash = hmac.ComputeHash(macData.ToArray());
 						hmac.Clear();
@@ -301,7 +301,7 @@ namespace dlech.PageantSharp
 		public RSAParameters GetRSAParameters(string passphrase)
 		{			
 			KeyParser parser = new KeyParser(this.PublicKey);
-			string algorithm = Encoding.Default.GetString(parser.CurrentData);
+			string algorithm = Encoding.UTF8.GetString(parser.CurrentData);
 			parser.MoveNext();
 
 			if ((this.PublicKeyAlgorithm != PublicKeyAlgorithms.ssh_rsa) || 
@@ -331,6 +331,7 @@ namespace dlech.PageantSharp
 						
 			return parameters;
 		}
+
 		#endregion -- Public Methods --
 
 

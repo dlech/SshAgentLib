@@ -45,7 +45,7 @@ namespace dlech.PageantSharp
 				int length = PSUtil.BytesToInt(data, index);
 				index += 4;
 				// read data from group
-				if (index + length <= dataLength) {
+				if ((length > 0) && (index + length <= dataLength)) {
 					current = new byte[length];
 					Array.Copy(data, index, current, 0, length);
 					index += length;

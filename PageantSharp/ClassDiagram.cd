@@ -1,0 +1,55 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<ClassDiagram MajorVersion="1" MinorVersion="1">
+  <Class Name="dlech.PageantSharp.KeyParser" Collapsed="true" BaseTypeListCollapsed="true">
+    <Position X="1.25" Y="0.75" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAEAAAAAAABAAAAACAAAAAggAAAAAAIAAQAAABAAA=</HashCode>
+      <FileName>KeyParser.cs</FileName>
+    </TypeIdentifier>
+    <Lollipop Position="0.2" Collapsed="true" />
+  </Class>
+  <Class Name="dlech.PageantSharp.PageantException" Collapsed="true">
+    <Position X="3" Y="0.75" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=</HashCode>
+      <FileName>PageantException.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="dlech.PageantSharp.PageantWindow" Collapsed="true" BaseTypeListCollapsed="true">
+    <Position X="5.25" Y="0.75" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AQIAAIAAASJAAAIAAAAAAAAAAAAAAIAIAAAAQAgBAAA=</HashCode>
+      <FileName>PageantWindow.cs</FileName>
+    </TypeIdentifier>
+    <Lollipop Position="0.231" Collapsed="true" />
+  </Class>
+  <Class Name="dlech.PageantSharp.PpkFile" Collapsed="true">
+    <Position X="1.25" Y="1.75" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>UjAAACQEAQAAACAQEAEAAERQAAQAAAAAgISoRAAAAAA=</HashCode>
+      <FileName>PpkFile.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="dlech.PageantSharp.PpkFileFormatException" Collapsed="true">
+    <Position X="3" Y="1.75" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=</HashCode>
+      <FileName>PpkFileFormatException.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="dlech.PageantSharp.PpkFileMacException" Collapsed="true">
+    <Position X="5" Y="1.75" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=</HashCode>
+      <FileName>PpkFileMacException.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="dlech.PageantSharp.PSUtil" Collapsed="true">
+    <Position X="1.25" Y="2.75" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAgAAAAAAAMAAQIAAAAAAAAACAAAAAAAAgAA=</HashCode>
+      <FileName>PSUtil.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Font Name="Segoe UI" Size="9" />
+</ClassDiagram>

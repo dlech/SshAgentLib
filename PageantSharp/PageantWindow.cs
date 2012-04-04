@@ -200,6 +200,15 @@ namespace dlech.PageantSharp
 		}
 
 		#endregion
+
+		#region -- events --
+
+		/// <summary>
+		/// Called when WndProc receives a message from a PuTTY client,
+		/// </summary>
+		public event EventHandler PuttyMessageReceived;
+
+		#endregion --events --
 	}
 
 }
