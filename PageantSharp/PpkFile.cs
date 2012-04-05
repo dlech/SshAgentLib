@@ -7,6 +7,8 @@ using System.Collections.ObjectModel;
 using System.Collections;
 using System.Security.Cryptography;
 using System.Security;
+using System.Numerics;
+using System.Diagnostics;
 
 namespace dlech.PageantSharp
 {
@@ -171,6 +173,12 @@ namespace dlech.PageantSharp
 		public string Comment
 		{
 			get { return this.comment; }
+		}
+
+		public AsymmetricAlgorithm PublicKeyAlgorithm
+		{
+			get;
+			private set;
 		}
 
 		#endregion -- Properties --
@@ -363,6 +371,7 @@ namespace dlech.PageantSharp
 				string privateMACString = pair[1].Trim();
 				this.privateMAC = PSUtil.FromHex(privateMACString);
 
+
 				/* get passphrase and decrypt private key if required */
 				if (privateKeyAlgorithm != PrivateKeyAlgorithms.none) {
 					if (getPassphrase == null) {
@@ -373,11 +382,14 @@ namespace dlech.PageantSharp
 				}
 
 				VerifyIntegrity();
+				SetPublicKeyAlgorithm();
+
+
 			} catch (PpkFileException) {
 				throw;
 			} catch (Exception ex) {
 				throw new PpkFileException(
-					PpkFileException.ErrorType.FileFormat, 
+					PpkFileException.ErrorType.FileFormat,
 					"See inner exception.", ex);
 			} finally {
 				Array.Clear(data, 0, data.Length);
@@ -397,8 +409,10 @@ namespace dlech.PageantSharp
 
 		private void DecryptPrivateKey()
 		{
-			// only one valid type for now, possibly more in future
 			switch (this.privateKeyAlgorithm) {
+
+				case PrivateKeyAlgorithms.none:
+					return;
 
 				case PrivateKeyAlgorithms.aes256_cbc:
 
@@ -494,39 +508,69 @@ namespace dlech.PageantSharp
 			}
 		}
 
-		private RSAParameters GetRSAParameters(string passphrase)
+		private void SetPublicKeyAlgorithm()
 		{
-			KeyParser parser = new KeyParser(this.publicKey);
-			string algorithm = Encoding.UTF8.GetString(parser.CurrentData);
-			parser.MoveNext();
+			switch (this.publicKeyAlgorithm) {
+				case PublicKeyAlgorithms.ssh_rsa:
+					
+					KeyParser parser = new KeyParser(this.publicKey);
+					string algorithm = Encoding.UTF8.GetString(parser.CurrentData);
+					parser.MoveNext();
 
-			if ((this.publicKeyAlgorithm != PublicKeyAlgorithms.ssh_rsa) ||
-				(algorithm != PublicKeyAlgorithms.ssh_rsa)) {
-				throw new InvalidOperationException("key is not rsa");
+					if ((this.publicKeyAlgorithm != PublicKeyAlgorithms.ssh_rsa) ||
+						(algorithm != PublicKeyAlgorithms.ssh_rsa)) {
+						throw new InvalidOperationException("public key is not rsa");
+					}
+					
+					/* read parameters that were stored in file */ 
+
+					RSAParameters parameters = new RSAParameters();
+					// Skip is to drop leading 0 if it exists
+					parameters.Exponent = parser.CurrentData.Skip(parser.CurrentData[0] == 0 ? 1 : 0).ToArray();
+					parser.MoveNext();
+					parameters.Modulus = parser.CurrentData.Skip(parser.CurrentData[0] == 0 ? 1 : 0).ToArray();
+					//parser.MoveNext();
+
+					parser = new KeyParser(this.privateKey);
+
+					parameters.D = parser.CurrentData.Skip(parser.CurrentData[0] == 0 ? 1 : 0).ToArray();
+					parser.MoveNext();
+					parameters.P = parser.CurrentData.Skip(parser.CurrentData[0] == 0 ? 1 : 0).ToArray();
+					parser.MoveNext();
+					parameters.Q = parser.CurrentData.Skip(parser.CurrentData[0] == 0 ? 1 : 0).ToArray();
+					parser.MoveNext();
+					parameters.InverseQ = parser.CurrentData.Skip(parser.CurrentData[0] == 0 ? 1 : 0).ToArray();
+					//parser.MoveNext();
+
+					/* compute missing parameters */
+
+					byte[] pad = { 0 }; // needed so BigInteger does not see numbers as negative
+					// BigInteger is LittleEndian, parameters are BigEndian
+					BigInteger bigD = new BigInteger(parameters.D.Reverse().Concat(pad).ToArray());
+					BigInteger bigP = new BigInteger(parameters.P.Reverse().Concat(pad).ToArray());
+					BigInteger bigQ = new BigInteger(parameters.Q.Reverse().Concat(pad).ToArray());
+					parameters.DP = (bigD % (bigP - BigInteger.One)).ToByteArray().Reverse().ToArray();
+					parameters.DP = parameters.DP.Skip(parameters.DP[0] == 0 ? 1 : 0).ToArray();
+					parameters.DQ = (bigD % (bigQ - BigInteger.One)).ToByteArray().Reverse().ToArray();
+					parameters.DQ = parameters.DQ.Skip(parameters.DQ[0] == 0 ? 1 : 0).ToArray();
+
+					RSACryptoServiceProvider rsa = new RSACryptoServiceProvider();					
+					rsa.ImportParameters(parameters);
+					this.PublicKeyAlgorithm = rsa;
+
+					break;
+				case PublicKeyAlgorithms.ssh_dss:
+					throw new NotImplementedException("ssh-dss not implemented yet.");
+					break;
+				default:
+					// unsupported encryption algorithm
+					throw new PpkFileException(PpkFileException.ErrorType.PublicKeyEncryption);
 			}
-
-			RSAParameters parameters = new RSAParameters();
-			parameters.Exponent = parser.CurrentData;
-			parser.MoveNext();
-			parameters.Modulus = parser.CurrentData;
-			//parser.MoveNext();
-
-			parser = new KeyParser(this.privateKey);
-
-			parameters.D = parser.CurrentData;
-			parser.MoveNext();
-			parameters.P = parser.CurrentData;
-			parser.MoveNext();
-			parameters.Q = parser.CurrentData;
-			parser.MoveNext();
-			parameters.InverseQ = parser.CurrentData;
-			//parser.MoveNext();
-
-			return parameters;
 		}
 
-
 		# endregion -- Private Methods --
+
+
 	}
 }
 

@@ -92,6 +92,8 @@ namespace PageantSharpTestProject
 				warnCallbackCalled = true;
 			};
 
+			string passphrase = "PageantSharp";
+
 			string expectedPublicKeyAlgorithm = PpkFile.PublicKeyAlgorithms.ssh_rsa;
 			string expectedWithoutPassPublicKeyString = 
 				"AAAAB3NzaC1yc2EAAAABJQAAAIEAqtfJwYLL9N6UyMYIrYoGu9eEZCIT3pS5OI0V" +
@@ -131,13 +133,11 @@ namespace PageantSharpTestProject
 				"8877acc44fa4306977f960fde25b20d7146019fb";
 			
 			
-			try {
-				target = new PpkFile(withoutPassFileName, null, warnOldFileNotExpected);
-				Assert.AreEqual(expectedWithoutPassComment, target.Comment);
-			} catch (Exception ex) {
-				Assert.Fail(ex.ToString());
-			}
-
+			/* test for successful constructor */
+			target = new PpkFile(withPassFileName, delegate() { return passphrase; }, warnOldFileNotExpected);
+			Assert.AreEqual(expectedWithPassComment, target.Comment);
+			
+			/* read file to string for modification by subsequent tests */
 			string withoutPassFileContents;
 			byte[] modifiedFileContents;
 			Stream stream = File.OpenRead(withoutPassFileName);
