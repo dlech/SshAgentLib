@@ -1,5 +1,15 @@
 ﻿using System;
 using System.Runtime.InteropServices;
+using System.Windows.Forms;
+using System.Security.Principal;
+using System.Diagnostics;
+using Microsoft.Win32.SafeHandles;
+using System.IO;
+using System.IO.MemoryMappedFiles;
+using System.Security.Cryptography;
+using System.Collections.ObjectModel;
+using System.Collections.Generic;
+using System.Text;
 
 namespace dlech.PageantSharp
 {
@@ -15,8 +25,45 @@ namespace dlech.PageantSharp
 	{
 		#region /* constants */
 
-		private const int ERROR_CLASS_ALREADY_EXISTS = 1410;
+		/* From WINAPI */
+
+		private const int ERROR_CLASS_ALREADY_EXISTS =       1410;
+		private const int WM_COPYDATA =                      0x004A;
+
+
+		/* From PuTTY source code */
+
 		private const string className = "Pageant";
+
+		private const int AGENT_COPYDATA_ID = unchecked((int)0x804e50ba);
+		
+		/*
+		 * SSH-1 agent messages.
+		 */
+		private const int SSH1_AGENTC_REQUEST_RSA_IDENTITIES =    1;
+		private const int SSH1_AGENT_RSA_IDENTITIES_ANSWER =      2;
+		private const int SSH1_AGENTC_RSA_CHALLENGE =             3;
+		private const int SSH1_AGENT_RSA_RESPONSE =               4;
+		private const int SSH1_AGENTC_ADD_RSA_IDENTITY =          7;
+		private const int SSH1_AGENTC_REMOVE_RSA_IDENTITY =       8;
+		private const int SSH1_AGENTC_REMOVE_ALL_RSA_IDENTITIES = 9; /* openssh private? */
+
+		/*
+		 * Messages common to SSH-1 and OpenSSH's SSH-2.
+		 */
+		private const int SSH_AGENT_FAILURE =                     5;
+		private const int SSH_AGENT_SUCCESS =                     6;
+
+		/*
+		 * OpenSSH's SSH-2 agent messages.
+		 */
+		private const int SSH2_AGENTC_REQUEST_IDENTITIES =        11;
+		private const int SSH2_AGENT_IDENTITIES_ANSWER =          12;
+		private const int SSH2_AGENTC_SIGN_REQUEST =              13;
+		private const int SSH2_AGENT_SIGN_RESPONSE =              14;
+		private const int SSH2_AGENTC_ADD_IDENTITY =              17;
+		private const int SSH2_AGENTC_REMOVE_IDENTITY =           18;
+		private const int SSH2_AGENTC_REMOVE_ALL_IDENTITIES =     19;
 
 		#endregion
 
@@ -25,6 +72,9 @@ namespace dlech.PageantSharp
 
 		private bool disposed;
 		private IntPtr hwnd;
+		private WndProc customWndProc;
+
+		GetSSH2KeysCallback getSSH2KeysCallback;
 
 		#endregion
 
@@ -32,6 +82,8 @@ namespace dlech.PageantSharp
 		#region /* delegates */
 
 		private delegate IntPtr WndProc(IntPtr hWnd, uint msg, IntPtr wParam, IntPtr lParam);
+
+		public delegate IEnumerable<PpkKey> GetSSH2KeysCallback(); 
 
 		#endregion
 
@@ -53,6 +105,14 @@ namespace dlech.PageantSharp
 			public string lpszMenuName;
 			[MarshalAs(UnmanagedType.LPWStr)]
 			public string lpszClassName;
+		}
+
+		[StructLayout(LayoutKind.Sequential)]
+		struct COPYDATASTRUCT
+		{
+			public IntPtr dwData;
+			public int cbData;
+			public IntPtr lpData;
 		}
 
 		#endregion
@@ -88,11 +148,12 @@ namespace dlech.PageantSharp
 
 		[DllImport("user32.dll", SetLastError = true)]
 		static extern System.IntPtr DefWindowProcW(
-				IntPtr hWnd, uint msg, IntPtr wParam, IntPtr lParam
-		);
+				IntPtr hWnd, uint msg, IntPtr wParam, IntPtr lParam);
 
 		[DllImport("user32.dll", SetLastError = true)]
 		static extern bool DestroyWindow(IntPtr hWnd);
+
+
 
 		#endregion
 
@@ -104,16 +165,22 @@ namespace dlech.PageantSharp
 		/// 
 		/// </summary>
 		/// <exception cref="PageantException">Thrown when another instance of Pageant is running.</exception>
-		public PageantWindow()
+		public PageantWindow(GetSSH2KeysCallback getRSACollectionCallback)
 		{
 			if (CheckAlreadyRunning()) {
 				throw new PageantException();
 			}
 
+			/* assign callbacks */
+			this.getSSH2KeysCallback = getRSACollectionCallback;
+
+			// create reference to delegate so that garbage collector does not eat it.
+			this.customWndProc = CustomWndProc;
+
 			// Create WNDCLASS
 			WNDCLASS wind_class = new WNDCLASS();
 			wind_class.lpszClassName = PageantWindow.className;
-			wind_class.lpfnWndProc = CustomWndProc;
+			wind_class.lpfnWndProc = this.customWndProc;
 
 			UInt16 class_atom = RegisterClassW(ref wind_class);
 
@@ -184,6 +251,8 @@ namespace dlech.PageantSharp
 			return (hwnd != IntPtr.Zero);
 		}
 
+
+
 		/// <summary>
 		/// 
 		/// </summary>
@@ -192,23 +261,160 @@ namespace dlech.PageantSharp
 		/// <param name="wParam"></param>
 		/// <param name="lParam"></param>
 		/// <returns></returns>
-		private static IntPtr CustomWndProc(IntPtr hWnd, uint msg, IntPtr wParam, IntPtr lParam)
+		private IntPtr CustomWndProc(IntPtr hWnd, uint msg, IntPtr wParam, IntPtr lParam)
 		{
-			
+			if (msg == WM_COPYDATA) {
+				IntPtr result = Marshal.AllocHGlobal(sizeof(int));
+				Marshal.WriteInt32(result, 0);
+
+				//Message message = Message.Create(hWnd, (int)msg, wParam, lParam);
+				//COPYDATASTRUCT copyData = (COPYDATASTRUCT)message.GetLParam(typeof(COPYDATASTRUCT));
+				COPYDATASTRUCT copyData = (COPYDATASTRUCT)Marshal.PtrToStructure(lParam, typeof(COPYDATASTRUCT));
+				if (copyData.dwData.ToInt32() != AGENT_COPYDATA_ID) {
+					return result; // not our message, mate   ;)
+				}
+				string mapname = Marshal.PtrToStringAnsi(copyData.lpData);
+				if (mapname.Length != copyData.cbData - 1) {
+					return result; // data was not ascii string
+				}
+				try {
+					MemoryMappedFile fileMap = MemoryMappedFile.OpenExisting(mapname, MemoryMappedFileRights.FullControl);
+					if (!fileMap.SafeMemoryMappedFileHandle.IsInvalid) {
+
+						// TODO is this sufficent or should we do like Pageant does 
+						// and retreive sid from processes?
+						WindowsIdentity user = WindowsIdentity.GetCurrent();
+						SecurityIdentifier sid = user.User;
+						SecurityIdentifier mapOwner = (SecurityIdentifier)fileMap.GetAccessControl().GetOwner(typeof(System.Security.Principal.SecurityIdentifier));
+						if (sid == mapOwner) {
+							AnswerMessage(fileMap);
+							Marshal.WriteInt32(result, 1);
+							return result;
+						}
+					}
+					fileMap.Dispose();
+				} catch (Exception) {
+					return result;
+				}
+			}
 			// TODO finish implement window messaging
 			return DefWindowProcW(hWnd, msg, wParam, lParam);
 		}
 
+		private void AnswerMessage(MemoryMappedFile fileMap)
+		{
+
+			MemoryMappedViewStream stream = fileMap.CreateViewStream();
+
+			byte[] buffer = new byte[4];
+			stream.Read(buffer, 0, 4);
+			int dataLength = PSUtil.BytesToInt(buffer, 0);
+
+			if (dataLength > 0) {
+				stream.Position = 4;
+				int type = stream.ReadByte();
+				switch (type) {
+					case SSH1_AGENTC_REQUEST_RSA_IDENTITIES:
+						/*
+						 * Reply with SSH1_AGENT_RSA_IDENTITIES_ANSWER.
+						 */
+						
+
+						break;
+					case SSH2_AGENTC_REQUEST_IDENTITIES:
+						/*
+						 * Reply with SSH2_AGENT_IDENTITIES_ANSWER.
+						 */
+						if (this.getSSH2KeysCallback == null) {
+							goto default;
+						}
+
+						PpkKeyBlobBuilder builder = new PpkKeyBlobBuilder();
+						int keyCount = 0;						
+						foreach (PpkKey key in this.getSSH2KeysCallback()) {
+							keyCount++;
+							builder.AddBlob(key.GetSSH2PublicKeyBlob());
+							builder.AddString(key.Comment);
+						}
+
+						// TODO check for if(builder.Length > stream.Length)
+
+						stream.Position = 0;
+						stream.Write(PSUtil.IntToBytes(5 + builder.Length), 0, 4);
+						stream.WriteByte(SSH2_AGENT_IDENTITIES_ANSWER);						
+						stream.Write(PSUtil.IntToBytes(keyCount), 0, 4);						
+						stream.Write(builder.getBlob(), 0, builder.Length);
+						builder.Clear();
+						break;
+					case SSH1_AGENTC_RSA_CHALLENGE:
+						/*
+						 * Reply with either SSH1_AGENT_RSA_RESPONSE or
+						 * SSH_AGENT_FAILURE, depending on whether we have that key
+						 * or not.
+						 */
+
+						break;
+					case SSH2_AGENTC_SIGN_REQUEST:
+						/*
+						 * Reply with either SSH2_AGENT_SIGN_RESPONSE or
+						 * SSH_AGENT_FAILURE, depending on whether we have that key
+						 * or not.
+						 */
+
+						break;
+					case SSH1_AGENTC_ADD_RSA_IDENTITY:
+						/*
+						 * Add to the list and return SSH_AGENT_SUCCESS, or
+						 * SSH_AGENT_FAILURE if the key was malformed.
+						 */
+
+						break;
+					case SSH2_AGENTC_ADD_IDENTITY:
+					/*
+					 * Add to the list and return SSH_AGENT_SUCCESS, or
+					 * SSH_AGENT_FAILURE if the key was malformed.
+					 */
+
+						break;
+					case SSH1_AGENTC_REMOVE_RSA_IDENTITY:
+					/*
+					 * Remove from the list and return SSH_AGENT_SUCCESS, or
+					 * perhaps SSH_AGENT_FAILURE if it wasn't in the list to
+					 * start with.
+					 */
+
+						break;
+					case SSH2_AGENTC_REMOVE_IDENTITY:
+					/*
+					 * Remove from the list and return SSH_AGENT_SUCCESS, or
+					 * perhaps SSH_AGENT_FAILURE if it wasn't in the list to
+					 * start with.
+					 */
+
+						break;
+					case SSH1_AGENTC_REMOVE_ALL_RSA_IDENTITIES:
+					/*
+					 * Remove all SSH-1 keys. Always returns success.
+					 */
+
+						break;
+					case SSH2_AGENTC_REMOVE_ALL_IDENTITIES:
+					/*
+					 * Remove all SSH-2 keys. Always returns success.
+					 */
+
+						break;
+					default:
+						stream.Position = 0;
+						stream.Write(PSUtil.IntToBytes(1), 0, 4);
+						stream.WriteByte(SSH_AGENT_FAILURE);
+						break;
+				}
+			}
+
+		}
+
 		#endregion
-
-		#region -- events --
-
-		/// <summary>
-		/// Called when WndProc receives a message from a PuTTY client,
-		/// </summary>
-		public event EventHandler PuttyMessageReceived;
-
-		#endregion --events --
 	}
 
 }

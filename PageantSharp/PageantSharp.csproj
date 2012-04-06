@@ -37,8 +37,9 @@
     <StartupObject />
   </PropertyGroup>
   <ItemGroup>
-    <Compile Include="KeyParser.cs" />
-    <Compile Include="PpkFileMacException.cs" />
+    <Compile Include="PpkKey.cs" />
+    <Compile Include="PpkKeyBlobBuilder.cs" />
+    <Compile Include="PpkKeyBlobParser.cs" />
     <Compile Include="PSUtil.cs" />
     <Compile Include="PageantException.cs" />
     <Compile Include="PageantWindow.cs" />
@@ -48,7 +49,11 @@
   </ItemGroup>
   <ItemGroup>
     <Reference Include="System" />
+    <Reference Include="System.Data" />
+    <Reference Include="System.Drawing" />
     <Reference Include="System.Numerics" />
+    <Reference Include="System.Windows.Forms" />
+    <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
     <None Include="ClassDiagram.cd" />

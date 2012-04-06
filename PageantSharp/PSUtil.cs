@@ -175,14 +175,14 @@ namespace dlech.PageantSharp
 			byteList.AddRange(outputBytes);
 			Array.Clear(data, 0, data.Length);
 			data = byteList.ToArray();
-			ClearByteList(ref byteList);			
+			ClearByteList(byteList);			
 		}
 
 		/// <summary>
 		/// writes over all values in list with 0 then call list.Clear()
 		/// </summary>
 		/// <param name="list">list to be cleared</param>
-		public static void ClearByteList(ref List<byte> list)
+		public static void ClearByteList(List<byte> list)
 		{
 			int length = list.Count;
 			for (int i = 0; i< length; i++) {

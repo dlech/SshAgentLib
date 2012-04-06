@@ -9,14 +9,14 @@ namespace dlech.PageantSharp
 	/// <summary>
 	/// used to parse keys stored in .ppk file
 	/// </summary>
-	public class KeyParser : IEnumerator
+	public class PpkKeyBlobParser : IEnumerator
 	{
 		private int dataLength;
 		private byte[] data;
 		private int index;
 		private byte[] current;
 
-		public KeyParser(byte[] data)
+		public PpkKeyBlobParser(byte[] data)
 		{
 			if (data == null) {
 				throw new ArgumentNullException("data");

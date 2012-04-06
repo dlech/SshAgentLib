@@ -137,21 +137,17 @@ namespace dlech.PageantSharp
 		/// One of <see cref="PrivateKeyAlgorithms"/>
 		/// </summary>
 		private string privateKeyAlgorithm = null;
-
-		/// <summary>
-		/// User comment
-		/// </summary>
-		private string comment = null;
+				
 
 		/// <summary>
 		/// The public key
 		/// </summary>
-		private byte[] publicKey = null;
+		private byte[] publicKeyBlob = null;
 
 		/// <summary>
 		/// The private key.
 		/// </summary>
-		private byte[] privateKey = null;
+		private byte[] privateKeyBlob = null;
 
 		/// <summary>
 		/// The private key hash.
@@ -170,16 +166,11 @@ namespace dlech.PageantSharp
 
 		#region -- Properties --
 
-		public string Comment
-		{
-			get { return this.comment; }
-		}
-
-		public AsymmetricAlgorithm PublicKeyAlgorithm
+		public PpkKey Key
 		{
 			get;
 			private set;
-		}
+		}		
 
 		#endregion -- Properties --
 
@@ -254,7 +245,7 @@ namespace dlech.PageantSharp
 
 		#region -- Public Methods --
 
-
+		
 
 		#endregion -- Public Methods --
 
@@ -269,6 +260,8 @@ namespace dlech.PageantSharp
 		/// <param name="warnOldFileFormat">Callback method to warn user that file is old format</param>
 		private void ProcessData(ref byte[] data, GetPassphraseCallback getPassphrase, WarnOldFileFormatCallback warnOldFileFormat)
 		{
+			this.Key = new PpkKey();
+
 			/* check for required parameters */
 			if (data == null) {
 				throw new ArgumentNullException("data");
@@ -323,7 +316,7 @@ namespace dlech.PageantSharp
 				if (pair[0] != commentKey) {
 					throw new PpkFileException(PpkFileException.ErrorType.FileFormat, commentKey + " expected");
 				}
-				this.comment = pair[1].Trim();
+				this.Key.Comment = pair[1].Trim();
 
 				/* read public key */
 				line = reader.ReadLine();
@@ -338,7 +331,7 @@ namespace dlech.PageantSharp
 				for (i = 0; i < lineCount; i++) {
 					publicKeyString += reader.ReadLine();
 				}
-				this.publicKey = PSUtil.FromBase64(publicKeyString);
+				this.publicKeyBlob = PSUtil.FromBase64(publicKeyString);
 				// TODO destroy publicKeyString
 
 				/* read private key */
@@ -354,7 +347,7 @@ namespace dlech.PageantSharp
 				for (i = 0; i < lineCount; i++) {
 					privateKeyString += reader.ReadLine();
 				}
-				this.privateKey = PSUtil.FromBase64(privateKeyString);
+				this.privateKeyBlob = PSUtil.FromBase64(privateKeyString);
 				// TODO destroy privateKeyString
 
 				/* read MAC */
@@ -393,11 +386,11 @@ namespace dlech.PageantSharp
 					"See inner exception.", ex);
 			} finally {
 				Array.Clear(data, 0, data.Length);
-				if (this.publicKey != null) {
-					Array.Clear(this.publicKey, 0, this.publicKey.Length);
+				if (this.publicKeyBlob != null) {
+					Array.Clear(this.publicKeyBlob, 0, this.publicKeyBlob.Length);
 				}
-				if (this.privateKey != null) {
-					Array.Clear(this.privateKey, 0, this.privateKey.Length);
+				if (this.privateKeyBlob != null) {
+					Array.Clear(this.privateKeyBlob, 0, this.privateKeyBlob.Length);
 				}
 				if (this.privateMAC != null) {
 					Array.Clear(this.privateMAC, 0, this.privateMAC.Length);
@@ -438,10 +431,10 @@ namespace dlech.PageantSharp
 					int keySize = aes.KeySize / 8; // convert bits to bytes
 					key.RemoveRange(keySize, key.Count - keySize); // remmove extra bytes
 					aes.Key = key.ToArray();
-					PSUtil.ClearByteList(ref key);
+					PSUtil.ClearByteList(key);
 					aes.IV = new byte[aes.IV.Length];
 					ICryptoTransform decryptor = aes.CreateDecryptor();
-					PSUtil.GenericTransform(decryptor, ref this.privateKey);
+					PSUtil.GenericTransform(decryptor, ref this.privateKeyBlob);
 					decryptor.Dispose();
 					aes.Clear();
 
@@ -461,13 +454,13 @@ namespace dlech.PageantSharp
 				macData.AddRange(Encoding.UTF8.GetBytes(this.publicKeyAlgorithm));
 				macData.AddRange(PSUtil.IntToBytes(this.privateKeyAlgorithm.Length));
 				macData.AddRange(Encoding.UTF8.GetBytes(this.privateKeyAlgorithm));
-				macData.AddRange(PSUtil.IntToBytes(this.comment.Length));
-				macData.AddRange(Encoding.UTF8.GetBytes(this.comment));
-				macData.AddRange(PSUtil.IntToBytes(this.publicKey.Length));
-				macData.AddRange(this.publicKey);
-				macData.AddRange(PSUtil.IntToBytes(this.privateKey.Length));
+				macData.AddRange(PSUtil.IntToBytes(this.Key.Comment.Length));
+				macData.AddRange(Encoding.UTF8.GetBytes(this.Key.Comment));
+				macData.AddRange(PSUtil.IntToBytes(this.publicKeyBlob.Length));
+				macData.AddRange(this.publicKeyBlob);
+				macData.AddRange(PSUtil.IntToBytes(this.privateKeyBlob.Length));
 			}
-			macData.AddRange(this.privateKey);
+			macData.AddRange(this.privateKeyBlob);
 
 			byte[] computedHash;
 			SHA1 sha = SHA1.Create();
@@ -480,7 +473,7 @@ namespace dlech.PageantSharp
 				computedHash = sha.ComputeHash(macData.ToArray());
 			}
 			sha.Clear();
-			PSUtil.ClearByteList(ref macData);
+			PSUtil.ClearByteList(macData);
 
 			try {
 				int macLength = computedHash.Length;
@@ -513,7 +506,7 @@ namespace dlech.PageantSharp
 			switch (this.publicKeyAlgorithm) {
 				case PublicKeyAlgorithms.ssh_rsa:
 					
-					KeyParser parser = new KeyParser(this.publicKey);
+					PpkKeyBlobParser parser = new PpkKeyBlobParser(this.publicKeyBlob);
 					string algorithm = Encoding.UTF8.GetString(parser.CurrentData);
 					parser.MoveNext();
 
@@ -525,13 +518,14 @@ namespace dlech.PageantSharp
 					/* read parameters that were stored in file */ 
 
 					RSAParameters parameters = new RSAParameters();
+
 					// Skip is to drop leading 0 if it exists
 					parameters.Exponent = parser.CurrentData.Skip(parser.CurrentData[0] == 0 ? 1 : 0).ToArray();
 					parser.MoveNext();
 					parameters.Modulus = parser.CurrentData.Skip(parser.CurrentData[0] == 0 ? 1 : 0).ToArray();
 					//parser.MoveNext();
 
-					parser = new KeyParser(this.privateKey);
+					parser = new PpkKeyBlobParser(this.privateKeyBlob);
 
 					parameters.D = parser.CurrentData.Skip(parser.CurrentData[0] == 0 ? 1 : 0).ToArray();
 					parser.MoveNext();
@@ -554,9 +548,11 @@ namespace dlech.PageantSharp
 					parameters.DQ = (bigD % (bigQ - BigInteger.One)).ToByteArray().Reverse().ToArray();
 					parameters.DQ = parameters.DQ.Skip(parameters.DQ[0] == 0 ? 1 : 0).ToArray();
 
+					// TODO destroy BigInetegers
+
 					RSACryptoServiceProvider rsa = new RSACryptoServiceProvider();					
 					rsa.ImportParameters(parameters);
-					this.PublicKeyAlgorithm = rsa;
+					this.Key.Algorithm = rsa;
 
 					break;
 				case PublicKeyAlgorithms.ssh_dss:
@@ -566,7 +562,7 @@ namespace dlech.PageantSharp
 					// unsupported encryption algorithm
 					throw new PpkFileException(PpkFileException.ErrorType.PublicKeyEncryption);
 			}
-		}
+		}		
 
 		# endregion -- Private Methods --
 

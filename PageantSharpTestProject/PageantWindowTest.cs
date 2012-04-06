@@ -2,6 +2,10 @@
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using System;
 using System.Runtime.InteropServices;
+using System.Windows.Forms;
+using System.Collections.Generic;
+using PageantSharpTestProject.Properties;
+using System.Security.Cryptography;
 
 namespace PageantSharpTestProject
 {
@@ -74,7 +78,7 @@ namespace PageantSharpTestProject
 		public void PageantWindowConstructorTest()
 		{
 			// create new instance
-			PageantWindow target = new PageantWindow();
+			PageantWindow target = new PageantWindow(null);
 
 			try {
 				// emulate a client to make sure window is there
@@ -84,7 +88,7 @@ namespace PageantSharpTestProject
 				// try starting a second instance, this should cause an exception
 				Exception exception = null;
 				try {
-					PageantWindow target2 = new PageantWindow();
+					PageantWindow target2 = new PageantWindow(null);
 					target2.Dispose();
 				} catch (Exception ex) {
 					exception = ex;
@@ -96,6 +100,27 @@ namespace PageantSharpTestProject
 				// cleanup first instance
 				target.Dispose();
 			}
+		}
+		
+		[TestMethod()]
+		public void PageantWindowWndProcTest()
+		{
+			byte[] data = Resources.withoutPassphrase_ppk;
+			PpkFile.GetPassphraseCallback getPassphrase = null;
+			PpkFile.WarnOldFileFormatCallback warnOldFileFormat = delegate() { };
+			PpkFile file = new PpkFile(ref data, getPassphrase, warnOldFileFormat);
+			
+
+			PageantWindow.GetSSH2KeysCallback getSSH2KeysCallback = delegate()
+			{
+				List<PpkKey> keyList = new List<PpkKey>();
+				keyList.Add(file.Key);
+				return keyList;
+			};
+
+			PageantWindow target = new PageantWindow(getSSH2KeysCallback);
+			MessageBox.Show("Click OK when done");
+			target.Dispose();
 		}
 	}
 }
