@@ -413,18 +413,16 @@ namespace dlech.PageantSharp
 
 					SHA1 sha = SHA1.Create();
 					sha.Initialize();
-					byte[] hash;
 					List<byte> key = new List<byte>();
-					hash = sha.ComputeHash(Encoding.UTF8.GetBytes(privKeyDecryptSalt1 + this.passphrase));
-					key.AddRange(hash);
-					hash = sha.ComputeHash(Encoding.UTF8.GetBytes(privKeyDecryptSalt2 + this.passphrase));
-					key.AddRange(hash);
-					Array.Clear(hash, 0, hash.Length);
+					sha.ComputeHash(Encoding.UTF8.GetBytes(privKeyDecryptSalt1 + this.passphrase));
+					key.AddRange(sha.Hash);
+					sha.ComputeHash(Encoding.UTF8.GetBytes(privKeyDecryptSalt2 + this.passphrase));
+					key.AddRange(sha.Hash);
 					sha.Clear();
 
 					/* decrypt private key */
 
-					AesCryptoServiceProvider aes = new AesCryptoServiceProvider();
+					Aes aes = Aes.Create();
 					aes.KeySize = 256;
 					aes.Mode = CipherMode.CBC;
 					aes.Padding = PaddingMode.None;
@@ -549,8 +547,8 @@ namespace dlech.PageantSharp
 					parameters.DQ = parameters.DQ.Skip(parameters.DQ[0] == 0 ? 1 : 0).ToArray();
 
 					// TODO destroy BigInetegers
-
-					RSACryptoServiceProvider rsa = new RSACryptoServiceProvider();					
+					
+					RSA rsa = RSA.Create();					
 					rsa.ImportParameters(parameters);
 					this.Key.Algorithm = rsa;
 
