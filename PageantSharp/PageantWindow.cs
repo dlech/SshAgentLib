@@ -177,7 +177,7 @@ namespace dlech.PageantSharp
 			this.getSSH2KeysCallback = getRSACollectionCallback;
 
 			// create reference to delegate so that garbage collector does not eat it.
-			this.customWndProc = CustomWndProc;
+			this.customWndProc = new WndProc(CustomWndProc);
 
 			// Create WNDCLASS
 			WNDCLASS wind_class = new WNDCLASS();

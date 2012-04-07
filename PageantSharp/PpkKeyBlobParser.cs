@@ -3,18 +3,39 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Collections;
+using System.Runtime.InteropServices;
 
 namespace dlech.PageantSharp
 {
 	/// <summary>
 	/// used to parse keys stored in .ppk file
 	/// </summary>
-	public class PpkKeyBlobParser : IEnumerator
+	public class PpkKeyBlobParser : IEnumerator, IDisposable
 	{
 		private int dataLength;
-		private byte[] data;
+		private PinnedByteArray dataArray;
 		private int index;
-		private byte[] current;
+		private PinnedByteArray currentArray;
+
+		/// <summary>
+		/// Gets current data segment as object.
+		/// Objects returned by this property should be manually disposed 
+		/// as soon as they are no longer needed.
+		/// </summary>
+		public object Current
+		{
+			get { return currentArray; }
+		}
+
+		/// <summary>
+		/// Gets current data segment as PinnedByteArray.
+		/// Objects returned by this property should be manually disposed 
+		/// as soon as they are no longer needed.
+		/// </summary>
+		public PinnedByteArray CurrentAsPinnedByteArray
+		{
+			get { return currentArray; }
+		}
 
 		public PpkKeyBlobParser(byte[] data)
 		{
@@ -23,36 +44,39 @@ namespace dlech.PageantSharp
 			}
 
 			this.dataLength = data.Length;
-			this.data = new byte[dataLength];
-			Array.Copy(data, this.data, dataLength);
+			this.dataArray = new PinnedByteArray(dataLength);
+			// we will be working with a copy so that data cannot be changed exteranally
+			Array.Copy(data, this.dataArray.Data, dataLength);
 			Reset();
 		}
 
-		public object Current
+		~PpkKeyBlobParser()
 		{
-			get { return current; }
-		}
+			Dispose();
+		}	
 
-		public byte[] CurrentData
+		public void Dispose()
 		{
-			get { return current; }
-		}
+			if (dataArray != null) {
+				dataArray.Dispose();
+			}
+		}				
 
 		public bool MoveNext()
 		{
 			// read length of next data group
 			if (index + 4 <= dataLength) {
-				int length = PSUtil.BytesToInt(data, index);
+				int length = PSUtil.BytesToInt(dataArray.Data, index);
 				index += 4;
 				// read data from group
 				if ((length > 0) && (index + length <= dataLength)) {
-					current = new byte[length];
-					Array.Copy(data, index, current, 0, length);
+					currentArray = new PinnedByteArray(length);
+					Array.Copy(dataArray.Data, index, currentArray.Data, 0, length);
 					index += length;
 					return true;
 				}
 			}
-			current = null;
+			currentArray = null;
 			return false;
 		}
 
@@ -61,5 +85,6 @@ namespace dlech.PageantSharp
 			this.index = 0;
 			MoveNext();
 		}
+		
 	}
 }

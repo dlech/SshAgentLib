@@ -190,5 +190,21 @@ namespace dlech.PageantSharp
 			}
 			list.Clear();
 		}
+
+		/// <summary>
+		/// removes leading element from array if the value of that element is 0
+		/// </summary>
+		/// <param name="array"></param>
+		public static void TrimLeadingZero(PinnedByteArray array)
+		{
+			if (array != null && array.Data != null && array.Data.Length > 0) {
+				if (array.Data[0] == 0) {
+					PinnedByteArray arrayCopy = (PinnedByteArray)array.Clone();
+					array.Data = new byte[array.Data.Length - 1];
+					Array.Copy(arrayCopy.Data, 1, array.Data, 0, array.Data.Length);
+					arrayCopy.Dispose();
+				}
+			}
+		}
 	}
 }

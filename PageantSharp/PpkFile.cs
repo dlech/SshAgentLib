@@ -9,6 +9,7 @@ using System.Security.Cryptography;
 using System.Security;
 using System.Numerics;
 using System.Diagnostics;
+using System.Runtime.InteropServices;
 
 namespace dlech.PageantSharp
 {
@@ -505,7 +506,8 @@ namespace dlech.PageantSharp
 				case PublicKeyAlgorithms.ssh_rsa:
 					
 					PpkKeyBlobParser parser = new PpkKeyBlobParser(this.publicKeyBlob);
-					string algorithm = Encoding.UTF8.GetString(parser.CurrentData);
+					string algorithm = Encoding.UTF8.GetString(parser.CurrentAsPinnedByteArray.Data);
+					parser.CurrentAsPinnedByteArray.Dispose();
 					parser.MoveNext();
 
 					if ((this.publicKeyAlgorithm != PublicKeyAlgorithms.ssh_rsa) ||
@@ -513,43 +515,49 @@ namespace dlech.PageantSharp
 						throw new InvalidOperationException("public key is not rsa");
 					}
 					
-					/* read parameters that were stored in file */ 
+					/* read parameters that were stored in file */
 
-					RSAParameters parameters = new RSAParameters();
+					RSAParameters rsaParams = new RSAParameters();
 
-					// Skip is to drop leading 0 if it exists
-					parameters.Exponent = parser.CurrentData.Skip(parser.CurrentData[0] == 0 ? 1 : 0).ToArray();
+					PSUtil.TrimLeadingZero(parser.CurrentAsPinnedByteArray);					
+					rsaParams.Exponent = parser.CurrentAsPinnedByteArray.Data;
 					parser.MoveNext();
-					parameters.Modulus = parser.CurrentData.Skip(parser.CurrentData[0] == 0 ? 1 : 0).ToArray();
+					PSUtil.TrimLeadingZero(parser.CurrentAsPinnedByteArray);		
+					rsaParams.Modulus = parser.CurrentAsPinnedByteArray.Data;
 					//parser.MoveNext();
-
+					
 					parser = new PpkKeyBlobParser(this.privateKeyBlob);
 
-					parameters.D = parser.CurrentData.Skip(parser.CurrentData[0] == 0 ? 1 : 0).ToArray();
+					PSUtil.TrimLeadingZero(parser.CurrentAsPinnedByteArray);		
+					rsaParams.D = parser.CurrentAsPinnedByteArray.Data;
 					parser.MoveNext();
-					parameters.P = parser.CurrentData.Skip(parser.CurrentData[0] == 0 ? 1 : 0).ToArray();
+					PSUtil.TrimLeadingZero(parser.CurrentAsPinnedByteArray);		
+					rsaParams.P = parser.CurrentAsPinnedByteArray.Data;
 					parser.MoveNext();
-					parameters.Q = parser.CurrentData.Skip(parser.CurrentData[0] == 0 ? 1 : 0).ToArray();
+					PSUtil.TrimLeadingZero(parser.CurrentAsPinnedByteArray);		
+					rsaParams.Q = parser.CurrentAsPinnedByteArray.Data;
 					parser.MoveNext();
-					parameters.InverseQ = parser.CurrentData.Skip(parser.CurrentData[0] == 0 ? 1 : 0).ToArray();
+					PSUtil.TrimLeadingZero(parser.CurrentAsPinnedByteArray);		
+					rsaParams.InverseQ = parser.CurrentAsPinnedByteArray.Data;
 					//parser.MoveNext();
 
 					/* compute missing parameters */
 
 					byte[] pad = { 0 }; // needed so BigInteger does not see numbers as negative
 					// BigInteger is LittleEndian, parameters are BigEndian
-					BigInteger bigD = new BigInteger(parameters.D.Reverse().Concat(pad).ToArray());
-					BigInteger bigP = new BigInteger(parameters.P.Reverse().Concat(pad).ToArray());
-					BigInteger bigQ = new BigInteger(parameters.Q.Reverse().Concat(pad).ToArray());
-					parameters.DP = (bigD % (bigP - BigInteger.One)).ToByteArray().Reverse().ToArray();
-					parameters.DP = parameters.DP.Skip(parameters.DP[0] == 0 ? 1 : 0).ToArray();
-					parameters.DQ = (bigD % (bigQ - BigInteger.One)).ToByteArray().Reverse().ToArray();
-					parameters.DQ = parameters.DQ.Skip(parameters.DQ[0] == 0 ? 1 : 0).ToArray();
+					BigInteger bigD = new BigInteger(rsaParams.D.Reverse().Concat(pad).ToArray());
+					BigInteger bigP = new BigInteger(rsaParams.P.Reverse().Concat(pad).ToArray());
+					BigInteger bigQ = new BigInteger(rsaParams.Q.Reverse().Concat(pad).ToArray());
+					rsaParams.DP = (bigD % (bigP - BigInteger.One)).ToByteArray().Reverse().ToArray();
+					rsaParams.DP = rsaParams.DP.Skip(rsaParams.DP[0] == 0 ? 1 : 0).ToArray();
+					rsaParams.DQ = (bigD % (bigQ - BigInteger.One)).ToByteArray().Reverse().ToArray();
+					rsaParams.DQ = rsaParams.DQ.Skip(rsaParams.DQ[0] == 0 ? 1 : 0).ToArray();
+										
 
 					// TODO destroy BigInetegers
 					
 					RSA rsa = RSA.Create();					
-					rsa.ImportParameters(parameters);
+					rsa.ImportParameters(rsaParams);
 					this.Key.Algorithm = rsa;
 
 					break;

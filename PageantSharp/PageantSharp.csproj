@@ -37,6 +37,7 @@
     <StartupObject />
   </PropertyGroup>
   <ItemGroup>
+    <Compile Include="PinnedByteArray.cs" />
     <Compile Include="PpkKey.cs" />
     <Compile Include="PpkKeyBlobBuilder.cs" />
     <Compile Include="PpkKeyBlobParser.cs" />

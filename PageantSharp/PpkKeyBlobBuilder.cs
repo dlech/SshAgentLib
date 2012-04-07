@@ -45,7 +45,7 @@ namespace dlech.PageantSharp
 		{
 			AddBlob(Encoding.UTF8.GetBytes(str));
 		}
-
+		
 		/// <summary>
 		/// Adds 0 pad to byte[] if required and adds the result to the blob
 		/// </summary>
