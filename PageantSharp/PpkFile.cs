@@ -515,50 +515,56 @@ namespace dlech.PageantSharp
 						throw new InvalidOperationException("public key is not rsa");
 					}
 					
-					/* read parameters that were stored in file */
-
-					RSAParameters rsaParams = new RSAParameters();
+					/* read parameters that were stored in file */					
 
 					PSUtil.TrimLeadingZero(parser.CurrentAsPinnedByteArray);					
-					rsaParams.Exponent = parser.CurrentAsPinnedByteArray.Data;
+					PinnedByteArray exponent = parser.CurrentAsPinnedByteArray;
 					parser.MoveNext();
-					PSUtil.TrimLeadingZero(parser.CurrentAsPinnedByteArray);		
-					rsaParams.Modulus = parser.CurrentAsPinnedByteArray.Data;
+					PSUtil.TrimLeadingZero(parser.CurrentAsPinnedByteArray);
+					PinnedByteArray modulus = parser.CurrentAsPinnedByteArray;
 					//parser.MoveNext();
 					
 					parser = new PpkKeyBlobParser(this.privateKeyBlob);
 
-					PSUtil.TrimLeadingZero(parser.CurrentAsPinnedByteArray);		
-					rsaParams.D = parser.CurrentAsPinnedByteArray.Data;
+					PSUtil.TrimLeadingZero(parser.CurrentAsPinnedByteArray);
+					PinnedByteArray d = parser.CurrentAsPinnedByteArray;
 					parser.MoveNext();
-					PSUtil.TrimLeadingZero(parser.CurrentAsPinnedByteArray);		
-					rsaParams.P = parser.CurrentAsPinnedByteArray.Data;
+					PSUtil.TrimLeadingZero(parser.CurrentAsPinnedByteArray);
+					PinnedByteArray p = parser.CurrentAsPinnedByteArray;
 					parser.MoveNext();
-					PSUtil.TrimLeadingZero(parser.CurrentAsPinnedByteArray);		
-					rsaParams.Q = parser.CurrentAsPinnedByteArray.Data;
+					PSUtil.TrimLeadingZero(parser.CurrentAsPinnedByteArray);
+					PinnedByteArray q = parser.CurrentAsPinnedByteArray;
 					parser.MoveNext();
-					PSUtil.TrimLeadingZero(parser.CurrentAsPinnedByteArray);		
-					rsaParams.InverseQ = parser.CurrentAsPinnedByteArray.Data;
+					PSUtil.TrimLeadingZero(parser.CurrentAsPinnedByteArray);
+					PinnedByteArray inverseQ = parser.CurrentAsPinnedByteArray;
 					//parser.MoveNext();
 
 					/* compute missing parameters */
+					PinnedByteArray dp = PSUtil.ModMinusOne(d, p);
+					PinnedByteArray dq = PSUtil.ModMinusOne(d, q);					
 
-					byte[] pad = { 0 }; // needed so BigInteger does not see numbers as negative
-					// BigInteger is LittleEndian, parameters are BigEndian
-					BigInteger bigD = new BigInteger(rsaParams.D.Reverse().Concat(pad).ToArray());
-					BigInteger bigP = new BigInteger(rsaParams.P.Reverse().Concat(pad).ToArray());
-					BigInteger bigQ = new BigInteger(rsaParams.Q.Reverse().Concat(pad).ToArray());
-					rsaParams.DP = (bigD % (bigP - BigInteger.One)).ToByteArray().Reverse().ToArray();
-					rsaParams.DP = rsaParams.DP.Skip(rsaParams.DP[0] == 0 ? 1 : 0).ToArray();
-					rsaParams.DQ = (bigD % (bigQ - BigInteger.One)).ToByteArray().Reverse().ToArray();
-					rsaParams.DQ = rsaParams.DQ.Skip(rsaParams.DQ[0] == 0 ? 1 : 0).ToArray();
-										
+					RSAParameters rsaParams = new RSAParameters();
+					rsaParams.Modulus = modulus.Data;
+					rsaParams.Exponent = exponent.Data;
+					rsaParams.D = d.Data;
+					rsaParams.P = p.Data;
+					rsaParams.Q = q.Data;
+					rsaParams.InverseQ = inverseQ.Data;
+					rsaParams.DP = dp.Data;
+					rsaParams.DQ = dq.Data;
 
-					// TODO destroy BigInetegers
-					
 					RSA rsa = RSA.Create();					
 					rsa.ImportParameters(rsaParams);
 					this.Key.Algorithm = rsa;
+
+					modulus.Dispose();
+					exponent.Dispose();
+					d.Dispose();
+					p.Dispose();
+					q.Dispose();
+					inverseQ.Dispose();
+					dp.Dispose();
+					dq.Dispose();
 
 					break;
 				case PublicKeyAlgorithms.ssh_dss:

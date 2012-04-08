@@ -175,7 +175,7 @@ namespace dlech.PageantSharp
 			byteList.AddRange(outputBytes);
 			Array.Clear(data, 0, data.Length);
 			data = byteList.ToArray();
-			ClearByteList(byteList);			
+			ClearByteList(byteList);
 		}
 
 		/// <summary>
@@ -185,8 +185,8 @@ namespace dlech.PageantSharp
 		public static void ClearByteList(List<byte> list)
 		{
 			int length = list.Count;
-			for (int i = 0; i< length; i++) {
-				 list[i] = 0;
+			for (int i = 0; i < length; i++) {
+				list[i] = 0;
 			}
 			list.Clear();
 		}
@@ -206,5 +206,81 @@ namespace dlech.PageantSharp
 				}
 			}
 		}
+
+
+		/// <summary>
+		/// Compuutes a % (b -1) of 2 large numbers
+		/// </summary>
+		/// <param name="a">variable a</param>
+		/// <param name="b">variable b</param>
+		/// <returns></returns>
+		public static PinnedByteArray ModMinusOne(PinnedByteArray a, PinnedByteArray b)
+		{
+			using (PinnedByteArray bMinusOne = (PinnedByteArray)b.Clone()) {
+
+				PinnedByteArray result = (PinnedByteArray)a.Clone();
+				// should't have to worry about borrowing because b should be prime and therefore not end in zero
+				bMinusOne.Data[bMinusOne.Data.Length - 1]--;
+				int bShift = a.Data.Length - b.Data.Length;
+
+				while (bShift >= 0) {
+					while (CompareBigInt(result.Data, bMinusOne.Data, bShift) >= 0) {
+						result.Data = SubtractBigInt(result.Data, bMinusOne.Data, bShift);
+						TrimLeadingZero(result);
+					}
+					bShift--;
+				}
+
+				return result;
+			}
+		}
+
+		/// <summary>
+		/// Compares to BigInts
+		/// </summary>
+		/// <param name="a">variable a</param>
+		/// <param name="b">variable b</param>
+		/// <param name="bShift">number of bytes to shift b to the left</param>
+		/// <returns>-1 if a &lt; b, 0 if a = b, 1 if a &gt; b</returns>
+		private static int CompareBigInt(byte[] a, byte[] b, int bShift)
+		{
+			if (a.Length == b.Length + bShift) {
+				for (int i=0; i < a.Length; i++) {
+					int result = a[i].CompareTo((byte)((i < b.Length) ? b[i] : 0));
+					if (result != 0) {
+						return result;
+					}
+				}
+				return 0;
+			} else {
+				return a.Length.CompareTo(b.Length + bShift);
+			}
+		}
+
+		/// <summary>
+		/// Compute a - b, assumes that a &gt; b&lt;&lt;bShift
+		/// </summary>
+		/// <param name="a">variable a</param>
+		/// <param name="b">variable b</param>
+		/// <param name="bShift"> number of bytes to shift b to the left</param>
+		/// <returns>a - b</returns>
+		private static byte[] SubtractBigInt(byte[] a, byte[] b, int bShift)
+		{
+			byte[] result = new byte[a.Length];
+			byte[] borrow = new byte[a.Length + 1];
+
+			int bOffset = a.Length - b.Length - bShift;
+
+			for (int i=a.Length - 1; i >= 0; i--) {
+				int diff  = a[i] - (((i < bOffset) || (i >= b.Length + bOffset)) ? 0 : b[i - bOffset]) - borrow[i + 1];
+				while (diff < 0) {
+					borrow[i] += 1;
+					diff += byte.MaxValue + 1;
+				}
+				result[i] = (byte)diff;
+			}
+			return result;
+		}
+
 	}
 }
