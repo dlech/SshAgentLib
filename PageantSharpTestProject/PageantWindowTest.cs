@@ -78,7 +78,7 @@ namespace PageantSharpTestProject
 		public void PageantWindowConstructorTest()
 		{
 			// create new instance
-			PageantWindow target = new PageantWindow(null);
+			WinPageant target = new WinPageant(null);
 
 			try {
 				// emulate a client to make sure window is there
@@ -88,7 +88,7 @@ namespace PageantSharpTestProject
 				// try starting a second instance, this should cause an exception
 				Exception exception = null;
 				try {
-					PageantWindow target2 = new PageantWindow(null);
+					WinPageant target2 = new WinPageant(null);
 					target2.Dispose();
 				} catch (Exception ex) {
 					exception = ex;
@@ -111,14 +111,14 @@ namespace PageantSharpTestProject
 			PpkFile file = new PpkFile(ref data, getPassphrase, warnOldFileFormat);
 			
 
-			PageantWindow.GetSSH2KeysCallback getSSH2KeysCallback = delegate()
+			WinPageant.GetSSH2KeysCallback getSSH2KeysCallback = delegate()
 			{
 				List<PpkKey> keyList = new List<PpkKey>();
 				keyList.Add(file.Key);
 				return keyList;
 			};
 
-			PageantWindow target = new PageantWindow(getSSH2KeysCallback);
+			WinPageant target = new WinPageant(getSSH2KeysCallback);
 			MessageBox.Show("Click OK when done");
 			target.Dispose();
 		}

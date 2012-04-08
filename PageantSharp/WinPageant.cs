@@ -21,7 +21,7 @@ namespace dlech.PageantSharp
 	/// Code based on http://stackoverflow.com/questions/128561/registering-a-custom-win32-window-class-from-c-sharp
 	/// and Putty source code http://www.chiark.greenend.org.uk/~sgtatham/putty/download.html
 	/// </summary>
-	public class PageantWindow : IDisposable
+	public class WinPageant : IDisposable
 	{
 		#region /* constants */
 
@@ -167,7 +167,7 @@ namespace dlech.PageantSharp
 		/// 
 		/// </summary>
 		/// <exception cref="PageantException">Thrown when another instance of Pageant is running.</exception>
-		public PageantWindow(GetSSH2KeysCallback getRSACollectionCallback)
+		public WinPageant(GetSSH2KeysCallback getRSACollectionCallback)
 		{
 			if (CheckAlreadyRunning()) {
 				throw new PageantException();
@@ -181,7 +181,7 @@ namespace dlech.PageantSharp
 
 			// Create WNDCLASS
 			WNDCLASS wind_class = new WNDCLASS();
-			wind_class.lpszClassName = PageantWindow.className;
+			wind_class.lpszClassName = WinPageant.className;
 			wind_class.lpfnWndProc = this.customWndProc;
 
 			UInt16 class_atom = RegisterClassW(ref wind_class);
@@ -189,15 +189,15 @@ namespace dlech.PageantSharp
 			int last_error = Marshal.GetLastWin32Error();
 
 			// TODO do we really need to worry about an error when regisering class?
-			if (class_atom == 0 && last_error != PageantWindow.ERROR_CLASS_ALREADY_EXISTS) {
+			if (class_atom == 0 && last_error != WinPageant.ERROR_CLASS_ALREADY_EXISTS) {
 				throw new System.Exception("Could not register window class");
 			}
 
 			// Create window
 			this.hwnd = CreateWindowExW(
 					0, // dwExStyle
-					PageantWindow.className, // lpClassName
-					PageantWindow.className, // lpWindowName
+					WinPageant.className, // lpClassName
+					WinPageant.className, // lpWindowName
 					0, // dwStyle
 					0, // x
 					0, // y
@@ -249,7 +249,7 @@ namespace dlech.PageantSharp
 		/// <returns>true if Pageant is running</returns>
 		private bool CheckAlreadyRunning()
 		{
-			IntPtr hwnd = FindWindow(PageantWindow.className, PageantWindow.className);
+			IntPtr hwnd = FindWindow(WinPageant.className, WinPageant.className);
 			return (hwnd != IntPtr.Zero);
 		}
 

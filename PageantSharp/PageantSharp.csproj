@@ -43,7 +43,7 @@
     <Compile Include="PpkKeyBlobParser.cs" />
     <Compile Include="PSUtil.cs" />
     <Compile Include="PageantException.cs" />
-    <Compile Include="PageantWindow.cs" />
+    <Compile Include="WinPageant.cs" />
     <Compile Include="PpkFileException.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="PpkFile.cs" />
