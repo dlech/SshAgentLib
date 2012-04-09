@@ -138,7 +138,7 @@ namespace dlech.PageantSharp
 		/// One of <see cref="PrivateKeyAlgorithms"/>
 		/// </summary>
 		private string privateKeyAlgorithm = null;
-				
+
 
 		/// <summary>
 		/// The public key
@@ -160,7 +160,7 @@ namespace dlech.PageantSharp
 		/// </summary>
 		private bool isHMAC;
 
-		private string passphrase = null;
+		private SecureString passphrase = null;
 
 		#endregion -- global variables --
 
@@ -171,7 +171,7 @@ namespace dlech.PageantSharp
 		{
 			get;
 			private set;
-		}		
+		}
 
 		#endregion -- Properties --
 
@@ -182,7 +182,7 @@ namespace dlech.PageantSharp
 		/// Gets passphrase. This method is only called if the file requires a passphrase.
 		/// </summary>
 		/// <returns></returns>
-		public delegate string GetPassphraseCallback();
+		public delegate SecureString GetPassphraseCallback();
 
 		/// <summary>
 		/// Implementation of this function shoud warn the user that they are using
@@ -246,7 +246,7 @@ namespace dlech.PageantSharp
 
 		#region -- Public Methods --
 
-		
+
 
 		#endregion -- Public Methods --
 
@@ -371,7 +371,7 @@ namespace dlech.PageantSharp
 					if (getPassphrase == null) {
 						throw new PpkFileException(PpkFileException.ErrorType.BadPassphrase);
 					}
-					this.passphrase = getPassphrase();
+					this.passphrase = getPassphrase();					
 					DecryptPrivateKey();
 				}
 
@@ -415,12 +415,21 @@ namespace dlech.PageantSharp
 					SHA1 sha = SHA1.Create();
 					sha.Initialize();
 					List<byte> key = new List<byte>();
-					sha.ComputeHash(Encoding.UTF8.GetBytes(privKeyDecryptSalt1 + this.passphrase));
-					key.AddRange(sha.Hash);
-					sha.ComputeHash(Encoding.UTF8.GetBytes(privKeyDecryptSalt2 + this.passphrase));
-					key.AddRange(sha.Hash);
-					sha.Clear();
 
+					using (PinnedByteArray hashData = new PinnedByteArray(privKeyDecryptSalt1.Length + this.passphrase.Length)) {
+						Array.Copy(Encoding.UTF8.GetBytes(privKeyDecryptSalt1), hashData.Data, privKeyDecryptSalt1.Length);
+						IntPtr passphrasePtr = Marshal.SecureStringToGlobalAllocUnicode(passphrase);
+						for (int i=0; i < passphrase.Length; i++) {
+							hashData.Data[privKeyDecryptSalt1.Length + i] = Marshal.ReadByte(passphrasePtr, i * 2);
+							Marshal.WriteByte(passphrasePtr, i * 2, 0);
+						}
+						sha.ComputeHash(hashData.Data);
+						key.AddRange(sha.Hash);
+						Array.Copy(Encoding.UTF8.GetBytes(privKeyDecryptSalt2), hashData.Data, privKeyDecryptSalt2.Length);
+						sha.ComputeHash(hashData.Data);
+						key.AddRange(sha.Hash);
+					}
+					sha.Clear();
 					/* decrypt private key */
 
 					Aes aes = Aes.Create();
@@ -465,7 +474,19 @@ namespace dlech.PageantSharp
 			SHA1 sha = SHA1.Create();
 			if (this.isHMAC) {
 				HMAC hmac = HMACSHA1.Create();
-				hmac.Key = sha.ComputeHash(Encoding.UTF8.GetBytes(macKeySalt + this.passphrase));
+				if (this.passphrase != null) {
+					using (PinnedByteArray hashData = new PinnedByteArray(macKeySalt.Length + this.passphrase.Length)) {
+						Array.Copy(Encoding.UTF8.GetBytes(macKeySalt), hashData.Data, macKeySalt.Length);
+						IntPtr passphrasePtr = Marshal.SecureStringToGlobalAllocUnicode(passphrase);
+						for (int i=0; i < passphrase.Length; i++) {
+							hashData.Data[macKeySalt.Length + i] = Marshal.ReadByte(passphrasePtr, i * 2);
+							Marshal.WriteByte(passphrasePtr, i * 2, 0);
+						}
+						hmac.Key = sha.ComputeHash(hashData.Data);
+					}
+				} else {
+					hmac.Key = sha.ComputeHash(Encoding.UTF8.GetBytes(macKeySalt));
+				}
 				computedHash = hmac.ComputeHash(macData.ToArray());
 				hmac.Clear();
 			} else {
@@ -504,7 +525,7 @@ namespace dlech.PageantSharp
 		{
 			switch (this.publicKeyAlgorithm) {
 				case PublicKeyAlgorithms.ssh_rsa:
-					
+
 					PpkKeyBlobParser parser = new PpkKeyBlobParser(this.publicKeyBlob);
 					string algorithm = Encoding.UTF8.GetString(parser.CurrentAsPinnedByteArray.Data);
 					parser.CurrentAsPinnedByteArray.Dispose();
@@ -514,16 +535,16 @@ namespace dlech.PageantSharp
 						(algorithm != PublicKeyAlgorithms.ssh_rsa)) {
 						throw new InvalidOperationException("public key is not rsa");
 					}
-					
-					/* read parameters that were stored in file */					
 
-					PSUtil.TrimLeadingZero(parser.CurrentAsPinnedByteArray);					
+					/* read parameters that were stored in file */
+
+					PSUtil.TrimLeadingZero(parser.CurrentAsPinnedByteArray);
 					PinnedByteArray exponent = parser.CurrentAsPinnedByteArray;
 					parser.MoveNext();
 					PSUtil.TrimLeadingZero(parser.CurrentAsPinnedByteArray);
 					PinnedByteArray modulus = parser.CurrentAsPinnedByteArray;
 					//parser.MoveNext();
-					
+
 					parser = new PpkKeyBlobParser(this.privateKeyBlob);
 
 					PSUtil.TrimLeadingZero(parser.CurrentAsPinnedByteArray);
@@ -541,7 +562,7 @@ namespace dlech.PageantSharp
 
 					/* compute missing parameters */
 					PinnedByteArray dp = PSUtil.ModMinusOne(d, p);
-					PinnedByteArray dq = PSUtil.ModMinusOne(d, q);					
+					PinnedByteArray dq = PSUtil.ModMinusOne(d, q);
 
 					RSAParameters rsaParams = new RSAParameters();
 					rsaParams.Modulus = modulus.Data;
@@ -553,7 +574,7 @@ namespace dlech.PageantSharp
 					rsaParams.DP = dp.Data;
 					rsaParams.DQ = dq.Data;
 
-					RSA rsa = RSA.Create();					
+					RSA rsa = RSA.Create();
 					rsa.ImportParameters(rsaParams);
 					this.Key.Algorithm = rsa;
 
@@ -574,7 +595,7 @@ namespace dlech.PageantSharp
 					// unsupported encryption algorithm
 					throw new PpkFileException(PpkFileException.ErrorType.PublicKeyEncryption);
 			}
-		}		
+		}
 
 		# endregion -- Private Methods --
 

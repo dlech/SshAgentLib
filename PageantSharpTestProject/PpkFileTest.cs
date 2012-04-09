@@ -7,6 +7,7 @@ using System.IO;
 using PageantSharpTestProject.Properties;
 using System.Text;
 using System.Security.Cryptography;
+using System.Security;
 
 namespace PageantSharpTestProject
 {
@@ -94,6 +95,25 @@ namespace PageantSharpTestProject
 			};
 
 			string passphrase = "PageantSharp";
+			PpkFile.GetPassphraseCallback getPassphrase = delegate()
+			{
+				SecureString result = new SecureString();
+				foreach (char c in passphrase) {
+					result.AppendChar(c);
+				}
+				return result;
+			};
+
+			
+			PpkFile.GetPassphraseCallback getBadPassphrase = delegate()
+			{
+				SecureString result = new SecureString();
+				foreach (char c in "badword") {
+					result.AppendChar(c);
+				}
+				return result;
+			}; 
+			
 
 			string expectedPublicKeyAlgorithm = PpkFile.PublicKeyAlgorithms.ssh_rsa;
 			string expectedWithoutPassPublicKeyString = 
@@ -132,10 +152,12 @@ namespace PageantSharpTestProject
 				"c39afc7d9ccb459900d7d9679e4d2cd564d8e0cc";
 			string expectedWithPassPrivateMACString = 
 				"8877acc44fa4306977f960fde25b20d7146019fb";
-			
-			
+
+
+		
+
 			/* test for successful constructor */
-			target = new PpkFile(withPassFileName, delegate() { return passphrase; }, warnOldFileNotExpected);
+			target = new PpkFile(withPassFileName, getPassphrase, warnOldFileNotExpected);
 			Assert.AreEqual(expectedWithPassComment, target.Key.Comment);
 			
 			/* read file to string for modification by subsequent tests */
@@ -196,7 +218,7 @@ namespace PageantSharpTestProject
 				Assert.AreEqual(PpkFileException.ErrorType.BadPassphrase, ((PpkFileException)ex).Error);
 			}
 			try {
-				target = new PpkFile(withPassFileName, delegate() { return "badword"; }, warnOldFileNotExpected);
+				target = new PpkFile(withPassFileName, getBadPassphrase, warnOldFileNotExpected);
 				Assert.Fail("Exception did not occur");
 			} catch (Exception ex) {
 				Assert.IsInstanceOfType(ex, typeof(PpkFileException));
