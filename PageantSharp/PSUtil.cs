@@ -100,13 +100,13 @@ namespace dlech.PageantSharp
 		}
 
 		/// <summary>
-		/// Converts array of bytes to a string of hexidecimal digits. Alpha digits will be lower case.
+		/// Converts array of bytes to a string of hexidecimal digits delimited by':'. Alpha digits will be lower case.
 		/// </summary>
 		/// <param name="bytes">the byte[] to convert</param>
 		/// <returns>the resulting string</returns>
 		public static string ToHex(byte[] bytes)
 		{
-			return ToHex(bytes, null);
+			return ToHex(bytes, ":");
 		}
 
 		/// <summary>

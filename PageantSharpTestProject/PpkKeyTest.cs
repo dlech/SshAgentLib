@@ -76,7 +76,7 @@ namespace PageantSharpTestProject
 			PpkKey target = file.Key;
 			string expected = "2d:72:cf:ea:66:44:6c:42:d7:78:84:e7:c2:c6:7b:b5";
 			string actual;
-			actual = PSUtil.ToHex(target.GetFingerprint(),":");
+			actual = PSUtil.ToHex(target.GetFingerprint());
 			Assert.AreEqual(expected, actual);
 		}
 	}
