@@ -76,7 +76,9 @@ namespace dlech.PageantSharp
 		private IntPtr hwnd;
 		private WndProc customWndProc;
 
-		GetSSH2KeysCallback getSSH2KeysCallback;
+		GetSSH2KeyListCallback getSSH2PublicKeyListCallback;
+		GetSSH2KeyCallback getSSH2PublicKeyCallback;
+
 
 		#endregion
 
@@ -85,7 +87,8 @@ namespace dlech.PageantSharp
 
 		private delegate IntPtr WndProc(IntPtr hWnd, uint msg, IntPtr wParam, IntPtr lParam);
 
-		public delegate IEnumerable<PpkKey> GetSSH2KeysCallback();
+		public delegate IEnumerable<PpkKey> GetSSH2KeyListCallback();
+		public delegate PpkKey GetSSH2KeyCallback(byte[] fingerprint);
 
 		#endregion
 
@@ -167,14 +170,15 @@ namespace dlech.PageantSharp
 		/// 
 		/// </summary>
 		/// <exception cref="PageantException">Thrown when another instance of Pageant is running.</exception>
-		public WinPageant(GetSSH2KeysCallback getRSACollectionCallback)
+		public WinPageant(GetSSH2KeyListCallback getSSH2KeyListCallback, GetSSH2KeyCallback getSS2KeyCallback)
 		{
 			if (CheckAlreadyRunning()) {
 				throw new PageantException();
 			}
 
 			/* assign callbacks */
-			this.getSSH2KeysCallback = getRSACollectionCallback;
+			this.getSSH2PublicKeyListCallback = getSSH2KeyListCallback;
+			this.getSSH2PublicKeyCallback = getSS2KeyCallback;
 
 			// create reference to delegate so that garbage collector does not eat it.
 			this.customWndProc = new WndProc(CustomWndProc);
@@ -265,42 +269,42 @@ namespace dlech.PageantSharp
 		/// <returns></returns>
 		private IntPtr CustomWndProc(IntPtr hWnd, uint msg, IntPtr wParam, IntPtr lParam)
 		{
+			// we only care about COPYDATA messages
 			if (msg == WM_COPYDATA) {
 				IntPtr result = Marshal.AllocHGlobal(sizeof(int));
-				Marshal.WriteInt32(result, 0);
+				Marshal.WriteInt32(result, 0); // translation: int result = 0;
 
-				//Message message = Message.Create(hWnd, (int)msg, wParam, lParam);
-				//COPYDATASTRUCT copyData = (COPYDATASTRUCT)message.GetLParam(typeof(COPYDATASTRUCT));
+				// convert lParam to something usable
 				COPYDATASTRUCT copyData = (COPYDATASTRUCT)Marshal.PtrToStructure(lParam, typeof(COPYDATASTRUCT));
-				if (copyData.dwData.ToInt32() != AGENT_COPYDATA_ID) {
-					return result; // not our message, mate   ;)
-				}
-				string mapname = Marshal.PtrToStringAnsi(copyData.lpData);
-				if (mapname.Length != copyData.cbData - 1) {
-					return result; // data was not ascii string
-				}
-				try {
-					MemoryMappedFile fileMap = MemoryMappedFile.OpenExisting(mapname, MemoryMappedFileRights.FullControl);
-					if (!fileMap.SafeMemoryMappedFileHandle.IsInvalid) {
+				if (copyData.dwData.ToInt32() == AGENT_COPYDATA_ID) {
 
-						// TODO is this sufficent or should we do like Pageant does 
-						// and retreive sid from processes?
-						WindowsIdentity user = WindowsIdentity.GetCurrent();
-						SecurityIdentifier sid = user.User;
-						SecurityIdentifier mapOwner = (SecurityIdentifier)fileMap.GetAccessControl().GetOwner(typeof(System.Security.Principal.SecurityIdentifier));
-						if (sid == mapOwner) {
-							AnswerMessage(fileMap);
-							Marshal.WriteInt32(result, 1);
-							return result;
-						}
+					string mapname = Marshal.PtrToStringAnsi(copyData.lpData);
+					if (mapname.Length == copyData.cbData - 1) {
+						try {
+							using (MemoryMappedFile fileMap = MemoryMappedFile.OpenExisting(mapname, MemoryMappedFileRights.FullControl)) {
+								if (!fileMap.SafeMemoryMappedFileHandle.IsInvalid) {
+
+									/* check to see if message sender is same user as this program's user */
+									// TODO is this sufficent or should we do like Pageant does 
+									// and retreive sid from processes?
+									WindowsIdentity user = WindowsIdentity.GetCurrent();
+									SecurityIdentifier sid = user.User;
+									SecurityIdentifier mapOwner = (SecurityIdentifier)fileMap.GetAccessControl().GetOwner(typeof(System.Security.Principal.SecurityIdentifier));
+									if (sid == mapOwner) {
+										AnswerMessage(fileMap);
+										Marshal.WriteInt32(result, 1);
+										return result; // success
+									}
+
+								}
+							}
+						} catch (Exception) { }
 					}
-					fileMap.Dispose();
-				} catch (Exception) {
-					return result;
 				}
+				return result; // failure
+			} else {
+				return DefWindowProcW(hWnd, msg, wParam, lParam);
 			}
-			// TODO finish implement window messaging
-			return DefWindowProcW(hWnd, msg, wParam, lParam);
 		}
 
 		private void AnswerMessage(MemoryMappedFile fileMap)
@@ -314,28 +318,30 @@ namespace dlech.PageantSharp
 				int type;
 
 				if (msgDataLength > 0) {
-					stream.Position = 4;
 					type = stream.ReadByte();
 				} else {
 					type = SSH_AGENT_BAD_REQUEST;
 				}
+
 				switch (type) {
 					case SSH1_AGENTC_REQUEST_RSA_IDENTITIES:
 						/*
 						 * Reply with SSH1_AGENT_RSA_IDENTITIES_ANSWER.
 						 */
 
+						// TODO implement SSH1_AGENT_RSA_IDENTITIES_ANSWER
 
-						break;
+						goto default; // failed
 					case SSH2_AGENTC_REQUEST_IDENTITIES:
 						/*
 						 * Reply with SSH2_AGENT_IDENTITIES_ANSWER.
 						 */
-						if (this.getSSH2KeysCallback != null) {
+						if (this.getSSH2PublicKeyListCallback != null) {
 							PpkKeyBlobBuilder builder = new PpkKeyBlobBuilder();
 							try {
 								int keyCount = 0;
-								foreach (PpkKey key in this.getSSH2KeysCallback()) {
+
+								foreach (PpkKey key in this.getSSH2PublicKeyListCallback()) {
 									keyCount++;
 									builder.AddBlob(key.GetSSH2PublicKeyBlob());
 									builder.AddString(key.Comment);
@@ -373,7 +379,6 @@ namespace dlech.PageantSharp
 						 * or not.
 						 */
 						try {
-
 							/* read rest of message */
 
 							if (msgDataLength >= stream.Position + 4) {
@@ -390,10 +395,10 @@ namespace dlech.PageantSharp
 											stream.Read(reqData, 0, reqDataLength);
 
 											/* get matching key from callback */
-
-											// TODO find matching key
-											List<PpkKey> keyList = new List<PpkKey>(this.getSSH2KeysCallback());
-											PpkKey key = keyList[0];
+											MD5 md5 = MD5.Create();
+											byte[] fingerprint = md5.ComputeHash(keyBlob);
+											md5.Clear();
+											PpkKey key = this.getSSH2PublicKeyCallback(fingerprint);
 											if (key != null) {
 
 												/* create signature */

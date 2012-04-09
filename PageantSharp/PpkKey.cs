@@ -50,5 +50,20 @@ namespace dlech.PageantSharp
 			}
 			throw new ArgumentException(Algorithm.GetType() + " is not supported", "alg");
 		}
+
+
+		/// <summary>
+		/// Gets openssh style fingerprint for key
+		/// </summary>
+		/// <returns></returns>
+		public byte[] GetFingerprint()
+		{
+			if (typeof(RSA).IsInstanceOfType(Algorithm)) {					
+				using (MD5 md5 = MD5.Create()) {
+					return md5.ComputeHash(GetSSH2PublicKeyBlob());
+				}
+			}
+			throw new ArgumentException(Algorithm.GetType() + " is not supported", "alg");
+		}
 	}
 }

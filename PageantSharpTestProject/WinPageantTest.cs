@@ -15,7 +15,7 @@ namespace PageantSharpTestProject
 	///to contain all PageantWindowTest Unit Tests
 	///</summary>
 	[TestClass()]
-	public class PageantWindowTest
+	public class WinPageantTest
 	{
 
 		[DllImport("user32.dll")]
@@ -78,7 +78,7 @@ namespace PageantSharpTestProject
 		public void PageantWindowConstructorTest()
 		{
 			// create new instance
-			WinPageant target = new WinPageant(null);
+			WinPageant target = new WinPageant(null, null);
 
 			try {
 				// emulate a client to make sure window is there
@@ -88,7 +88,7 @@ namespace PageantSharpTestProject
 				// try starting a second instance, this should cause an exception
 				Exception exception = null;
 				try {
-					WinPageant target2 = new WinPageant(null);
+					WinPageant target2 = new WinPageant(null, null);
 					target2.Dispose();
 				} catch (Exception ex) {
 					exception = ex;
@@ -109,16 +109,34 @@ namespace PageantSharpTestProject
 			PpkFile.GetPassphraseCallback getPassphrase = null;
 			PpkFile.WarnOldFileFormatCallback warnOldFileFormat = delegate() { };
 			PpkFile file = new PpkFile(ref data, getPassphrase, warnOldFileFormat);
-			
 
-			WinPageant.GetSSH2KeysCallback getSSH2KeysCallback = delegate()
-			{
-				List<PpkKey> keyList = new List<PpkKey>();
-				keyList.Add(file.Key);
+			List<PpkKey> keyList = new List<PpkKey>();
+			keyList.Add(file.Key);
+
+			WinPageant.GetSSH2KeyListCallback getSSH2KeysCallback = delegate()
+			{				
 				return keyList;
 			};
 
-			WinPageant target = new WinPageant(getSSH2KeysCallback);
+			WinPageant.GetSSH2KeyCallback getSSH2KeyCallback = delegate(byte[] reqFingerprint)
+			{
+				foreach (PpkKey key in keyList) {
+					byte[] curFingerprint = key.GetFingerprint();
+					if (curFingerprint.Length == reqFingerprint.Length) {
+						for (int i = 0; i < curFingerprint.Length; i++) {
+							if (curFingerprint[i] != reqFingerprint[i]) {
+								break;
+							}
+							if (i == curFingerprint.Length - 1) {
+								return key;
+							}
+						}
+					}
+				}
+				return null;
+			};
+
+			WinPageant target = new WinPageant(getSSH2KeysCallback, getSSH2KeyCallback);
 			MessageBox.Show("Click OK when done");
 			target.Dispose();
 		}
