@@ -16,7 +16,7 @@ namespace dlech.PageantSharp
 	/// <summary>
 	/// Used to read PuTTY Private Key (.ppk) files
 	/// </summary>
-	public sealed class PpkFile
+	public class PpkFile
 	{
 
 		#region -- Constants --

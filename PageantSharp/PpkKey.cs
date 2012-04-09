@@ -6,7 +6,10 @@ using System.Security.Cryptography;
 
 namespace dlech.PageantSharp
 {
-	public sealed class PpkKey
+	/// <summary>
+	/// Class for encapsulating information on encryption keys so that it can be used in PuTTY related programs
+	/// </summary>
+	public class PpkKey : IDisposable
 	{
 
 		public AsymmetricAlgorithm Algorithm
@@ -22,6 +25,17 @@ namespace dlech.PageantSharp
 		{
 			get;
 			set;
+		}
+
+		~PpkKey() {
+			this.Dispose();
+		}
+
+		public void Dispose()
+		{
+			if (this.Algorithm != null) {
+				this.Algorithm.Clear();
+			}
 		}
 
 		/// <summary>

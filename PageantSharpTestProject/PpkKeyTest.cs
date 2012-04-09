@@ -71,7 +71,7 @@ namespace PageantSharpTestProject
 		[TestMethod()]
 		public void GetFingerprintTest()
 		{
-			byte[] fileData = (byte[])Resources.withoutPassphrase_ppk.Clone();
+			byte[] fileData = (byte[])Resources.withoutPassphrase_ppk;
 			PpkFile file = new PpkFile(fileData, delegate() { return null; }, delegate() { });
 			PpkKey target = file.Key;
 			string expected = "2d:72:cf:ea:66:44:6c:42:d7:78:84:e7:c2:c6:7b:b5";

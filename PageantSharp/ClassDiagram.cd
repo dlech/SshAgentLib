@@ -1,55 +1,141 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <ClassDiagram MajorVersion="1" MinorVersion="1">
-  <Class Name="dlech.PageantSharp.KeyParser" Collapsed="true" BaseTypeListCollapsed="true">
-    <Position X="1.25" Y="0.75" Width="1.5" />
-    <TypeIdentifier>
-      <HashCode>AAAAEAAAAAAABAAAAACAAAAAggAAAAAAIAAQAAABAAA=</HashCode>
-      <FileName>KeyParser.cs</FileName>
-    </TypeIdentifier>
-    <Lollipop Position="0.2" Collapsed="true" />
-  </Class>
-  <Class Name="dlech.PageantSharp.PageantException" Collapsed="true">
-    <Position X="3" Y="0.75" Width="1.5" />
+  <Class Name="dlech.PageantSharp.PageantException">
+    <Position X="9" Y="0.5" Width="1.5" />
     <TypeIdentifier>
       <HashCode>AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=</HashCode>
       <FileName>PageantException.cs</FileName>
     </TypeIdentifier>
   </Class>
-  <Class Name="dlech.PageantSharp.PageantWindow" Collapsed="true" BaseTypeListCollapsed="true">
-    <Position X="5.25" Y="0.75" Width="1.5" />
+  <Class Name="dlech.PageantSharp.PpkFile">
+    <Position X="0.5" Y="0.5" Width="2.5" />
+    <Compartments>
+      <Compartment Name="Nested Types" Collapsed="false" />
+    </Compartments>
+    <NestedTypes>
+      <Class Name="dlech.PageantSharp.PpkFile.FileVersions">
+        <TypeIdentifier>
+          <NewMemberFileName>PpkFile.cs</NewMemberFileName>
+        </TypeIdentifier>
+      </Class>
+      <Class Name="dlech.PageantSharp.PpkFile.PublicKeyAlgorithms">
+        <TypeIdentifier>
+          <NewMemberFileName>PpkFile.cs</NewMemberFileName>
+        </TypeIdentifier>
+      </Class>
+      <Class Name="dlech.PageantSharp.PpkFile.PrivateKeyAlgorithms">
+        <TypeIdentifier>
+          <NewMemberFileName>PpkFile.cs</NewMemberFileName>
+        </TypeIdentifier>
+      </Class>
+      <Delegate Name="dlech.PageantSharp.PpkFile.GetPassphraseCallback">
+        <TypeIdentifier>
+          <NewMemberFileName>PpkFile.cs</NewMemberFileName>
+        </TypeIdentifier>
+      </Delegate>
+      <Delegate Name="dlech.PageantSharp.PpkFile.WarnOldFileFormatCallback">
+        <TypeIdentifier>
+          <NewMemberFileName>PpkFile.cs</NewMemberFileName>
+        </TypeIdentifier>
+      </Delegate>
+    </NestedTypes>
     <TypeIdentifier>
-      <HashCode>AQIAAIAAASJAAAIAAAAAAAAAAAAAAIAIAAAAQAgBAAA=</HashCode>
-      <FileName>PageantWindow.cs</FileName>
-    </TypeIdentifier>
-    <Lollipop Position="0.231" Collapsed="true" />
-  </Class>
-  <Class Name="dlech.PageantSharp.PpkFile" Collapsed="true">
-    <Position X="1.25" Y="1.75" Width="1.5" />
-    <TypeIdentifier>
-      <HashCode>UDQBAGYEAAAAACAQFAEAAABQAABAAAAEgICIBAAUAEA=</HashCode>
+      <HashCode>UDAAAGYQAAAAACQQEAAAAEBQAABAAACEgICIRAAQAEA=</HashCode>
       <FileName>PpkFile.cs</FileName>
     </TypeIdentifier>
   </Class>
-  <Class Name="dlech.PageantSharp.PpkFileException" Collapsed="true">
-    <Position X="3" Y="1.75" Width="1.5" />
+  <Class Name="dlech.PageantSharp.PpkFileException">
+    <Position X="9" Y="1.75" Width="2" />
+    <Compartments>
+      <Compartment Name="Nested Types" Collapsed="false" />
+    </Compartments>
+    <NestedTypes>
+      <Enum Name="dlech.PageantSharp.PpkFileException.ErrorType">
+        <TypeIdentifier>
+          <NewMemberFileName>PpkFileException.cs</NewMemberFileName>
+        </TypeIdentifier>
+      </Enum>
+    </NestedTypes>
     <TypeIdentifier>
       <HashCode>AAAAAAAAAAAAAQAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=</HashCode>
       <FileName>PpkFileException.cs</FileName>
     </TypeIdentifier>
   </Class>
-  <Class Name="dlech.PageantSharp.PpkFileMacException" Collapsed="true">
-    <Position X="5" Y="1.75" Width="1.5" />
+  <Class Name="dlech.PageantSharp.PSUtil">
+    <Position X="11.5" Y="0.5" Width="2.25" />
     <TypeIdentifier>
-      <HashCode>AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=</HashCode>
-      <FileName>PpkFileMacException.cs</FileName>
-    </TypeIdentifier>
-  </Class>
-  <Class Name="dlech.PageantSharp.PSUtil" Collapsed="true">
-    <Position X="1.25" Y="2.75" Width="1.5" />
-    <TypeIdentifier>
-      <HashCode>AAAAAAAAAgAAAAAAAMAAQIAAAAAAAAACEAAAAAAAgAA=</HashCode>
+      <HashCode>AAAAgAAAAgAAAAAAgMAAQIAAAAAAAAACEAEAAAEAgAA=</HashCode>
       <FileName>PSUtil.cs</FileName>
     </TypeIdentifier>
+  </Class>
+  <Class Name="dlech.PageantSharp.PinnedByteArray" BaseTypeListCollapsed="true">
+    <Position X="14" Y="0.5" Width="2.75" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAACAAAAEAAAAAAAAAAAAAABAAAAAQAABAABA=</HashCode>
+      <FileName>PinnedByteArray.cs</FileName>
+    </TypeIdentifier>
+    <Lollipop Position="0.2" />
+  </Class>
+  <Class Name="dlech.PageantSharp.PpkKey">
+    <Position X="3.25" Y="0.5" Width="2" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAEACEAAAAAAAAAAAAAAgAAAAAAAAAAAAQAAAA=</HashCode>
+      <FileName>PpkKey.cs</FileName>
+    </TypeIdentifier>
+    <Lollipop Position="0.2" />
+  </Class>
+  <Class Name="dlech.PageantSharp.PpkKeyBlobBuilder">
+    <Position X="14" Y="4.5" Width="2" />
+    <TypeIdentifier>
+      <HashCode>BAAAAAAAAAAAAAAAICAAAABAAAAAAAAAAAAACCBAAAA=</HashCode>
+      <FileName>PpkKeyBlobBuilder.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="dlech.PageantSharp.PpkKeyBlobParser" BaseTypeListCollapsed="true">
+    <Position X="11.5" Y="4.5" Width="2.25" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAASBABAAAAACAAAAAAgAAAAAAIAAAACABAAA=</HashCode>
+      <FileName>PpkKeyBlobParser.cs</FileName>
+    </TypeIdentifier>
+    <Lollipop Position="0.2" />
+  </Class>
+  <Class Name="dlech.PageantSharp.WinPageant" BaseTypeListCollapsed="true">
+    <Position X="5.75" Y="0.5" Width="2.5" />
+    <Compartments>
+      <Compartment Name="Nested Types" Collapsed="false" />
+    </Compartments>
+    <NestedTypes>
+      <Delegate Name="dlech.PageantSharp.WinPageant.WndProc">
+        <TypeIdentifier>
+          <NewMemberFileName>WinPageant.cs</NewMemberFileName>
+        </TypeIdentifier>
+      </Delegate>
+      <Delegate Name="dlech.PageantSharp.WinPageant.GetSSH2KeyListCallback">
+        <TypeIdentifier>
+          <NewMemberFileName>WinPageant.cs</NewMemberFileName>
+        </TypeIdentifier>
+      </Delegate>
+      <Delegate Name="dlech.PageantSharp.WinPageant.GetSSH2KeyCallback">
+        <TypeIdentifier>
+          <NewMemberFileName>WinPageant.cs</NewMemberFileName>
+        </TypeIdentifier>
+      </Delegate>
+      <Struct Name="dlech.PageantSharp.WinPageant.WNDCLASS">
+        <TypeIdentifier>
+          <NewMemberFileName>WinPageant.cs</NewMemberFileName>
+        </TypeIdentifier>
+      </Struct>
+      <Struct Name="dlech.PageantSharp.WinPageant.COPYDATASTRUCT">
+        <TypeIdentifier>
+          <NewMemberFileName>WinPageant.cs</NewMemberFileName>
+        </TypeIdentifier>
+      </Struct>
+    </NestedTypes>
+    <TypeIdentifier>
+      <HashCode>QAIiCIAAASJAACIMHABgAgAAkBgAAJAIAAggQAgBAAA=</HashCode>
+      <FileName>WinPageant.cs</FileName>
+    </TypeIdentifier>
+    <Lollipop Position="0.137" />
   </Class>
   <Font Name="Segoe UI" Size="9" />
 </ClassDiagram>

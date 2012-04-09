@@ -8,7 +8,7 @@ namespace dlech.PageantSharp
 	/// <summary>
 	/// used to build blobs that are used for storing and sending keys in PuTTY format
 	/// </summary>
-	public sealed class PpkKeyBlobBuilder 
+	public class PpkKeyBlobBuilder 
 	{
 		private List<byte> byteList;
 
