@@ -197,16 +197,15 @@ namespace dlech.PageantSharp
 
 		/// <summary>
 		/// Creates new instance of PpkFile from data array.
-		/// data is destroyed.
 		/// </summary>
-		/// <param name="data">The data to parse. The data is destroyed as soon as it is parsed.</param>
+		/// <param name="data">The data to parse.</param>
 		/// <param name="getPassphrase">Callback method for getting passphrase if required.</param>
 		/// <param name="warnOldFileFormat">Callback method that warns user that they are using an old file format with known security problems.</param>
 		/// <exception cref="dlech.PageantSharp.PpkFileException">there was a problem reading the file</exception>
 		/// <exception cref="System.ArgumentNullException">data and warnOldFileFormat cannot be null</exception>
-		public PpkFile(ref byte[] data, GetPassphraseCallback getPassphrase, WarnOldFileFormatCallback warnOldFileFormat)
+		public PpkFile(byte[] data, GetPassphraseCallback getPassphrase, WarnOldFileFormatCallback warnOldFileFormat)
 		{
-			ProcessData(ref data, getPassphrase, warnOldFileFormat);
+			ProcessData(data, getPassphrase, warnOldFileFormat);
 		}
 
 		/// <summary>
@@ -237,7 +236,7 @@ namespace dlech.PageantSharp
 			} finally {
 				stream.Close();
 			}
-			ProcessData(ref buffer, getPassphrase, warnOldFileFormat);
+			ProcessData(buffer, getPassphrase, warnOldFileFormat);
 
 		}
 
@@ -259,7 +258,7 @@ namespace dlech.PageantSharp
 		/// <param name="data">the contents of a valid PuTTY Private Key (.ppk) file</param>
 		/// <paparam name="getPassphrase">Callback method to get passphrase</paparam>
 		/// <param name="warnOldFileFormat">Callback method to warn user that file is old format</param>
-		private void ProcessData(ref byte[] data, GetPassphraseCallback getPassphrase, WarnOldFileFormatCallback warnOldFileFormat)
+		private void ProcessData(byte[] data, GetPassphraseCallback getPassphrase, WarnOldFileFormatCallback warnOldFileFormat)
 		{
 			this.Key = new PpkKey();
 

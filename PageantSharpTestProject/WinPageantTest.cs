@@ -108,7 +108,7 @@ namespace PageantSharpTestProject
 			byte[] data = Resources.withoutPassphrase_ppk;
 			PpkFile.GetPassphraseCallback getPassphrase = null;
 			PpkFile.WarnOldFileFormatCallback warnOldFileFormat = delegate() { };
-			PpkFile file = new PpkFile(ref data, getPassphrase, warnOldFileFormat);
+			PpkFile file = new PpkFile(data, getPassphrase, warnOldFileFormat);
 
 			List<PpkKey> keyList = new List<PpkKey>();
 			keyList.Add(file.Key);
