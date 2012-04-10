@@ -16,7 +16,7 @@ namespace dlech.PageantSharp
 	/// <summary>
 	/// Used to read PuTTY Private Key (.ppk) files
 	/// </summary>
-	public class PpkFile
+	public static class PpkFile
 	{
 
 		#region -- Constants --
@@ -118,62 +118,62 @@ namespace dlech.PageantSharp
 		#endregion -- Constants --
 
 
-		#region -- global variables --
+		#region -- structures --
 
-		/// <summary>
-		/// File format version (one of FileVersions members)
-		/// Callers of this method should warn user 
-		/// that version 1 has security issue and should not be used
-		/// </summary>
-		private string fileVersion = null;
-
-		/// <summary>
-		/// Public key algorithm
-		/// One of <see cref="PublicKeyAlgorithms"/>
-		/// </summary>
-		private string publicKeyAlgorithm = null;
-
-		/// <summary>
-		/// Private key encryption algorithm
-		/// One of <see cref="PrivateKeyAlgorithms"/>
-		/// </summary>
-		private string privateKeyAlgorithm = null;
-
-
-		/// <summary>
-		/// The public key
-		/// </summary>
-		private byte[] publicKeyBlob = null;
-
-		/// <summary>
-		/// The private key.
-		/// </summary>
-		private byte[] privateKeyBlob = null;
-
-		/// <summary>
-		/// The private key hash.
-		/// </summary>
-		private byte[] privateMAC = null;
-
-		/// <summary>
-		/// <see cref="privateMACString"/> is a HMAC as opposed to the old format
-		/// </summary>
-		private bool isHMAC;
-
-		private SecureString passphrase = null;
-
-		#endregion -- global variables --
-
-
-		#region -- Properties --
-
-		public PpkKey Key
+		private struct FileData
 		{
-			get;
-			private set;
+
+			/// <summary>
+			/// File format version (one of FileVersions members)
+			/// Callers of this method should warn user 
+			/// that version 1 has security issue and should not be used
+			/// </summary>
+			public string fileVersion;
+
+			/// <summary>
+			/// Public key algorithm
+			/// One of <see cref="PublicKeyAlgorithms"/>
+			/// </summary>
+			public string publicKeyAlgorithm;
+
+			/// <summary>
+			/// Private key encryption algorithm
+			/// One of <see cref="PrivateKeyAlgorithms"/>
+			/// </summary>
+			public string privateKeyAlgorithm;
+
+
+			/// <summary>
+			/// The public key
+			/// </summary>
+			public byte[] publicKeyBlob;
+
+			/// <summary>
+			/// public key comment
+			/// </summary>
+			public string comment;
+
+			/// <summary>
+			/// The private key.
+			/// </summary>
+			public byte[] privateKeyBlob;
+
+			/// <summary>
+			/// The private key hash.
+			/// </summary>
+			public byte[] privateMAC;
+
+			/// <summary>
+			/// <see cref="privateMACString"/> is a HMAC as opposed to the old format
+			/// </summary>
+			public bool isHMAC;
+
+			public SecureString passphrase;
+
 		}
 
-		#endregion -- Properties --
+		#endregion -- structures --
+
 
 
 		#region -- Delegates --
@@ -195,21 +195,16 @@ namespace dlech.PageantSharp
 
 		#region -- Constructors --
 
-		/// <summary>
-		/// Creates new instance of PpkFile from data array.
-		/// </summary>
-		/// <param name="data">The data to parse.</param>
-		/// <param name="getPassphrase">Callback method for getting passphrase if required.</param>
-		/// <param name="warnOldFileFormat">Callback method that warns user that they are using an old file format with known security problems.</param>
-		/// <exception cref="dlech.PageantSharp.PpkFileException">there was a problem reading the file</exception>
-		/// <exception cref="System.ArgumentNullException">data and warnOldFileFormat cannot be null</exception>
-		public PpkFile(byte[] data, GetPassphraseCallback getPassphrase, WarnOldFileFormatCallback warnOldFileFormat)
-		{
-			ProcessData(data, getPassphrase, warnOldFileFormat);
-		}
+
+
+		#endregion -- Constructors --
+
+
+		#region -- Public Methods --
+
 
 		/// <summary>
-		/// Creates new instance of PpkFile from specifed file
+		/// Reads the specifed file, parsed data and creates new PpkKey object from file data
 		/// </summary>
 		/// <param name="fileName">The name of the file to open</param>
 		/// <param name="getPassphrase">Callback method for getting passphrase if required.</param>
@@ -222,7 +217,7 @@ namespace dlech.PageantSharp
 		/// <exception cref="System.UnauthorizedAccessException">see <see cref="System.IO.File.OpenRead(string)"/></exception>
 		/// <exception cref="System.IO.FileNotFoundException">see <see cref="System.IO.File.OpenRead(string)"/></exception>
 		/// <exception cref="System.NotSupportedException">see <see cref="System.IO.File.OpenRead(string)"/></exception>
-		public PpkFile(string fileName, GetPassphraseCallback getPassphrase, WarnOldFileFormatCallback warnOldFileFormat)
+		public static PpkKey ReadFile(string fileName, GetPassphraseCallback getPassphrase, WarnOldFileFormatCallback warnOldFileFormat)
 		{
 			FileStream stream;
 			byte[] buffer;
@@ -236,31 +231,20 @@ namespace dlech.PageantSharp
 			} finally {
 				stream.Close();
 			}
-			ProcessData(buffer, getPassphrase, warnOldFileFormat);
-
+			return ParseData(buffer, getPassphrase, warnOldFileFormat);
 		}
 
-		#endregion -- Constructors --
-
-
-		#region -- Public Methods --
-
-
-
-		#endregion -- Public Methods --
-
-
-		#region -- Private Methods --
-
 		/// <summary>
-		/// Parses the data proveded and fills in global variables accordingly.
+		/// Parses the data from a PuTTY Private Key (.ppk) file.
 		/// </summary>
-		/// <param name="data">the contents of a valid PuTTY Private Key (.ppk) file</param>
-		/// <paparam name="getPassphrase">Callback method to get passphrase</paparam>
-		/// <param name="warnOldFileFormat">Callback method to warn user that file is old format</param>
-		private void ProcessData(byte[] data, GetPassphraseCallback getPassphrase, WarnOldFileFormatCallback warnOldFileFormat)
+		/// <param name="data">The data to parse.</param>
+		/// <param name="getPassphrase">Callback method for getting passphrase if required.</param>
+		/// <param name="warnOldFileFormat">Callback method that warns user that they are using an old file format with known security problems.</param>
+		/// <exception cref="dlech.PageantSharp.PpkFileException">there was a problem parsing the file data</exception>
+		/// <exception cref="System.ArgumentNullException">data and warnOldFileFormat cannot be null</exception>
+		public static PpkKey ParseData(byte[] data, GetPassphraseCallback getPassphrase, WarnOldFileFormatCallback warnOldFileFormat)
 		{
-			this.Key = new PpkKey();
+			FileData fileData = new FileData();
 
 			/* check for required parameters */
 			if (data == null) {
@@ -285,17 +269,17 @@ namespace dlech.PageantSharp
 				if (!pair[0].StartsWith(puttyUserKeyFileKey)) {
 					throw new PpkFileException(PpkFileException.ErrorType.FileFormat, puttyUserKeyFileKey + " expected");
 				}
-				this.fileVersion = pair[0].Remove(0, puttyUserKeyFileKey.Length);
-				if (!supportedFileVersions.Contains(this.fileVersion)) {
+				fileData.fileVersion = pair[0].Remove(0, puttyUserKeyFileKey.Length);
+				if (!supportedFileVersions.Contains(fileData.fileVersion)) {
 					throw new PpkFileException(PpkFileException.ErrorType.FileVersion);
 				}
-				if (this.fileVersion == FileVersions.v1) {
+				if (fileData.fileVersion == FileVersions.v1) {
 					warnOldFileFormat();
 				}
 
 				/* read public key encryption algorithm type */
-				this.publicKeyAlgorithm = pair[1].Trim();
-				if (!supportedPublicKeyAlgorithms.Contains(this.publicKeyAlgorithm)) {
+				fileData.publicKeyAlgorithm = pair[1].Trim();
+				if (!supportedPublicKeyAlgorithms.Contains(fileData.publicKeyAlgorithm)) {
 					throw new PpkFileException(PpkFileException.ErrorType.PublicKeyEncryption);
 				}
 
@@ -305,8 +289,8 @@ namespace dlech.PageantSharp
 				if (pair[0] != privateKeyEncryptionKey) {
 					throw new PpkFileException(PpkFileException.ErrorType.FileFormat, privateKeyEncryptionKey + " expected");
 				}
-				this.privateKeyAlgorithm = pair[1].Trim();
-				if (!supportedPrivateKeyAlgorithms.Contains(this.privateKeyAlgorithm)) {
+				fileData.privateKeyAlgorithm = pair[1].Trim();
+				if (!supportedPrivateKeyAlgorithms.Contains(fileData.privateKeyAlgorithm)) {
 					throw new PpkFileException(PpkFileException.ErrorType.PrivateKeyEncryption);
 				}
 
@@ -316,7 +300,7 @@ namespace dlech.PageantSharp
 				if (pair[0] != commentKey) {
 					throw new PpkFileException(PpkFileException.ErrorType.FileFormat, commentKey + " expected");
 				}
-				this.Key.Comment = pair[1].Trim();
+				fileData.comment = pair[1].Trim();
 
 				/* read public key */
 				line = reader.ReadLine();
@@ -331,7 +315,7 @@ namespace dlech.PageantSharp
 				for (i = 0; i < lineCount; i++) {
 					publicKeyString += reader.ReadLine();
 				}
-				this.publicKeyBlob = PSUtil.FromBase64(publicKeyString);
+				fileData.publicKeyBlob = PSUtil.FromBase64(publicKeyString);
 				// TODO destroy publicKeyString
 
 				/* read private key */
@@ -347,36 +331,39 @@ namespace dlech.PageantSharp
 				for (i = 0; i < lineCount; i++) {
 					privateKeyString += reader.ReadLine();
 				}
-				this.privateKeyBlob = PSUtil.FromBase64(privateKeyString);
+				fileData.privateKeyBlob = PSUtil.FromBase64(privateKeyString);
 				// TODO destroy privateKeyString
 
 				/* read MAC */
 				line = reader.ReadLine();
 				pair = line.Split(delimArray, 2);
 				if (pair[0] != privateMACKey) {
-					this.isHMAC = false;
-					if (pair[0] != privateHashKey || this.fileVersion != FileVersions.v1) {
+					fileData.isHMAC = false;
+					if (pair[0] != privateHashKey || fileData.fileVersion != FileVersions.v1) {
 						throw new PpkFileException(PpkFileException.ErrorType.FileFormat, privateMACKey + " expected");
 					}
 				} else {
-					this.isHMAC = true;
+					fileData.isHMAC = true;
 				}
 				string privateMACString = pair[1].Trim();
-				this.privateMAC = PSUtil.FromHex(privateMACString);
+				fileData.privateMAC = PSUtil.FromHex(privateMACString);
 
 
 				/* get passphrase and decrypt private key if required */
-				if (privateKeyAlgorithm != PrivateKeyAlgorithms.none) {
+				if (fileData.privateKeyAlgorithm != PrivateKeyAlgorithms.none) {
 					if (getPassphrase == null) {
 						throw new PpkFileException(PpkFileException.ErrorType.BadPassphrase);
 					}
-					this.passphrase = getPassphrase();					
-					DecryptPrivateKey();
+					fileData.passphrase = getPassphrase();
+					DecryptPrivateKey(ref fileData);
 				}
 
-				VerifyIntegrity();
-				SetPublicKeyAlgorithm();
+				VerifyIntegrity(fileData);
 
+				PpkKey key = new PpkKey();
+				key.Algorithm = CreateKeyAlgorithm(fileData);
+				key.Comment = fileData.comment;
+				return key;
 
 			} catch (PpkFileException) {
 				throw;
@@ -386,23 +373,30 @@ namespace dlech.PageantSharp
 					"See inner exception.", ex);
 			} finally {
 				Array.Clear(data, 0, data.Length);
-				if (this.publicKeyBlob != null) {
-					Array.Clear(this.publicKeyBlob, 0, this.publicKeyBlob.Length);
+				if (fileData.publicKeyBlob != null) {
+					Array.Clear(fileData.publicKeyBlob, 0, fileData.publicKeyBlob.Length);
 				}
-				if (this.privateKeyBlob != null) {
-					Array.Clear(this.privateKeyBlob, 0, this.privateKeyBlob.Length);
+				if (fileData.privateKeyBlob != null) {
+					Array.Clear(fileData.privateKeyBlob, 0, fileData.privateKeyBlob.Length);
 				}
-				if (this.privateMAC != null) {
-					Array.Clear(this.privateMAC, 0, this.privateMAC.Length);
+				if (fileData.privateMAC != null) {
+					Array.Clear(fileData.privateMAC, 0, fileData.privateMAC.Length);
 				}
 				reader.Close();
 				stream.Close();
 			}
 		}
 
-		private void DecryptPrivateKey()
+		#endregion -- Public Methods --
+
+
+		#region -- Private Methods --
+
+
+
+		private static void DecryptPrivateKey(ref FileData fileData)
 		{
-			switch (this.privateKeyAlgorithm) {
+			switch (fileData.privateKeyAlgorithm) {
 
 				case PrivateKeyAlgorithms.none:
 					return;
@@ -415,10 +409,10 @@ namespace dlech.PageantSharp
 					sha.Initialize();
 					List<byte> key = new List<byte>();
 
-					using (PinnedByteArray hashData = new PinnedByteArray(privKeyDecryptSalt1.Length + this.passphrase.Length)) {
+					using (PinnedByteArray hashData = new PinnedByteArray(privKeyDecryptSalt1.Length + fileData.passphrase.Length)) {
 						Array.Copy(Encoding.UTF8.GetBytes(privKeyDecryptSalt1), hashData.Data, privKeyDecryptSalt1.Length);
-						IntPtr passphrasePtr = Marshal.SecureStringToGlobalAllocUnicode(passphrase);
-						for (int i=0; i < passphrase.Length; i++) {
+						IntPtr passphrasePtr = Marshal.SecureStringToGlobalAllocUnicode(fileData.passphrase);
+						for (int i=0; i < fileData.passphrase.Length; i++) {
 							hashData.Data[privKeyDecryptSalt1.Length + i] = Marshal.ReadByte(passphrasePtr, i * 2);
 							Marshal.WriteByte(passphrasePtr, i * 2, 0);
 						}
@@ -441,10 +435,9 @@ namespace dlech.PageantSharp
 					PSUtil.ClearByteList(key);
 					aes.IV = new byte[aes.IV.Length];
 					ICryptoTransform decryptor = aes.CreateDecryptor();
-					PSUtil.GenericTransform(decryptor, ref this.privateKeyBlob);
+					fileData.privateKeyBlob = PSUtil.GenericTransform(decryptor, fileData.privateKeyBlob);
 					decryptor.Dispose();
 					aes.Clear();
-
 					break;
 
 				default:
@@ -452,32 +445,32 @@ namespace dlech.PageantSharp
 			}
 		}
 
-		private void VerifyIntegrity()
+		private static void VerifyIntegrity(FileData fileData)
 		{
 
 			List<byte> macData = new List<byte>();
-			if (this.fileVersion != FileVersions.v1) {
-				macData.AddRange(PSUtil.IntToBytes(this.publicKeyAlgorithm.Length));
-				macData.AddRange(Encoding.UTF8.GetBytes(this.publicKeyAlgorithm));
-				macData.AddRange(PSUtil.IntToBytes(this.privateKeyAlgorithm.Length));
-				macData.AddRange(Encoding.UTF8.GetBytes(this.privateKeyAlgorithm));
-				macData.AddRange(PSUtil.IntToBytes(this.Key.Comment.Length));
-				macData.AddRange(Encoding.UTF8.GetBytes(this.Key.Comment));
-				macData.AddRange(PSUtil.IntToBytes(this.publicKeyBlob.Length));
-				macData.AddRange(this.publicKeyBlob);
-				macData.AddRange(PSUtil.IntToBytes(this.privateKeyBlob.Length));
+			if (fileData.fileVersion != FileVersions.v1) {
+				macData.AddRange(PSUtil.IntToBytes(fileData.publicKeyAlgorithm.Length));
+				macData.AddRange(Encoding.UTF8.GetBytes(fileData.publicKeyAlgorithm));
+				macData.AddRange(PSUtil.IntToBytes(fileData.privateKeyAlgorithm.Length));
+				macData.AddRange(Encoding.UTF8.GetBytes(fileData.privateKeyAlgorithm));
+				macData.AddRange(PSUtil.IntToBytes(fileData.comment.Length));
+				macData.AddRange(Encoding.UTF8.GetBytes(fileData.comment));
+				macData.AddRange(PSUtil.IntToBytes(fileData.publicKeyBlob.Length));
+				macData.AddRange(fileData.publicKeyBlob);
+				macData.AddRange(PSUtil.IntToBytes(fileData.privateKeyBlob.Length));
 			}
-			macData.AddRange(this.privateKeyBlob);
+			macData.AddRange(fileData.privateKeyBlob);
 
 			byte[] computedHash;
 			SHA1 sha = SHA1.Create();
-			if (this.isHMAC) {
+			if (fileData.isHMAC) {
 				HMAC hmac = HMACSHA1.Create();
-				if (this.passphrase != null) {
-					using (PinnedByteArray hashData = new PinnedByteArray(macKeySalt.Length + this.passphrase.Length)) {
+				if (fileData.passphrase != null) {
+					using (PinnedByteArray hashData = new PinnedByteArray(macKeySalt.Length + fileData.passphrase.Length)) {
 						Array.Copy(Encoding.UTF8.GetBytes(macKeySalt), hashData.Data, macKeySalt.Length);
-						IntPtr passphrasePtr = Marshal.SecureStringToGlobalAllocUnicode(passphrase);
-						for (int i=0; i < passphrase.Length; i++) {
+						IntPtr passphrasePtr = Marshal.SecureStringToGlobalAllocUnicode(fileData.passphrase);
+						for (int i=0; i < fileData.passphrase.Length; i++) {
 							hashData.Data[macKeySalt.Length + i] = Marshal.ReadByte(passphrasePtr, i * 2);
 							Marshal.WriteByte(passphrasePtr, i * 2, 0);
 						}
@@ -496,8 +489,8 @@ namespace dlech.PageantSharp
 
 			try {
 				int macLength = computedHash.Length;
-				if (this.privateMAC.Length != macLength) {
-					if (this.passphrase == null) {
+				if (fileData.privateMAC.Length != macLength) {
+					if (fileData.passphrase == null) {
 						throw new PpkFileException(PpkFileException.ErrorType.FileCorrupt);
 					} else {
 						throw new PpkFileException(PpkFileException.ErrorType.BadPassphrase);
@@ -505,8 +498,8 @@ namespace dlech.PageantSharp
 				}
 
 				for (int i=0; i < macLength; i++) {
-					if (this.privateMAC[i] != computedHash[i]) {
-						if (this.passphrase == null) {
+					if (fileData.privateMAC[i] != computedHash[i]) {
+						if (fileData.passphrase == null) {
 							throw new PpkFileException(PpkFileException.ErrorType.FileCorrupt);
 						} else {
 							throw new PpkFileException(PpkFileException.ErrorType.BadPassphrase);
@@ -520,17 +513,17 @@ namespace dlech.PageantSharp
 			}
 		}
 
-		private void SetPublicKeyAlgorithm()
+		private static AsymmetricAlgorithm CreateKeyAlgorithm(FileData fileData)
 		{
-			switch (this.publicKeyAlgorithm) {
+			switch (fileData.publicKeyAlgorithm) {
 				case PublicKeyAlgorithms.ssh_rsa:
 
-					PpkKeyBlobParser parser = new PpkKeyBlobParser(this.publicKeyBlob);
+					PpkKeyBlobParser parser = new PpkKeyBlobParser(fileData.publicKeyBlob);
 					string algorithm = Encoding.UTF8.GetString(parser.CurrentAsPinnedByteArray.Data);
 					parser.CurrentAsPinnedByteArray.Dispose();
 					parser.MoveNext();
 
-					if ((this.publicKeyAlgorithm != PublicKeyAlgorithms.ssh_rsa) ||
+					if ((fileData.publicKeyAlgorithm != PublicKeyAlgorithms.ssh_rsa) ||
 						(algorithm != PublicKeyAlgorithms.ssh_rsa)) {
 						throw new InvalidOperationException("public key is not rsa");
 					}
@@ -544,8 +537,7 @@ namespace dlech.PageantSharp
 					PinnedByteArray modulus = parser.CurrentAsPinnedByteArray;
 					//parser.MoveNext();
 
-					parser = new PpkKeyBlobParser(this.privateKeyBlob);
-
+					parser = new PpkKeyBlobParser(fileData.privateKeyBlob);
 					PSUtil.TrimLeadingZero(parser.CurrentAsPinnedByteArray);
 					PinnedByteArray d = parser.CurrentAsPinnedByteArray;
 					parser.MoveNext();
@@ -575,8 +567,8 @@ namespace dlech.PageantSharp
 
 					RSA rsa = RSA.Create();
 					rsa.ImportParameters(rsaParams);
-					this.Key.Algorithm = rsa;
 
+					parser.Dispose();
 					modulus.Dispose();
 					exponent.Dispose();
 					d.Dispose();
@@ -586,10 +578,9 @@ namespace dlech.PageantSharp
 					dp.Dispose();
 					dq.Dispose();
 
-					break;
+					return rsa;
 				case PublicKeyAlgorithms.ssh_dss:
 					throw new NotImplementedException("ssh-dss not implemented yet.");
-					break;
 				default:
 					// unsupported encryption algorithm
 					throw new PpkFileException(PpkFileException.ErrorType.PublicKeyEncryption);
@@ -597,7 +588,6 @@ namespace dlech.PageantSharp
 		}
 
 		# endregion -- Private Methods --
-
 
 	}
 }

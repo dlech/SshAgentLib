@@ -135,22 +135,20 @@ namespace dlech.PageantSharp
 
 		public static byte[] FromBase64(byte[] base64Data)
 		{
-			FromBase64Transform base64Transform = new FromBase64Transform();
-			GenericTransform(base64Transform, ref base64Data);
-			base64Transform.Clear();
-			return base64Data;
+			using (FromBase64Transform base64Transform = new FromBase64Transform()) {
+				return GenericTransform(base64Transform, base64Data);
+			}
 		}
 
 
 		public static byte[] ToBase64(byte[] binaryData)
 		{
-			ToBase64Transform base64Transform = new ToBase64Transform();
-			GenericTransform(base64Transform, ref binaryData);
-			base64Transform.Clear();
-			return binaryData;
+			using (ToBase64Transform base64Transform = new ToBase64Transform()) {
+				return GenericTransform(base64Transform, binaryData);
+			}
 		}
 
-		internal static void GenericTransform(ICryptoTransform transform, ref byte[] data)
+		internal static byte[] GenericTransform(ICryptoTransform transform, byte[] data)
 		{
 			List<byte> byteList = new List<byte>();
 			byte[] outputBytes;
@@ -173,9 +171,9 @@ namespace dlech.PageantSharp
 			}
 			outputBytes = transform.TransformFinalBlock(data, inputOffset, inputLength - inputOffset);
 			byteList.AddRange(outputBytes);
-			Array.Clear(data, 0, data.Length);
-			data = byteList.ToArray();
+			byte[] result = byteList.ToArray();
 			ClearByteList(byteList);
+			return result;
 		}
 
 		/// <summary>

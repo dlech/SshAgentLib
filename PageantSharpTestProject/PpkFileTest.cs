@@ -72,12 +72,12 @@ namespace PageantSharpTestProject
 
 	
 		/// <summary>
-		///A test for PpkFile Constructor
+		///A test for PpkFile ParseData method
 		///</summary>
 		[TestMethod()]
-		public void PpkFileConstructorTest()
+		public void PpkFileParseDataTest()
 		{
-			PpkFile target;
+			PpkKey target;
 
 			Assembly asm = Assembly.GetExecutingAssembly();
 			string dir = Path.GetDirectoryName(asm.Location);
@@ -156,9 +156,10 @@ namespace PageantSharpTestProject
 
 		
 
-			/* test for successful constructor */
-			target = new PpkFile(withPassFileName, getPassphrase, warnOldFileNotExpected);
-			Assert.AreEqual(expectedWithPassComment, target.Key.Comment);
+			/* test for successful method call */
+			target = PpkFile.ParseData(Resources.withPassphrase_ppk, getPassphrase, warnOldFileNotExpected);
+			Assert.AreEqual(expectedWithPassComment, target.Comment);
+			Assert.AreEqual(1024, target.Algorithm.KeySize);
 			
 			/* read file to string for modification by subsequent tests */
 			string withoutPassFileContents;
@@ -172,7 +173,7 @@ namespace PageantSharpTestProject
 			/* test bad file version */
 			modifiedFileContents = Encoding.UTF8.GetBytes(withoutPassFileContents.Replace("2", "3"));
 			try {
-				target = new PpkFile(modifiedFileContents, null, warnOldFileNotExpected);
+				target = PpkFile.ParseData(modifiedFileContents, null, warnOldFileNotExpected);
 				Assert.Fail("Exception did not occur");
 			} catch (Exception ex) {
 				Assert.IsInstanceOfType(ex, typeof(PpkFileException));
@@ -182,7 +183,7 @@ namespace PageantSharpTestProject
 			/* test bad public key encryption algorithm */
 			modifiedFileContents = Encoding.UTF8.GetBytes(withoutPassFileContents.Replace("ssh-rsa", "xyz"));
 			try {
-				target = new PpkFile(modifiedFileContents, null, warnOldFileNotExpected);
+				target = PpkFile.ParseData(modifiedFileContents, null, warnOldFileNotExpected);
 				Assert.Fail("Exception did not occur");
 			} catch (Exception ex) {
 				Assert.IsInstanceOfType(ex, typeof(PpkFileException));
@@ -192,7 +193,7 @@ namespace PageantSharpTestProject
 			/* test bad private key encryption algorithm */
 			modifiedFileContents = Encoding.UTF8.GetBytes(withoutPassFileContents.Replace("none", "xyz"));
 			try {
-				target = new PpkFile(modifiedFileContents, null, warnOldFileNotExpected);
+				target = PpkFile.ParseData(modifiedFileContents, null, warnOldFileNotExpected);
 				Assert.Fail("Exception did not occur");
 			} catch (Exception ex) {
 				Assert.IsInstanceOfType(ex, typeof(PpkFileException));
@@ -202,7 +203,7 @@ namespace PageantSharpTestProject
 			/* test bad file intgerity */
 			modifiedFileContents = Encoding.UTF8.GetBytes(withoutPassFileContents.Replace("without", "with"));
 			try {
-				target = new PpkFile(modifiedFileContents, null, warnOldFileNotExpected);
+				target = PpkFile.ParseData(modifiedFileContents, null, warnOldFileNotExpected);
 				Assert.Fail("Exception did not occur");
 			} catch (Exception ex) {
 				Assert.IsInstanceOfType(ex, typeof(PpkFileException));
@@ -211,14 +212,14 @@ namespace PageantSharpTestProject
 
 			/* test bad passphrase */
 			try {
-				target = new PpkFile(withPassFileName, null, warnOldFileNotExpected);
+				target = PpkFile.ParseData(Resources.withPassphrase_ppk, null, warnOldFileNotExpected);
 				Assert.Fail("Exception did not occur");
 			} catch (Exception ex) {
 				Assert.IsInstanceOfType(ex, typeof(PpkFileException));
 				Assert.AreEqual(PpkFileException.ErrorType.BadPassphrase, ((PpkFileException)ex).Error);
 			}
 			try {
-				target = new PpkFile(withPassFileName, getBadPassphrase, warnOldFileNotExpected);
+				target = PpkFile.ParseData(Resources.withPassphrase_ppk, getBadPassphrase, warnOldFileNotExpected);
 				Assert.Fail("Exception did not occur");
 			} catch (Exception ex) {
 				Assert.IsInstanceOfType(ex, typeof(PpkFileException));
@@ -232,7 +233,7 @@ namespace PageantSharpTestProject
 				.Replace(expectedWithoutPassPrivateMACString, oldFileFormatWithoutPassPrivateMACString));
 			try {
 				warnCallbackCalled = false;
-				target = new PpkFile(modifiedFileContents, null, warnOldFileExpected);
+				target = PpkFile.ParseData(modifiedFileContents, null, warnOldFileExpected);
 				Assert.IsTrue(warnCallbackCalled);
 			} catch (Exception ex) {
 				Assert.Fail(ex.ToString());
@@ -240,36 +241,13 @@ namespace PageantSharpTestProject
 
 			/* test reading bad file */
 			try {
-				target = new PpkFile(emptyFileName, null, warnOldFileNotExpected);
+				target = PpkFile.ParseData(Resources.emptyFile_ppk, null, warnOldFileNotExpected);
 			} catch (Exception ex) {
 				Assert.IsInstanceOfType(ex, typeof(PpkFileException));
 				Assert.AreEqual(PpkFileException.ErrorType.FileFormat, ((PpkFileException)ex).Error);
 			}
 
 		}
-
-		/// <summary>
-		///A test for GetPublicKey
-		///</summary>
-		[TestMethod()]
-		public void GetPublicKeyTest()
-		{
-			byte[] data = Resources.withoutPassphrase_ppk;
-			PpkFile.GetPassphraseCallback getPassphrase = null;
-			PpkFile.WarnOldFileFormatCallback warnOldFileFormat = delegate() { };
-			PpkFile target = new PpkFile(data, getPassphrase, warnOldFileFormat);
-			AsymmetricAlgorithm alg = target.Key.Algorithm;
-			byte[] expected = PSUtil.FromBase64(
-				"AAAAB3NzaC1yc2EAAAABJQAAAIEAqtfJwYLL9N6UyMYIrYoGu9eEZCIT3pS5OI0V" +
-				"4t80baJDXPkdUBqkokcHoDjXKOy620c6MmFROBZ6AZHRvlGztefIT2+oVGJxR3TR" +
-				"dPmQhhPzgyvsdWAzjQBIj7rZz5Dzu/sDOa2wm5PRHSMrk7G4f2b2/uaGuUvC+Ga5" +
-				"aKXEDnc=");
-			byte[] actual;
-			actual = target.Key.GetSSH2PublicKeyBlob();
-			Assert.AreEqual(expected.Length, actual.Length);
-			for (int i=0; i < expected.Length; i++) {
-				Assert.AreEqual(expected[0], actual[1]);
-			}
-		}
+				
 	}
 }

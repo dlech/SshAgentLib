@@ -38,9 +38,14 @@
           <NewMemberFileName>PpkFile.cs</NewMemberFileName>
         </TypeIdentifier>
       </Delegate>
+      <Struct Name="dlech.PageantSharp.PpkFile.FileData" Collapsed="true">
+        <TypeIdentifier>
+          <NewMemberFileName>PpkFile.cs</NewMemberFileName>
+        </TypeIdentifier>
+      </Struct>
     </NestedTypes>
     <TypeIdentifier>
-      <HashCode>UDAAAGYQAAAAACQQEAAAAEBQAABAAACEgICIRAAQAEA=</HashCode>
+      <HashCode>QDAAAGQAAAAAACUQEAAAAABQAAAAAAAAgICIBAAAAAA=</HashCode>
       <FileName>PpkFile.cs</FileName>
     </TypeIdentifier>
   </Class>

@@ -2,6 +2,7 @@
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using System;
 using PageantSharpTestProject.Properties;
+using System.Security.Cryptography;
 
 namespace PageantSharpTestProject
 {
@@ -72,12 +73,35 @@ namespace PageantSharpTestProject
 		public void GetFingerprintTest()
 		{
 			byte[] fileData = (byte[])Resources.withoutPassphrase_ppk;
-			PpkFile file = new PpkFile(fileData, delegate() { return null; }, delegate() { });
-			PpkKey target = file.Key;
+			PpkKey target = PpkFile.ParseData(fileData, delegate() { return null; }, delegate() { });
 			string expected = "2d:72:cf:ea:66:44:6c:42:d7:78:84:e7:c2:c6:7b:b5";
 			string actual;
 			actual = PSUtil.ToHex(target.GetFingerprint());
 			Assert.AreEqual(expected, actual);
+		}
+
+		/// <summary>
+		///A test for GetSSH2PublicKeyBlob
+		///</summary>
+		[TestMethod()]
+		public void GetSSH2PublicKeyBlobTest()
+		{
+			byte[] data = Resources.withoutPassphrase_ppk;
+			PpkFile.GetPassphraseCallback getPassphrase = null;
+			PpkFile.WarnOldFileFormatCallback warnOldFileFormat = delegate() { };
+			PpkKey target = PpkFile.ParseData(data, getPassphrase, warnOldFileFormat);
+			AsymmetricAlgorithm alg = target.Algorithm;
+			byte[] expected = PSUtil.FromBase64(
+				"AAAAB3NzaC1yc2EAAAABJQAAAIEAqtfJwYLL9N6UyMYIrYoGu9eEZCIT3pS5OI0V" +
+				"4t80baJDXPkdUBqkokcHoDjXKOy620c6MmFROBZ6AZHRvlGztefIT2+oVGJxR3TR" +
+				"dPmQhhPzgyvsdWAzjQBIj7rZz5Dzu/sDOa2wm5PRHSMrk7G4f2b2/uaGuUvC+Ga5" +
+				"aKXEDnc=");
+			byte[] actual;
+			actual = target.GetSSH2PublicKeyBlob();
+			Assert.AreEqual(expected.Length, actual.Length);
+			for (int i=0; i < expected.Length; i++) {
+				Assert.AreEqual(expected[0], actual[1]);
+			}
 		}
 	}
 }
