@@ -156,7 +156,7 @@ namespace dlech.PageantSharp
 			/// <summary>
 			/// The private key.
 			/// </summary>
-			public byte[] privateKeyBlob;
+			public PinnedByteArray privateKeyBlob;
 
 			/// <summary>
 			/// The private key hash.
@@ -316,7 +316,6 @@ namespace dlech.PageantSharp
 					publicKeyString += reader.ReadLine();
 				}
 				fileData.publicKeyBlob = PSUtil.FromBase64(publicKeyString);
-				// TODO destroy publicKeyString
 
 				/* read private key */
 				line = reader.ReadLine();
@@ -331,8 +330,7 @@ namespace dlech.PageantSharp
 				for (i = 0; i < lineCount; i++) {
 					privateKeyString += reader.ReadLine();
 				}
-				fileData.privateKeyBlob = PSUtil.FromBase64(privateKeyString);
-				// TODO destroy privateKeyString
+				fileData.privateKeyBlob = new PinnedByteArray(PSUtil.FromBase64(privateKeyString));
 
 				/* read MAC */
 				line = reader.ReadLine();
@@ -377,7 +375,7 @@ namespace dlech.PageantSharp
 					Array.Clear(fileData.publicKeyBlob, 0, fileData.publicKeyBlob.Length);
 				}
 				if (fileData.privateKeyBlob != null) {
-					Array.Clear(fileData.privateKeyBlob, 0, fileData.privateKeyBlob.Length);
+					fileData.privateKeyBlob.Dispose();
 				}
 				if (fileData.privateMAC != null) {
 					Array.Clear(fileData.privateMAC, 0, fileData.privateMAC.Length);
@@ -435,7 +433,7 @@ namespace dlech.PageantSharp
 					PSUtil.ClearByteList(key);
 					aes.IV = new byte[aes.IV.Length];
 					ICryptoTransform decryptor = aes.CreateDecryptor();
-					fileData.privateKeyBlob = PSUtil.GenericTransform(decryptor, fileData.privateKeyBlob);
+					fileData.privateKeyBlob.Data = PSUtil.GenericTransform(decryptor, fileData.privateKeyBlob.Data);
 					decryptor.Dispose();
 					aes.Clear();
 					break;
@@ -458,9 +456,9 @@ namespace dlech.PageantSharp
 				macData.AddRange(Encoding.UTF8.GetBytes(fileData.comment));
 				macData.AddRange(PSUtil.IntToBytes(fileData.publicKeyBlob.Length));
 				macData.AddRange(fileData.publicKeyBlob);
-				macData.AddRange(PSUtil.IntToBytes(fileData.privateKeyBlob.Length));
+				macData.AddRange(PSUtil.IntToBytes(fileData.privateKeyBlob.Data.Length));
 			}
-			macData.AddRange(fileData.privateKeyBlob);
+			macData.AddRange(fileData.privateKeyBlob.Data);
 
 			byte[] computedHash;
 			SHA1 sha = SHA1.Create();
@@ -489,21 +487,30 @@ namespace dlech.PageantSharp
 
 			try {
 				int macLength = computedHash.Length;
-				if (fileData.privateMAC.Length != macLength) {
-					if (fileData.passphrase == null) {
+				bool failed = false;
+				if (fileData.privateMAC.Length == macLength) {
+					for (int i=0; i < macLength; i++) {
+						if (fileData.privateMAC[i] != computedHash[i]) {
+							failed = true;
+							break;
+						}
+					}
+				} else {
+					failed = true;
+				}
+				if (failed) {
+					// private key data should start with 3 bytes with value 0 if it was properly
+					// decrypted or does not require decryption
+					if ((fileData.privateKeyBlob.Data[0] == 0) &&
+						(fileData.privateKeyBlob.Data[1] == 0) &&
+						(fileData.privateKeyBlob.Data[2] == 0)) {
+						// so if they bytes are there, passphrase decrypted properly and something 
+						// else is wrong with the file contents
 						throw new PpkFileException(PpkFileException.ErrorType.FileCorrupt);
 					} else {
+						// if the bytes are not zeros, we assume that the data was not properly 
+						// decrypted because the passphrase was incorrect. 
 						throw new PpkFileException(PpkFileException.ErrorType.BadPassphrase);
-					}
-				}
-
-				for (int i=0; i < macLength; i++) {
-					if (fileData.privateMAC[i] != computedHash[i]) {
-						if (fileData.passphrase == null) {
-							throw new PpkFileException(PpkFileException.ErrorType.FileCorrupt);
-						} else {
-							throw new PpkFileException(PpkFileException.ErrorType.BadPassphrase);
-						}
 					}
 				}
 			} catch {
@@ -537,7 +544,7 @@ namespace dlech.PageantSharp
 					PinnedByteArray modulus = parser.CurrentAsPinnedByteArray;
 					//parser.MoveNext();
 
-					parser = new PpkKeyBlobParser(fileData.privateKeyBlob);
+					parser = new PpkKeyBlobParser(fileData.privateKeyBlob.Data);
 					PSUtil.TrimLeadingZero(parser.CurrentAsPinnedByteArray);
 					PinnedByteArray d = parser.CurrentAsPinnedByteArray;
 					parser.MoveNext();
