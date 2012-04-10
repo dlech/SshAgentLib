@@ -70,12 +70,9 @@ namespace PageantSharpTestProject
 		//
 		#endregion
 
-	
-		/// <summary>
-		///A test for PpkFile ParseData method
-		///</summary>
-		[TestMethod()]
-		public void PpkFileParseDataTest()
+
+
+		public void PpkFileReadFileTest()
 		{
 			PpkKey target;
 
@@ -84,6 +81,16 @@ namespace PageantSharpTestProject
 			string emptyFileName = Path.Combine(dir, @"Resources\emptyFile.ppk");
 			string withoutPassFileName = Path.Combine(dir, @"Resources\withoutPassphrase.ppk");
 			string withPassFileName = Path.Combine(dir, @"Resources\withPassphrase.ppk");
+		}
+
+		/// <summary>
+		///A test for PpkFile ParseData method
+		///</summary>
+		[TestMethod()]
+		public void PpkFileParseDataTest()
+		{
+			PpkKey target;
+
 			PpkFile.WarnOldFileFormatCallback warnOldFileNotExpected = delegate()
 			{
 				Assert.Fail("Warn old file format was not expected");
@@ -117,58 +124,54 @@ namespace PageantSharpTestProject
 
 			string expectedPublicKeyAlgorithm = PpkFile.PublicKeyAlgorithms.ssh_rsa;
 			string expectedWithoutPassPublicKeyString = 
-				"AAAAB3NzaC1yc2EAAAABJQAAAIEAqtfJwYLL9N6UyMYIrYoGu9eEZCIT3pS5OI0V" +
-				"4t80baJDXPkdUBqkokcHoDjXKOy620c6MmFROBZ6AZHRvlGztefIT2+oVGJxR3TR" +
-				"dPmQhhPzgyvsdWAzjQBIj7rZz5Dzu/sDOa2wm5PRHSMrk7G4f2b2/uaGuUvC+Ga5" +
-				"aKXEDnc=";
+				"AAAAB3NzaC1yc2EAAAABJQAAAIEAhWqdEs/lz1r4L8ZAAS76rX7hj3rrI/6FNlBw" +
+				"6ERba2VFmn2AHxQwZmHHmqM+UtiY57angjD9fTbTzL74C0+f/NrRY+BYXf1cF+u5" +
+				"XmjNKygrsIq3yPMZV4q8YcN/ls9COcynOQMIEmJF6Q0LD7Gt9Uv5yjqc2Ay7VVhG" +
+				"qZNnIeE=";
 			string expectedWithPassPublicKeyString = 
-				"AAAAB3NzaC1yc2EAAAABJQAAAIEAiQkGoRerOJfIN86YAzD+Yq76d/pM9p0TuKz1" +
-				"8wDIrKiay/XWtqG6ErGL/W+XNOOd3AKL1XABzrC8xXc/zqkHbopQa207P+iFR6Va" +
-				"cXSiiJm4KOg1VQiocoNB/j8dELzq0dJ6LsPD7qaGwkmNvvp5cWehcyOjIKHLa1JF" +
-				"nwmdPLs=";
-			string expectedWithoutPassComment = "without passphrase";
-			string expectedWithPassComment = "with passphrase";
+				"AAAAB3NzaC1yc2EAAAABJQAAAIEAvpwLqhmHYAipvnbQeFEzC7kSTdOCpH5XP9rT" +
+				"lwScQ5n6Br1DDGIg7tSOBCbralX+0U7NClrcUkueydXRqXEf1rX26o4EcrZ+v1z/" +
+				"pgu7dbOyHKK0LczCx/IHBm8jrpzrJeB0rg+0ym7XgEcGYgdRj7wFo93PEtx1T4kF" +
+				"gNLsE3k=";
+			string expectedWithoutPassComment = "ssh2-rsa-no-passphrase";
+			string expectedWithPassComment = "ssh2-rsa";
 			string expectedWithoutPassPrivateKeyString =
-				"AAAAgHyrTgnAT6TZxoSsL9iVJ4InpcyHkfVzcmeJjIL15/z53iFAKiWyk9BdWJeD" +
-				"bJN8UQDg8x3YUAZVl01A5SoERN18aB7lgajejzJgQFOP5Ad7vA/83dFbrzAf10Ah" +
-				"dbtaqHUdMwMWqdkqVa2EYCZ+O+0PeewHA3uBJECHlP/NN+GdAAAAQQDtQNlZb5AD" +
-				"d9RthpU1X6+ePcR7POnz01GrUPRARzRB2h5JP+mwFnfjANSKhZhrzePpIL1jKYyI" +
-				"o12b1qV/IXY5AAAAQQC4V5eZV62MzOuf1kdUVysFCVzt3mMLLcn57RQwRpqQfp5j" +
-				"0r2JNiAFBYo4k/9phYYJ0FziDIz/MEvYMwXLCiovAAAAQQDMYEQojQraSZDbcUwy" +
-				"OaEtSNGh9qtYIPuYilRFbiIU55Az5iujw8c7LCpNycSGeo6GGLAt6VCjp8v8abb0" +
-				"wOqJ";
+				"AAAAgCQO+gUVmA6HSf8S/IqywEqQ/rEoI+A285IjlCMZZNDq8DeXimlDug3VPN2v" +
+				"lE29/8/sLUXIDSjCtciiUOB2Ypb5Y7AtjDDGg4Yk4v034Mxp0Db6ygDrBuSXbV1U" +
+				"JzjiDmJOOXgrVLzqc1BZCxVEnzC3fj4GiqQnN1Do3urPatgNAAAAQQDLKWiXIxVj" +
+				"CoNhzkJqgz0vTIBAaCDJNy9geibZRCHhcQqVk3jN6TscxKhhRYsbEAsTfUPiIPGF" +
+				"HQaRkd1mwT4dAAAAQQCoHYkHFPqIniQ0oz/ivWAK9mTdl3GRFXP5+mGZQ+9DAl0V" +
+				"pYOUy7XiCcqVgukYt0+Rj9QNFIcpuAnPfAD6APeVAAAAQClZDkpDCyJX88Vgw7e/" +
+				"/gbuTJuPv/UGyHI/SSgZcPUBbgmfyj19puHF66+8LTc9unnBF0JyaH9k0dUycFue" +
+				"LbE=";
 			string expectedWithPassDecryptedPrivateKeyString = 
-				"AAAAgFF6/QXWuNWKrmZfKfQPSyXrgCuplYu3V9WXRiHJHV++MoccjYFZPjSg63QY" +
-				"1nJ5gHT6mFVlMYHQ3vHz4MARegmAQ33bxTmwzRszLXua1W2hRgqCTDsG89MNe2Fn" +
-				"iAaFjZcBP/eqXoknZdlnEbq7cV2A+qbLHxfVY0GZ3jvAzyx9AAAAQQDOrnDIH4x5" +
-				"gJIKYn0Qfs2WYD9tioS11TnReWSzgmkeKILHhrCfPm4ZIkZNdGnC5wyuqh03HWSe" +
-				"izsU7+hTbT0PAAAAQQCpvBtWZ0bFq8IKtxjfvMh0HEwrKpuYlj54M0cu8BED9xbl" +
-				"8KNut/b5rY5aZD4TmY1IxiYii5+QvCqjSK9PAh2VAAAAQD1GlJSv/erLvQYO1nsL" +
-				"aF2ooZ9Dg1m/NOnKDWJ8MOhMrLmqIxs6bKcKjVoEjgx5FqPI0pMwK0tpMH2slx92" +
-				"JIM=";
+				"AAAAgE1GLj4KWXn1rJlSwzeyN0nxFUIlUKONKkpRy2a8rg2RczMqIhnG6sGwHeYB" +
+				"8LxoDVvGABj0ZyhIK53u5kuckF1DiWEcq3IwGIIZqR6JOwMucjbV1pvvzTz3QpUE" +
+				"fJ+Hj4tHaI7A124D0b/paUmBxOUgeVYXuMls5GZbcl2ApKNdAAAAQQDkXflDxnVr" +
+				"EXrXAjK+kug3PDdGOPLVPTQRDGwNbuHhSXdVTKAsBdfp9LJZqDzW4LnWhjebeGbj" +
+				"Kr1ef2VU7cn1AAAAQQDVrHk2uTj27Iwkj31P/WOBXCrmnQ+oAspL3uaJ1rqxg9+F" +
+				"rq3Dva/y7n0UBRqJ8Y+mdkKQW6oO0usEsEXrVxz1AAAAQF3U8ibnexxDTxhUZdw5" +
+				"4nzukrnamPWqbZf2RyvQAMA0vw6uW1YNcN6qJxAkt7K5rLg9fsV2ft1FFBcPy+C+" +
+				"BDw=";
 			string expectedWithoutPassPrivateMACString = 
-				"f7c9bf63097216304a05c1426ac9d42c4b3825cd";
+				"0955a0849aecfdcfce3f5fa9d830a5e9f691b400";
 			string oldFileFormatWithoutPassPrivateMACString = 
-				"c39afc7d9ccb459900d7d9679e4d2cd564d8e0cc";
+				"dc54d9b526e6d5aeb4832811f2b825e735b218f7";
 			string expectedWithPassPrivateMACString = 
-				"8877acc44fa4306977f960fde25b20d7146019fb";
+				"a3f7c8f1dbbb4a33d9de051c227df205192784df";
 
 
 		
 
 			/* test for successful method call */
-			target = PpkFile.ParseData(Resources.withPassphrase_ppk, getPassphrase, warnOldFileNotExpected);
+			target = PpkFile.ParseData(Resources.ssh2_rsa_ppk, getPassphrase, warnOldFileNotExpected);
 			Assert.AreEqual(expectedWithPassComment, target.Comment);
 			Assert.AreEqual(1024, target.Algorithm.KeySize);
 			
 			/* read file to string for modification by subsequent tests */
 			string withoutPassFileContents;
 			byte[] modifiedFileContents;
-			Stream stream = File.OpenRead(withoutPassFileName);
-			StreamReader reader = new StreamReader(stream);
-			withoutPassFileContents = reader.ReadToEnd();
-			reader.Close();
-			stream.Close();
+			withoutPassFileContents = Encoding.UTF8.GetString(Resources.ssh2_rsa_no_passphrase_ppk);
 
 			/* test bad file version */
 			modifiedFileContents = Encoding.UTF8.GetBytes(withoutPassFileContents.Replace("2", "3"));
@@ -201,7 +204,7 @@ namespace PageantSharpTestProject
 			}
 
 			/* test bad file intgerity */
-			modifiedFileContents = Encoding.UTF8.GetBytes(withoutPassFileContents.Replace("without", "with"));
+			modifiedFileContents = Encoding.UTF8.GetBytes(withoutPassFileContents.Replace("no-passphrase", "xyz"));
 			try {
 				target = PpkFile.ParseData(modifiedFileContents, null, warnOldFileNotExpected);
 				Assert.Fail("Exception did not occur");
@@ -212,14 +215,14 @@ namespace PageantSharpTestProject
 
 			/* test bad passphrase */
 			try {
-				target = PpkFile.ParseData(Resources.withPassphrase_ppk, null, warnOldFileNotExpected);
+				target = PpkFile.ParseData(Resources.ssh2_rsa_ppk, null, warnOldFileNotExpected);
 				Assert.Fail("Exception did not occur");
 			} catch (Exception ex) {
 				Assert.IsInstanceOfType(ex, typeof(PpkFileException));
 				Assert.AreEqual(PpkFileException.ErrorType.BadPassphrase, ((PpkFileException)ex).Error);
 			}
 			try {
-				target = PpkFile.ParseData(Resources.withPassphrase_ppk, getBadPassphrase, warnOldFileNotExpected);
+				target = PpkFile.ParseData(Resources.ssh2_rsa_ppk, getBadPassphrase, warnOldFileNotExpected);
 				Assert.Fail("Exception did not occur");
 			} catch (Exception ex) {
 				Assert.IsInstanceOfType(ex, typeof(PpkFileException));

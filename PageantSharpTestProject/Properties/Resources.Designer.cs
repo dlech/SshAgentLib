@@ -67,16 +67,16 @@ namespace PageantSharpTestProject.Properties {
             }
         }
         
-        internal static byte[] withoutPassphrase_ppk {
+        internal static byte[] ssh2_rsa_no_passphrase_ppk {
             get {
-                object obj = ResourceManager.GetObject("withoutPassphrase_ppk", resourceCulture);
+                object obj = ResourceManager.GetObject("ssh2_rsa_no_passphrase_ppk", resourceCulture);
                 return ((byte[])(obj));
             }
         }
         
-        internal static byte[] withPassphrase_ppk {
+        internal static byte[] ssh2_rsa_ppk {
             get {
-                object obj = ResourceManager.GetObject("withPassphrase_ppk", resourceCulture);
+                object obj = ResourceManager.GetObject("ssh2_rsa_ppk", resourceCulture);
                 return ((byte[])(obj));
             }
         }

@@ -105,7 +105,7 @@ namespace PageantSharpTestProject
 		[TestMethod()]
 		public void PageantWindowWndProcTest()
 		{
-			byte[] data = Resources.withoutPassphrase_ppk;
+			byte[] data = Resources.ssh2_rsa_no_passphrase_ppk;
 			PpkFile.GetPassphraseCallback getPassphrase = null;
 			PpkFile.WarnOldFileFormatCallback warnOldFileFormat = delegate() { };
 			PpkKey keyFromData = PpkFile.ParseData(data, getPassphrase, warnOldFileFormat);

@@ -118,13 +118,13 @@
     <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </resheader>
   <assembly alias="System.Windows.Forms" name="System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089" />
-  <data name="withoutPassphrase_ppk" type="System.Resources.ResXFileRef, System.Windows.Forms">
-    <value>..\Resources\withoutPassphrase.ppk;System.Byte[], mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
-  </data>
-  <data name="withPassphrase_ppk" type="System.Resources.ResXFileRef, System.Windows.Forms">
-    <value>..\Resources\withPassphrase.ppk;System.Byte[], mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
-  </data>
   <data name="emptyFile_ppk" type="System.Resources.ResXFileRef, System.Windows.Forms">
     <value>..\resources\emptyfile.ppk;System.Byte[], mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
+  <data name="ssh2_rsa_no_passphrase_ppk" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\Resources\ssh2-rsa-no-passphrase.ppk;System.Byte[], mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
+  <data name="ssh2_rsa_ppk" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\Resources\ssh2-rsa.ppk;System.Byte[], mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </data>
 </root>
