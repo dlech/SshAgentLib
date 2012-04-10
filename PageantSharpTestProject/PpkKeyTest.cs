@@ -74,7 +74,7 @@ namespace PageantSharpTestProject
 		{
 			byte[] fileData = (byte[])Resources.ssh2_rsa_no_passphrase_ppk;
 			PpkKey target = PpkFile.ParseData(fileData, delegate() { return null; }, delegate() { });
-			string expected = "2d:72:cf:ea:66:44:6c:42:d7:78:84:e7:c2:c6:7b:b5";
+			string expected = "57:95:98:7f:c2:4e:98:1d:b9:5b:45:fe:6d:a4:6b:17";
 			string actual;
 			actual = PSUtil.ToHex(target.GetFingerprint());
 			Assert.AreEqual(expected, actual);
@@ -92,10 +92,10 @@ namespace PageantSharpTestProject
 			PpkKey target = PpkFile.ParseData(data, getPassphrase, warnOldFileFormat);
 			AsymmetricAlgorithm alg = target.Algorithm;
 			byte[] expected = PSUtil.FromBase64(
-				"AAAAB3NzaC1yc2EAAAABJQAAAIEAqtfJwYLL9N6UyMYIrYoGu9eEZCIT3pS5OI0V" +
-				"4t80baJDXPkdUBqkokcHoDjXKOy620c6MmFROBZ6AZHRvlGztefIT2+oVGJxR3TR" +
-				"dPmQhhPzgyvsdWAzjQBIj7rZz5Dzu/sDOa2wm5PRHSMrk7G4f2b2/uaGuUvC+Ga5" +
-				"aKXEDnc=");
+				"AAAAB3NzaC1yc2EAAAABJQAAAIEAhWqdEs/lz1r4L8ZAAS76rX7hj3rrI/6FNlBw" +
+				"6ERba2VFmn2AHxQwZmHHmqM+UtiY57angjD9fTbTzL74C0+f/NrRY+BYXf1cF+u5" +
+				"XmjNKygrsIq3yPMZV4q8YcN/ls9COcynOQMIEmJF6Q0LD7Gt9Uv5yjqc2Ay7VVhG" +
+				"qZNnIeE=");
 			byte[] actual;
 			actual = target.GetSSH2PublicKeyBlob();
 			Assert.AreEqual(expected.Length, actual.Length);

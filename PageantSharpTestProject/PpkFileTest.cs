@@ -133,8 +133,8 @@ namespace PageantSharpTestProject
 				"lwScQ5n6Br1DDGIg7tSOBCbralX+0U7NClrcUkueydXRqXEf1rX26o4EcrZ+v1z/" +
 				"pgu7dbOyHKK0LczCx/IHBm8jrpzrJeB0rg+0ym7XgEcGYgdRj7wFo93PEtx1T4kF" +
 				"gNLsE3k=";
-			string expectedWithoutPassComment = "ssh2-rsa-no-passphrase";
-			string expectedWithPassComment = "ssh2-rsa";
+			string expectedWithoutPassComment = "PageantSharp test: SSH2-RSA, no passphrase";
+			string expectedWithPassComment = "PageantSharp test: SSH2-RSA, with passphrase";
 			string expectedWithoutPassPrivateKeyString =
 				"AAAAgCQO+gUVmA6HSf8S/IqywEqQ/rEoI+A285IjlCMZZNDq8DeXimlDug3VPN2v" +
 				"lE29/8/sLUXIDSjCtciiUOB2Ypb5Y7AtjDDGg4Yk4v034Mxp0Db6ygDrBuSXbV1U" +
@@ -154,11 +154,11 @@ namespace PageantSharpTestProject
 				"4nzukrnamPWqbZf2RyvQAMA0vw6uW1YNcN6qJxAkt7K5rLg9fsV2ft1FFBcPy+C+" +
 				"BDw=";
 			string expectedWithoutPassPrivateMACString = 
-				"0955a0849aecfdcfce3f5fa9d830a5e9f691b400";
+				"77bfa6dc141ed17e4c850d3a95cd6f4ec89cd86b";
 			string oldFileFormatWithoutPassPrivateMACString = 
 				"dc54d9b526e6d5aeb4832811f2b825e735b218f7";
 			string expectedWithPassPrivateMACString = 
-				"a3f7c8f1dbbb4a33d9de051c227df205192784df";
+				"e71a6a7b6271875a8264d9d8995f7c81508d6a6c";
 
 
 		
@@ -204,7 +204,7 @@ namespace PageantSharpTestProject
 			}
 
 			/* test bad file intgerity */
-			modifiedFileContents = Encoding.UTF8.GetBytes(withoutPassFileContents.Replace("no-passphrase", "xyz"));
+			modifiedFileContents = Encoding.UTF8.GetBytes(withoutPassFileContents.Replace("no passphrase", "xyz"));
 			try {
 				target = PpkFile.ParseData(modifiedFileContents, null, warnOldFileNotExpected);
 				Assert.Fail("Exception did not occur");
