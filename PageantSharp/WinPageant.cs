@@ -5,11 +5,15 @@ using System.Security.Principal;
 using System.Diagnostics;
 using Microsoft.Win32.SafeHandles;
 using System.IO;
-using System.IO.MemoryMappedFiles;
 using System.Security.Cryptography;
 using System.Collections.ObjectModel;
 using System.Collections.Generic;
 using System.Text;
+using System.Runtime.ConstrainedExecution;
+#if !DOT_NET_35
+using System.IO.MemoryMappedFiles;
+#endif // DOT_NET_35
+
 
 namespace dlech.PageantSharp
 {
@@ -29,6 +33,27 @@ namespace dlech.PageantSharp
 
 		private const int ERROR_CLASS_ALREADY_EXISTS =       1410;
 		private const int WM_COPYDATA =                      0x004A;
+
+#if DOT_NET_35
+		private const int STANDARD_RIGHTS_REQUIRED =         0x000F0000;
+		private const int SECTION_QUERY =                    0x0001;
+		private const int SECTION_MAP_WRITE =                0x0002;
+		private const int SECTION_MAP_READ =                 0x0004;
+		private const int SECTION_MAP_EXECUTE =              0x0008;
+		private const int SECTION_EXTEND_SIZE =              0x0010;
+		private const int SECTION_MAP_EXECUTE_EXPLICIT =     0x0020; // not included in SECTION_ALL_ACCESS
+
+		private const int SECTION_ALL_ACCESS = (STANDARD_RIGHTS_REQUIRED | SECTION_QUERY | SECTION_MAP_WRITE |
+														 SECTION_MAP_READ | SECTION_MAP_EXECUTE | SECTION_EXTEND_SIZE);
+
+		private const int FILE_MAP_ALL_ACCESS =		      		SECTION_ALL_ACCESS;
+		private const int FILE_MAP_WRITE =								  SECTION_MAP_WRITE;
+
+		private const int INVALID_HANDLE_VALUE =						-1;
+		private const int SE_KERNEL_OBJECT =								6;
+		private const int OWNER_SECURITY_INFORMATION =      0x00000001;
+		private const int ERROR_SUCCESS =										0;
+#endif // DOT_NET_35
 
 
 		/* From PuTTY source code */
@@ -66,6 +91,10 @@ namespace dlech.PageantSharp
 		private const int SSH2_AGENTC_ADD_IDENTITY =              17;
 		private const int SSH2_AGENTC_REMOVE_IDENTITY =           18;
 		private const int SSH2_AGENTC_REMOVE_ALL_IDENTITIES =     19;
+
+#if DOT_NET_35
+		private const int AGENT_MAX_MSGLEN =											8192;
+#endif // DOT_NET_35
 
 		#endregion
 
@@ -132,6 +161,10 @@ namespace dlech.PageantSharp
 			public IntPtr lpData;
 		}
 
+#if DOT_NET_35
+
+#endif // DOT_NET_35
+
 		#endregion
 
 
@@ -170,7 +203,24 @@ namespace dlech.PageantSharp
 		[DllImport("user32.dll", SetLastError = true)]
 		static extern bool DestroyWindow(IntPtr hWnd);
 
+#if DOT_NET_35
+		[DllImport("kernel32.dll", CharSet = CharSet.Auto, SetLastError = true)]
+		static extern IntPtr MapViewOfFile(IntPtr hFileMapping, int dwDesiredAccess, int dwFileOffsetHigh, int dwFileOffsetLow, int dwNumberOfBytesToMap);
 
+		[DllImport("kernel32.dll", CharSet = CharSet.Auto, SetLastError = true)]
+		static extern IntPtr OpenFileMapping(int dwDesiredAccess, [MarshalAs(UnmanagedType.Bool)] bool bInheritHandle, string lpName);
+
+		[DllImport("advapi32.dll", CharSet = CharSet.Auto, SetLastError = true)]
+		static extern int GetSecurityInfo(IntPtr handle, int objectType, int securityInfo,
+			out IntPtr ppsidOwner, out IntPtr ppsidGroup, out IntPtr ppDacl, out IntPtr ppSacl, out IntPtr ppSecurityDescriptor);
+
+		[DllImport("kernel32.dll", SetLastError = true, ExactSpelling = true)]
+		static extern IntPtr LocalFree(IntPtr hMem);
+
+		[return: MarshalAs(UnmanagedType.Bool)]
+		[ReliabilityContract(Consistency.WillNotCorruptState, Cer.Success), DllImport("Kernel32", CharSet = CharSet.Auto, SetLastError = true)]
+		internal static extern bool UnmapViewOfFile(IntPtr pvBaseAddress);
+#endif // DOT_NET_35
 
 		#endregion
 
@@ -293,24 +343,41 @@ namespace dlech.PageantSharp
 					string mapname = Marshal.PtrToStringAnsi(copyData.lpData);
 					if (mapname.Length == copyData.cbData - 1) {
 						try {
-							using (MemoryMappedFile fileMap = MemoryMappedFile.OpenExisting(mapname, MemoryMappedFileRights.FullControl)) {
-								if (!fileMap.SafeMemoryMappedFileHandle.IsInvalid) {
+#if DOT_NET_35
+							IntPtr fileMap = OpenFileMapping(FILE_MAP_ALL_ACCESS, false, mapname);
 
+							if (fileMap != IntPtr.Zero && fileMap != new IntPtr(INVALID_HANDLE_VALUE)) {
+								IntPtr mapOwnerPtr, group, dacl, sacl; 
+								IntPtr securityDescriptorPtr = IntPtr.Zero;								
+								if (GetSecurityInfo(fileMap, SE_KERNEL_OBJECT, OWNER_SECURITY_INFORMATION,
+									out mapOwnerPtr, out group, out dacl, out sacl, out securityDescriptorPtr) == ERROR_SUCCESS) {
+									SecurityIdentifier mapOwner = new SecurityIdentifier(mapOwnerPtr);
+									LocalFree(securityDescriptorPtr);
+#else
+							using (MemoryMappedFile fileMap = MemoryMappedFile.OpenExisting(mapname, MemoryMappedFileRights.FullControl)) {
+									if (!fileMap.SafeMemoryMappedFileHandle.IsInvalid) {
+										SecurityIdentifier mapOwner = (SecurityIdentifier)fileMap.GetAccessControl().GetOwner(typeof(System.Security.Principal.SecurityIdentifier));
+#endif
 									/* check to see if message sender is same user as this program's user */
 									// TODO is this sufficent or should we do like Pageant does 
 									// and retreive sid from processes?
 									WindowsIdentity user = WindowsIdentity.GetCurrent();
 									SecurityIdentifier sid = user.User;
-									SecurityIdentifier mapOwner = (SecurityIdentifier)fileMap.GetAccessControl().GetOwner(typeof(System.Security.Principal.SecurityIdentifier));
+
 									if (sid == mapOwner) {
 										AnswerMessage(fileMap);
 										Marshal.WriteInt32(result, 1);
 										return result; // success
 									}
-
 								}
-							}
-						} catch (Exception) { }
+#if DOT_NET_35
+							} // if GetSecurityInfo
+#else
+						} // using fileMap
+#endif // DOT_NET_35
+						} catch (Exception ex) {
+							Debug.Fail(ex.ToString());
+						}
 					}
 				}
 				return result; // failure
@@ -319,206 +386,218 @@ namespace dlech.PageantSharp
 			}
 		}
 
+#if DOT_NET_35
+		private void AnswerMessage(IntPtr fileMap)
+		{
+			IntPtr map = MapViewOfFile(fileMap, FILE_MAP_WRITE, 0, 0, 0);
+			byte[] fileCopy = new byte[AGENT_MAX_MSGLEN];
+			Marshal.Copy(map, fileCopy, 0, AGENT_MAX_MSGLEN);
+			Stream stream = new MemoryStream(fileCopy);
+#else
 		private void AnswerMessage(MemoryMappedFile fileMap)
 		{
-
 			using (MemoryMappedViewStream stream = fileMap.CreateViewStream()) {
+#endif // DOT_NET_35
+			byte[] buffer = new byte[4];
+			stream.Read(buffer, 0, 4);
+			int msgDataLength = PSUtil.BytesToInt(buffer, 0);
+			int type;
 
-				byte[] buffer = new byte[4];
-				stream.Read(buffer, 0, 4);
-				int msgDataLength = PSUtil.BytesToInt(buffer, 0);
-				int type;
+			if (msgDataLength > 0) {
+				type = stream.ReadByte();
+			} else {
+				type = SSH_AGENT_BAD_REQUEST;
+			}
 
-				if (msgDataLength > 0) {
-					type = stream.ReadByte();
-				} else {
-					type = SSH_AGENT_BAD_REQUEST;
-				}
+			switch (type) {
+				case SSH1_AGENTC_REQUEST_RSA_IDENTITIES:
+					/*
+					 * Reply with SSH1_AGENT_RSA_IDENTITIES_ANSWER.
+					 */
 
-				switch (type) {
-					case SSH1_AGENTC_REQUEST_RSA_IDENTITIES:
-						/*
-						 * Reply with SSH1_AGENT_RSA_IDENTITIES_ANSWER.
-						 */
+					// TODO implement SSH1_AGENT_RSA_IDENTITIES_ANSWER
 
-						// TODO implement SSH1_AGENT_RSA_IDENTITIES_ANSWER
-
-						goto default; // failed
-					case SSH2_AGENTC_REQUEST_IDENTITIES:
-						/*
-						 * Reply with SSH2_AGENT_IDENTITIES_ANSWER.
-						 */
-						if (this.getSSH2PublicKeyListCallback != null) {
-							PpkKeyBlobBuilder builder = new PpkKeyBlobBuilder();
-							try {
-								int keyCount = 0;
-
-								foreach (PpkKey key in this.getSSH2PublicKeyListCallback()) {
-									keyCount++;
-									builder.AddBlob(key.GetSSH2PublicKeyBlob());
-									builder.AddString(key.Comment);
-									key.Dispose();
-								}
-
-								if (9 + builder.Length <= stream.Length) {
-									stream.Position = 0;
-									stream.Write(PSUtil.IntToBytes(5 + builder.Length), 0, 4);
-									stream.WriteByte(SSH2_AGENT_IDENTITIES_ANSWER);
-									stream.Write(PSUtil.IntToBytes(keyCount), 0, 4);
-									stream.Write(builder.getBlob(), 0, builder.Length);
-									break; // succeeded
-								}
-							} catch (Exception ex) {
-								Debug.Fail(ex.ToString());
-							} finally {
-								builder.Clear();
-							}
-						}
-						goto default; // failed
-					case SSH1_AGENTC_RSA_CHALLENGE:
-						/*
-						 * Reply with either SSH1_AGENT_RSA_RESPONSE or
-						 * SSH_AGENT_FAILURE, depending on whether we have that key
-						 * or not.
-						 */
-
-						// TODO implement SSH1_AGENTC_RSA_CHALLENGE
-
-						goto default; // failed
-					case SSH2_AGENTC_SIGN_REQUEST:
-						/*
-						 * Reply with either SSH2_AGENT_SIGN_RESPONSE or
-						 * SSH_AGENT_FAILURE, depending on whether we have that key
-						 * or not.
-						 */
+					goto default; // failed
+				case SSH2_AGENTC_REQUEST_IDENTITIES:
+					/*
+					 * Reply with SSH2_AGENT_IDENTITIES_ANSWER.
+					 */
+					if (this.getSSH2PublicKeyListCallback != null) {
+						PpkKeyBlobBuilder builder = new PpkKeyBlobBuilder();
 						try {
-							/* read rest of message */
+							int keyCount = 0;
 
-							if (msgDataLength >= stream.Position + 4) {
-								stream.Read(buffer, 0, 4);
-								int keyBlobLength = PSUtil.BytesToInt(buffer, 0);
-								if (msgDataLength >= stream.Position + keyBlobLength) {
-									byte[] keyBlob = new byte[keyBlobLength];
-									stream.Read(keyBlob, 0, keyBlobLength);
-									if (msgDataLength >= stream.Position + 4) {
-										stream.Read(buffer, 0, 4);
-										int reqDataLength = PSUtil.BytesToInt(buffer, 0);
-										if (msgDataLength >= stream.Position + reqDataLength) {
-											byte[] reqData = new byte[reqDataLength];
-											stream.Read(reqData, 0, reqDataLength);
+							foreach (PpkKey key in this.getSSH2PublicKeyListCallback()) {
+								keyCount++;
+								builder.AddBlob(key.GetSSH2PublicKeyBlob());
+								builder.AddString(key.Comment);
+								key.Dispose();
+							}
 
-											/* get matching key from callback */
-											MD5 md5 = MD5.Create();
-											byte[] fingerprint = md5.ComputeHash(keyBlob);
-											md5.Clear();
-											using (PpkKey key = this.getSSH2PublicKeyCallback(fingerprint)) {
-												if (key != null) {
+							if (9 + builder.Length <= stream.Length) {
+								stream.Position = 0;
+								stream.Write(PSUtil.IntToBytes(5 + builder.Length), 0, 4);
+								stream.WriteByte(SSH2_AGENT_IDENTITIES_ANSWER);
+								stream.Write(PSUtil.IntToBytes(keyCount), 0, 4);
+								stream.Write(builder.getBlob(), 0, builder.Length);
+								break; // succeeded
+							}
+						} catch (Exception ex) {
+							Debug.Fail(ex.ToString());
+						} finally {
+							builder.Clear();
+						}
+					}
+					goto default; // failed
+				case SSH1_AGENTC_RSA_CHALLENGE:
+					/*
+					 * Reply with either SSH1_AGENT_RSA_RESPONSE or
+					 * SSH_AGENT_FAILURE, depending on whether we have that key
+					 * or not.
+					 */
 
-													/* create signature */
+					// TODO implement SSH1_AGENTC_RSA_CHALLENGE
 
-													AsymmetricSignatureFormatter signer = null;
-													if (typeof(RSA).IsInstanceOfType(key.Algorithm)) {
-														signer = new RSAPKCS1SignatureFormatter();
-													}
-													if (typeof(DSA).IsInstanceOfType(key.Algorithm)) {
-														signer = new DSASignatureFormatter();
-													}
-													if (signer != null) {
-														SHA1 sha = SHA1.Create();
-														sha.ComputeHash(reqData);
-														signer.SetKey(key.Algorithm);
-														byte[] signature = signer.CreateSignature(sha);
-														sha.Clear();
+					goto default; // failed
+				case SSH2_AGENTC_SIGN_REQUEST:
+					/*
+					 * Reply with either SSH2_AGENT_SIGN_RESPONSE or
+					 * SSH_AGENT_FAILURE, depending on whether we have that key
+					 * or not.
+					 */
+					try {
+						/* read rest of message */
 
-														PpkKeyBlobBuilder sigBlobBuilder = new PpkKeyBlobBuilder();
-														sigBlobBuilder.AddString(PpkFile.PublicKeyAlgorithms.ssh_rsa);
-														sigBlobBuilder.AddBlob(signature);
-														signature = sigBlobBuilder.getBlob();
-														sigBlobBuilder.Clear();
+						if (msgDataLength >= stream.Position + 4) {
+							stream.Read(buffer, 0, 4);
+							int keyBlobLength = PSUtil.BytesToInt(buffer, 0);
+							if (msgDataLength >= stream.Position + keyBlobLength) {
+								byte[] keyBlob = new byte[keyBlobLength];
+								stream.Read(keyBlob, 0, keyBlobLength);
+								if (msgDataLength >= stream.Position + 4) {
+									stream.Read(buffer, 0, 4);
+									int reqDataLength = PSUtil.BytesToInt(buffer, 0);
+									if (msgDataLength >= stream.Position + reqDataLength) {
+										byte[] reqData = new byte[reqDataLength];
+										stream.Read(reqData, 0, reqDataLength);
 
-														/* write response to filemap */
+										/* get matching key from callback */
+										MD5 md5 = MD5.Create();
+										byte[] fingerprint = md5.ComputeHash(keyBlob);
+										md5.Clear();
+										using (PpkKey key = this.getSSH2PublicKeyCallback(fingerprint)) {
+											if (key != null) {
 
-														stream.Position = 0;
-														stream.Write(PSUtil.IntToBytes(5 + signature.Length), 0, 4);
-														stream.WriteByte(SSH2_AGENT_SIGN_RESPONSE);
-														stream.Write(PSUtil.IntToBytes(signature.Length), 0, 4);
-														stream.Write(signature, 0, signature.Length);
-														break; // succeeded
-													}
+												/* create signature */
+
+												AsymmetricSignatureFormatter signer = null;
+												if (typeof(RSA).IsInstanceOfType(key.Algorithm)) {
+													signer = new RSAPKCS1SignatureFormatter();
+												}
+												if (typeof(DSA).IsInstanceOfType(key.Algorithm)) {
+													signer = new DSASignatureFormatter();
+												}
+												if (signer != null) {
+													SHA1 sha = SHA1.Create();
+													sha.ComputeHash(reqData);
+													signer.SetKey(key.Algorithm);
+													byte[] signature = signer.CreateSignature(sha);
+													sha.Clear();
+
+													PpkKeyBlobBuilder sigBlobBuilder = new PpkKeyBlobBuilder();
+													sigBlobBuilder.AddString(PpkFile.PublicKeyAlgorithms.ssh_rsa);
+													sigBlobBuilder.AddBlob(signature);
+													signature = sigBlobBuilder.getBlob();
+													sigBlobBuilder.Clear();
+
+													/* write response to filemap */
+
+													stream.Position = 0;
+													stream.Write(PSUtil.IntToBytes(5 + signature.Length), 0, 4);
+													stream.WriteByte(SSH2_AGENT_SIGN_RESPONSE);
+													stream.Write(PSUtil.IntToBytes(signature.Length), 0, 4);
+													stream.Write(signature, 0, signature.Length);
+													break; // succeeded
 												}
 											}
 										}
 									}
 								}
-
 							}
-						} catch (Exception ex) {
-							Debug.Fail(ex.ToString());
+
 						}
-						goto default; // failure
-					case SSH1_AGENTC_ADD_RSA_IDENTITY:
-						/*
-						 * Add to the list and return SSH_AGENT_SUCCESS, or
-						 * SSH_AGENT_FAILURE if the key was malformed.
-						 */
+					} catch (Exception ex) {
+						Debug.Fail(ex.ToString());
+					}
+					goto default; // failure
+				case SSH1_AGENTC_ADD_RSA_IDENTITY:
+					/*
+					 * Add to the list and return SSH_AGENT_SUCCESS, or
+					 * SSH_AGENT_FAILURE if the key was malformed.
+					 */
 
-						// TODO implement SSH1_AGENTC_ADD_RSA_IDENTITY
+					// TODO implement SSH1_AGENTC_ADD_RSA_IDENTITY
 
-						goto default; // failed
-					case SSH2_AGENTC_ADD_IDENTITY:
-						/*
-						 * Add to the list and return SSH_AGENT_SUCCESS, or
-						 * SSH_AGENT_FAILURE if the key was malformed.
-						 */
+					goto default; // failed
+				case SSH2_AGENTC_ADD_IDENTITY:
+					/*
+					 * Add to the list and return SSH_AGENT_SUCCESS, or
+					 * SSH_AGENT_FAILURE if the key was malformed.
+					 */
 
-						// TODO implement SSH2_AGENTC_ADD_IDENTITY
+					// TODO implement SSH2_AGENTC_ADD_IDENTITY
 
-						goto default; // failed
-					case SSH1_AGENTC_REMOVE_RSA_IDENTITY:
-						/*
-						 * Remove from the list and return SSH_AGENT_SUCCESS, or
-						 * perhaps SSH_AGENT_FAILURE if it wasn't in the list to
-						 * start with.
-						 */
+					goto default; // failed
+				case SSH1_AGENTC_REMOVE_RSA_IDENTITY:
+					/*
+					 * Remove from the list and return SSH_AGENT_SUCCESS, or
+					 * perhaps SSH_AGENT_FAILURE if it wasn't in the list to
+					 * start with.
+					 */
 
-						// TODO implement SSH1_AGENTC_REMOVE_RSA_IDENTITY
+					// TODO implement SSH1_AGENTC_REMOVE_RSA_IDENTITY
 
-						goto default; // failed
-					case SSH2_AGENTC_REMOVE_IDENTITY:
-						/*
-						 * Remove from the list and return SSH_AGENT_SUCCESS, or
-						 * perhaps SSH_AGENT_FAILURE if it wasn't in the list to
-						 * start with.
-						 */
+					goto default; // failed
+				case SSH2_AGENTC_REMOVE_IDENTITY:
+					/*
+					 * Remove from the list and return SSH_AGENT_SUCCESS, or
+					 * perhaps SSH_AGENT_FAILURE if it wasn't in the list to
+					 * start with.
+					 */
 
-						// TODO implement SSH2_AGENTC_REMOVE_IDENTITY
+					// TODO implement SSH2_AGENTC_REMOVE_IDENTITY
 
-						goto default; // failed
-					case SSH1_AGENTC_REMOVE_ALL_RSA_IDENTITIES:
-						/*
-						 * Remove all SSH-1 keys. Always returns success.
-						 */
+					goto default; // failed
+				case SSH1_AGENTC_REMOVE_ALL_RSA_IDENTITIES:
+					/*
+					 * Remove all SSH-1 keys. Always returns success.
+					 */
 
-						// TODO implement SSH1_AGENTC_REMOVE_ALL_RSA_IDENTITIES
+					// TODO implement SSH1_AGENTC_REMOVE_ALL_RSA_IDENTITIES
 
-						goto default; // failed
-					case SSH2_AGENTC_REMOVE_ALL_IDENTITIES:
-						/*
-						 * Remove all SSH-2 keys. Always returns success.
-						 */
+					goto default; // failed
+				case SSH2_AGENTC_REMOVE_ALL_IDENTITIES:
+					/*
+					 * Remove all SSH-2 keys. Always returns success.
+					 */
 
-						// TODO implement SSH2_AGENTC_REMOVE_ALL_IDENTITIES
+					// TODO implement SSH2_AGENTC_REMOVE_ALL_IDENTITIES
 
-						goto default; // failed
+					goto default; // failed
 
-					case SSH_AGENT_BAD_REQUEST:
-					default:
-						stream.Position = 0;
-						stream.Write(PSUtil.IntToBytes(1), 0, 4);
-						stream.WriteByte(SSH_AGENT_FAILURE);
-						break;
-				}
+				case SSH_AGENT_BAD_REQUEST:
+				default:
+					stream.Position = 0;
+					stream.Write(PSUtil.IntToBytes(1), 0, 4);
+					stream.WriteByte(SSH_AGENT_FAILURE);
+					break;
 			}
+#if DOT_NET_35
+			Marshal.Copy(fileCopy, 0, map, AGENT_MAX_MSGLEN);
+			UnmapViewOfFile(fileMap);
+#else
+			} // using MemoryMappedViewStream stream
+#endif
 		}
 
 		#endregion
