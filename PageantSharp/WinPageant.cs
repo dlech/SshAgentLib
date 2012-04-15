@@ -87,7 +87,19 @@ namespace dlech.PageantSharp
 
 		private delegate IntPtr WndProc(IntPtr hWnd, uint msg, IntPtr wParam, IntPtr lParam);
 
+		/// <summary>
+		/// Implementer shoud create list of PpkKeys to be iterated by WinPageant.
+		/// </summary>
+		/// <returns>List of PpkKey objects. Keys will be disposed by callback, 
+		/// so a new list should be created on each call</returns>
 		public delegate IEnumerable<PpkKey> GetSSH2KeyListCallback();
+
+		/// <summary>
+		/// Implementer should return the specific key that matches the fingerprint.
+		/// </summary>
+		/// <param name="fingerprint">PpkKey object that matches fingerprint or null.
+		/// Keys will be disposed by callback, so a new object should be created on each call</param>
+		/// <returns></returns>
 		public delegate PpkKey GetSSH2KeyCallback(byte[] fingerprint);
 
 		#endregion
@@ -345,6 +357,7 @@ namespace dlech.PageantSharp
 									keyCount++;
 									builder.AddBlob(key.GetSSH2PublicKeyBlob());
 									builder.AddString(key.Comment);
+									key.Dispose();
 								}
 
 								if (9 + builder.Length <= stream.Length) {
@@ -398,39 +411,40 @@ namespace dlech.PageantSharp
 											MD5 md5 = MD5.Create();
 											byte[] fingerprint = md5.ComputeHash(keyBlob);
 											md5.Clear();
-											PpkKey key = this.getSSH2PublicKeyCallback(fingerprint);
-											if (key != null) {
+											using (PpkKey key = this.getSSH2PublicKeyCallback(fingerprint)) {
+												if (key != null) {
 
-												/* create signature */
+													/* create signature */
 
-												AsymmetricSignatureFormatter signer = null;
-												if (typeof(RSA).IsInstanceOfType(key.Algorithm)) {
-													signer = new RSAPKCS1SignatureFormatter();
-												}
-												if (typeof(DSA).IsInstanceOfType(key.Algorithm)) {
-													signer = new DSASignatureFormatter();
-												}
-												if (signer != null) {
-													SHA1 sha = SHA1.Create();
-													sha.ComputeHash(reqData);
-													signer.SetKey(key.Algorithm);
-													byte[] signature = signer.CreateSignature(sha);
-													sha.Clear();
+													AsymmetricSignatureFormatter signer = null;
+													if (typeof(RSA).IsInstanceOfType(key.Algorithm)) {
+														signer = new RSAPKCS1SignatureFormatter();
+													}
+													if (typeof(DSA).IsInstanceOfType(key.Algorithm)) {
+														signer = new DSASignatureFormatter();
+													}
+													if (signer != null) {
+														SHA1 sha = SHA1.Create();
+														sha.ComputeHash(reqData);
+														signer.SetKey(key.Algorithm);
+														byte[] signature = signer.CreateSignature(sha);
+														sha.Clear();
 
-													PpkKeyBlobBuilder sigBlobBuilder = new PpkKeyBlobBuilder();
-													sigBlobBuilder.AddString(PpkFile.PublicKeyAlgorithms.ssh_rsa);
-													sigBlobBuilder.AddBlob(signature);
-													signature = sigBlobBuilder.getBlob();
-													sigBlobBuilder.Clear();
+														PpkKeyBlobBuilder sigBlobBuilder = new PpkKeyBlobBuilder();
+														sigBlobBuilder.AddString(PpkFile.PublicKeyAlgorithms.ssh_rsa);
+														sigBlobBuilder.AddBlob(signature);
+														signature = sigBlobBuilder.getBlob();
+														sigBlobBuilder.Clear();
 
-													/* write response to filemap */
+														/* write response to filemap */
 
-													stream.Position = 0;
-													stream.Write(PSUtil.IntToBytes(5 + signature.Length), 0, 4);
-													stream.WriteByte(SSH2_AGENT_SIGN_RESPONSE);
-													stream.Write(PSUtil.IntToBytes(signature.Length), 0, 4);
-													stream.Write(signature, 0, signature.Length);
-													break; // succeeded
+														stream.Position = 0;
+														stream.Write(PSUtil.IntToBytes(5 + signature.Length), 0, 4);
+														stream.WriteByte(SSH2_AGENT_SIGN_RESPONSE);
+														stream.Write(PSUtil.IntToBytes(signature.Length), 0, 4);
+														stream.Write(signature, 0, signature.Length);
+														break; // succeeded
+													}
 												}
 											}
 										}

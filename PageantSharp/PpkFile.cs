@@ -207,7 +207,7 @@ namespace dlech.PageantSharp
 		/// Reads the specifed file, parsed data and creates new PpkKey object from file data
 		/// </summary>
 		/// <param name="fileName">The name of the file to open</param>
-		/// <param name="getPassphrase">Callback method for getting passphrase if required.</param>
+		/// <param name="getPassphrase">Callback method for getting passphrase if required. Can be null if no passphrase.</param>
 		/// <param name="warnOldFileFormat">Callback method that warns user that they are using an old file format with known security problems.</param>
 		/// <exception cref="dlech.PageantSharp.PpkFileException">there was a problem reading the file</exception>
 		/// <exception cref="System.ArgumentNullException">fileName and warnOldFileFormat cannot be null</exception>
@@ -238,7 +238,7 @@ namespace dlech.PageantSharp
 		/// Parses the data from a PuTTY Private Key (.ppk) file.
 		/// </summary>
 		/// <param name="data">The data to parse.</param>
-		/// <param name="getPassphrase">Callback method for getting passphrase if required.</param>
+		/// <param name="getPassphrase">Callback method for getting passphrase if required. Can be null if no passphrase.</param>
 		/// <param name="warnOldFileFormat">Callback method that warns user that they are using an old file format with known security problems.</param>
 		/// <exception cref="dlech.PageantSharp.PpkFileException">there was a problem parsing the file data</exception>
 		/// <exception cref="System.ArgumentNullException">data and warnOldFileFormat cannot be null</exception>

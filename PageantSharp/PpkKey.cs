@@ -67,9 +67,10 @@ namespace dlech.PageantSharp
 
 
 		/// <summary>
-		/// Gets openssh style fingerprint for key
+		/// Gets openssh style fingerprint for key. Currently only supports RSA keys.
 		/// </summary>
-		/// <returns></returns>
+		/// <returns>byte array containing fingerprint data</returns>
+		/// <exception cref="System.ArgumentException">If Algorithm is not supported</exception>
 		public byte[] GetFingerprint()
 		{
 			if (typeof(RSA).IsInstanceOfType(Algorithm)) {					
