@@ -60,7 +60,7 @@ namespace dlech.PageantSharp
 
 		private const string className = "Pageant";
 
-		private const int AGENT_COPYDATA_ID = unchecked((int)0x804e50ba);
+		private const long AGENT_COPYDATA_ID = 0x804e50ba;
 
 		private const int SSH_AGENT_BAD_REQUEST =								 -1; // not from PuTTY source
 
@@ -338,7 +338,7 @@ namespace dlech.PageantSharp
 
 				// convert lParam to something usable
 				COPYDATASTRUCT copyData = (COPYDATASTRUCT)Marshal.PtrToStructure(lParam, typeof(COPYDATASTRUCT));
-				if (copyData.dwData.ToInt32() == AGENT_COPYDATA_ID) {
+				if (copyData.dwData.ToInt64() == AGENT_COPYDATA_ID) {
 
 					string mapname = Marshal.PtrToStringAnsi(copyData.lpData);
 					if (mapname.Length == copyData.cbData - 1) {
