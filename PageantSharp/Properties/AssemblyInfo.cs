@@ -5,11 +5,20 @@ using System.Runtime.InteropServices;
 // General Information about an assembly is controlled through the following 
 // set of attributes. Change these attribute values to modify the information
 // associated with an assembly.
+
+#if DOT_NET_35
 [assembly: AssemblyTitle("PageantSharp35")]
+[assembly: AssemblyProduct("PageantSharp35")]
 [assembly: AssemblyDescription(".NET 3.5 Library for creating a Putty key agents")]
+#else
+[assembly: AssemblyTitle("PageantSharp")]
+[assembly: AssemblyProduct("PageantSharp")]
+[assembly: AssemblyDescription(".NET 4.0 Library for creating a Putty key agents")]
+#endif // DOT_NET_35
+
 [assembly: AssemblyConfiguration("")]
 [assembly: AssemblyCompany("David Lechner")]
-[assembly: AssemblyProduct("PageantSharp35")]
+
 [assembly: AssemblyCopyright("2012")]
 [assembly: AssemblyTrademark("")]
 [assembly: AssemblyCulture("")]
