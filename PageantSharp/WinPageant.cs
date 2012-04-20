@@ -338,7 +338,9 @@ namespace dlech.PageantSharp
 
 				// convert lParam to something usable
 				COPYDATASTRUCT copyData = (COPYDATASTRUCT)Marshal.PtrToStructure(lParam, typeof(COPYDATASTRUCT));
-				if (copyData.dwData.ToInt64() == AGENT_COPYDATA_ID) {
+				// have to handle comparison differently depending on 32 or 64bit architecture
+				if (((IntPtr.Size == 4) && (copyData.dwData.ToInt32() == (unchecked ((int)AGENT_COPYDATA_ID)))) ||
+					((IntPtr.Size == 8) && (copyData.dwData.ToInt64() == AGENT_COPYDATA_ID))) {
 
 					string mapname = Marshal.PtrToStringAnsi(copyData.lpData);
 					if (mapname.Length == copyData.cbData - 1) {
@@ -359,8 +361,8 @@ namespace dlech.PageantSharp
 										SecurityIdentifier mapOwner = (SecurityIdentifier)fileMap.GetAccessControl().GetOwner(typeof(System.Security.Principal.SecurityIdentifier));
 #endif
 									/* check to see if message sender is same user as this program's user */
-									// TODO is this sufficent or should we do like Pageant does 
-									// and retreive sid from processes?
+									// TODO is this sufficient or should we do like Pageant does 
+									// and retrieve sid from processes?
 									WindowsIdentity user = WindowsIdentity.GetCurrent();
 									SecurityIdentifier sid = user.User;
 
