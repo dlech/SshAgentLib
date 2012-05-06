@@ -67,6 +67,34 @@ namespace PageantSharpTestProject.Properties {
             }
         }
         
+        internal static byte[] ssh1_rsa_no_passphrase_ppk {
+            get {
+                object obj = ResourceManager.GetObject("ssh1_rsa_no_passphrase_ppk", resourceCulture);
+                return ((byte[])(obj));
+            }
+        }
+        
+        internal static byte[] ssh1_rsa_ppk {
+            get {
+                object obj = ResourceManager.GetObject("ssh1_rsa_ppk", resourceCulture);
+                return ((byte[])(obj));
+            }
+        }
+        
+        internal static byte[] ssh2_dsa_no_passphrase_ppk {
+            get {
+                object obj = ResourceManager.GetObject("ssh2_dsa_no_passphrase_ppk", resourceCulture);
+                return ((byte[])(obj));
+            }
+        }
+        
+        internal static byte[] ssh2_dsa_ppk {
+            get {
+                object obj = ResourceManager.GetObject("ssh2_dsa_ppk", resourceCulture);
+                return ((byte[])(obj));
+            }
+        }
+        
         internal static byte[] ssh2_rsa_no_passphrase_ppk {
             get {
                 object obj = ResourceManager.GetObject("ssh2_rsa_no_passphrase_ppk", resourceCulture);

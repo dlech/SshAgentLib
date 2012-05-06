@@ -72,12 +72,17 @@ namespace PageantSharpTestProject
 		[TestMethod()]
 		public void GetFingerprintTest()
 		{
-			byte[] fileData = (byte[])Resources.ssh2_rsa_no_passphrase_ppk;
-			PpkKey target = PpkFile.ParseData(fileData, delegate() { return null; }, delegate() { });
-			string expected = "57:95:98:7f:c2:4e:98:1d:b9:5b:45:fe:6d:a4:6b:17";
-			string actual;
-			actual = PSUtil.ToHex(target.GetFingerprint());
-			Assert.AreEqual(expected, actual);
+			byte[] rsaFileData = (byte[])Resources.ssh2_rsa_no_passphrase_ppk;
+			PpkKey rsaTarget = PpkFile.ParseData(rsaFileData, delegate() { return null; }, delegate() { });
+			string rsaExpectedFingerprint = "57:95:98:7f:c2:4e:98:1d:b9:5b:45:fe:6d:a4:6b:17";
+			string rsaActual = PSUtil.ToHex(rsaTarget.GetFingerprint());
+			Assert.AreEqual(rsaExpectedFingerprint, rsaActual);
+
+			byte[] dsaFileData = (byte[])Resources.ssh2_dsa_no_passphrase_ppk;
+			PpkKey dsaTarget = PpkFile.ParseData(dsaFileData, delegate() { return null; }, delegate() { });
+			string dsaExpectedFingerprint = "4e:f1:fc:5d:80:5b:37:b6:13:67:ce:df:4e:83:7b:0b";
+			string dsaActual = PSUtil.ToHex(dsaTarget.GetFingerprint());
+			Assert.AreEqual(dsaExpectedFingerprint, dsaActual);
 		}
 
 		/// <summary>

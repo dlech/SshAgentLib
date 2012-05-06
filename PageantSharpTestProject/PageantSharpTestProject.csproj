@@ -77,6 +77,10 @@
     <None Include="Resources\emptyFile.ppk">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
+    <None Include="Resources\ssh1-rsa-no-passphrase.ppk" />
+    <None Include="Resources\ssh1-rsa.ppk" />
+    <None Include="Resources\ssh2-dsa-no-passphrase.ppk" />
+    <None Include="Resources\ssh2-dsa.ppk" />
     <None Include="Resources\ssh2-rsa-no-passphrase.ppk" />
     <None Include="Resources\ssh2-rsa.ppk" />
   </ItemGroup>

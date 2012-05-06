@@ -117,7 +117,7 @@ namespace dlech.PageantSharp
 		private delegate IntPtr WndProc(IntPtr hWnd, uint msg, IntPtr wParam, IntPtr lParam);
 
 		/// <summary>
-		/// Implementer shoud create list of PpkKeys to be iterated by WinPageant.
+		/// Implementer should create list of PpkKeys to be iterated by WinPageant.
 		/// </summary>
 		/// <returns>List of PpkKey objects. Keys will be disposed by callback, 
 		/// so a new list should be created on each call</returns>
@@ -254,7 +254,7 @@ namespace dlech.PageantSharp
 
 			int last_error = Marshal.GetLastWin32Error();
 
-			// TODO do we really need to worry about an error when regisering class?
+			// TODO do we really need to worry about an error when registering class?
 			if (class_atom == 0 && last_error != WinPageant.ERROR_CLASS_ALREADY_EXISTS) {
 				throw new System.Exception("Could not register window class");
 			}
@@ -493,11 +493,14 @@ namespace dlech.PageantSharp
 												/* create signature */
 
 												AsymmetricSignatureFormatter signer = null;
+												string algName = null;
 												if (typeof(RSA).IsInstanceOfType(key.Algorithm)) {
 													signer = new RSAPKCS1SignatureFormatter();
+													algName = PpkFile.PublicKeyAlgorithms.ssh_rsa;
 												}
 												if (typeof(DSA).IsInstanceOfType(key.Algorithm)) {
 													signer = new DSASignatureFormatter();
+													algName = PpkFile.PublicKeyAlgorithms.ssh_dss;
 												}
 												if (signer != null) {
 													SHA1 sha = SHA1.Create();
@@ -507,7 +510,7 @@ namespace dlech.PageantSharp
 													sha.Clear();
 
 													PpkKeyBlobBuilder sigBlobBuilder = new PpkKeyBlobBuilder();
-													sigBlobBuilder.AddString(PpkFile.PublicKeyAlgorithms.ssh_rsa);
+													sigBlobBuilder.AddString(algName);
 													sigBlobBuilder.AddBlob(signature);
 													signature = sigBlobBuilder.getBlob();
 													sigBlobBuilder.Clear();

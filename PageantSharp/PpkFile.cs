@@ -25,7 +25,7 @@ namespace dlech.PageantSharp
 		private const string macKeySalt = "putty-private-key-file-mac-key";
 
 		/// <summary>
-		/// The delimeter(s) used in the file
+		/// The delimiter(s) used in the file
 		/// </summary>
 		private static ReadOnlyCollection<char> delimeters =
 			Array.AsReadOnly<char>(new char[] { ':' });
@@ -46,7 +46,7 @@ namespace dlech.PageantSharp
 			Array.AsReadOnly<string>(new string[] { FileVersions.v1, FileVersions.v2 });
 
 		/// <summary>
-		/// Contains fields with valid pubilc key encryption algorithms
+		/// Contains fields with valid public key encryption algorithms
 		/// </summary>
 		public static class PublicKeyAlgorithms
 		{
@@ -88,7 +88,7 @@ namespace dlech.PageantSharp
 		private const string privateKeyEncryptionKey = "Encryption";
 
 		/// <summary>
-		/// Key that inticates the line containing the user comment
+		/// Key that indicates the line containing the user comment
 		/// </summary>
 		private const string commentKey = "Comment";
 
@@ -203,7 +203,7 @@ namespace dlech.PageantSharp
 
 
 		/// <summary>
-		/// Reads the specifed file, parsed data and creates new PpkKey object from file data
+		/// Reads the specified file, parsed data and creates new PpkKey object from file data
 		/// </summary>
 		/// <param name="fileName">The name of the file to open</param>
 		/// <param name="getPassphrase">Callback method for getting passphrase if required. Can be null if no passphrase.</param>
@@ -427,7 +427,7 @@ namespace dlech.PageantSharp
 					aes.Mode = CipherMode.CBC;
 					aes.Padding = PaddingMode.None;
 					int keySize = aes.KeySize / 8; // convert bits to bytes
-					key.RemoveRange(keySize, key.Count - keySize); // remmove extra bytes
+					key.RemoveRange(keySize, key.Count - keySize); // remove extra bytes
 					aes.Key = key.ToArray();
 					PSUtil.ClearByteList(key);
 					aes.IV = new byte[aes.IV.Length];
@@ -521,11 +521,16 @@ namespace dlech.PageantSharp
 
 		private static AsymmetricAlgorithm CreateKeyAlgorithm(FileData fileData)
 		{
+			PpkKeyBlobParser parser;
+			string algorithm;
+			PinnedByteArray exponent, modulus, d, p, q, inverseQ, dp, dq; // rsa params
+			PinnedByteArray /* p, q, */ g, y, x; // dsa params
+
 			switch (fileData.publicKeyAlgorithm) {
 				case PublicKeyAlgorithms.ssh_rsa:
 
-					PpkKeyBlobParser parser = new PpkKeyBlobParser(fileData.publicKeyBlob);
-					string algorithm = Encoding.UTF8.GetString(parser.CurrentAsPinnedByteArray.Data);
+					parser = new PpkKeyBlobParser(fileData.publicKeyBlob);
+					algorithm = Encoding.UTF8.GetString(parser.CurrentAsPinnedByteArray.Data);
 					parser.CurrentAsPinnedByteArray.Dispose();
 					parser.MoveNext();
 
@@ -537,29 +542,30 @@ namespace dlech.PageantSharp
 					/* read parameters that were stored in file */
 
 					PSUtil.TrimLeadingZero(parser.CurrentAsPinnedByteArray);
-					PinnedByteArray exponent = parser.CurrentAsPinnedByteArray;
+					exponent = parser.CurrentAsPinnedByteArray;
 					parser.MoveNext();
 					PSUtil.TrimLeadingZero(parser.CurrentAsPinnedByteArray);
-					PinnedByteArray modulus = parser.CurrentAsPinnedByteArray;
+					modulus = parser.CurrentAsPinnedByteArray;
 					//parser.MoveNext();
 
 					parser = new PpkKeyBlobParser(fileData.privateKeyBlob.Data);
+
 					PSUtil.TrimLeadingZero(parser.CurrentAsPinnedByteArray);
-					PinnedByteArray d = parser.CurrentAsPinnedByteArray;
+					d = parser.CurrentAsPinnedByteArray;
 					parser.MoveNext();
 					PSUtil.TrimLeadingZero(parser.CurrentAsPinnedByteArray);
-					PinnedByteArray p = parser.CurrentAsPinnedByteArray;
+					p = parser.CurrentAsPinnedByteArray;
 					parser.MoveNext();
 					PSUtil.TrimLeadingZero(parser.CurrentAsPinnedByteArray);
-					PinnedByteArray q = parser.CurrentAsPinnedByteArray;
+					q = parser.CurrentAsPinnedByteArray;
 					parser.MoveNext();
 					PSUtil.TrimLeadingZero(parser.CurrentAsPinnedByteArray);
-					PinnedByteArray inverseQ = parser.CurrentAsPinnedByteArray;
+					inverseQ = parser.CurrentAsPinnedByteArray;
 					//parser.MoveNext();
 
 					/* compute missing parameters */
-					PinnedByteArray dp = PSUtil.ModMinusOne(d, p);
-					PinnedByteArray dq = PSUtil.ModMinusOne(d, q);
+					dp = PSUtil.ModMinusOne(d, p);
+					dq = PSUtil.ModMinusOne(d, q);
 
 					RSAParameters rsaParams = new RSAParameters();
 					rsaParams.Modulus = modulus.Data;
@@ -586,7 +592,55 @@ namespace dlech.PageantSharp
 
 					return rsa;
 				case PublicKeyAlgorithms.ssh_dss:
-					throw new NotImplementedException("ssh-dss not implemented yet.");
+					parser = new PpkKeyBlobParser(fileData.publicKeyBlob);
+					algorithm = Encoding.UTF8.GetString(parser.CurrentAsPinnedByteArray.Data);
+					parser.CurrentAsPinnedByteArray.Dispose();
+					parser.MoveNext();
+
+					if ((fileData.publicKeyAlgorithm != PublicKeyAlgorithms.ssh_dss) ||
+						(algorithm != PublicKeyAlgorithms.ssh_dss)) {
+						throw new InvalidOperationException("public key is not dsa");
+					}
+
+					/* read parameters that were stored in file */					
+
+					PSUtil.TrimLeadingZero(parser.CurrentAsPinnedByteArray);
+					p = parser.CurrentAsPinnedByteArray;
+					parser.MoveNext();
+					PSUtil.TrimLeadingZero(parser.CurrentAsPinnedByteArray);
+					q = parser.CurrentAsPinnedByteArray;
+					parser.MoveNext();
+					PSUtil.TrimLeadingZero(parser.CurrentAsPinnedByteArray);
+					g = parser.CurrentAsPinnedByteArray;
+					parser.MoveNext();
+					PSUtil.TrimLeadingZero(parser.CurrentAsPinnedByteArray);
+					y = parser.CurrentAsPinnedByteArray;
+					//parser.MoveNext();
+
+					parser = new PpkKeyBlobParser(fileData.privateKeyBlob.Data);
+
+					PSUtil.TrimLeadingZero(parser.CurrentAsPinnedByteArray);
+					x = parser.CurrentAsPinnedByteArray;					
+					//parser.MoveNext();
+									
+					DSAParameters dsaParams = new DSAParameters();
+					dsaParams.P = p.Data;
+					dsaParams.Q = q.Data;
+					dsaParams.G = g.Data;
+					dsaParams.Y = y.Data;
+					dsaParams.X = x.Data;
+
+					DSA dsa = DSA.Create();
+					dsa.ImportParameters(dsaParams);
+
+					parser.Dispose();
+					p.Dispose();
+					q.Dispose();
+					g.Dispose();
+					y.Dispose();
+					x.Dispose();
+
+					return dsa;
 				default:
 					// unsupported encryption algorithm
 					throw new PpkFileException(PpkFileException.ErrorType.PublicKeyEncryption);
