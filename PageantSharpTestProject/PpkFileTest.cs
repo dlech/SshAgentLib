@@ -257,6 +257,25 @@ namespace PageantSharpTestProject
 			Assert.AreEqual(expectedSsh2DsaWithPassComment, target.Comment);
 			Assert.AreEqual(expectedKeySize, target.Algorithm.KeySize);
 		}
+
+        /// <summary>
+		/// A test for keys with non-standard length (bits)
+        /// See github issue #2
+		///</summary>
+        [TestMethod()]
+        public void NonStandardLengthTest()
+        {
+            PpkFile.WarnOldFileFormatCallback warnOldFileNotExpected = delegate()
+            {
+                Assert.Fail("Warn old file format was not expected");
+            };
+
+            PpkKey target;
+            for (int i = 5; i < 10; i++) {
+                target = PpkFile.ReadFile("C:\\Temp\\" + i + ".ppk", null, warnOldFileNotExpected);
+            }
+            
+        }
 				
 	}
 }
