@@ -544,20 +544,20 @@ namespace dlech.PageantSharp
 
                     /* read parameters that were stored in file */
 
-                    exponent = new BigInteger(parser.CurrentAsPinnedByteArray.Data);
+                    exponent = new BigInteger(1, parser.CurrentAsPinnedByteArray.Data);
                     parser.MoveNext();
-                    modulus = new BigInteger(parser.CurrentAsPinnedByteArray.Data);
+                    modulus = new BigInteger(1, parser.CurrentAsPinnedByteArray.Data);
                     //parser.MoveNext();
 
                     parser = new PpkKeyBlobParser(fileData.privateKeyBlob.Data);
 
-                    d = new BigInteger(parser.CurrentAsPinnedByteArray.Data);
+                    d = new BigInteger(1, parser.CurrentAsPinnedByteArray.Data);
                     parser.MoveNext();
-                    p = new BigInteger(parser.CurrentAsPinnedByteArray.Data);
+                    p = new BigInteger(1, parser.CurrentAsPinnedByteArray.Data);
                     parser.MoveNext();
-                    q = new BigInteger(parser.CurrentAsPinnedByteArray.Data);
+                    q = new BigInteger(1, parser.CurrentAsPinnedByteArray.Data);
                     parser.MoveNext();
-                    inverseQ = new BigInteger(parser.CurrentAsPinnedByteArray.Data);
+                    inverseQ = new BigInteger(1, parser.CurrentAsPinnedByteArray.Data);
                     //parser.MoveNext();
 
                     /* compute missing parameters */
@@ -586,19 +586,19 @@ namespace dlech.PageantSharp
 
                     /* read parameters that were stored in file */
 
-                    p = new BigInteger(parser.CurrentAsPinnedByteArray.Data);
+                    p = new BigInteger(1, parser.CurrentAsPinnedByteArray.Data);
                     parser.MoveNext();
-                    q = new BigInteger(parser.CurrentAsPinnedByteArray.Data);
+                    q = new BigInteger(1, parser.CurrentAsPinnedByteArray.Data);
                     parser.MoveNext();
-                    g = new BigInteger(parser.CurrentAsPinnedByteArray.Data);
+                    g = new BigInteger(1, parser.CurrentAsPinnedByteArray.Data);
                     parser.MoveNext();
-                    y = new BigInteger(parser.CurrentAsPinnedByteArray.Data);
+                    y = new BigInteger(1, parser.CurrentAsPinnedByteArray.Data);
                     //parser.MoveNext();
 
                     parser = new PpkKeyBlobParser(fileData.privateKeyBlob.Data);
 
                     PSUtil.TrimLeadingZero(parser.CurrentAsPinnedByteArray);
-                    x = new BigInteger(parser.CurrentAsPinnedByteArray.Data);
+                    x = new BigInteger(1, parser.CurrentAsPinnedByteArray.Data);
                     //parser.MoveNext();
 
                     DsaParameters commonParams = new DsaParameters(p, q, g);
