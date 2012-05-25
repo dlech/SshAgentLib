@@ -62,6 +62,10 @@
     <Compile Include="PSUtilTest.cs" />
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\..\BountyCastleCrypto1.7\crypto\crypto.csproj">
+      <Project>{38872A5F-E87E-4FAD-B109-8EB7B2E6A4A0}</Project>
+      <Name>crypto</Name>
+    </ProjectReference>
     <ProjectReference Include="..\PageantSharp\PageantSharp.csproj">
       <Project>{9163B6B6-0603-4C6E-BC67-7111ED8CDDE1}</Project>
       <Name>PageantSharp</Name>

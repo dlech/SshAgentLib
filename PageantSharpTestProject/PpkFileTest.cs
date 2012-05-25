@@ -168,7 +168,7 @@ namespace PageantSharpTestProject
 			/* test for successful method call */
 			target = PpkFile.ParseData(Resources.ssh2_rsa_ppk, getPassphrase, warnOldFileNotExpected);
 			Assert.AreEqual(expectedSsh2RsaWithPassComment, target.Comment);
-			Assert.AreEqual(expectedKeySize, target.Algorithm.KeySize);
+			Assert.AreEqual(expectedKeySize, target.Size);
 			
 			/* read file to string for modification by subsequent tests */
 			string withoutPassFileContents;
@@ -255,7 +255,7 @@ namespace PageantSharpTestProject
 			/* test reading SSH2-DSA files */
 			target = PpkFile.ParseData(Resources.ssh2_dsa_ppk, getPassphrase, warnOldFileNotExpected);
 			Assert.AreEqual(expectedSsh2DsaWithPassComment, target.Comment);
-			Assert.AreEqual(expectedKeySize, target.Algorithm.KeySize);
+			Assert.AreEqual(expectedKeySize, target.Size);
 		}
 
         /// <summary>

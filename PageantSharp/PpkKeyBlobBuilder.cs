@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using Org.BouncyCastle.Math;
 
 namespace dlech.PageantSharp
 {
@@ -50,15 +51,11 @@ namespace dlech.PageantSharp
 		/// Adds 0 pad to byte[] if required and adds the result to the blob
 		/// </summary>
 		/// <param name="bigInt"></param>
-		public void AddBigInt(byte[] bigInt)
+		public void AddBigInt(BigInteger bigint)
 		{
-			bool pad = (bigInt[0] & 0x80) == 0x80;
-			byteList.AddRange(PSUtil.IntToBytes(bigInt.Length + (pad ? 1 : 0)));
-			if (pad) {
-				byteList.Add(0);
-			}
-			byteList.AddRange(bigInt);
-			Array.Clear(bigInt, 0, bigInt.Length);
+            byte[] bytes = bigint.ToByteArray();
+            byteList.AddRange(PSUtil.IntToBytes(bytes.Length));
+			byteList.AddRange(bytes);
 		}
 
 		/// <summary>

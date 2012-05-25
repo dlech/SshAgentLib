@@ -77,7 +77,12 @@
   <ItemGroup>
     <None Include="ClassDiagram.cd" />
   </ItemGroup>
-  <ItemGroup />
+  <ItemGroup>
+    <ProjectReference Include="..\..\BountyCastleCrypto1.7\crypto\crypto.csproj">
+      <Project>{38872A5F-E87E-4FAD-B109-8EB7B2E6A4A0}</Project>
+      <Name>crypto</Name>
+    </ProjectReference>
+  </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.

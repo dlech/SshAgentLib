@@ -12,6 +12,11 @@ using System.Text;
 using System.Runtime.ConstrainedExecution;
 #if !DOT_NET_35
 using System.IO.MemoryMappedFiles;
+using Org.BouncyCastle.Crypto;
+using Org.BouncyCastle.Crypto.Parameters;
+using Org.BouncyCastle.Crypto.Signers;
+using Org.BouncyCastle.Security;
+using Org.BouncyCastle.Asn1;
 #endif // DOT_NET_35
 
 
@@ -492,21 +497,23 @@ namespace dlech.PageantSharp
 
 												/* create signature */
 
-												AsymmetricSignatureFormatter signer = null;
+												ISigner signer = null;
 												string algName = null;
-												if (typeof(RSA).IsInstanceOfType(key.Algorithm)) {
-													signer = new RSAPKCS1SignatureFormatter();
+												if (key.KeyParameters.Public is RsaKeyParameters) {
+													signer = SignerUtilities.GetSigner("SHA-1withRSA");
 													algName = PpkFile.PublicKeyAlgorithms.ssh_rsa;
 												}
-												if (typeof(DSA).IsInstanceOfType(key.Algorithm)) {
-													signer = new DSASignatureFormatter();
+												if (key.KeyParameters.Public is DsaPublicKeyParameters) {
+                                                    signer = SignerUtilities.GetSigner("SHA-1withDSA");
 													algName = PpkFile.PublicKeyAlgorithms.ssh_dss;
 												}
 												if (signer != null) {
 													SHA1 sha = SHA1.Create();
 													sha.ComputeHash(reqData);
-													signer.SetKey(key.Algorithm);
-													byte[] signature = signer.CreateSignature(sha);
+													//signer.SetKey(key.KeyParameters);
+                                                    signer.Init(true, key.KeyParameters.Private);
+                                                    signer.BlockUpdate(reqData, 0, reqData.Length);
+                                                    byte[] signature = signer.GenerateSignature();
 													sha.Clear();
 
 													PpkKeyBlobBuilder sigBlobBuilder = new PpkKeyBlobBuilder();

@@ -3,6 +3,7 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 using System;
 using PageantSharpTestProject.Properties;
 using System.Security.Cryptography;
+using Org.BouncyCastle.Crypto;
 
 namespace PageantSharpTestProject
 {
@@ -95,7 +96,7 @@ namespace PageantSharpTestProject
 			PpkFile.GetPassphraseCallback getPassphrase = null;
 			PpkFile.WarnOldFileFormatCallback warnOldFileFormat = delegate() { };
 			PpkKey target = PpkFile.ParseData(data, getPassphrase, warnOldFileFormat);
-			AsymmetricAlgorithm alg = target.Algorithm;
+		    AsymmetricCipherKeyPair	keyParam = target.KeyParameters;
 			byte[] expected = PSUtil.FromBase64(
 				"AAAAB3NzaC1yc2EAAAABJQAAAIEAhWqdEs/lz1r4L8ZAAS76rX7hj3rrI/6FNlBw" +
 				"6ERba2VFmn2AHxQwZmHHmqM+UtiY57angjD9fTbTzL74C0+f/NrRY+BYXf1cF+u5" +

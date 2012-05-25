@@ -3,6 +3,8 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Security.Cryptography;
+using Org.BouncyCastle.Crypto;
+using Org.BouncyCastle.Crypto.Parameters;
 
 namespace dlech.PageantSharp
 {
@@ -12,11 +14,28 @@ namespace dlech.PageantSharp
 	public class PpkKey : IDisposable
 	{
 
-		public AsymmetricAlgorithm Algorithm
+        public AsymmetricCipherKeyPair KeyParameters
 		{
 			get;
 			set;
 		}
+
+        public int Size
+        {
+            get
+            {
+                if (KeyParameters.Public is RsaKeyParameters) {
+                    RsaKeyParameters rsaKeyParameters = (RsaKeyParameters)KeyParameters.Public;
+                    return rsaKeyParameters.Modulus.BitLength;
+                }
+                if (KeyParameters.Public is DsaPublicKeyParameters) {
+                    DsaPublicKeyParameters dsaKeyParameters = (DsaPublicKeyParameters)KeyParameters.Public;
+                    return dsaKeyParameters.Parameters.P.BitLength;
+                }
+                // TODO need a better exception here
+                throw new Exception("Not Defined");
+            }
+        }
 
 		/// <summary>
 		/// User comment
@@ -33,8 +52,8 @@ namespace dlech.PageantSharp
 
 		public void Dispose()
 		{
-			if (this.Algorithm != null) {
-				this.Algorithm.Clear();
+			if (this.KeyParameters != null) {
+				// TODO is there a way to clear parmeters from memory?
 			}
 		}
 
@@ -47,39 +66,37 @@ namespace dlech.PageantSharp
 		public byte[] GetSSH2PublicKeyBlob()
 		{
 
-			if (typeof(RSA).IsInstanceOfType(Algorithm)) {
-
-				RSA rsa = (RSA)Algorithm;
-				RSAParameters p = rsa.ExportParameters(false);
+			if (KeyParameters.Public is RsaKeyParameters) {
+                                
+				RsaKeyParameters rsaKeyParameters = (RsaKeyParameters)KeyParameters.Public;
 				PpkKeyBlobBuilder builder = new PpkKeyBlobBuilder();
 
 				builder.AddString(PpkFile.PublicKeyAlgorithms.ssh_rsa);
-				builder.AddBigInt(p.Exponent);
-				builder.AddBigInt(p.Modulus);
+				builder.AddBigInt(rsaKeyParameters.Exponent);
+				builder.AddBigInt(rsaKeyParameters.Modulus);
 
 				byte[] result = builder.getBlob();
 				builder.Clear();
 				return result;
 			}
 
-			if (typeof(DSA).IsInstanceOfType(Algorithm)) {
+			if (KeyParameters.Public is DsaPublicKeyParameters) {
 
-				DSA dsa = (DSA)Algorithm;				
-				DSAParameters p = dsa.ExportParameters(false);
+                DsaPublicKeyParameters dsaParameters = (DsaPublicKeyParameters)KeyParameters.Public;
 				PpkKeyBlobBuilder builder = new PpkKeyBlobBuilder();
 
 				builder.AddString(PpkFile.PublicKeyAlgorithms.ssh_dss);
-				builder.AddBigInt(p.P);
-				builder.AddBigInt(p.Q);
-				builder.AddBigInt(p.G);
-				builder.AddBigInt(p.Y);
+				builder.AddBigInt(dsaParameters.Parameters.P);
+                builder.AddBigInt(dsaParameters.Parameters.Q);
+                builder.AddBigInt(dsaParameters.Parameters.G);
+                builder.AddBigInt(dsaParameters.Y);
 
 				byte[] result = builder.getBlob();
 				builder.Clear();
 				return result;
 			}
 
-			throw new ArgumentException(Algorithm.GetType() + " is not supported", "alg");
+			throw new ArgumentException(KeyParameters.GetType() + " is not supported", "alg");
 		}
 
 
@@ -90,12 +107,12 @@ namespace dlech.PageantSharp
 		/// <exception cref="System.ArgumentException">If Algorithm is not supported</exception>
 		public byte[] GetFingerprint()
 		{
-			if (typeof(RSA).IsInstanceOfType(Algorithm) || typeof(DSA).IsInstanceOfType(Algorithm)) {					
+			if (KeyParameters.Public is RsaKeyParameters || KeyParameters.Public is DsaPublicKeyParameters) {
 				using (MD5 md5 = MD5.Create()) {
 					return md5.ComputeHash(GetSSH2PublicKeyBlob());
 				}
 			}			
-			throw new ArgumentException(Algorithm.GetType() + " is not supported", "alg");
+			throw new ArgumentException(KeyParameters.GetType() + " is not supported", "alg");
 		}
 	}
 }
