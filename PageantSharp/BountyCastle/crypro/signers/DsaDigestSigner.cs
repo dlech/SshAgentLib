@@ -92,8 +92,10 @@ namespace Org.BouncyCastle.Crypto.Signers
 			digest.DoFinal(hash, 0);
 
 			BigInteger[] sig = dsaSigner.GenerateSignature(hash);
-
-			return DerEncode(sig[0], sig[1]);
+            
+            return DontEncode(sig[0], sig[1]);
+            // replaced line below with line above for compatibility with PageantSharp
+			//return DerEncode(sig[0], sig[1]);
 		}
 
 		/// <returns>true if the internal state represents the signature described in the passed in array.</returns>
@@ -107,8 +109,12 @@ namespace Org.BouncyCastle.Crypto.Signers
 			digest.DoFinal(hash, 0);
 
 			try
-			{
-				BigInteger[] sig = DerDecode(signature);
+			{                
+                BigInteger[] sig = new BigInteger[2];
+                sig[0] = new BigInteger(1, signature, 0, signature.Length / 2);
+                sig[1] = new BigInteger(1, signature, signature.Length / 2, signature.Length - signature.Length / 2);
+                // replaced line below with lines above for compatibility with PageantSharp
+                //BigInteger[] sig = DerDecode(signature);
 				return dsaSigner.VerifySignature(hash, sig[0], sig[1]);
 			}
 			catch (IOException)
@@ -129,6 +135,19 @@ namespace Org.BouncyCastle.Crypto.Signers
 		{
 			return new DerSequence(new DerInteger(r), new DerInteger(s)).GetDerEncoded();
 		}
+
+        // this is a replacement for DerEncode for use in PageanSharp
+        private byte[] DontEncode(
+            BigInteger r,
+            BigInteger s)
+        {
+            byte[] rBytes = r.ToByteArrayUnsigned();
+            byte[] sBytes = s.ToByteArrayUnsigned();
+            byte[] result = new byte[rBytes.Length + sBytes.Length];
+            Array.Copy(rBytes, result, rBytes.Length);
+            Array.Copy(sBytes, 0, result, rBytes.Length, sBytes.Length);
+            return result;
+        }
 
 		private BigInteger[] DerDecode(
 			byte[] encoding)

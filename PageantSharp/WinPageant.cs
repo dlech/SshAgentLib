@@ -508,13 +508,9 @@ namespace dlech.PageantSharp
 													algName = PpkFile.PublicKeyAlgorithms.ssh_dss;
 												}
 												if (signer != null) {
-													SHA1 sha = SHA1.Create();
-													sha.ComputeHash(reqData);
-													//signer.SetKey(key.KeyParameters);
                                                     signer.Init(true, key.KeyParameters.Private);
                                                     signer.BlockUpdate(reqData, 0, reqData.Length);
                                                     byte[] signature = signer.GenerateSignature();
-													sha.Clear();
 
 													PpkKeyBlobBuilder sigBlobBuilder = new PpkKeyBlobBuilder();
 													sigBlobBuilder.AddString(algName);
