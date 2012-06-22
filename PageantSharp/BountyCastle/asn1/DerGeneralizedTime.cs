@@ -238,9 +238,6 @@ namespace Org.BouncyCastle.Asn1
 				{
 					formatStr = @"yyyyMMddHHmmss";
 				}
-
-				// TODO?
-//				dateF.setTimeZone(new SimpleTimeZone(0, TimeZone.getDefault().getID()));
 			}
 
 			return ParseDateString(d, formatStr, makeUniversal);

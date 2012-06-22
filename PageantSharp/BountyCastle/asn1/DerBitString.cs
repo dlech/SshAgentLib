@@ -142,7 +142,6 @@ namespace Org.BouncyCastle.Asn1
 			byte[]	data,
 			int		padBits)
 		{
-			// TODO Deep copy?
 			this.data = data;
 			this.padBits = padBits;
 		}
@@ -150,7 +149,6 @@ namespace Org.BouncyCastle.Asn1
 		public DerBitString(
 			byte[] data)
 		{
-			// TODO Deep copy?
 			this.data = data;
 		}
 

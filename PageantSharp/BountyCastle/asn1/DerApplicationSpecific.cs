@@ -88,7 +88,7 @@ namespace Org.BouncyCastle.Asn1
 		private int GetLengthOfLength(
 			byte[] data)
 		{
-			int count = 2;	// TODO: assumes only a 1 byte tag number
+			int count = 2;
 
 			while((data[count - 1] & 0x80) != 0)
 			{

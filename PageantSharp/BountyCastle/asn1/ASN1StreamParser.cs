@@ -35,7 +35,6 @@ namespace Org.BouncyCastle.Asn1
 		{
 			// Note: INDEF => CONSTRUCTED
 
-			// TODO There are other tags that may be constructed (e.g. BIT_STRING)
 			switch (tagValue)
 			{
 				case Asn1Tags.External:
@@ -169,7 +168,6 @@ namespace Org.BouncyCastle.Asn1
 
 				if (isConstructed)
 				{
-					// TODO There are other tags that may be constructed (e.g. BitString)
 					switch (tagNo)
 					{
 						case Asn1Tags.OctetString:
@@ -184,7 +182,6 @@ namespace Org.BouncyCastle.Asn1
 						case Asn1Tags.External:
 							return new DerExternalParser(new Asn1StreamParser(defIn));
 						default:
-							// TODO Add DerUnknownTagParser class?
 							return new DerUnknownTag(true, tagNo, defIn.ToArray());
 					}
 				}

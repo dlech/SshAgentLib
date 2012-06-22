@@ -79,20 +79,13 @@ namespace Org.BouncyCastle.Asn1
 
 			return this.tagNo == other.tagNo
 //				&& this.empty == other.empty
-				&& this.explicitly == other.explicitly   // TODO Should this be part of equality?
+				&& this.explicitly == other.explicitly
 				&& Platform.Equals(GetObject(), other.GetObject());
 		}
 
 		protected override int Asn1GetHashCode()
 		{
             int code = tagNo.GetHashCode();
-
-			// TODO: actually this is wrong - the problem is that a re-encoded
-			// object may end up with a different hashCode due to implicit
-			// tagging. As implicit tagging is ambiguous if a sequence is involved
-			// it seems the only correct method for both equals and hashCode is to
-			// compare the encodings...
-//			code ^= explicitly.GetHashCode();
 
 			if (obj != null)
             {

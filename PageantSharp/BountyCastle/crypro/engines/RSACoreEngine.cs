@@ -99,8 +99,6 @@ namespace Org.BouncyCastle.Crypto.Engines
 			{
 				int outSize = GetOutputBlockSize();
 
-				// TODO To avoid this, create version of BigInteger.ToByteArray that
-				// writes to an existing array
 				if (output.Length < outSize) // have ended up with less bytes than normal, lengthen
 				{
 					byte[] tmp = new byte[outSize];

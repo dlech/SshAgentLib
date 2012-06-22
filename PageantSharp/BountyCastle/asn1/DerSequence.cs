@@ -66,7 +66,6 @@ namespace Org.BouncyCastle.Asn1
 		internal override void Encode(
 			DerOutputStream derOut)
 		{
-			// TODO Intermediate buffer could be avoided if we could calculate expected length
 			MemoryStream bOut = new MemoryStream();
 			DerOutputStream dOut = new DerOutputStream(bOut);
 

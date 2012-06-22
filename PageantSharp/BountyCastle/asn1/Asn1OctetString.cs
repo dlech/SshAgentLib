@@ -48,7 +48,6 @@ namespace Org.BouncyCastle.Asn1
 				return (Asn1OctetString)obj;
 			}
 
-			// TODO: this needs to be deleted in V2
 			if (obj is Asn1TaggedObject)
 				return GetInstance(((Asn1TaggedObject)obj).GetObject());
 

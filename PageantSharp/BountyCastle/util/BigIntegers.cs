@@ -39,7 +39,6 @@ namespace Org.BouncyCastle.Utilities
 		public static BigInteger CreateRandomInRange(
 			BigInteger		min,
 			BigInteger		max,
-			// TODO Should have been just Random class
 			SecureRandom	random)
 		{
 			int cmp = min.CompareTo(max);

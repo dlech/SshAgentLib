@@ -87,7 +87,6 @@ namespace Org.BouncyCastle.Asn1
                     v.Add(ae);
                 }
 
-				// TODO Should be able to construct set directly from sequence?
 				return new DerSet(v, false);
             }
 

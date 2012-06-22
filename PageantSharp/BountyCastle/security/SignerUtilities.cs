@@ -263,88 +263,11 @@ namespace Org.BouncyCastle.Security
             //oids["GOST3410"] = CryptoProObjectIdentifiers.GostR3411x94WithGostR3410x94;
             //oids["ECGOST3410"] = CryptoProObjectIdentifiers.GostR3411x94WithGostR3410x2001;
 		}
-
-        ///// <summary>
-        ///// Returns a ObjectIdentifier for a give encoding.
-        ///// </summary>
-        ///// <param name="mechanism">A string representation of the encoding.</param>
-        ///// <returns>A DerObjectIdentifier, null if the Oid is not available.</returns>
-        //// TODO Don't really want to support this
-        //public static DerObjectIdentifier GetObjectIdentifier(
-        //    string mechanism)
-        //{
-        //    if (mechanism == null)
-        //        throw new ArgumentNullException("mechanism");
-
-        //    mechanism = mechanism.ToUpper(CultureInfo.InvariantCulture);
-        //    string aliased = (string) algorithms[mechanism];
-
-        //    if (aliased != null)
-        //        mechanism = aliased;
-
-        //    return (DerObjectIdentifier) oids[mechanism];
-        //}
-
+        
 		public static ICollection Algorithms
         {
             get { return oids.Keys; }
         }
-
-        //public static Asn1Encodable GetDefaultX509Parameters(
-        //    DerObjectIdentifier id)
-        //{
-        //    return GetDefaultX509Parameters(id.Id);
-        //}
-
-        //public static Asn1Encodable GetDefaultX509Parameters(
-        //    string algorithm)
-        //{
-        //    if (algorithm == null)
-        //        throw new ArgumentNullException("algorithm");
-
-        //    algorithm = algorithm.ToUpper(CultureInfo.InvariantCulture);
-
-        //    string mechanism = (string) algorithms[algorithm];
-
-        //    if (mechanism == null)
-        //        mechanism = algorithm;
-
-        //    if (mechanism == "PSSwithRSA")
-        //    {
-        //        // TODO The Sha1Digest here is a default. In JCE version, the actual digest
-        //        // to be used can be overridden by subsequent parameter settings.
-        //        return GetPssX509Parameters("SHA-1");
-        //    }
-
-        //    if (mechanism.EndsWith("withRSAandMGF1"))
-        //    {
-        //        string digestName = mechanism.Substring(0, mechanism.Length - "withRSAandMGF1".Length);
-        //        return GetPssX509Parameters(digestName);
-        //    }
-
-        //    return DerNull.Instance;
-        //}
-
-        //private static Asn1Encodable GetPssX509Parameters(
-        //    string	digestName)
-        //{
-        //    AlgorithmIdentifier hashAlgorithm = new AlgorithmIdentifier(
-        //        DigestUtilities.GetObjectIdentifier(digestName), DerNull.Instance);
-
-        //    // TODO Is it possible for the MGF hash alg to be different from the PSS one?
-        //    AlgorithmIdentifier maskGenAlgorithm = new AlgorithmIdentifier(
-        //        PkcsObjectIdentifiers.IdMgf1, hashAlgorithm);
-
-        //    int saltLen = DigestUtilities.GetDigest(digestName).GetDigestSize();
-        //    return new RsassaPssParameters(hashAlgorithm, maskGenAlgorithm,
-        //        new DerInteger(saltLen), new DerInteger(1));
-        //}
-
-        //public static ISigner GetSigner(
-        //    DerObjectIdentifier id)
-        //{
-        //    return GetSigner(id.Id);
-        //}
 
 		public static ISigner GetSigner(
 			string algorithm)
@@ -410,12 +333,10 @@ namespace Org.BouncyCastle.Security
 
             //if (mechanism.Equals("RAWRSASSA-PSS"))
             //{
-            //    // TODO Add support for other parameter settings
             //    return PssSigner.CreateRawSigner(new RsaBlindedEngine(), new Sha1Digest());
             //}
             //if (mechanism.Equals("PSSwithRSA"))
             //{
-            //    // TODO The Sha1Digest here is a default. In JCE version, the actual digest
             //    // to be used can be overridden by subsequent parameter settings.
             //    return (new PssSigner(new RsaBlindedEngine(), new Sha1Digest()));
             //}
