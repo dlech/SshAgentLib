@@ -102,6 +102,13 @@ namespace PageantSharpTestProject.Properties {
             }
         }
         
+        internal static byte[] ssh2_rsa_non_ascii_passphrase_ppk {
+            get {
+                object obj = ResourceManager.GetObject("ssh2_rsa_non_ascii_passphrase_ppk", resourceCulture);
+                return ((byte[])(obj));
+            }
+        }
+        
         internal static byte[] ssh2_rsa_ppk {
             get {
                 object obj = ResourceManager.GetObject("ssh2_rsa_ppk", resourceCulture);

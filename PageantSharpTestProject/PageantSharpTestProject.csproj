@@ -83,6 +83,7 @@
     <None Include="Resources\ssh2-dsa-no-passphrase.ppk" />
     <None Include="Resources\ssh2-dsa.ppk" />
     <None Include="Resources\ssh2-rsa-no-passphrase.ppk" />
+    <None Include="Resources\ssh2-rsa-non-ascii-passphrase.ppk" />
     <None Include="Resources\ssh2-rsa.ppk" />
   </ItemGroup>
   <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
