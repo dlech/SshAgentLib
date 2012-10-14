@@ -1,0 +1,63 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project DefaultTargets="Build" ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
+    <ProductVersion>10.0.0</ProductVersion>
+    <SchemaVersion>2.0</SchemaVersion>
+    <ProjectGuid>{4C052A55-5F53-4756-AC2C-103EE602E60F}</ProjectGuid>
+    <OutputType>Library</OutputType>
+    <RootNamespace>PageantSharpNUnitTest</RootNamespace>
+    <AssemblyName>PageantSharpNUnitTest</AssemblyName>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+    <DebugSymbols>true</DebugSymbols>
+    <DebugType>full</DebugType>
+    <Optimize>false</Optimize>
+    <OutputPath>bin\Debug</OutputPath>
+    <DefineConstants>DEBUG;</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+    <ConsolePause>false</ConsolePause>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+    <DebugType>none</DebugType>
+    <Optimize>false</Optimize>
+    <OutputPath>bin\Release</OutputPath>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+    <ConsolePause>false</ConsolePause>
+  </PropertyGroup>
+  <ItemGroup>
+    <Reference Include="System" />
+    <Reference Include="nunit.core, Version=2.5.10.0, Culture=neutral, PublicKeyToken=96d09a1eb7f44a77">
+      <Private>False</Private>
+      <Package>nunit</Package>
+    </Reference>
+    <Reference Include="nunit.framework, Version=2.5.10.0, Culture=neutral, PublicKeyToken=96d09a1eb7f44a77">
+      <Private>False</Private>
+      <Package>nunit</Package>
+    </Reference>
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="PpkFileTest.cs" />
+  </ItemGroup>
+  <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
+  <ItemGroup>
+    <ProjectReference Include="..\PageantSharp\PageantSharp.csproj">
+      <Project>{9163B6B6-0603-4C6E-BC67-7111ED8CDDE1}</Project>
+      <Name>PageantSharp</Name>
+    </ProjectReference>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\emptyFile.ppk" />
+    <None Include="Resources\non-standard length.ppk" />
+    <None Include="Resources\ssh1-rsa-no-passphrase.ppk" />
+    <None Include="Resources\ssh1-rsa.ppk" />
+    <None Include="Resources\ssh2-dsa-no-passphrase.ppk" />
+    <None Include="Resources\ssh2-dsa.ppk" />
+    <None Include="Resources\ssh2-rsa-no-passphrase.ppk" />
+    <None Include="Resources\ssh2-rsa-non-ascii-passphrase.ppk" />
+    <None Include="Resources\ssh2-rsa.ppk" />
+  </ItemGroup>
+</Project>

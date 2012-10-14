@@ -169,7 +169,6 @@ namespace dlech.PageantSharp
       /// <see cref="privateMACString"/> is a HMAC as opposed to the old format
       /// </summary>
       public bool isHMAC;
-
       public SecureString passphrase;
 
     }
@@ -412,11 +411,9 @@ namespace dlech.PageantSharp
             Array.Copy(Encoding.UTF8.GetBytes(privKeyDecryptSalt1), hashData.Data, privKeyDecryptSalt1.Length);
             IntPtr passphrasePtr = Marshal.SecureStringToGlobalAllocUnicode(fileData.passphrase);
             for (int i = 0; i < fileData.passphrase.Length; i++) {
-              byte[] unicodeChar = new byte[2];
-              unicodeChar[0] = Marshal.ReadByte(passphrasePtr, i * 2);
-              unicodeChar[1] = Marshal.ReadByte(passphrasePtr, i * 2 + 1);
-              byte[] ansiChar = Encoding.Convert(Encoding.Unicode, PSUtil.AnsiEncoding, unicodeChar);
-              hashData.Data[privKeyDecryptSalt1.Length + i] = ansiChar[0];
+              int unicodeChar = Marshal.ReadInt16(passphrasePtr + i * 2);
+              byte ansiChar = PSUtil.UnicodeToAnsi(unicodeChar);
+              hashData.Data[privKeyDecryptSalt1.Length + i] = ansiChar;
               Marshal.WriteByte(passphrasePtr, i, 0);
             }
             Marshal.ZeroFreeGlobalAllocUnicode(passphrasePtr);
@@ -475,11 +472,9 @@ namespace dlech.PageantSharp
             Array.Copy(Encoding.UTF8.GetBytes(macKeySalt), hashData.Data, macKeySalt.Length);
             IntPtr passphrasePtr = Marshal.SecureStringToGlobalAllocUnicode(fileData.passphrase);
             for (int i = 0; i < fileData.passphrase.Length; i++) {
-              byte[] unicodeChar = new byte[2];
-              unicodeChar[0] = Marshal.ReadByte(passphrasePtr, i * 2);
-              unicodeChar[1] = Marshal.ReadByte(passphrasePtr, i * 2 + 1);
-              byte[] ansiChar = Encoding.Convert(Encoding.Unicode, PSUtil.AnsiEncoding, unicodeChar);
-              hashData.Data[macKeySalt.Length + i] = ansiChar[0];
+              int unicodeChar = Marshal.ReadInt16(passphrasePtr + i * 2);
+              byte ansiChar = PSUtil.UnicodeToAnsi(unicodeChar);
+              hashData.Data[macKeySalt.Length + i] = ansiChar;
               Marshal.WriteByte(passphrasePtr, i * 2, 0);
             }
             Marshal.ZeroFreeGlobalAllocUnicode(passphrasePtr);
