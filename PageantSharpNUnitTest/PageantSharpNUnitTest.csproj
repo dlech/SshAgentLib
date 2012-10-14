@@ -38,9 +38,12 @@
       <Private>False</Private>
       <Package>nunit</Package>
     </Reference>
+    <Reference Include="System.Numerics" />
   </ItemGroup>
   <ItemGroup>
     <Compile Include="PpkFileTest.cs" />
+    <Compile Include="PSUtilTest.cs" />
+    <Compile Include="PpkKeyTest.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
   <ItemGroup>
