@@ -262,7 +262,7 @@ namespace dlech.PageantSharp
 			// TODO do we really need to worry about an error when registering class?
 			if (class_atom == 0 && last_error != WinPageant.ERROR_CLASS_ALREADY_EXISTS) {
 				throw new System.Exception("Could not register window class");
-			}
+			}      
 
 			// Create window
 			this.hwnd = CreateWindowExW(
@@ -323,8 +323,7 @@ namespace dlech.PageantSharp
 			IntPtr hwnd = FindWindow(WinPageant.className, WinPageant.className);
 			return (hwnd != IntPtr.Zero);
 		}
-
-
+    
 
 		/// <summary>
 		/// 
@@ -340,7 +339,7 @@ namespace dlech.PageantSharp
 			if (msg == WM_COPYDATA) {
 				IntPtr result = Marshal.AllocHGlobal(sizeof(int));
 				Marshal.WriteInt32(result, 0); // translation: int result = 0;
-
+        
 				// convert lParam to something usable
 				COPYDATASTRUCT copyData = (COPYDATASTRUCT)Marshal.PtrToStructure(lParam, typeof(COPYDATASTRUCT));
 				// have to handle comparison differently depending on 32 or 64bit architecture
