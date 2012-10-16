@@ -61,7 +61,8 @@ namespace dlech.PageantSharp
     /// Collection of supported public key encryption algorithms
     /// </summary>
     public static ReadOnlyCollection<string> supportedPublicKeyAlgorithms =
-        Array.AsReadOnly<string>(new string[] { PublicKeyAlgorithms.ssh_rsa, PublicKeyAlgorithms.ssh_dss });
+        Array.AsReadOnly<string>(new string[] { PublicKeyAlgorithms.ssh_rsa,
+        PublicKeyAlgorithms.ssh_dss });
 
     /// <summary>
     /// Contains fields with valid private key encryption algorithms
@@ -76,7 +77,8 @@ namespace dlech.PageantSharp
     /// Collection of supported private key encryption algorithms
     /// </summary>
     private static ReadOnlyCollection<string> supportedPrivateKeyAlgorithms =
-        Array.AsReadOnly<string>(new string[] { PrivateKeyAlgorithms.none, PrivateKeyAlgorithms.aes256_cbc });
+        Array.AsReadOnly<string>(new string[] { PrivateKeyAlgorithms.none,
+        PrivateKeyAlgorithms.aes256_cbc });
 
     /// <summary>
     /// Key that identifies the file version and the public key algorithm
@@ -108,12 +110,14 @@ namespace dlech.PageantSharp
     private const string privateKeyLinesKey = "Private-Lines";
 
     /// <summary>
-    /// Key that indicates that the line contains the hash of the private key (version 2 file format only)
+    /// Key that indicates that the line contains the hash of the private key
+    /// (version 2 file format only)
     /// </summary>
     private const string privateMACKey = "Private-MAC";
 
     /// <summary>
-    /// Key that indicates that the line contains the hash of the private key (version 1 file format only)
+    /// Key that indicates that the line contains the hash of the private key
+    /// (version 1 file format only)
     /// </summary>
     private const string privateHashKey = "Private-Hash";
 
@@ -204,11 +208,14 @@ namespace dlech.PageantSharp
 
 
     /// <summary>
-    /// Reads the specified file, parsed data and creates new PpkKey object from file data
+    /// Reads the specified file, parsed data and creates new PpkKey object
+    /// from file data
     /// </summary>
     /// <param name="fileName">The name of the file to open</param>
-    /// <param name="getPassphrase">Callback method for getting passphrase if required. Can be null if no passphrase.</param>
-    /// <param name="warnOldFileFormat">Callback method that warns user that they are using an old file format with known security problems.</param>
+    /// <param name="getPassphrase">Callback method for getting passphrase
+    /// if required. Can be null if no passphrase.</param>
+    /// <param name="warnOldFileFormat">Callback method that warns user that
+    /// they are using an old file format with known security problems.</param>
     /// <exception cref="dlech.PageantSharp.PpkFileException">there was a problem reading the file</exception>
     /// <exception cref="System.ArgumentNullException">fileName and warnOldFileFormat cannot be null</exception>
     /// <exception cref="System.ArgumentException">see <see cref="System.IO.File.OpenRead(string)"/></exception>
@@ -217,7 +224,9 @@ namespace dlech.PageantSharp
     /// <exception cref="System.UnauthorizedAccessException">see <see cref="System.IO.File.OpenRead(string)"/></exception>
     /// <exception cref="System.IO.FileNotFoundException">see <see cref="System.IO.File.OpenRead(string)"/></exception>
     /// <exception cref="System.NotSupportedException">see <see cref="System.IO.File.OpenRead(string)"/></exception>
-    public static PpkKey ReadFile(string fileName, GetPassphraseCallback getPassphrase, WarnOldFileFormatCallback warnOldFileFormat)
+    public static PpkKey ReadFile(string fileName,
+                                  GetPassphraseCallback getPassphrase,
+                                  WarnOldFileFormatCallback warnOldFileFormat)
     {
       FileStream stream;
       byte[] buffer;
@@ -238,11 +247,15 @@ namespace dlech.PageantSharp
     /// Parses the data from a PuTTY Private Key (.ppk) file.
     /// </summary>
     /// <param name="data">The data to parse.</param>
-    /// <param name="getPassphrase">Callback method for getting passphrase if required. Can be null if no passphrase.</param>
-    /// <param name="warnOldFileFormat">Callback method that warns user that they are using an old file format with known security problems.</param>
+    /// <param name="getPassphrase">Callback method for getting passphrase
+    /// if required. Can be null if no passphrase.</param>
+    /// <param name="warnOldFileFormat">Callback method that warns user that
+    /// they are using an old file format with known security problems.</param>
     /// <exception cref="dlech.PageantSharp.PpkFileException">there was a problem parsing the file data</exception>
     /// <exception cref="System.ArgumentNullException">data and warnOldFileFormat cannot be null</exception>
-    public static PpkKey ParseData(byte[] data, GetPassphraseCallback getPassphrase, WarnOldFileFormatCallback warnOldFileFormat)
+    public static PpkKey ParseData(byte[] data,
+                                   GetPassphraseCallback getPassphrase,
+                                   WarnOldFileFormatCallback warnOldFileFormat)
     {
       FileData fileData = new FileData();
 
@@ -267,7 +280,8 @@ namespace dlech.PageantSharp
         line = reader.ReadLine();
         pair = line.Split(delimArray, 2);
         if (!pair[0].StartsWith(puttyUserKeyFileKey)) {
-          throw new PpkFileException(PpkFileException.ErrorType.FileFormat, puttyUserKeyFileKey + " expected");
+          throw new PpkFileException(PpkFileException.ErrorType.FileFormat,
+                                     puttyUserKeyFileKey + " expected");
         }
         fileData.fileVersion = pair[0].Remove(0, puttyUserKeyFileKey.Length);
         if (!supportedFileVersions.Contains(fileData.fileVersion)) {
@@ -287,7 +301,8 @@ namespace dlech.PageantSharp
         line = reader.ReadLine();
         pair = line.Split(delimArray, 2);
         if (pair[0] != privateKeyEncryptionKey) {
-          throw new PpkFileException(PpkFileException.ErrorType.FileFormat, privateKeyEncryptionKey + " expected");
+          throw new PpkFileException(PpkFileException.ErrorType.FileFormat,
+                                     privateKeyEncryptionKey + " expected");
         }
         fileData.privateKeyAlgorithm = pair[1].Trim();
         if (!supportedPrivateKeyAlgorithms.Contains(fileData.privateKeyAlgorithm)) {
@@ -298,7 +313,8 @@ namespace dlech.PageantSharp
         line = reader.ReadLine();
         pair = line.Split(delimArray, 2);
         if (pair[0] != commentKey) {
-          throw new PpkFileException(PpkFileException.ErrorType.FileFormat, commentKey + " expected");
+          throw new PpkFileException(PpkFileException.ErrorType.FileFormat,
+                                     commentKey + " expected");
         }
         fileData.comment = pair[1].Trim();
 
@@ -306,10 +322,12 @@ namespace dlech.PageantSharp
         line = reader.ReadLine();
         pair = line.Split(delimArray, 2);
         if (pair[0] != publicKeyLinesKey) {
-          throw new PpkFileException(PpkFileException.ErrorType.FileFormat, publicKeyLinesKey + " expected");
+          throw new PpkFileException(PpkFileException.ErrorType.FileFormat,
+                                     publicKeyLinesKey + " expected");
         }
         if (!int.TryParse(pair[1], out lineCount)) {
-          throw new PpkFileException(PpkFileException.ErrorType.FileFormat, "integer expected");
+          throw new PpkFileException(PpkFileException.ErrorType.FileFormat,
+                                     "integer expected");
         }
         string publicKeyString = string.Empty;
         for (i = 0; i < lineCount; i++) {
@@ -321,10 +339,12 @@ namespace dlech.PageantSharp
         line = reader.ReadLine();
         pair = line.Split(delimArray, 2);
         if (pair[0] != privateKeyLinesKey) {
-          throw new PpkFileException(PpkFileException.ErrorType.FileFormat, privateKeyLinesKey + " expected");
+          throw new PpkFileException(PpkFileException.ErrorType.FileFormat,
+                                     privateKeyLinesKey + " expected");
         }
         if (!int.TryParse(pair[1], out lineCount)) {
-          throw new PpkFileException(PpkFileException.ErrorType.FileFormat, "integer expected");
+          throw new PpkFileException(PpkFileException.ErrorType.FileFormat,
+                                     "integer expected");
         }
         string privateKeyString = string.Empty;
         for (i = 0; i < lineCount; i++) {
@@ -338,7 +358,8 @@ namespace dlech.PageantSharp
         if (pair[0] != privateMACKey) {
           fileData.isHMAC = false;
           if (pair[0] != privateHashKey || fileData.fileVersion != FileVersions.v1) {
-            throw new PpkFileException(PpkFileException.ErrorType.FileFormat, privateMACKey + " expected");
+            throw new PpkFileException(PpkFileException.ErrorType.FileFormat,
+                                       privateMACKey + " expected");
           }
         } else {
           fileData.isHMAC = true;
@@ -407,9 +428,13 @@ namespace dlech.PageantSharp
           sha.Initialize();
           List<byte> key = new List<byte>();
 
-          using (PinnedByteArray hashData = new PinnedByteArray(privKeyDecryptSalt1.Length + fileData.passphrase.Length)) {
-            Array.Copy(Encoding.UTF8.GetBytes(privKeyDecryptSalt1), hashData.Data, privKeyDecryptSalt1.Length);
-            IntPtr passphrasePtr = Marshal.SecureStringToGlobalAllocUnicode(fileData.passphrase);
+          using (PinnedByteArray hashData =
+                 new PinnedByteArray(privKeyDecryptSalt1.Length +
+                                     fileData.passphrase.Length)) {
+            Array.Copy(Encoding.UTF8.GetBytes(privKeyDecryptSalt1),
+                       hashData.Data, privKeyDecryptSalt1.Length);
+            IntPtr passphrasePtr =
+              Marshal.SecureStringToGlobalAllocUnicode(fileData.passphrase);
             for (int i = 0; i < fileData.passphrase.Length; i++) {
               int unicodeChar = Marshal.ReadInt16(passphrasePtr + i * 2);
               byte ansiChar = PSUtil.UnicodeToAnsi(unicodeChar);
@@ -419,7 +444,8 @@ namespace dlech.PageantSharp
             Marshal.ZeroFreeGlobalAllocUnicode(passphrasePtr);
             sha.ComputeHash(hashData.Data);
             key.AddRange(sha.Hash);
-            Array.Copy(Encoding.UTF8.GetBytes(privKeyDecryptSalt2), hashData.Data, privKeyDecryptSalt2.Length);
+            Array.Copy(Encoding.UTF8.GetBytes(privKeyDecryptSalt2),
+                       hashData.Data, privKeyDecryptSalt2.Length);
             sha.ComputeHash(hashData.Data);
             key.AddRange(sha.Hash);
           }
@@ -436,7 +462,8 @@ namespace dlech.PageantSharp
           PSUtil.ClearByteList(key);
           aes.IV = new byte[aes.IV.Length];
           ICryptoTransform decryptor = aes.CreateDecryptor();
-          fileData.privateKeyBlob.Data = PSUtil.GenericTransform(decryptor, fileData.privateKeyBlob.Data);
+          fileData.privateKeyBlob.Data =
+            PSUtil.GenericTransform(decryptor, fileData.privateKeyBlob.Data);
           decryptor.Dispose();
           aes.Clear();
           break;
@@ -468,9 +495,12 @@ namespace dlech.PageantSharp
       if (fileData.isHMAC) {
         HMAC hmac = HMACSHA1.Create();
         if (fileData.passphrase != null) {
-          using (PinnedByteArray hashData = new PinnedByteArray(macKeySalt.Length + fileData.passphrase.Length)) {
-            Array.Copy(Encoding.UTF8.GetBytes(macKeySalt), hashData.Data, macKeySalt.Length);
-            IntPtr passphrasePtr = Marshal.SecureStringToGlobalAllocUnicode(fileData.passphrase);
+          using (PinnedByteArray hashData =
+                 new PinnedByteArray(macKeySalt.Length + fileData.passphrase.Length)) {
+            Array.Copy(Encoding.UTF8.GetBytes(macKeySalt),
+                       hashData.Data, macKeySalt.Length);
+            IntPtr passphrasePtr =
+              Marshal.SecureStringToGlobalAllocUnicode(fileData.passphrase);
             for (int i = 0; i < fileData.passphrase.Length; i++) {
               int unicodeChar = Marshal.ReadInt16(passphrasePtr + i * 2);
               byte ansiChar = PSUtil.UnicodeToAnsi(unicodeChar);
@@ -505,17 +535,17 @@ namespace dlech.PageantSharp
           failed = true;
         }
         if (failed) {
-          // private key data should start with 3 bytes with value 0 if it was properly
-          // decrypted or does not require decryption
+          // private key data should start with 3 bytes with value 0 if it was
+          // properly decrypted or does not require decryption
           if ((fileData.privateKeyBlob.Data[0] == 0) &&
               (fileData.privateKeyBlob.Data[1] == 0) &&
               (fileData.privateKeyBlob.Data[2] == 0)) {
-            // so if they bytes are there, passphrase decrypted properly and something 
-            // else is wrong with the file contents
+            // so if they bytes are there, passphrase decrypted properly and
+            // something else is wrong with the file contents
             throw new PpkFileException(PpkFileException.ErrorType.FileCorrupt);
           } else {
-            // if the bytes are not zeros, we assume that the data was not properly 
-            // decrypted because the passphrase was incorrect. 
+            // if the bytes are not zeros, we assume that the data was not
+            // properly decrypted because the passphrase was incorrect.
             throw new PpkFileException(PpkFileException.ErrorType.BadPassphrase);
           }
         }

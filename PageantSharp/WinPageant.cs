@@ -67,35 +67,7 @@ namespace dlech.PageantSharp
 
 		private const long AGENT_COPYDATA_ID = 0x804e50ba;
 
-		private const int SSH_AGENT_BAD_REQUEST =								 -1; // not from PuTTY source
 
-		/*
-		 * SSH-1 agent messages.
-		 */
-		private const int SSH1_AGENTC_REQUEST_RSA_IDENTITIES =    1;
-		private const int SSH1_AGENT_RSA_IDENTITIES_ANSWER =      2;
-		private const int SSH1_AGENTC_RSA_CHALLENGE =             3;
-		private const int SSH1_AGENT_RSA_RESPONSE =               4;
-		private const int SSH1_AGENTC_ADD_RSA_IDENTITY =          7;
-		private const int SSH1_AGENTC_REMOVE_RSA_IDENTITY =       8;
-		private const int SSH1_AGENTC_REMOVE_ALL_RSA_IDENTITIES = 9; /* openssh private? */
-
-		/*
-		 * Messages common to SSH-1 and OpenSSH's SSH-2.
-		 */
-		private const int SSH_AGENT_FAILURE =                     5;
-		private const int SSH_AGENT_SUCCESS =                     6;
-
-		/*
-		 * OpenSSH's SSH-2 agent messages.
-		 */
-		private const int SSH2_AGENTC_REQUEST_IDENTITIES =        11;
-		private const int SSH2_AGENT_IDENTITIES_ANSWER =          12;
-		private const int SSH2_AGENTC_SIGN_REQUEST =              13;
-		private const int SSH2_AGENT_SIGN_RESPONSE =              14;
-		private const int SSH2_AGENTC_ADD_IDENTITY =              17;
-		private const int SSH2_AGENTC_REMOVE_IDENTITY =           18;
-		private const int SSH2_AGENTC_REMOVE_ALL_IDENTITIES =     19;
 
 #if DOT_NET_35
 		private const int AGENT_MAX_MSGLEN =											8192;
@@ -110,8 +82,8 @@ namespace dlech.PageantSharp
 		private IntPtr hwnd;
 		private WndProc customWndProc;
 
-		GetSSH2KeyListCallback getSSH2PublicKeyListCallback;
-		GetSSH2KeyCallback getSSH2PublicKeyCallback;
+		Agent.GetSSH2KeyListCallback getSSH2PublicKeyListCallback;
+		Agent.GetSSH2KeyCallback getSSH2PublicKeyCallback;
 
 
 		#endregion
@@ -120,21 +92,6 @@ namespace dlech.PageantSharp
 		#region /* delegates */
 
 		private delegate IntPtr WndProc(IntPtr hWnd, uint msg, IntPtr wParam, IntPtr lParam);
-
-		/// <summary>
-		/// Implementer should create list of PpkKeys to be iterated by WinPageant.
-		/// </summary>
-		/// <returns>List of PpkKey objects. Keys will be disposed by callback, 
-		/// so a new list should be created on each call</returns>
-		public delegate IEnumerable<PpkKey> GetSSH2KeyListCallback();
-
-		/// <summary>
-		/// Implementer should return the specific key that matches the fingerprint.
-		/// </summary>
-		/// <param name="fingerprint">PpkKey object that matches fingerprint or null.
-		/// Keys will be disposed by callback, so a new object should be created on each call</param>
-		/// <returns></returns>
-		public delegate PpkKey GetSSH2KeyCallback(byte[] fingerprint);
 
 		#endregion
 
@@ -237,7 +194,8 @@ namespace dlech.PageantSharp
 		/// 
 		/// </summary>
 		/// <exception cref="PageantException">Thrown when another instance of Pageant is running.</exception>
-		public WinPageant(GetSSH2KeyListCallback getSSH2KeyListCallback, GetSSH2KeyCallback getSS2KeyCallback)
+		public WinPageant(Agent.GetSSH2KeyListCallback getSSH2KeyListCallback,
+                      Agent.GetSSH2KeyCallback getSS2KeyCallback)
 		{
 			if (CheckAlreadyRunning()) {
 				throw new PageantException();
@@ -404,201 +362,8 @@ namespace dlech.PageantSharp
 		{
 			using (MemoryMappedViewStream stream = fileMap.CreateViewStream()) {
 #endif // DOT_NET_35
-			byte[] buffer = new byte[4];
-			stream.Read(buffer, 0, 4);
-			int msgDataLength = PSUtil.BytesToInt(buffer, 0);
-			int type;
-
-			if (msgDataLength > 0) {
-				type = stream.ReadByte();
-			} else {
-				type = SSH_AGENT_BAD_REQUEST;
-			}
-
-			switch (type) {
-				case SSH1_AGENTC_REQUEST_RSA_IDENTITIES:
-					/*
-					 * Reply with SSH1_AGENT_RSA_IDENTITIES_ANSWER.
-					 */
-
-					// TODO implement SSH1_AGENT_RSA_IDENTITIES_ANSWER
-
-					goto default; // failed
-				case SSH2_AGENTC_REQUEST_IDENTITIES:
-					/*
-					 * Reply with SSH2_AGENT_IDENTITIES_ANSWER.
-					 */
-					if (this.getSSH2PublicKeyListCallback != null) {
-						PpkKeyBlobBuilder builder = new PpkKeyBlobBuilder();
-						try {
-							int keyCount = 0;
-
-							foreach (PpkKey key in this.getSSH2PublicKeyListCallback()) {
-								keyCount++;
-								builder.AddBlob(key.GetSSH2PublicKeyBlob());
-								builder.AddString(key.Comment);
-								key.Dispose();
-							}
-
-							if (9 + builder.Length <= stream.Length) {
-								stream.Position = 0;
-								stream.Write(PSUtil.IntToBytes(5 + builder.Length), 0, 4);
-								stream.WriteByte(SSH2_AGENT_IDENTITIES_ANSWER);
-								stream.Write(PSUtil.IntToBytes(keyCount), 0, 4);
-								stream.Write(builder.getBlob(), 0, builder.Length);
-								break; // succeeded
-							}
-						} catch (Exception ex) {
-							Debug.Fail(ex.ToString());
-						} finally {
-							builder.Clear();
-						}
-					}
-					goto default; // failed
-				case SSH1_AGENTC_RSA_CHALLENGE:
-					/*
-					 * Reply with either SSH1_AGENT_RSA_RESPONSE or
-					 * SSH_AGENT_FAILURE, depending on whether we have that key
-					 * or not.
-					 */
-
-					// TODO implement SSH1_AGENTC_RSA_CHALLENGE
-
-					goto default; // failed
-				case SSH2_AGENTC_SIGN_REQUEST:
-					/*
-					 * Reply with either SSH2_AGENT_SIGN_RESPONSE or
-					 * SSH_AGENT_FAILURE, depending on whether we have that key
-					 * or not.
-					 */
-					try {
-						/* read rest of message */
-
-						if (msgDataLength >= stream.Position + 4) {
-							stream.Read(buffer, 0, 4);
-							int keyBlobLength = PSUtil.BytesToInt(buffer, 0);
-							if (msgDataLength >= stream.Position + keyBlobLength) {
-								byte[] keyBlob = new byte[keyBlobLength];
-								stream.Read(keyBlob, 0, keyBlobLength);
-								if (msgDataLength >= stream.Position + 4) {
-									stream.Read(buffer, 0, 4);
-									int reqDataLength = PSUtil.BytesToInt(buffer, 0);
-									if (msgDataLength >= stream.Position + reqDataLength) {
-										byte[] reqData = new byte[reqDataLength];
-										stream.Read(reqData, 0, reqDataLength);
-
-										/* get matching key from callback */
-										MD5 md5 = MD5.Create();
-										byte[] fingerprint = md5.ComputeHash(keyBlob);
-										md5.Clear();
-										using (PpkKey key = this.getSSH2PublicKeyCallback(fingerprint)) {
-											if (key != null) {
-
-												/* create signature */
-
-												ISigner signer = null;
-												string algName = null;
-												if (key.KeyParameters.Public is RsaKeyParameters) {
-													signer = SignerUtilities.GetSigner("SHA-1withRSA");
-													algName = PpkFile.PublicKeyAlgorithms.ssh_rsa;
-												}
-												if (key.KeyParameters.Public is DsaPublicKeyParameters) {
-                                                    signer = SignerUtilities.GetSigner("SHA-1withDSA");
-													algName = PpkFile.PublicKeyAlgorithms.ssh_dss;
-												}
-												if (signer != null) {
-                                                    signer.Init(true, key.KeyParameters.Private);
-                                                    signer.BlockUpdate(reqData, 0, reqData.Length);
-                                                    byte[] signature = signer.GenerateSignature();
-
-													PpkKeyBlobBuilder sigBlobBuilder = new PpkKeyBlobBuilder();
-													sigBlobBuilder.AddString(algName);
-													sigBlobBuilder.AddBlob(signature);
-													signature = sigBlobBuilder.getBlob();
-													sigBlobBuilder.Clear();
-
-													/* write response to filemap */
-
-													stream.Position = 0;
-													stream.Write(PSUtil.IntToBytes(5 + signature.Length), 0, 4);
-													stream.WriteByte(SSH2_AGENT_SIGN_RESPONSE);
-													stream.Write(PSUtil.IntToBytes(signature.Length), 0, 4);
-													stream.Write(signature, 0, signature.Length);
-													break; // succeeded
-												}
-											}
-										}
-									}
-								}
-							}
-
-						}
-					} catch (Exception ex) {
-						Debug.Fail(ex.ToString());
-					}
-					goto default; // failure
-				case SSH1_AGENTC_ADD_RSA_IDENTITY:
-					/*
-					 * Add to the list and return SSH_AGENT_SUCCESS, or
-					 * SSH_AGENT_FAILURE if the key was malformed.
-					 */
-
-					// TODO implement SSH1_AGENTC_ADD_RSA_IDENTITY
-
-					goto default; // failed
-				case SSH2_AGENTC_ADD_IDENTITY:
-					/*
-					 * Add to the list and return SSH_AGENT_SUCCESS, or
-					 * SSH_AGENT_FAILURE if the key was malformed.
-					 */
-
-					// TODO implement SSH2_AGENTC_ADD_IDENTITY
-
-					goto default; // failed
-				case SSH1_AGENTC_REMOVE_RSA_IDENTITY:
-					/*
-					 * Remove from the list and return SSH_AGENT_SUCCESS, or
-					 * perhaps SSH_AGENT_FAILURE if it wasn't in the list to
-					 * start with.
-					 */
-
-					// TODO implement SSH1_AGENTC_REMOVE_RSA_IDENTITY
-
-					goto default; // failed
-				case SSH2_AGENTC_REMOVE_IDENTITY:
-					/*
-					 * Remove from the list and return SSH_AGENT_SUCCESS, or
-					 * perhaps SSH_AGENT_FAILURE if it wasn't in the list to
-					 * start with.
-					 */
-
-					// TODO implement SSH2_AGENTC_REMOVE_IDENTITY
-
-					goto default; // failed
-				case SSH1_AGENTC_REMOVE_ALL_RSA_IDENTITIES:
-					/*
-					 * Remove all SSH-1 keys. Always returns success.
-					 */
-
-					// TODO implement SSH1_AGENTC_REMOVE_ALL_RSA_IDENTITIES
-
-					goto default; // failed
-				case SSH2_AGENTC_REMOVE_ALL_IDENTITIES:
-					/*
-					 * Remove all SSH-2 keys. Always returns success.
-					 */
-
-					// TODO implement SSH2_AGENTC_REMOVE_ALL_IDENTITIES
-
-					goto default; // failed
-
-				case SSH_AGENT_BAD_REQUEST:
-				default:
-					stream.Position = 0;
-					stream.Write(PSUtil.IntToBytes(1), 0, 4);
-					stream.WriteByte(SSH_AGENT_FAILURE);
-					break;
-			}
+			Agent.AnswerMessage(stream, getSSH2PublicKeyListCallback,
+        getSSH2PublicKeyCallback);
 #if DOT_NET_35
 			Marshal.Copy(fileCopy, 0, map, AGENT_MAX_MSGLEN);
 			UnmapViewOfFile(fileMap);

@@ -6,14 +6,14 @@ using System.Security.Cryptography;
 using NUnit.Framework;
 
 namespace PageantSharpTest
-{  
+{
     
   /// <summary>
   ///This is a test class for PSUtilTest and is intended
   ///to contain all PSUtilTest Unit Tests
   ///</summary>
   [TestFixture()]
- public class PSUtilTest
+  public class PSUtilTest
   {
 
     /// <summary>

@@ -218,6 +218,12 @@
     <Compile Include="PpkFileException.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="PpkFile.cs" />
+    <Compile Include="LinAgent.cs" />
+    <Compile Include="Agent.cs" />
+    <Compile Include="Microsoft\AsyncUserToken.cs" />
+    <Compile Include="Microsoft\BufferManager.cs" />
+    <Compile Include="Microsoft\Server.cs" />
+    <Compile Include="Microsoft\SocketAsyncEventArgPool.cs" />
   </ItemGroup>
   <ItemGroup>
     <Reference Include="System" />
@@ -226,9 +232,8 @@
     <Reference Include="System.Numerics" />
     <Reference Include="System.Windows.Forms" />
     <Reference Include="System.Xml" />
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="ClassDiagram.cd" />
+    <Reference Include="System.Net" />
+    <Reference Include="Mono.Posix" />
   </ItemGroup>
   <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
@@ -239,4 +244,7 @@
   <Target Name="AfterBuild">
   </Target>
   -->
+  <ItemGroup>
+    <Folder Include="Microsoft\" />
+  </ItemGroup>
 </Project>

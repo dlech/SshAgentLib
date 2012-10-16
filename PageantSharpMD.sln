@@ -11,8 +11,6 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution 
 		TraceAndTestImpact.testsettings = TraceAndTestImpact.testsettings
 	EndProjectSection
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PageantSharp35", "PageantSharp\PageantSharp35.csproj", "{10DAC96A-EE43-4958-A8D7-16F84D2092BF}"
-EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PageantSharpNUnitTest", "PageantSharpNUnitTest\PageantSharpNUnitTest.csproj", "{4C052A55-5F53-4756-AC2C-103EE602E60F}"
 EndProject
 Global
@@ -25,15 +23,6 @@ Global
 		Release|x86 = Release|x86
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
-		{10DAC96A-EE43-4958-A8D7-16F84D2092BF}.Debug|Any CPU.ActiveCfg = Release|Any CPU
-		{10DAC96A-EE43-4958-A8D7-16F84D2092BF}.Debug|Mixed Platforms.ActiveCfg = Debug|x86
-		{10DAC96A-EE43-4958-A8D7-16F84D2092BF}.Debug|x86.ActiveCfg = Debug|x86
-		{10DAC96A-EE43-4958-A8D7-16F84D2092BF}.Debug|x86.Build.0 = Debug|x86
-		{10DAC96A-EE43-4958-A8D7-16F84D2092BF}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{10DAC96A-EE43-4958-A8D7-16F84D2092BF}.Release|Any CPU.Build.0 = Release|Any CPU
-		{10DAC96A-EE43-4958-A8D7-16F84D2092BF}.Release|Mixed Platforms.ActiveCfg = Release|x86
-		{10DAC96A-EE43-4958-A8D7-16F84D2092BF}.Release|x86.ActiveCfg = Release|x86
-		{10DAC96A-EE43-4958-A8D7-16F84D2092BF}.Release|x86.Build.0 = Release|x86
 		{4C052A55-5F53-4756-AC2C-103EE602E60F}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{4C052A55-5F53-4756-AC2C-103EE602E60F}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{4C052A55-5F53-4756-AC2C-103EE602E60F}.Debug|Mixed Platforms.ActiveCfg = Debug|Any CPU

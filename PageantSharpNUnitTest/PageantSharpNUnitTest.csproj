@@ -44,6 +44,7 @@
     <Compile Include="PpkFileTest.cs" />
     <Compile Include="PSUtilTest.cs" />
     <Compile Include="PpkKeyTest.cs" />
+    <Compile Include="LinAgentTest.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
   <ItemGroup>
