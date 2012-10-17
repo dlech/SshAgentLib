@@ -39,6 +39,7 @@
       <Package>nunit</Package>
     </Reference>
     <Reference Include="System.Numerics" />
+    <Reference Include="Mono.Posix" />
   </ItemGroup>
   <ItemGroup>
     <Compile Include="PpkFileTest.cs" />

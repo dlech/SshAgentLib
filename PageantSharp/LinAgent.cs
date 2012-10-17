@@ -23,10 +23,10 @@ namespace dlech.PageantSharp
 
     /* Name of the environment variable containing the process ID of the
      * authentication agent. */
-    private static string SSH_AGENTPID_ENV_NAME = "SSH_AGENT_PID";
+    public static string SSH_AGENTPID_ENV_NAME = "SSH_AGENT_PID";
     /* Name of the environment variable containing the pathname of the
      * authentication socket. */
-    private static string SSH_AUTHSOCKET_ENV_NAME = "SSH_AUTH_SOCK";
+    public static string SSH_AUTHSOCKET_ENV_NAME = "SSH_AUTH_SOCK";
     /* Listen backlog for sshd, ssh-agent and forwarding sockets */
     private static int SSH_LISTEN_BACKLOG = 128;
     private static string TMPDIR_TEMPLATE = "ssh-XXXXXX";
@@ -48,15 +48,15 @@ namespace dlech.PageantSharp
     [DllImport("libc", SetLastError=true)]
     private static extern string mkdtemp(IntPtr template);
 
-    [DllImport("libc")]
-    private static extern UInt32 umask(UInt32 mask);
-
-
     /* constructor */
 
     public LinAgent()
     {
       // TODO load Mono.Unix assembly so that we can run on windows.
+
+      if (Environment.GetEnvironmentVariable(LinAgent.SSH_AUTHSOCKET_ENV_NAME) != null) {
+        throw new Exception("ssh-agent is already running");
+      }
 
       this.isDisposed = false;
 
@@ -76,20 +76,25 @@ namespace dlech.PageantSharp
       this.socket = new Socket(AddressFamily.Unix, SocketType.Stream,
                           ProtocolType.Unspecified);
       Mono.Unix.UnixEndPoint endPoint = new Mono.Unix.UnixEndPoint(socketPath);
-      UInt32 prevMask = umask(Convert.ToUInt32("177", 8));
+      Mono.Unix.Native.FilePermissions prevUmask =
+        Mono.Unix.Native.Syscall.umask(
+          Mono.Unix.Native.FilePermissions.S_IXUSR |
+          Mono.Unix.Native.FilePermissions.S_IRWXG |
+          Mono.Unix.Native.FilePermissions.S_IRWXO);
       try {
         this.socket.Bind(endPoint);
       } catch {
         throw;
       } finally {
-        umask(prevMask);
+        Mono.Unix.Native.Syscall.umask(prevUmask);
       }
       this.socket.Listen(SSH_LISTEN_BACKLOG);
 
-      Environment.SetEnvironmentVariable(SSH_AUTHSOCKET_ENV_NAME, socketPath,
-                                         EnvironmentVariableTarget.Machine);
-      Environment.SetEnvironmentVariable(SSH_AUTHSOCKET_ENV_NAME, pid,
-                                         EnvironmentVariableTarget.Machine);
+      Environment.SetEnvironmentVariable(LinAgent.SSH_AUTHSOCKET_ENV_NAME, socketPath);
+      Environment.SetEnvironmentVariable(LinAgent.SSH_AGENTPID_ENV_NAME, pid);
+
+      // TODO find a way to export envrionment variables for entire session
+      // not just this process.
 
       this.numConnections = LinAgent.maxNumConnections;
       this.bufferManager = new BufferManager(receiveBufferSize * numConnections * 2,
@@ -195,7 +200,6 @@ namespace dlech.PageantSharp
         Agent.AnswerMessage(stream,
                             delegate() { return new List<PpkKey>(); },
                             delegate(byte[] fingerprint) { return new PpkKey(); });
-        stream.Write(new byte[]{ 84, 101, 115, 116 }, 0, 4);
         e.SetBuffer(stream.ToArray(), 0, (int)stream.Position);
         bool willRaiseEvent = token.Socket.SendAsync(e);
         if (!willRaiseEvent) {
@@ -215,14 +219,6 @@ namespace dlech.PageantSharp
     private void ProcessSend(SocketAsyncEventArgs e)
     {
       if (e.SocketError == SocketError.Success) {
-        // done echoing data back to the client
-        AsyncUserToken token = (AsyncUserToken)e.UserToken;
-        // read the next block of data send from the client
-        bool willRaiseEvent = token.Socket.ReceiveAsync(e);
-        if (!willRaiseEvent) {
-          ProcessReceive(e);
-        }
-      } else {
         CloseClientSocket(e);
       }
     }
@@ -235,8 +231,7 @@ namespace dlech.PageantSharp
       try {
         token.Socket.Shutdown(SocketShutdown.Send);
         // throws if client process has already closed
-      } catch (Exception) {
-      }
+      } catch (Exception) { }
       token.Socket.Close();
 
       this.maxNumberAcceptedClients.Release();
@@ -254,6 +249,9 @@ namespace dlech.PageantSharp
     protected virtual void Dispose(bool disposing)
     {
       this.isDisposed = true;
+
+      Environment.SetEnvironmentVariable(LinAgent.SSH_AUTHSOCKET_ENV_NAME, null);
+      Environment.SetEnvironmentVariable(LinAgent.SSH_AGENTPID_ENV_NAME, null);
 
       for (int i = 0; i < socketAsyncEventArgsPool.Count; i++) {
 

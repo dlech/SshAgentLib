@@ -4,6 +4,8 @@ using dlech.PageantSharp;
 using System.Reflection;
 using System.IO;
 using System.Threading;
+using Mono.Unix;
+using System.Net.Sockets;
 
 namespace PageantSharpTest
 {
@@ -18,20 +20,54 @@ namespace PageantSharpTest
     {
       LinAgent agent = new LinAgent();
       string socketDir = GetField<string>(agent, "socketDir");
+      int pid = UnixProcess.GetCurrentProcessId();
+      string socketPathEnv = Environment
+        .GetEnvironmentVariable(LinAgent.SSH_AUTHSOCKET_ENV_NAME);
+      string pidEnv = Environment
+        .GetEnvironmentVariable(LinAgent.SSH_AGENTPID_ENV_NAME);
 
-      // check that everything was cleaned up after dispose
+      Assert.IsTrue(socketPathEnv.Contains(socketDir),
+                    "Failed to set environment variable " +
+                    LinAgent.SSH_AUTHSOCKET_ENV_NAME);
+      Assert.AreEqual(pid.ToString(), pidEnv,
+                      "Failed to set enfironment variable " +
+                      LinAgent.SSH_AGENTPID_ENV_NAME);
+
+      // check that temporary directory was cleaned up after dispose
       agent.Dispose();
       Assert.IsFalse(Directory.Exists(socketDir),
         "Temporary directory was not deleted");
+
+      // check that environment vars are cleared
+      socketPathEnv = Environment
+        .GetEnvironmentVariable(LinAgent.SSH_AUTHSOCKET_ENV_NAME);
+      pidEnv = Environment
+        .GetEnvironmentVariable(LinAgent.SSH_AGENTPID_ENV_NAME);
+      Assert.IsNull(socketPathEnv,
+                    "Failed to unset environment variable " +
+                    LinAgent.SSH_AUTHSOCKET_ENV_NAME);
+      Assert.IsNull(pidEnv,
+                    "Failed to unset enfironment variable " +
+                    LinAgent.SSH_AGENTPID_ENV_NAME);
     }
 
     [Test()]
     public void TestSocket()
     {
       LinAgent agent = new LinAgent();
-      while (true) {
-        Thread.Sleep(100);
-      }
+      string socketPath = Environment.GetEnvironmentVariable(LinAgent.SSH_AUTHSOCKET_ENV_NAME);
+
+      UnixClient client = new UnixClient(socketPath);
+      NetworkStream stream = client.GetStream();
+      stream.Write(new byte[] { 0 }, 0, 1); // send garbage
+      byte[] reply = new byte[5];
+      stream.Read(reply, 0, 5);
+      Assert.AreEqual(0, reply[0]);
+      Assert.AreEqual(0, reply[1]);
+      Assert.AreEqual(0, reply[2]);
+      Assert.AreEqual(1, reply[3]);
+      Assert.AreEqual(5, reply[4]); // 5 = bad request
+      agent.Dispose();
     }
 
 

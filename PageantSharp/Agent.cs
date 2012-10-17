@@ -146,9 +146,8 @@ namespace dlech.PageantSharp
          goto default; // failed
         case SSH2_AGENTC_SIGN_REQUEST:
          /*
-          * Reply with either SSH2_AGENT_SIGN_RESPONSE or
-          * SSH_AGENT_FAILURE, depending on whether we have that key
-          * or not.
+          * Reply with either SSH2_AGENT_SIGN_RESPONSE or SSH_AGENT_FAILURE,
+          * depending on whether we have that key or not.
           */
           try {
             /* read rest of message */
