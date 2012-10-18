@@ -106,7 +106,7 @@ namespace PageantSharpTestProject
 
       int expectedKeySize = 1024; // all test keys			
 
-      string expectedSsh2RsaPublicKeyAlgorithm = PpkFile.PublicKeyAlgorithms.ssh_rsa;
+      string expectedSsh2RsaPublicKeyAlgorithm = PpkKey.PublicKeyAlgorithms.ssh_rsa;
       string expectedSsh2RsaWithoutPassPublicKeyString =
         "AAAAB3NzaC1yc2EAAAABJQAAAIEAhWqdEs/lz1r4L8ZAAS76rX7hj3rrI/6FNlBw" +
         "6ERba2VFmn2AHxQwZmHHmqM+UtiY57angjD9fTbTzL74C0+f/NrRY+BYXf1cF+u5" +

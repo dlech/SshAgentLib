@@ -17,7 +17,7 @@ namespace dlech.PageantSharp
   /// Code based on ssh-agent.c from OpenBSD/OpenSSH and
   /// http://msdn.microsoft.com/en-us/library/system.net.sockets.socketasynceventargs.aspx
   /// </remarks>
-  public class LinAgent : IDisposable
+  public class LinAgent : Agent
   {
     /* constants */
 
@@ -50,7 +50,9 @@ namespace dlech.PageantSharp
 
     /* constructor */
 
-    public LinAgent()
+    public LinAgent(GetSSH2KeyListCallback getSSH2KeyListCallback,
+                      GetSSH2KeyCallback getSS2KeyCallback) : 
+      base( getSSH2KeyListCallback, getSS2KeyCallback, null)
     {
       // TODO load Mono.Unix assembly so that we can run on windows.
 
@@ -197,9 +199,7 @@ namespace dlech.PageantSharp
       AsyncUserToken token = (AsyncUserToken)e.UserToken;
       if (e.BytesTransferred > 0 && e.SocketError == SocketError.Success) {
         MemoryStream stream = new MemoryStream(e.Buffer);
-        Agent.AnswerMessage(stream,
-                            delegate() { return new List<PpkKey>(); },
-                            delegate(byte[] fingerprint) { return new PpkKey(); });
+        AnswerMessage(stream);
         e.SetBuffer(stream.ToArray(), 0, (int)stream.Position);
         bool willRaiseEvent = token.Socket.SendAsync(e);
         if (!willRaiseEvent) {
@@ -240,7 +240,7 @@ namespace dlech.PageantSharp
       this.socketAsyncEventArgsPool.Push(e);
     }
 
-    public void Dispose()
+    public override void Dispose()
     {
       Dispose(true);
       GC.SuppressFinalize(this);

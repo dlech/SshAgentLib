@@ -117,12 +117,12 @@ namespace PageantSharpTestProject
             List<PpkKey> keyList = new List<PpkKey>();
             keyList.Add(keyFromData);
 
-            WinPageant.GetSSH2KeyListCallback getSSH2KeysCallback = delegate()
+            Agent.GetSSH2KeyListCallback getSSH2KeysCallback = delegate()
             {
                 return keyList;
             };
 
-            WinPageant.GetSSH2KeyCallback getSSH2KeyCallback = delegate(byte[] reqFingerprint)
+            Agent.GetSSH2KeyCallback getSSH2KeyCallback = delegate(byte[] reqFingerprint)
             {
                 foreach (PpkKey key in keyList) {
                     byte[] curFingerprint = key.GetFingerprint();

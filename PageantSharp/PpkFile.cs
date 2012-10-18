@@ -47,22 +47,14 @@ namespace dlech.PageantSharp
     /// </summary>
     private static ReadOnlyCollection<string> supportedFileVersions =
         Array.AsReadOnly<string>(new string[] { FileVersions.v1, FileVersions.v2 });
-
-    /// <summary>
-    /// Contains fields with valid public key encryption algorithms
-    /// </summary>
-    public static class PublicKeyAlgorithms
-    {
-      public const string ssh_rsa = "ssh-rsa";
-      public const string ssh_dss = "ssh-dss";
-    }
+       
 
     /// <summary>
     /// Collection of supported public key encryption algorithms
     /// </summary>
     public static ReadOnlyCollection<string> supportedPublicKeyAlgorithms =
-        Array.AsReadOnly<string>(new string[] { PublicKeyAlgorithms.ssh_rsa,
-        PublicKeyAlgorithms.ssh_dss });
+        Array.AsReadOnly<string>(new string[] { PpkKey.PublicKeyAlgorithms.ssh_rsa,
+         PpkKey.PublicKeyAlgorithms.ssh_dss });
 
     /// <summary>
     /// Contains fields with valid private key encryption algorithms
@@ -380,7 +372,8 @@ namespace dlech.PageantSharp
         VerifyIntegrity(fileData);
 
         PpkKey key = new PpkKey();
-        key.KeyParameters = CreateKeyParameters(fileData);
+        key.KeyParameters = CreateKeyParameters(fileData.publicKeyAlgorithm ,
+          fileData.publicKeyBlob, fileData.privateKeyBlob.Data);
         key.Comment = fileData.comment;
         return key;
 
@@ -556,23 +549,23 @@ namespace dlech.PageantSharp
       }
     }
 
-    private static AsymmetricCipherKeyPair CreateKeyParameters(FileData fileData)
+    public static AsymmetricCipherKeyPair CreateKeyParameters(string aAlgorithm,
+      byte[] aPublicKeyBlob, byte[] aPrivateKeyBlob)
     {
       PpkKeyBlobParser parser;
       string algorithm;
       BigInteger exponent, modulus, d, p, q, inverseQ, dp, dq; // rsa params
       BigInteger /* p, q, */ g, y, x; // dsa params
 
-      switch (fileData.publicKeyAlgorithm) {
-        case PublicKeyAlgorithms.ssh_rsa:
+      switch (aAlgorithm) {
+        case PpkKey.PublicKeyAlgorithms.ssh_rsa:
 
-          parser = new PpkKeyBlobParser(fileData.publicKeyBlob);
+          parser = new PpkKeyBlobParser(aPublicKeyBlob);
           algorithm = Encoding.UTF8.GetString(parser.CurrentAsPinnedByteArray.Data);
           parser.CurrentAsPinnedByteArray.Dispose();
           parser.MoveNext();
 
-          if ((fileData.publicKeyAlgorithm != PublicKeyAlgorithms.ssh_rsa) ||
-              (algorithm != PublicKeyAlgorithms.ssh_rsa)) {
+          if (algorithm != PpkKey.PublicKeyAlgorithms.ssh_rsa) {
             throw new InvalidOperationException("public key is not rsa");
           }
 
@@ -583,7 +576,7 @@ namespace dlech.PageantSharp
           modulus = new BigInteger(1, parser.CurrentAsPinnedByteArray.Data);
           //parser.MoveNext();
 
-          parser = new PpkKeyBlobParser(fileData.privateKeyBlob.Data);
+          parser = new PpkKeyBlobParser(aPrivateKeyBlob);
 
           d = new BigInteger(1, parser.CurrentAsPinnedByteArray.Data);
           parser.MoveNext();
@@ -607,14 +600,13 @@ namespace dlech.PageantSharp
 
           return new AsymmetricCipherKeyPair(rsaPublicKeyParams, rsaPrivateKeyParams);
 
-        case PublicKeyAlgorithms.ssh_dss:
-          parser = new PpkKeyBlobParser(fileData.publicKeyBlob);
+        case PpkKey.PublicKeyAlgorithms.ssh_dss:
+          parser = new PpkKeyBlobParser(aPublicKeyBlob);
           algorithm = Encoding.UTF8.GetString(parser.CurrentAsPinnedByteArray.Data);
           parser.CurrentAsPinnedByteArray.Dispose();
           parser.MoveNext();
 
-          if ((fileData.publicKeyAlgorithm != PublicKeyAlgorithms.ssh_dss) ||
-              (algorithm != PublicKeyAlgorithms.ssh_dss)) {
+          if (algorithm != PpkKey.PublicKeyAlgorithms.ssh_dss) {
             throw new InvalidOperationException("public key is not dsa");
           }
 
@@ -629,7 +621,7 @@ namespace dlech.PageantSharp
           y = new BigInteger(1, parser.CurrentAsPinnedByteArray.Data);
           //parser.MoveNext();
 
-          parser = new PpkKeyBlobParser(fileData.privateKeyBlob.Data);
+          parser = new PpkKeyBlobParser(aPrivateKeyBlob);
 
           PSUtil.TrimLeadingZero(parser.CurrentAsPinnedByteArray);
           x = new BigInteger(1, parser.CurrentAsPinnedByteArray.Data);

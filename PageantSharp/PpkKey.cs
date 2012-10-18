@@ -2,6 +2,8 @@
 using System.Security.Cryptography;
 using Org.BouncyCastle.Crypto;
 using Org.BouncyCastle.Crypto.Parameters;
+using Org.BouncyCastle.Math;
+using System.Text;
 
 namespace dlech.PageantSharp
 {
@@ -11,6 +13,15 @@ namespace dlech.PageantSharp
   /// </summary>
   public class PpkKey : IDisposable
   {
+
+    /// <summary>
+    /// Contains fields with valid public key encryption algorithms
+    /// </summary>
+    public static class PublicKeyAlgorithms
+    {
+      public const string ssh_rsa = "ssh-rsa";
+      public const string ssh_dss = "ssh-dss";
+    }
 
     public AsymmetricCipherKeyPair KeyParameters {
       get;
@@ -50,12 +61,14 @@ namespace dlech.PageantSharp
     public void Dispose()
     {
       if (this.KeyParameters != null) {
-        // TODO is there a way to clear parmeters from memory?
+        // TODO is there a way to clear parameters from memory?
       }
     }
 
+    
+
     /// <summary>
-    /// Gets PuTTY formated bytes from public key
+    /// Gets PuTTY formatted bytes from public key
     /// </summary>
     /// <param name="Algorithm">AsymmetricAlgorithm to convert.
      /// (Currently only supports RSA)</param>
@@ -72,7 +85,7 @@ namespace dlech.PageantSharp
           (RsaKeyParameters)KeyParameters.Public;
         PpkKeyBlobBuilder builder = new PpkKeyBlobBuilder();
 
-        builder.AddString(PpkFile.PublicKeyAlgorithms.ssh_rsa);
+        builder.AddString(PpkKey.PublicKeyAlgorithms.ssh_rsa);
         builder.AddBigInt(rsaKeyParameters.Exponent);
         builder.AddBigInt(rsaKeyParameters.Modulus);
 
@@ -87,7 +100,7 @@ namespace dlech.PageantSharp
           (DsaPublicKeyParameters)KeyParameters.Public;
         PpkKeyBlobBuilder builder = new PpkKeyBlobBuilder();
 
-        builder.AddString(PpkFile.PublicKeyAlgorithms.ssh_dss);
+        builder.AddString(PpkKey.PublicKeyAlgorithms.ssh_dss);
         builder.AddBigInt(dsaParameters.Parameters.P);
         builder.AddBigInt(dsaParameters.Parameters.Q);
         builder.AddBigInt(dsaParameters.Parameters.G);
