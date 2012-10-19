@@ -104,7 +104,7 @@ namespace dlech.PageantSharp
     {
       byte[] blobLengthBytes = new byte[4];
       aMessageStream.Read(blobLengthBytes, 0, 4);
-      int msgDataLength = PSUtil.BytesToInt(blobLengthBytes, 0);
+      int msgDataLength = PSUtil.BytesToInt(blobLengthBytes, 0) + 4;
       int type;
 
       if (msgDataLength > 0) {
@@ -288,10 +288,14 @@ namespace dlech.PageantSharp
               Debug.Fail("incomplete message in SSH2_AGENTC_ADD_IDENTITY");
               goto default;
             }
+            
+            // save algorithm in separate byte[] for use later as part of the public key
             byte[] blobBuffer = new byte[aMessageStream.Length];
             Array.Copy(blobLengthBytes, blobBuffer, blobLengthBytes.Length);
-            aMessageStream.Read(blobBuffer, 5, algorithmLength);
-            string algorithm = Encoding.UTF8.GetString(blobBuffer, 5, algorithmLength);
+            aMessageStream.Read(blobBuffer, 4, algorithmLength);
+            int bufferPosition = 4 + algorithmLength;
+
+            string algorithm = Encoding.UTF8.GetString(blobBuffer, 4, algorithmLength);
             PpkKey key = new PpkKey();
             int publicKeyBlobCount, privateKeyBlobCount;
             if (algorithm == PpkKey.PublicKeyAlgorithms.ssh_rsa) {
@@ -305,9 +309,8 @@ namespace dlech.PageantSharp
               goto default;
             }
 
-            /* read public key data */
-            int bufferPosition = 5 + algorithmLength;
-            for (int i = 1; i < publicKeyBlobCount; i++) {
+            /* read public key data */           
+            for (int i = 1; i <= publicKeyBlobCount; i++) {
               if (msgDataLength < aMessageStream.Position + 4) {
                 Debug.Fail("incomplete message in SSH2_AGENTC_ADD_IDENTITY");
                 goto default;
@@ -328,7 +331,7 @@ namespace dlech.PageantSharp
 
             /* read private key data */
             bufferPosition = 0;
-            for (int i = 1; i < privateKeyBlobCount; i++) {
+            for (int i = 1; i <= privateKeyBlobCount; i++) {
               if (msgDataLength < aMessageStream.Position + 4) {
                 Debug.Fail("incomplete message in SSH2_AGENTC_ADD_IDENTITY");
                 goto default;
@@ -362,7 +365,7 @@ namespace dlech.PageantSharp
             }
             byte[] commentBytes = new byte[commentLength];
             aMessageStream.Read(commentBytes, 0, commentBytes.Length);
-            string comment = Encoding.UTF8.GetString(commentBytes, 5, commentLength);
+            string comment = Encoding.UTF8.GetString(commentBytes, 0, commentLength);
             key.Comment = comment;
 
             /* do callback */            
@@ -370,6 +373,7 @@ namespace dlech.PageantSharp
               aMessageStream.Position = 0;
               aMessageStream.Write(PSUtil.IntToBytes(1), 0, 4);
               aMessageStream.WriteByte(SSH_AGENT_SUCCESS);
+              break; // success!
             }
           } catch (Exception ex) {
             Debug.Fail(ex.ToString());

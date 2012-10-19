@@ -191,8 +191,9 @@ namespace dlech.PageantSharp
     /// </summary>
     /// <exception cref="PageantException">Thrown when another instance of Pageant is running.</exception>
     public WinPageant(GetSSH2KeyListCallback getSSH2KeyListCallback,
-                      GetSSH2KeyCallback getSS2KeyCallback)
-      : base(getSSH2KeyListCallback, getSS2KeyCallback, null)
+                      GetSSH2KeyCallback getSS2KeyCallback,
+                      AddSSH2KeyCallback addSSH2KeyCallback)
+      : base(getSSH2KeyListCallback, getSS2KeyCallback, addSSH2KeyCallback)
     {
       if (CheckAlreadyRunning()) {
         throw new PageantException();

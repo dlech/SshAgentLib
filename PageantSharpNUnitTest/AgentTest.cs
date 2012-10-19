@@ -23,11 +23,13 @@ namespace PageantSharpTest
   public class AgentTest
   {
     private const string cAgentFailure = "AAAAAQU=";
-    private const string cAgentSucess = "AAAAAQV=";
+    private const string cAgentSucess = "AAAAAQY=";
 
     private Agent mAgent;
     private PpkKey mSsh2RsaKey;
     private List<PpkKey> mSsh2KeyList;
+
+    private bool mAddSsh2KeyReturnValue;
 
     [TestFixtureSetUp()]
     public void Setup()
@@ -60,7 +62,7 @@ namespace PageantSharpTest
 
     private bool AddSsh2Key(PpkKey key)
     {
-      return true;
+      return mAddSsh2KeyReturnValue;
     }
 
     private void WarnOldFileFormat()
@@ -91,15 +93,79 @@ namespace PageantSharpTest
     [Test()]
     public void TestAnswerSSH2_AGENTC_ADD_IDENTITY()
     {
+      const string rsaKeyData = "AAADyBEAAAAHc3NoLXJzYQAAAQEAz8k2S0e868NhjaV" +
+        "ctuPanK9ekQNzx7Y75cQOsbJi/1UqqinhsfSOfLHfQGpDwy1qm/DhWdhB3YWg1901BX" +
+        "uCgLwPGQ1riVO4+6u0QFLYpLCFozbc0JvyWfTazluzrIZrDul/KxfoHzdlVNi0IV8XN" +
+        "szHIDwoJVRthedBLE6mxpAjMewzkQDMtcOyrkG324ChJhcbgcVnlHfjH4Yl6coqu4tS" +
+        "wdgR1vrgY9fT8FCwiib1fIIITt/ElHsuanpd8paAaBNjYtAuZR/wd+dQJelDePvaxjW" +
+        "8BgNVL30lI6csTnyg7nLHwvUqh1iVogsH2XwvlOhklhbeKvcn8zppyemLOwAAAAMBAA" +
+        "EAAAEAcS8mrx0VsMtN8W15Mnqtk5oHhjB+OfRvbjo80tjcCj/nLKgBtAEGOLBfbuQzo" +
+        "zazEtzEtD8Tqcpnkg6CGklsDhnik3/26ug7JIQkfMFkF1m8geqZn9zCx/OT2MKk/b5+" +
+        "xLG2PtAX9iEjxnMAtAjrSUOE2G9MYwE5Y65TlwIE4LWZ3nB5EE8HCd0vrXRzJEqqBP7" +
+        "IiQI+HQHmeDmECvEMnIQhrK9g0Uo4o0AA9s4j7CgOhOK4/aoRHpc8YWygCGoIPQQWyG" +
+        "o7Nfarnaly36IHmmwHaYvBeWnmdLtvX/zpyyj5vKnmlOSvDTfxYbWpvypGnsuRuekF2" +
+        "NYphrfricOqOQAAAIAanwYTU7RE2cHGRA8G3q2Qhs3El6rRcIYTn+LiWIa6comVvuz3" +
+        "P8l6AltxrzhXM2tyXAirGOnwEdslvvqP42Ha+ns1HLY/J7v66Vj07CgwovzuYbVNu6O" +
+        "SwLGdetKxkVXoU/NiLtabjJqzr/TQGr0bVrK+BSrdelISA0mOrNkcsQAAAIEA6SA1cd" +
+        "7dAjQAerXsKkodth+Ayhs+eG+ZCwbAE2YgkObMaDhCtX9JYSR3bS7f9v+pJRmL/HAMS" +
+        "LdgYtmuA+yTPTY0Yg3nUY0dlrO8RAmbBQeL/k8zchBhJfSCr1m+NWwqBbeqXcTOLMUj" +
+        "IT3YFnJHO0pm5c4KiQUJycvmIpkvTbcAAACBAOQsgKeLZqp7Tpd2bBSJVa2US8yxtc2" +
+        "q7SWhJWNkvX1OwZUaRhLibobnI54szgljgno/g0Y3+CEqnTy0vVbeMPsEhNhEOsfNbs" +
+        "XnU9NJU4jTS8cOG/1oOXsLqhfaElB4wk+P0ktEJ4W1XY7iQkdUAKg9yHMAy23TJsiwG" +
+        "Y1nkC6dAAAAGi9ob21lL2tlZWFnZW50Ly5zc2gvaWRfcnNh";
+
+      const string dsaKeyData = "AAAB6hEAAAAHc3NoLWRzcwAAAIEA9R3Vghcgm3FNH7C" +
+        "1boqTFcHI67AWwto9VJDJzlIoeiyo93chOD18CAgpq561AnPTlKYaR5XZLPLN0P/8bj" +
+        "/gDwX0sWnvjZMTeVu4CZqxxmT3hT6crRzNXUvOoAm1XgRY5sHffgEjQ7o49nIkcWzww" +
+        "dXPB2QxkzfWr9IxSzUddoEAAAAVAObI6htk1CXUSnxMy9nfgcsJMGa9AAAAgEb3cjfQ" +
+        "97FLPhidMp9OqvBNmxxpb5lADq64S7XXIxjAfky3iO992T/ROC81tq8cCt8UeqZRMXq" +
+        "VIRKzGxY7DvCe4VEWT0frA4Nb3OEsGl+opHjmd/bwWX1y9X3pUdwGWczP2gXS9OF54d" +
+        "QDFHc9K5pnH7C1LEsok6UN3gbfHReeAAAAgQDyWQSxdLd1hlgmZwar94vBXucYGo6qm" +
+        "Zlu0qW9vsvBVkSmnzypLRPONYcbUZzw3MxtwsdRSabxFayqtYq1ggstbhSR410h9cFK" +
+        "wDFnbcPf2exeO7SH8/PdryEz0lGnHp657yjKDAqn/pWtpHCkG9RT9ToWOmi7HmA4Wde" +
+        "00PcdngAAABUAs1T5zEgZjLtHlOXQCpO30QIkLGsAAAAaL2hvbWUva2VlYWdlbnQvLn" +
+        "NzaC9pZF9kc2E=";
+      
+      string actual;
       byte[] buffer = new byte[4096];
-      Array.Copy(new byte[] { 0, 0, 0, 1, 17 }, buffer, 5);
+      byte[] decodedData, response;    
       MemoryStream stream = new MemoryStream(buffer);
+
+      /* test adding rsa key */
+
+      decodedData = PSUtil.FromBase64(rsaKeyData);
+      Array.Copy(decodedData, buffer, decodedData.Length);      
+      mAddSsh2KeyReturnValue = true;
       mAgent.AnswerMessage(stream);
-      byte[] response = new byte[stream.Position];
+      response = new byte[stream.Position];
       stream.Position = 0;
       stream.Read(response, 0, response.Length);
-      string actual = Encoding.UTF8.GetString(PSUtil.ToBase64(response));
+      actual = Encoding.UTF8.GetString(PSUtil.ToBase64(response));
       Assert.AreEqual(cAgentSucess, actual);
+
+      /* test adding dsa key */
+
+      stream.Position = 0;
+      decodedData = PSUtil.FromBase64(dsaKeyData);
+      Array.Copy(decodedData, buffer, decodedData.Length);
+      mAddSsh2KeyReturnValue = true;
+      mAgent.AnswerMessage(stream);
+      response = new byte[stream.Position];
+      stream.Position = 0;
+      stream.Read(response, 0, response.Length);
+      actual = Encoding.UTF8.GetString(PSUtil.ToBase64(response));
+      Assert.AreEqual(cAgentSucess, actual);
+
+      /* test AddSsh2Key returns false = ssh agent failure*/
+
+      stream.Position = 0;
+      mAddSsh2KeyReturnValue = false;
+      mAgent.AnswerMessage(stream);
+      response = new byte[stream.Position];
+      stream.Position = 0;
+      stream.Read(response, 0, response.Length);
+      actual = Encoding.UTF8.GetString(PSUtil.ToBase64(response));
+      Assert.AreEqual(cAgentFailure, actual);
     }
 
     [Test()]
