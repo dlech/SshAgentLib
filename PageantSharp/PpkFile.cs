@@ -53,8 +53,8 @@ namespace dlech.PageantSharp
     /// Collection of supported public key encryption algorithms
     /// </summary>
     public static ReadOnlyCollection<string> supportedPublicKeyAlgorithms =
-        Array.AsReadOnly<string>(new string[] { PpkKey.PublicKeyAlgorithms.ssh_rsa,
-         PpkKey.PublicKeyAlgorithms.ssh_dss });
+        Array.AsReadOnly<string>(new string[] { OpenSsh.PublicKeyAlgorithms.ssh_rsa,
+         OpenSsh.PublicKeyAlgorithms.ssh_dss });
 
     /// <summary>
     /// Contains fields with valid private key encryption algorithms
@@ -372,7 +372,7 @@ namespace dlech.PageantSharp
         VerifyIntegrity(fileData);
 
         PpkKey key = new PpkKey();
-        key.KeyParameters = CreateKeyParameters(fileData.publicKeyAlgorithm ,
+        key.CipherKeyPair = CreateCipherKeyPair(fileData.publicKeyAlgorithm ,
           fileData.publicKeyBlob, fileData.privateKeyBlob.Data);
         key.Comment = fileData.comment;
         return key;
@@ -549,7 +549,7 @@ namespace dlech.PageantSharp
       }
     }
 
-    public static AsymmetricCipherKeyPair CreateKeyParameters(string aAlgorithm,
+    private static AsymmetricCipherKeyPair CreateCipherKeyPair(string aAlgorithm,
       byte[] aPublicKeyBlob, byte[] aPrivateKeyBlob)
     {
       PpkKeyBlobParser parser;
@@ -558,14 +558,14 @@ namespace dlech.PageantSharp
       BigInteger /* p, q, */ g, y, x; // dsa params
 
       switch (aAlgorithm) {
-        case PpkKey.PublicKeyAlgorithms.ssh_rsa:
+        case OpenSsh.PublicKeyAlgorithms.ssh_rsa:
 
           parser = new PpkKeyBlobParser(aPublicKeyBlob);
           algorithm = Encoding.UTF8.GetString(parser.CurrentAsPinnedByteArray.Data);
           parser.CurrentAsPinnedByteArray.Dispose();
           parser.MoveNext();
 
-          if (algorithm != PpkKey.PublicKeyAlgorithms.ssh_rsa) {
+          if (algorithm != OpenSsh.PublicKeyAlgorithms.ssh_rsa) {
             throw new InvalidOperationException("public key is not rsa");
           }
 
@@ -600,13 +600,13 @@ namespace dlech.PageantSharp
 
           return new AsymmetricCipherKeyPair(rsaPublicKeyParams, rsaPrivateKeyParams);
 
-        case PpkKey.PublicKeyAlgorithms.ssh_dss:
+        case OpenSsh.PublicKeyAlgorithms.ssh_dss:
           parser = new PpkKeyBlobParser(aPublicKeyBlob);
           algorithm = Encoding.UTF8.GetString(parser.CurrentAsPinnedByteArray.Data);
           parser.CurrentAsPinnedByteArray.Dispose();
           parser.MoveNext();
 
-          if (algorithm != PpkKey.PublicKeyAlgorithms.ssh_dss) {
+          if (algorithm != OpenSsh.PublicKeyAlgorithms.ssh_dss) {
             throw new InvalidOperationException("public key is not dsa");
           }
 

@@ -78,7 +78,7 @@ namespace PageantSharpTest
       Agent.GetSSH2KeyCallback getSSH2KeyCallback = delegate(byte[] reqFingerprint)
       {
         foreach (PpkKey key in keyList) {
-          byte[] curFingerprint = key.GetFingerprint();
+          byte[] curFingerprint = OpenSsh.GetFingerprint(key.CipherKeyPair);
           if (curFingerprint.Length == reqFingerprint.Length) {
             for (int i = 0; i < curFingerprint.Length; i++) {
               if (curFingerprint[i] != reqFingerprint[i]) {

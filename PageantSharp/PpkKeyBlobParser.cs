@@ -45,7 +45,7 @@ namespace dlech.PageantSharp
 
 			this.dataLength = data.Length;
 			this.dataArray = new PinnedByteArray(dataLength);
-			// we will be working with a copy so that data cannot be changed exteranally
+			// we will be working with a copy so that data cannot be changed externally
 			Array.Copy(data, this.dataArray.Data, dataLength);
 			Reset();
 		}

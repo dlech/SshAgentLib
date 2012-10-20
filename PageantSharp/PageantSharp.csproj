@@ -208,9 +208,11 @@
     <Compile Include="BountyCastle\util\Pack.cs" />
     <Compile Include="BountyCastle\util\Platform.cs" />
     <Compile Include="BountyCastle\util\Strings.cs" />
+    <Compile Include="BlobParser.cs" />
+    <Compile Include="OpenSsh.cs" />
     <Compile Include="PinnedByteArray.cs" />
     <Compile Include="PpkKey.cs" />
-    <Compile Include="PpkKeyBlobBuilder.cs" />
+    <Compile Include="BlobBuilder.cs" />
     <Compile Include="PpkKeyBlobParser.cs" />
     <Compile Include="PSUtil.cs" />
     <Compile Include="PageantException.cs" />

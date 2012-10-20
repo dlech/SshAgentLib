@@ -7,9 +7,10 @@ using Org.BouncyCastle.Math;
 namespace dlech.PageantSharp
 {
 	/// <summary>
-	/// used to build blobs that are used for storing and sending keys in PuTTY format
+	/// used to build blobs that are used for storing and sending keys
+  /// in open-ssh/PuTTY format
 	/// </summary>
-	public class PpkKeyBlobBuilder 
+	public class BlobBuilder 
 	{
 		private List<byte> byteList;
 
@@ -25,15 +26,15 @@ namespace dlech.PageantSharp
 		}
 
 		/// <summary>
-		/// Creates new instance of PpkBlobBuilder
+		/// Creates new instance of BlobBuilder
 		/// </summary>
-		public PpkKeyBlobBuilder()
+		public BlobBuilder()
 		{
 			byteList = new List<byte>();
 		}
 
 
-		~PpkKeyBlobBuilder()
+		~BlobBuilder()
 		{
 			Clear();
 		}
@@ -72,10 +73,28 @@ namespace dlech.PageantSharp
 		/// Gets the resulting blob from the blob builder.
 		/// </summary>
 		/// <returns>byte[] containing the blob</returns>
-		public byte[] getBlob()
+		public byte[] GetBlob()
 		{
 			return byteList.ToArray();
 		}
+
+    /// <summary>
+    /// Prepends header and returns the resulting blob from the blob builder.
+    /// </summary>
+    /// <param name="aMessage">message number to include in header</param>
+    /// <returns>byte[] containing the blob</returns>
+    public byte[] GetBlob(OpenSsh.Message aMessage)
+    {
+      byte[] blobLength;
+      if (byteList.Count > 0) {
+        blobLength = PSUtil.IntToBytes(byteList.Count);
+        byteList.InsertRange(0, blobLength);
+      }
+      byteList.Insert(0, (byte)aMessage);
+      blobLength = PSUtil.IntToBytes(byteList.Count);
+      byteList.InsertRange(0, blobLength);
+      return byteList.ToArray();
+    }
 
 		/// <summary>
 		/// Writes 0 to all values, then clears list
