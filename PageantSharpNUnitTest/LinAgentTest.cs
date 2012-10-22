@@ -1,3 +1,7 @@
+#if !__MonoCS__
+#define NotMono
+#endif
+
 using System;
 using NUnit.Framework;
 using dlech.PageantSharp;
@@ -7,9 +11,11 @@ using System.Threading;
 using Mono.Unix;
 using System.Net.Sockets;
 
+
 namespace PageantSharpTest
 {
   [TestFixture()]
+  [Ignore("NotMono")]
   public class LinAgentTest
   {
     /// <summary>
@@ -30,7 +36,7 @@ namespace PageantSharpTest
                     "Failed to set environment variable " +
                     LinAgent.SSH_AUTHSOCKET_ENV_NAME);
       Assert.AreEqual(pid.ToString(), pidEnv,
-                      "Failed to set enfironment variable " +
+                      "Failed to set environment variable " +
                       LinAgent.SSH_AGENTPID_ENV_NAME);
 
       // check that temporary directory was cleaned up after dispose
@@ -47,7 +53,7 @@ namespace PageantSharpTest
                     "Failed to unset environment variable " +
                     LinAgent.SSH_AUTHSOCKET_ENV_NAME);
       Assert.IsNull(pidEnv,
-                    "Failed to unset enfironment variable " +
+                    "Failed to unset environment variable " +
                     LinAgent.SSH_AGENTPID_ENV_NAME);
     }
 

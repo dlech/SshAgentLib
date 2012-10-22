@@ -15,6 +15,8 @@ namespace dlech.PageantSharp
   {
     private Stream mStream;
 
+    public BlobParser(byte[] aBlob) : this(new MemoryStream(aBlob)) { }
+
     public BlobParser(Stream aStream)
     {
       if (aStream == null) {

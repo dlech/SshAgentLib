@@ -75,7 +75,6 @@ namespace dlech.PageantSharp
            * Reply with SSH2_AGENT_IDENTITIES_ANSWER.
            */
           if (mGetSSH2KeyListCallback == null) {
-            Debug.Fail("no callback in SSH2_AGENTC_REQUEST_IDENTITIES");
             goto default; // can't reply without callback
           }
           BlobBuilder builder = new BlobBuilder();
@@ -89,7 +88,6 @@ namespace dlech.PageantSharp
               key.Dispose();
             }
             if (aMessageStream.Length < 9 + builder.Length) {
-              Debug.Fail("Not enough room in buffer in SSH2_AGENTC_REQUEST_IDENTITIES");
               goto default;
             }
             aMessageStream.Position = 0;
@@ -120,7 +118,6 @@ namespace dlech.PageantSharp
            * depending on whether we have that key or not.
            */
           if (mGetSSH2KeyCallback == null) {
-            Debug.Fail("No callback for SSH2_AGENTC_SIGN_REQUEST");
             goto default; // can't reply without callback
           }
           try {
@@ -133,7 +130,6 @@ namespace dlech.PageantSharp
             md5.Clear();
             using (PpkKey key = mGetSSH2KeyCallback(fingerprint)) {
               if (key == null) {
-                Debug.Fail("callback did not return key in SSH2_AGENTC_SIGN_REQUEST");
                 goto default;
               }
               /* create signature */
@@ -147,7 +143,6 @@ namespace dlech.PageantSharp
                 signer = SignerUtilities.GetSigner("SHA-1withDSA");
                 algName = OpenSsh.PublicKeyAlgorithms.ssh_dss;
               } else {
-                Debug.Fail("unsupported algorithm in SSH2_AGENTC_SIGN_REQUEST");
                 goto default;
               }
               signer.Init(true, key.CipherKeyPair.Private);
@@ -161,7 +156,6 @@ namespace dlech.PageantSharp
               sigBlobBuilder.Clear();
 
               if (aMessageStream.Length < 9 + signature.Length) {
-                Debug.Fail("Not enough room in buffer in SSH2_AGENTC_SIGN_REQUEST");
                 goto default;
               }
 
@@ -194,7 +188,6 @@ namespace dlech.PageantSharp
            */
 
           if (mAddSSH2KeyCallback == null) {
-            Debug.Fail("No callback for SSH2_AGENTC_ADD_IDENTITY");
             goto default; // can't reply without callback
           }
           try {
