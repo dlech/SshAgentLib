@@ -151,7 +151,7 @@ namespace PageantSharpTest
         target = PpkFile.ParseData(modifiedFileContents, null, warnOldFileNotExpected);
         Assert.Fail("Exception did not occur");
       } catch (Exception ex) {
-        Assert.IsInstanceOfType(typeof(PpkFileException), ex);
+        Assert.IsInstanceOf<PpkFileException>(ex);
         Assert.AreEqual(PpkFileException.ErrorType.FileVersion, ((PpkFileException)ex).Error);
       }
 
@@ -161,7 +161,7 @@ namespace PageantSharpTest
         target = PpkFile.ParseData(modifiedFileContents, null, warnOldFileNotExpected);
         Assert.Fail("Exception did not occur");
       } catch (Exception ex) {
-        Assert.IsInstanceOfType(typeof(PpkFileException), ex);
+        Assert.IsInstanceOf<PpkFileException>(ex);
         Assert.AreEqual(PpkFileException.ErrorType.PublicKeyEncryption, ((PpkFileException)ex).Error);
       }
 
@@ -171,7 +171,7 @@ namespace PageantSharpTest
         target = PpkFile.ParseData(modifiedFileContents, null, warnOldFileNotExpected);
         Assert.Fail("Exception did not occur");
       } catch (Exception ex) {
-        Assert.IsInstanceOfType(typeof(PpkFileException), ex);
+        Assert.IsInstanceOf<PpkFileException>(ex);
         Assert.AreEqual(PpkFileException.ErrorType.PrivateKeyEncryption, ((PpkFileException)ex).Error);
       }
 
@@ -181,7 +181,7 @@ namespace PageantSharpTest
         target = PpkFile.ParseData(modifiedFileContents, null, warnOldFileNotExpected);
         Assert.Fail("Exception did not occur");
       } catch (Exception ex) {
-        Assert.IsInstanceOfType(typeof(PpkFileException), ex);
+        Assert.IsInstanceOf<PpkFileException>(ex);
         Assert.AreEqual(PpkFileException.ErrorType.FileCorrupt, ((PpkFileException)ex).Error);
       }
 
@@ -191,7 +191,7 @@ namespace PageantSharpTest
         target = PpkFile.ParseData(fileData, null, warnOldFileNotExpected);
         Assert.Fail("Exception did not occur");
       } catch (Exception ex) {
-        Assert.IsInstanceOfType(typeof(PpkFileException), ex);
+        Assert.IsInstanceOf<PpkFileException>(ex);
         Assert.AreEqual(PpkFileException.ErrorType.BadPassphrase, ((PpkFileException)ex).Error);
       }
       fileData = File.ReadAllBytes("../../Resources/ssh2-rsa.ppk");
@@ -199,7 +199,7 @@ namespace PageantSharpTest
         target = PpkFile.ParseData(fileData, getBadPassphrase, warnOldFileNotExpected);
         Assert.Fail("Exception did not occur");
       } catch (Exception ex) {
-        Assert.IsInstanceOfType(typeof(PpkFileException), ex);
+        Assert.IsInstanceOf<PpkFileException>(ex);
         Assert.AreEqual(PpkFileException.ErrorType.BadPassphrase, ((PpkFileException)ex).Error);
       }
 
@@ -222,7 +222,7 @@ namespace PageantSharpTest
       try {
         target = PpkFile.ParseData(fileData, null, warnOldFileNotExpected);
       } catch (Exception ex) {
-        Assert.IsInstanceOfType(typeof(PpkFileException), ex);
+        Assert.IsInstanceOf<PpkFileException>(ex);
         Assert.AreEqual(PpkFileException.ErrorType.FileFormat, ((PpkFileException)ex).Error);
       }
 

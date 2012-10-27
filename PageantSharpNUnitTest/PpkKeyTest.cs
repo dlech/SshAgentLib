@@ -60,7 +60,7 @@ namespace PageantSharpTest
     [Test()]
     public void GetSSH2PublicKeyBlobTest()
     {
-      byte[] data, actual, expected;
+      byte[] actual, expected;
       PpkFile.GetPassphraseCallback getPassphrase = null;
       PpkFile.WarnOldFileFormatCallback warnOldFileFormat = delegate() { };
       PpkKey target;

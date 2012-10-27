@@ -19,14 +19,14 @@ namespace PageantSharpTest
   ///to contain all PageantWindowTest Unit Tests
   ///</summary>
   [TestFixture()]
+#if __MonoCS__
+  [Ignore("Mono")]
+#endif
   public class WinPageantTest 
   {
 
     [DllImport("user32.dll")]
     public static extern IntPtr FindWindow(String sClassName, String sAppName);
-
-
-
 
     /// <summary>
     ///A test for PageantWindow Constructor
@@ -43,15 +43,12 @@ namespace PageantSharpTest
         IntPtr hwnd = FindWindow("Pageant", "Pageant");
         Assert.AreNotEqual(hwnd, IntPtr.Zero);
 
-        // try starting a second instance, this should cause an exception
-        Exception exception = null;
-        try {
+        // try starting a second instance
+        Assert.Throws<PageantRunningException>(delegate()
+        {
           WinPageant target2 = new WinPageant(callbacks);
           target2.Dispose();
-        } catch (Exception ex) {
-          exception = ex;
-        }
-        Assert.IsInstanceOfType(typeof(PageantException), exception);
+        });        
       } catch (Exception ex) {
         Assert.Fail(ex.ToString());
       } finally {
@@ -107,42 +104,6 @@ namespace PageantSharpTest
       MessageBox.Show("Click OK when done");
       target.Dispose();
     }
-
-    [Test()]
-    public void TestDsaSig()
-    {
-      DSA dsa1 = DSA.Create();
-      DSAParameters dsa1params = dsa1.ExportParameters(true);
-
-      DsaParameters dsa2common = new DsaParameters(
-          new BigInteger(1, dsa1params.P),
-          new BigInteger(1, dsa1params.Q),
-          new BigInteger(1, dsa1params.G));
-      DsaPublicKeyParameters dsa2public = new DsaPublicKeyParameters(
-          new BigInteger(1, dsa1params.Y), dsa2common);
-      DsaPrivateKeyParameters dsa2private = new DsaPrivateKeyParameters(
-          new BigInteger(1, dsa1params.X), dsa2common);
-
-      byte[] data = { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9 };
-
-      SHA1 sha = SHA1.Create();
-      sha.ComputeHash(data);
-      byte[] dsa1result = dsa1.CreateSignature(sha.Hash);
-
-      ISigner dsa2signer = SignerUtilities.GetSigner("SHA-1withDSA");
-      //algName = PpkFile.PublicKeyAlgorithms.ssh_dss;
-
-      dsa2signer.Init(true, dsa2private);
-      dsa2signer.BlockUpdate(data, 0, data.Length);
-      byte[] dsa2result = dsa2signer.GenerateSignature();
-
-      Assert.IsTrue(dsa1.VerifySignature(sha.Hash, dsa2result));
-
-      dsa2signer.Init(false, dsa2public);
-      dsa2signer.BlockUpdate(data, 0, data.Length);
-
-      Assert.IsTrue(dsa2signer.VerifySignature(dsa1result));
-
-    }
+  
   }
 }

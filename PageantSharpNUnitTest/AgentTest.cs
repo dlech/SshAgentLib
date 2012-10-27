@@ -273,10 +273,8 @@ namespace PageantSharpTest
       stream.Read(response, 0, response.Length);
       actual = Encoding.UTF8.GetString(PSUtil.ToBase64(response));
       Assert.AreEqual(cAgentSucess, actual);
-      Assert.IsInstanceOfType(typeof(RsaKeyParameters),
-        returnedKey.CipherKeyPair.Public);
-      Assert.IsInstanceOfType(typeof(RsaKeyParameters),
-        returnedKey.CipherKeyPair.Private);
+      Assert.IsInstanceOf<RsaKeyParameters>(returnedKey.CipherKeyPair.Public);
+      Assert.IsInstanceOf<RsaKeyParameters>(returnedKey.CipherKeyPair.Private);
       Assert.AreEqual(rsaKeySize, returnedKey.Size);
       Assert.AreEqual(rsaKeyComment, returnedKey.Comment);
       Assert.AreEqual(rsaKeyFingerprint,
@@ -294,10 +292,8 @@ namespace PageantSharpTest
       stream.Read(response, 0, response.Length);
       actual = Encoding.UTF8.GetString(PSUtil.ToBase64(response));
       Assert.AreEqual(cAgentSucess, actual);
-      Assert.IsInstanceOfType(typeof(DsaKeyParameters),
-        returnedKey.CipherKeyPair.Public);
-      Assert.IsInstanceOfType(typeof(DsaKeyParameters),
-        returnedKey.CipherKeyPair.Private);
+      Assert.IsInstanceOf<DsaKeyParameters>(returnedKey.CipherKeyPair.Public);
+      Assert.IsInstanceOf<DsaKeyParameters>(returnedKey.CipherKeyPair.Private);
       Assert.AreEqual(dsaKeySize, returnedKey.Size);
       Assert.AreEqual(dsaKeyComment, returnedKey.Comment);
       Assert.AreEqual(dsaKeyFingerprint,
