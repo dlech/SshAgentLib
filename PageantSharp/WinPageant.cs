@@ -81,7 +81,7 @@ namespace dlech.PageantSharp
     private bool disposed;
     private IntPtr hwnd;
     private WndProc customWndProc;
-    
+
     #endregion
 
 
@@ -190,14 +190,12 @@ namespace dlech.PageantSharp
     /// 
     /// </summary>
     /// <exception cref="PageantException">Thrown when another instance of Pageant is running.</exception>
-    public WinPageant(GetSSH2KeyListCallback getSSH2KeyListCallback,
-                      GetSSH2KeyCallback getSS2KeyCallback,
-                      AddSSH2KeyCallback addSSH2KeyCallback)
-      : base(getSSH2KeyListCallback, getSS2KeyCallback, addSSH2KeyCallback)
+    public WinPageant(CallBacks aCallbacks)
+      : base(aCallbacks)
     {
       if (CheckAlreadyRunning()) {
         throw new PageantException();
-      }        
+      }
 
       // create reference to delegate so that garbage collector does not eat it.
       this.customWndProc = new WndProc(CustomWndProc);

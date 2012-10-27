@@ -13,14 +13,13 @@ namespace dlech.PageantSharp
   public abstract class Agent : IDisposable
   {
     #region Instance Variables
-    GetSSH2KeyListCallback mGetSSH2KeyListCallback;
-    GetSSH2KeyCallback mGetSSH2KeyCallback;
-    AddSSH2KeyCallback mAddSSH2KeyCallback;
+    private CallBacks mCallbacks;
     #endregion
 
 
     /// <summary>
-    /// Implementer should create list of PpkKeys to be iterated by WinPageant.
+    /// Implementer should return a list of public keys that will be 
+    /// sent to a remote client
     /// </summary>
     /// <returns>List of PpkKey objects. Keys will be disposed by callback, 
     /// so a new list should be created on each call</returns>
@@ -29,24 +28,42 @@ namespace dlech.PageantSharp
     /// <summary>
     /// Implementer should return the specific key that matches the fingerprint.
     /// </summary>
-    /// <param name="fingerprint">PpkKey object that matches fingerprint or null.
-    /// Keys will be disposed by callback, so a new object should be created on each call</param>
-    /// <returns></returns>
-    public delegate PpkKey GetSSH2KeyCallback(byte[] fingerprint);
+    /// <param name="fingerprint">MD5 fingerprint of key</param>
+    /// <returns>PpkKey object that matches fingerprint or null.
+    /// Keys will be disposed by callback, so a new object should be created on each call</returns>
+    public delegate PpkKey GetSSH2KeyCallback(byte[] aFingerprint);
 
     /// <summary>
-    /// Implementer should ...
+    /// Implementer should Add the specified key to its key store
     /// </summary>
     /// <returns></returns>
     public delegate bool AddSSH2KeyCallback(PpkKey key);
 
-    public Agent(GetSSH2KeyListCallback aGetSSH2KeyListCallback,
-      GetSSH2KeyCallback aGetSSH2KeyCallback,
-      AddSSH2KeyCallback aAddSSH2KeyCallback)
+    /// <summary>
+    /// Implementer should remove the specified key from its key store
+    /// </summary>
+    /// <param name="aFingerprint">MD5 fingerprint of key</param>
+    /// <returns>true if key was removed</returns>
+    public delegate bool RemoveSSH2KeyCallback(byte[] aFingerprint);
+
+    /// <summary>
+    /// Implementer should remove all keys from its key store
+    /// </summary>
+    /// <returns>true if all keys were removed</returns>
+    public delegate bool RemoveAllSSH2KeysCallback();
+
+    public struct CallBacks
     {
-      mGetSSH2KeyListCallback = aGetSSH2KeyListCallback;
-      mGetSSH2KeyCallback = aGetSSH2KeyCallback;
-      mAddSSH2KeyCallback = aAddSSH2KeyCallback;
+      public GetSSH2KeyListCallback getSSH2KeyList;
+      public GetSSH2KeyCallback getSSH2Key;
+      public AddSSH2KeyCallback addSSH2Key;
+      public RemoveSSH2KeyCallback removeSSH2Key;
+      public RemoveAllSSH2KeysCallback removeAllSSH2Keys;
+    }
+
+    public Agent(CallBacks aCallbacks)
+    {
+      mCallbacks = aCallbacks;
     }
 
     /// <summary>
@@ -74,14 +91,14 @@ namespace dlech.PageantSharp
           /*
            * Reply with SSH2_AGENT_IDENTITIES_ANSWER.
            */
-          if (mGetSSH2KeyListCallback == null) {
+          if (mCallbacks.getSSH2KeyList == null) {
             goto default; // can't reply without callback
           }
           BlobBuilder builder = new BlobBuilder();
           try {
             int keyCount = 0;
 
-            foreach (PpkKey key in mGetSSH2KeyListCallback()) {
+            foreach (PpkKey key in mCallbacks.getSSH2KeyList()) {
               keyCount++;
               builder.AddBlob(OpenSsh.GetSSH2PublicKeyBlob(key.CipherKeyPair));
               builder.AddString(key.Comment);
@@ -89,7 +106,7 @@ namespace dlech.PageantSharp
             }
             if (aMessageStream.Length < 9 + builder.Length) {
               goto default;
-            }
+            }            
             aMessageStream.Position = 0;
             aMessageStream.Write(PSUtil.IntToBytes(5 + builder.Length), 0, 4);
             aMessageStream.WriteByte((byte)OpenSsh.Message.SSH2_AGENT_IDENTITIES_ANSWER);
@@ -117,7 +134,7 @@ namespace dlech.PageantSharp
            * Reply with either SSH2_AGENT_SIGN_RESPONSE or SSH_AGENT_FAILURE,
            * depending on whether we have that key or not.
            */
-          if (mGetSSH2KeyCallback == null) {
+          if (mCallbacks.getSSH2Key == null) {
             goto default; // can't reply without callback
           }
           try {
@@ -128,7 +145,7 @@ namespace dlech.PageantSharp
             MD5 md5 = MD5.Create();
             byte[] fingerprint = md5.ComputeHash(keyBlob);
             md5.Clear();
-            using (PpkKey key = mGetSSH2KeyCallback(fingerprint)) {
+            using (PpkKey key = mCallbacks.getSSH2Key(fingerprint)) {
               if (key == null) {
                 goto default;
               }
@@ -152,19 +169,16 @@ namespace dlech.PageantSharp
               BlobBuilder sigBlobBuilder = new BlobBuilder();
               sigBlobBuilder.AddString(algName);
               sigBlobBuilder.AddBlob(signature);
-              signature = sigBlobBuilder.GetBlob();
+              signature = sigBlobBuilder.GetBlob(OpenSsh.Message.SSH2_AGENT_SIGN_RESPONSE);
               sigBlobBuilder.Clear();
 
               if (aMessageStream.Length < 9 + signature.Length) {
                 goto default;
               }
 
-              /* write response to filemap */
+              /* write response to stream */
 
               aMessageStream.Position = 0;
-              aMessageStream.Write(PSUtil.IntToBytes(5 + signature.Length), 0, 4);
-              aMessageStream.WriteByte((byte)OpenSsh.Message.SSH2_AGENT_SIGN_RESPONSE);
-              aMessageStream.Write(PSUtil.IntToBytes(signature.Length), 0, 4);
               aMessageStream.Write(signature, 0, signature.Length);
               break; // succeeded
             }
@@ -187,7 +201,7 @@ namespace dlech.PageantSharp
            * SSH_AGENT_FAILURE if the key was malformed.
            */
 
-          if (mAddSSH2KeyCallback == null) {
+          if (mCallbacks.addSSH2Key == null) {
             goto default; // can't reply without callback
           }
           try {
@@ -196,7 +210,7 @@ namespace dlech.PageantSharp
             key.Comment = Encoding.UTF8.GetString(parser.Read());
 
             /* do callback */
-            if (mAddSSH2KeyCallback(key)) {
+            if (mCallbacks.addSSH2Key(key)) {
               aMessageStream.Position = 0;
               aMessageStream.Write(PSUtil.IntToBytes(1), 0, 4);
               aMessageStream.WriteByte((byte)OpenSsh.Message.SSH_AGENT_SUCCESS);
@@ -223,8 +237,23 @@ namespace dlech.PageantSharp
            * start with.
            */
 
-          // TODO implement SSH2_AGENTC_REMOVE_IDENTITY
+          if (mCallbacks.removeSSH2Key == null) {
+            goto default;
+          }
+          
+          byte[] rKeyBlob = parser.Read();          
 
+          /* get matching key from callback */
+          MD5 rMd5 = MD5.Create();
+          byte[] rFingerprint = rMd5.ComputeHash(rKeyBlob);
+          rMd5.Clear();
+
+          if (mCallbacks.removeSSH2Key(rFingerprint)) {
+            aMessageStream.Position = 0;
+            aMessageStream.Write(PSUtil.IntToBytes(1), 0, 4);
+            aMessageStream.WriteByte((byte)OpenSsh.Message.SSH_AGENT_SUCCESS);
+            break; //success!
+          }
           goto default; // failed
         case OpenSsh.Message.SSH1_AGENTC_REMOVE_ALL_RSA_IDENTITIES:
           /*
@@ -239,7 +268,16 @@ namespace dlech.PageantSharp
            * Remove all SSH-2 keys. Always returns success.
            */
 
-          // TODO implement SSH2_AGENTC_REMOVE_ALL_IDENTITIES
+          if (mCallbacks.removeAllSSH2Keys == null) {
+            goto default;
+          }
+
+          if (mCallbacks.removeAllSSH2Keys()) {
+            aMessageStream.Position = 0;
+            aMessageStream.Write(PSUtil.IntToBytes(1), 0, 4);
+            aMessageStream.WriteByte((byte)OpenSsh.Message.SSH_AGENT_SUCCESS);
+            break; //success!
+          }
 
           goto default; // failed
 

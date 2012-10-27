@@ -45,14 +45,13 @@ namespace dlech.PageantSharp
     private bool isDisposed;
     /* external */
 
-    [DllImport("libc", SetLastError=true)]
+    [DllImport("libc", SetLastError = true)]
     private static extern string mkdtemp(IntPtr template);
 
     /* constructor */
 
-    public LinAgent(GetSSH2KeyListCallback getSSH2KeyListCallback,
-                      GetSSH2KeyCallback getSS2KeyCallback) : 
-      base( getSSH2KeyListCallback, getSS2KeyCallback, null)
+    public LinAgent(CallBacks aCallBacks)
+      : base(aCallBacks)
     {
       // TODO load Mono.Unix assembly so that we can run on windows.
 
@@ -95,7 +94,7 @@ namespace dlech.PageantSharp
       Environment.SetEnvironmentVariable(LinAgent.SSH_AUTHSOCKET_ENV_NAME, socketPath);
       Environment.SetEnvironmentVariable(LinAgent.SSH_AGENTPID_ENV_NAME, pid);
 
-      // TODO find a way to export envrionment variables for entire session
+      // TODO find a way to export environment variables for entire session
       // not just this process.
 
       this.numConnections = LinAgent.maxNumConnections;
