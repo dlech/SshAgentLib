@@ -45,29 +45,10 @@ namespace PageantSharpTest
 
 
     /// <summary>
-    ///A test for PageantWindow Constructor
-    ///</summary>
+    /// Test for WinPagent
+    /// </summary>
     [Test()]
-    public void PageantWindowConstructorTest()
-    {
-      // create new instance
-      Agent.CallBacks callbacks = new Agent.CallBacks();
-      using (WinPageant target = new WinPageant(callbacks)) {
-        // emulate a client to make sure window is there
-        IntPtr hwnd = FindWindow("Pageant", "Pageant");
-        Assert.That(hwnd, Is.Not.EqualTo(IntPtr.Zero));
-
-        // try starting a second instance
-        Assert.That(delegate()
-        {
-          WinPageant target2 = new WinPageant(callbacks);
-          target2.Dispose();
-        }, Throws.InstanceOf<PageantRunningException>());
-      }
-    }
-
-    [Test()]
-    public void PageantWindowWndProcTest()
+    public void WinPageantInstanceTest()
     {
       /* code based on agent_query function in winpgntc.c from PuTTY */
       
@@ -79,6 +60,16 @@ namespace PageantSharpTest
       Agent.CallBacks callbacks = new Agent.CallBacks();
       callbacks.removeAllSSH2Keys = removeAllKeys;
       using (WinPageant agent = new WinPageant(callbacks)) {
+
+        /* try starting a second instance */
+
+        Assert.That(delegate()
+        {
+          WinPageant agent2 = new WinPageant(callbacks);
+          agent2.Dispose();
+        }, Throws.InstanceOf<PageantRunningException>());
+
+        /* test WndProc callback */
 
         IntPtr hwnd = FindWindow("Pageant", "Pageant");
         Assert.That(hwnd, Is.Not.EqualTo(IntPtr.Zero));

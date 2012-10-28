@@ -12,7 +12,6 @@ namespace PageantSharpTest
 {
   [TestFixture()]
   [Platform(Exclude="Win")]
-#endif
   public class LinAgentTest
   {
     /// <summary>
