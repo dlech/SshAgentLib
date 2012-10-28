@@ -38,7 +38,8 @@ namespace PageantSharpTest
     public void PageantWindowConstructorTest()
     {
       // create new instance
-      WinPageant target = new WinPageant(null, null, null);
+      Agent.CallBacks callbacks = new Agent.CallBacks();
+      WinPageant target = new WinPageant(callbacks);
 
       try {
         // emulate a client to make sure window is there
@@ -48,7 +49,7 @@ namespace PageantSharpTest
         // try starting a second instance, this should cause an exception
         Exception exception = null;
         try {
-          WinPageant target2 = new WinPageant(null, null, null);
+          WinPageant target2 = new WinPageant(callbacks);
           target2.Dispose();
         } catch (Exception ex) {
           exception = ex;
@@ -101,7 +102,11 @@ namespace PageantSharpTest
         return true;
       };
 
-      WinPageant target = new WinPageant(getSSH2KeysCallback, getSSH2KeyCallback, addSS2KeyCallback);
+      Agent.CallBacks callbacks = new Agent.CallBacks();
+      callbacks.getSSH2KeyList = getSSH2KeysCallback;
+      callbacks.getSSH2Key = getSSH2KeyCallback;
+      callbacks.addSSH2Key = addSS2KeyCallback;
+      WinPageant target = new WinPageant(callbacks);
       MessageBox.Show("Click OK when done");
       target.Dispose();
     }

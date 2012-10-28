@@ -26,7 +26,8 @@ namespace PageantSharpTest
     [Test()]
     public void TestInitAndDispose()
     {
-      LinAgent agent = new LinAgent(null, null);
+      Agent.CallBacks callbacks = new Agent.CallBacks();
+      LinAgent agent = new LinAgent(callbacks);
       string socketDir = GetField<string>(agent, "socketDir");
       int pid = UnixProcess.GetCurrentProcessId();
       string socketPathEnv = Environment
@@ -62,7 +63,8 @@ namespace PageantSharpTest
     [Test()]
     public void TestSocket()
     {
-      LinAgent agent = new LinAgent(null, null);
+      Agent.CallBacks callbacks = new Agent.CallBacks();
+      LinAgent agent = new LinAgent(callbacks);
       string socketPath = Environment.GetEnvironmentVariable(LinAgent.SSH_AUTHSOCKET_ENV_NAME);
 
       UnixClient client = new UnixClient(socketPath);

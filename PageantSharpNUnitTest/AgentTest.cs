@@ -47,10 +47,8 @@ namespace PageantSharpTest
 
     private class TestAgent : Agent
     {
-      public TestAgent(GetSSH2KeyListCallback aGetSSH2KeyListCallback,
-                       GetSSH2KeyCallback aGetSSH2KeyCallback,
-                       AddSSH2KeyCallback aAddSSH2KeyCallback) :
-        base(aGetSSH2KeyListCallback, aGetSSH2KeyCallback, aAddSSH2KeyCallback) { }
+      public TestAgent(CallBacks aCallBacks) :
+        base(aCallBacks) { }
     }
 
 
@@ -68,12 +66,15 @@ namespace PageantSharpTest
         return mSsh2KeyList;
       };
 
-      Agent agent = new TestAgent(GetSsh2KeyList, null, null);
+      Agent.CallBacks callbacks = new Agent.CallBacks();
+      callbacks.getSSH2KeyList = GetSsh2KeyList;
+      Agent agent = new TestAgent(callbacks);
 
       byte[] buffer = new byte[4096];
       BlobBuilder builder = new BlobBuilder();
-      byte[] request = builder.GetBlob(OpenSsh.Message.SSH2_AGENTC_REQUEST_IDENTITIES);
-      Array.Copy(request, buffer, 5);
+      byte[] request =
+        builder.GetBlob(OpenSsh.Message.SSH2_AGENTC_REQUEST_IDENTITIES);
+      Array.Copy(request, buffer, request.Length);
       MemoryStream stream = new MemoryStream(buffer);
       agent.AnswerMessage(stream);
       byte[] response = new byte[stream.Position];
@@ -124,19 +125,24 @@ namespace PageantSharpTest
         "ccNTQzvFe1M3ZI6EVDA/z5NzqH39jD/Az3MFeSpvlt2WrL29HHvb/UNc6MfTw8hu/Nr" +
         "sd84uSFGuLRNgEMlu59A6Uri9A+oXSqHGRh+yCqtkEwEpsspNmc2b4FbZ2C75BK53rt" +
         "vTUhk/NLaLRngOBKNr2+XfGieAL";
-      
+
+      bool getSsh2KeyCalled = false;
 
       PpkKey testKey = mSsh2RsaKey;
       Agent.GetSSH2KeyCallback GetSsh2Key = delegate(byte[] aFingerprint)
       {
+        getSsh2KeyCalled = true;
         if (testKey != null) {
           string requestedFingerprint = PSUtil.ToHex(aFingerprint);
-          string testKeyFingerprint = PSUtil.ToHex(OpenSsh.GetFingerprint(testKey.CipherKeyPair));
+          string testKeyFingerprint =
+            PSUtil.ToHex(OpenSsh.GetFingerprint(testKey.CipherKeyPair));
           Assert.AreEqual(requestedFingerprint, testKeyFingerprint);
         }
         return testKey;
       };
-      Agent agent = new TestAgent(null, GetSsh2Key, null);
+      Agent.CallBacks callbacks = new Agent.CallBacks();
+      callbacks.getSSH2Key = GetSsh2Key;
+      Agent agent = new TestAgent(callbacks);
       byte[] buffer = new byte[4096];
       MemoryStream stream = new MemoryStream(buffer);
 
@@ -164,7 +170,7 @@ namespace PageantSharpTest
       stream.Position = 0;
       agent.AnswerMessage(stream);
       replyBytes = new byte[stream.Position];
-      stream.Position = 0;      
+      stream.Position = 0;
       OpenSsh.BlobHeader header = parser.ReadHeader();
       Assert.AreEqual(OpenSsh.Message.SSH2_AGENT_SIGN_RESPONSE, header.Message);
       byte[] signatureBlob = parser.Read();
@@ -179,6 +185,7 @@ namespace PageantSharpTest
 
       /* test callback returns null */
 
+      getSsh2KeyCalled = false;
       testKey = null;
       requestData = PSUtil.FromBase64(rsaSignRequestData);
       Array.Copy(requestData, buffer, requestData.Length);
@@ -189,7 +196,7 @@ namespace PageantSharpTest
       stream.Read(replyBytes, 0, replyBytes.Length);
       actual = Encoding.UTF8.GetString(PSUtil.ToBase64(replyBytes));
       Assert.AreEqual(cAgentFailure, actual);
-
+      Assert.IsTrue(getSsh2KeyCalled, "Callback was not called");
     }
 
     [Test()]
@@ -217,7 +224,8 @@ namespace PageantSharpTest
         "Y1nkC6dAAAAGi9ob21lL2tlZWFnZW50Ly5zc2gvaWRfcnNh";
       const int rsaKeySize = 2048;
       const string rsaKeyComment = "/home/keeagent/.ssh/id_rsa";
-      const string rsaKeyFingerprint = "c4:e7:45:dd:a9:1a:35:6a:1f:ef:71:1f:0a:b2:a6:eb";
+      const string rsaKeyFingerprint =
+        "c4:e7:45:dd:a9:1a:35:6a:1f:ef:71:1f:0a:b2:a6:eb";
 
       const string dsaKeyData = "AAAB6hEAAAAHc3NoLWRzcwAAAIEA9R3Vghcgm3FNH7C" +
         "1boqTFcHI67AWwto9VJDJzlIoeiyo93chOD18CAgpq561AnPTlKYaR5XZLPLN0P/8bj" +
@@ -233,22 +241,26 @@ namespace PageantSharpTest
 
       const int dsaKeySize = 1024;
       const string dsaKeyComment = "/home/keeagent/.ssh/id_dsa";
-      const string dsaKeyFingerprint = "71:91:74:0f:42:05:39:04:58:02:a2:1b:51:ae:ab:cc";
+      const string dsaKeyFingerprint =
+        "71:91:74:0f:42:05:39:04:58:02:a2:1b:51:ae:ab:cc";
 
       string actual;
       byte[] buffer = new byte[4096];
       byte[] decodedData, response;
       MemoryStream stream = new MemoryStream(buffer);
       PpkKey returnedKey = new PpkKey();
+      bool addKeyCalled = false;
       bool addKeyReturnValue = true;
 
       Agent.AddSSH2KeyCallback AddSsh2Key = delegate(PpkKey aKey)
       {
+        addKeyCalled = true;
         returnedKey = aKey;
         return addKeyReturnValue;
       };
-
-      Agent agent = new TestAgent(null, null, AddSsh2Key);
+      Agent.CallBacks callbacks = new Agent.CallBacks();
+      callbacks.addSSH2Key = AddSsh2Key;
+      Agent agent = new TestAgent(callbacks);
 
       /* test adding rsa key */
 
@@ -294,6 +306,9 @@ namespace PageantSharpTest
       /* test AddSsh2Key returns false => ssh agent failure*/
 
       stream.Position = 0;
+      decodedData = PSUtil.FromBase64(dsaKeyData);
+      Array.Copy(decodedData, buffer, decodedData.Length);
+      addKeyCalled = false;
       addKeyReturnValue = false;
       agent.AnswerMessage(stream);
       response = new byte[stream.Position];
@@ -301,6 +316,119 @@ namespace PageantSharpTest
       stream.Read(response, 0, response.Length);
       actual = Encoding.UTF8.GetString(PSUtil.ToBase64(response));
       Assert.AreEqual(cAgentFailure, actual);
+      Assert.IsTrue(addKeyCalled, "Callback was not called");
+    }
+
+    [Test()]
+    public void TestAnswerSSH2_AGENTC_REMOVE_IDENTITY()
+    {
+      const string request =
+        "AAABHBIAAAEXAAAAB3NzaC1yc2EAAAADAQABAAABAQDPyTZLR7zrw2GNpVy249qcr16" +
+        "RA3PHtjvlxA6xsmL/VSqqKeGx9I58sd9AakPDLWqb8OFZ2EHdhaDX3TUFe4KAvA8ZDW" +
+        "uJU7j7q7RAUtiksIWjNtzQm/JZ9NrOW7OshmsO6X8rF+gfN2VU2LQhXxc2zMcgPCglV" +
+        "G2F50EsTqbGkCMx7DORAMy1w7KuQbfbgKEmFxuBxWeUd+MfhiXpyiq7i1LB2BHW+uBj" +
+        "19PwULCKJvV8gghO38SUey5qel3yloBoE2Ni0C5lH/B351Al6UN4+9rGNbwGA1UvfSU" +
+        "jpyxOfKDucsfC9SqHWJWiCwfZfC+U6GSWFt4q9yfzOmnJ6Ys7";
+      const string requestFingerprint =
+        "c4:e7:45:dd:a9:1a:35:6a:1f:ef:71:1f:0a:b2:a6:eb";
+
+      string actual;
+      byte[] buffer = new byte[4096];
+      byte[] decodedData, response;
+      MemoryStream stream = new MemoryStream(buffer);
+      byte[] removeFingerprint = new byte[0];
+      bool removeKeyCalled = false;
+      bool removeKeyReturnValue = true;
+
+      Agent.RemoveSSH2KeyCallback RemoveSsh2Key = delegate(byte[] aFingerprint)
+      {
+        removeKeyCalled = true;
+        removeFingerprint = aFingerprint;
+        return removeKeyReturnValue;
+      };
+      Agent.CallBacks callbacks = new Agent.CallBacks();
+      callbacks.removeSSH2Key = RemoveSsh2Key;
+      Agent agent = new TestAgent(callbacks);
+
+      /* test remove key */
+
+      stream.Position = 0;
+      decodedData = PSUtil.FromBase64(request);
+      Array.Copy(decodedData, buffer, decodedData.Length);
+      removeKeyReturnValue = true;
+      agent.AnswerMessage(stream);
+      response = new byte[stream.Position];
+      stream.Position = 0;
+      stream.Read(response, 0, response.Length);
+      actual = Encoding.UTF8.GetString(PSUtil.ToBase64(response));
+      Assert.AreEqual(cAgentSucess, actual);
+      Assert.AreEqual(requestFingerprint, PSUtil.ToHex(removeFingerprint));
+
+      /* test callback returns false */
+
+      stream.Position = 0;
+      removeKeyCalled = false;
+      removeKeyReturnValue = false;
+      decodedData = PSUtil.FromBase64(request);
+      Array.Copy(decodedData, buffer, decodedData.Length);
+      agent.AnswerMessage(stream);
+      response = new byte[stream.Position];
+      stream.Position = 0;
+      stream.Read(response, 0, response.Length);
+      actual = Encoding.UTF8.GetString(PSUtil.ToBase64(response));
+      Assert.AreEqual(cAgentFailure, actual);
+      Assert.IsTrue(removeKeyCalled, "Callback was not called.");
+
+    }
+
+    [Test()]
+    public void TestAnswerSSH2_AGENTC_REMOVE_ALL_IDENTITIES()
+    {
+      string actual;
+      byte[] buffer = new byte[4096];
+      byte[] response;
+      MemoryStream stream = new MemoryStream(buffer);
+      bool removeAllKeysCalled = false;
+      bool removeAllKeysReturnValue = true;
+
+      Agent.RemoveAllSSH2KeysCallback RemoveAllSsh2Keys = delegate()
+      {
+        removeAllKeysCalled = true;
+        return removeAllKeysReturnValue;
+      };
+      Agent.CallBacks callbacks = new Agent.CallBacks();
+      callbacks.removeAllSSH2Keys = RemoveAllSsh2Keys;
+      Agent agent = new TestAgent(callbacks);
+
+      /* test remove all keys */
+
+      stream.Position = 0;
+      BlobBuilder builder = new BlobBuilder();
+      byte[] request =
+        builder.GetBlob(OpenSsh.Message.SSH2_AGENTC_REMOVE_ALL_IDENTITIES);
+      Array.Copy(request, buffer, request.Length);
+      removeAllKeysReturnValue = true;
+      agent.AnswerMessage(stream);
+      response = new byte[stream.Position];
+      stream.Position = 0;
+      stream.Read(response, 0, response.Length);
+      actual = Encoding.UTF8.GetString(PSUtil.ToBase64(response));
+      Assert.AreEqual(cAgentSucess, actual);
+
+      /* test callback returns false */
+
+      stream.Position = 0;
+      removeAllKeysCalled = false;
+      removeAllKeysReturnValue = false;
+      Array.Copy(request, buffer, request.Length);
+      agent.AnswerMessage(stream);
+      response = new byte[stream.Position];
+      stream.Position = 0;
+      stream.Read(response, 0, response.Length);
+      actual = Encoding.UTF8.GetString(PSUtil.ToBase64(response));
+      Assert.AreEqual(cAgentFailure, actual);
+      Assert.IsTrue(removeAllKeysCalled, "Callback was not called.");
+
     }
 
   }
