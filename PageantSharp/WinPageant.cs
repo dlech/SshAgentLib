@@ -1,23 +1,8 @@
 ﻿using System;
-using System.Runtime.InteropServices;
-using System.Windows.Forms;
-using System.Security.Principal;
 using System.Diagnostics;
-using Microsoft.Win32.SafeHandles;
-using System.IO;
-using System.Security.Cryptography;
-using System.Collections.ObjectModel;
-using System.Collections.Generic;
-using System.Text;
-using System.Runtime.ConstrainedExecution;
-#if !DOT_NET_35
 using System.IO.MemoryMappedFiles;
-using Org.BouncyCastle.Crypto;
-using Org.BouncyCastle.Crypto.Parameters;
-using Org.BouncyCastle.Crypto.Signers;
-using Org.BouncyCastle.Security;
-using Org.BouncyCastle.Asn1;
-#endif // DOT_NET_35
+using System.Runtime.InteropServices;
+using System.Security.Principal;
 
 
 namespace dlech.PageantSharp
@@ -83,7 +68,7 @@ namespace dlech.PageantSharp
     }
 
     [StructLayout(LayoutKind.Sequential)]
-    struct COPYDATASTRUCT
+    private struct COPYDATASTRUCT
     {
       public IntPtr dwData;
       public int cbData;
@@ -96,7 +81,7 @@ namespace dlech.PageantSharp
     #region /* externs */
 
     [DllImport("user32.dll")]
-    public static extern IntPtr FindWindow(String sClassName, String sAppName);
+    private static extern IntPtr FindWindow(String sClassName, String sAppName);
 
     /// See http://msdn.microsoft.com/en-us/library/windows/desktop/ms633586%28v=vs.85%29.aspx
     [DllImport("user32.dll", SetLastError = true)]
@@ -122,11 +107,11 @@ namespace dlech.PageantSharp
     );
 
     [DllImport("user32.dll", SetLastError = true)]
-    static extern System.IntPtr DefWindowProcW(
+    private static extern System.IntPtr DefWindowProcW(
         IntPtr hWnd, uint msg, IntPtr wParam, IntPtr lParam);
 
     [DllImport("user32.dll", SetLastError = true)]
-    static extern bool DestroyWindow(IntPtr hWnd);
+    private static extern bool DestroyWindow(IntPtr hWnd);
 
     #endregion
 
@@ -155,18 +140,17 @@ namespace dlech.PageantSharp
       WNDCLASS wind_class = new WNDCLASS();
       wind_class.lpszClassName = cClassName;
       wind_class.lpfnWndProc = mCustomWndProc;
-
+            
       UInt16 class_atom = RegisterClassW(ref wind_class);
 
       int last_error = Marshal.GetLastWin32Error();
 
-      // TODO do we really need to worry about an error when registering class?
       if (class_atom == 0 && last_error != ERROR_CLASS_ALREADY_EXISTS) {
         throw new Exception("Could not register window class");
       }
 
       // Create window
-      this.mHwnd = CreateWindowExW(
+      mHwnd = CreateWindowExW(
           0, // dwExStyle
           cClassName, // lpClassName
           cClassName, // lpWindowName
@@ -205,13 +189,13 @@ namespace dlech.PageantSharp
           // Dispose managed resources
         }
 
-        // Dispose unmanaged resources
+        // Dispose unmanaged resources       
         if (mHwnd != IntPtr.Zero) {
           if (DestroyWindow(mHwnd)) {
             mHwnd = IntPtr.Zero;
             mDisposed = true;
           }
-        }
+        }        
       }
     }
 
@@ -248,12 +232,8 @@ namespace dlech.PageantSharp
       // convert lParam to something usable
       COPYDATASTRUCT copyData = (COPYDATASTRUCT)
         Marshal.PtrToStructure(lParam, typeof(COPYDATASTRUCT));
-      // have to handle comparison differently depending on 32 or 64bit
-      // architecture
-      if (((IntPtr.Size == 4) &&
-        (copyData.dwData.ToInt32() != (unchecked((int)AGENT_COPYDATA_ID)))) ||
-        ((IntPtr.Size == 8) &&
-        (copyData.dwData.ToInt64() != AGENT_COPYDATA_ID))) {
+      
+      if (Marshal.ReadInt64(copyData.dwData) != AGENT_COPYDATA_ID) {
         return result; // failure
       }
 

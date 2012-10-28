@@ -10,23 +10,39 @@ using Org.BouncyCastle.Math;
 using Org.BouncyCastle.Security;
 using NUnit.Framework;
 using PageantSharpNUnitTest.Properties;
+using System.IO;
+using System.Threading;
+using System.IO.MemoryMappedFiles;
 
 namespace PageantSharpTest
 {
-
   /// <summary>
   ///This is a test class for PageantWindowTest and is intended
   ///to contain all PageantWindowTest Unit Tests
   ///</summary>
   [TestFixture()]
-#if __MonoCS__
-  [Ignore("Mono")]
-#endif
-  public class WinPageantTest 
+  [Platform(Include = "Win")]
+  public class WinPageantTest
   {
 
+    private const int WM_COPYDATA = 0x004A;
+    private const long AGENT_COPYDATA_ID = 0x804e50ba;
+
     [DllImport("user32.dll")]
-    public static extern IntPtr FindWindow(String sClassName, String sAppName);
+    private static extern IntPtr SendMessage(IntPtr hWnd, uint Msg,
+      IntPtr wParam, COPYDATASTRUCT lParam);
+
+    [DllImport("user32.dll")]
+    private static extern IntPtr FindWindow(String sClassName, String sAppName);
+
+    [StructLayout(LayoutKind.Sequential)]
+    private struct COPYDATASTRUCT
+    {
+      public IntPtr dwData;
+      public int cbData;
+      public IntPtr lpData;
+    }
+
 
     /// <summary>
     ///A test for PageantWindow Constructor
@@ -36,74 +52,62 @@ namespace PageantSharpTest
     {
       // create new instance
       Agent.CallBacks callbacks = new Agent.CallBacks();
-      WinPageant target = new WinPageant(callbacks);
-
-      try {
+      using (WinPageant target = new WinPageant(callbacks)) {
         // emulate a client to make sure window is there
         IntPtr hwnd = FindWindow("Pageant", "Pageant");
-        Assert.AreNotEqual(hwnd, IntPtr.Zero);
+        Assert.That(hwnd, Is.Not.EqualTo(IntPtr.Zero));
 
         // try starting a second instance
-        Assert.Throws<PageantRunningException>(delegate()
+        Assert.That(delegate()
         {
           WinPageant target2 = new WinPageant(callbacks);
           target2.Dispose();
-        });        
-      } catch (Exception ex) {
-        Assert.Fail(ex.ToString());
-      } finally {
-        // cleanup first instance
-        target.Dispose();
+        }, Throws.InstanceOf<PageantRunningException>());
       }
     }
 
     [Test()]
     public void PageantWindowWndProcTest()
     {
-      byte[] data = Resources.ssh2_rsa_no_passphrase_ppk;
-      PpkFile.GetPassphraseCallback getPassphrase = null;
-      PpkFile.WarnOldFileFormatCallback warnOldFileFormat = delegate() { };
-      PpkKey keyFromData = PpkFile.ParseData(data, getPassphrase, warnOldFileFormat);
-
-      List<PpkKey> keyList = new List<PpkKey>();
-      keyList.Add(keyFromData);
-
-      Agent.GetSSH2KeyListCallback getSSH2KeysCallback = delegate()
-      {
-        return keyList;
-      };
-
-      Agent.GetSSH2KeyCallback getSSH2KeyCallback = delegate(byte[] reqFingerprint)
-      {
-        foreach (PpkKey key in keyList) {
-          byte[] curFingerprint = OpenSsh.GetFingerprint(key.CipherKeyPair);
-          if (curFingerprint.Length == reqFingerprint.Length) {
-            for (int i = 0; i < curFingerprint.Length; i++) {
-              if (curFingerprint[i] != reqFingerprint[i]) {
-                break;
-              }
-              if (i == curFingerprint.Length - 1) {
-                return key;
-              }
-            }
-          }
-        }
-        return null;
-      };
-
-      Agent.AddSSH2KeyCallback addSS2KeyCallback = delegate(PpkKey key)
+      /* code based on agent_query function in winpgntc.c from PuTTY */
+      
+      Agent.RemoveAllSSH2KeysCallback removeAllKeys = delegate()
       {
         return true;
       };
 
       Agent.CallBacks callbacks = new Agent.CallBacks();
-      callbacks.getSSH2KeyList = getSSH2KeysCallback;
-      callbacks.getSSH2Key = getSSH2KeyCallback;
-      callbacks.addSSH2Key = addSS2KeyCallback;
-      WinPageant target = new WinPageant(callbacks);
-      MessageBox.Show("Click OK when done");
-      target.Dispose();
+      callbacks.removeAllSSH2Keys = removeAllKeys;
+      using (WinPageant agent = new WinPageant(callbacks)) {
+
+        IntPtr hwnd = FindWindow("Pageant", "Pageant");
+        Assert.That(hwnd, Is.Not.EqualTo(IntPtr.Zero));
+        int threadId = Thread.CurrentThread.ManagedThreadId;
+        string mapName = String.Format("PageantRequest{0:x8}", threadId);
+        using (MemoryMappedFile mappedFile = MemoryMappedFile.CreateNew(mapName, 4096)) {
+          Assert.That(mappedFile.SafeMemoryMappedFileHandle.IsInvalid, Is.False);
+          using (MemoryMappedViewStream stream = mappedFile.CreateViewStream()) {
+            byte[] message = new byte[] {0, 0, 0, 1,
+            (byte)OpenSsh.Message.SSH2_AGENTC_REMOVE_ALL_IDENTITIES};
+            stream.Write(message, 0, message.Length);
+            COPYDATASTRUCT copyData = new COPYDATASTRUCT();
+            copyData.dwData = Marshal.AllocCoTaskMem(IntPtr.Size);            
+            Marshal.WriteInt64(copyData.dwData, AGENT_COPYDATA_ID);           
+            copyData.cbData = mapName.Length + 1;
+            copyData.lpData = Marshal.StringToCoTaskMemAnsi(mapName);
+            IntPtr resultPtr = SendMessage(hwnd, WM_COPYDATA, IntPtr.Zero, copyData);
+            int result = Marshal.ReadInt32(resultPtr);
+            Assert.That(result, Is.Not.EqualTo(0));
+            byte[] reply = new byte[5];
+            stream.Position = 0;
+            stream.Read(reply, 0, reply.Length);
+            byte[] expected = {0, 0, 0, 1, 
+                             (byte)OpenSsh.Message.SSH_AGENT_SUCCESS};
+            Assert.That(reply, Is.EqualTo(expected));
+          }
+        }
+      }
     }
-  
+
   }
 }

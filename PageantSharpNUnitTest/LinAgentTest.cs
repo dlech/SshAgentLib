@@ -1,7 +1,3 @@
-#if !__MonoCS__
-#define NotMono
-#endif
-
 using System;
 using NUnit.Framework;
 using dlech.PageantSharp;
@@ -15,7 +11,7 @@ using System.Net.Sockets;
 namespace PageantSharpTest
 {
   [TestFixture()]
-  [Ignore("NotMono")]
+  [Platform(Exclude="Win")]
   public class LinAgentTest
   {
     /// <summary>
