@@ -119,30 +119,30 @@
   </resheader>
   <assembly alias="System.Windows.Forms" name="System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089" />
   <data name="emptyFile_ppk" type="System.Resources.ResXFileRef, System.Windows.Forms">
-    <value>..\resources\emptyfile.ppk;System.Byte[], mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+    <value>..\Resources\emptyFile.ppk;System.Byte[], mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </data>
   <data name="non_standard_length_ppk" type="System.Resources.ResXFileRef, System.Windows.Forms">
-    <value>..\resources\non-standard-length.ppk;System.Byte[], mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+    <value>..\Resources\non-standard-length.ppk;System.Byte[], mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </data>
   <data name="ssh1_rsa_no_passphrase_ppk" type="System.Resources.ResXFileRef, System.Windows.Forms">
-    <value>..\resources\ssh1-rsa-no-passphrase.ppk;System.Byte[], mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+    <value>..\Resources\ssh1-rsa-no-passphrase.ppk;System.Byte[], mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </data>
   <data name="ssh1_rsa_ppk" type="System.Resources.ResXFileRef, System.Windows.Forms">
-    <value>..\resources\ssh1-rsa.ppk;System.Byte[], mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+    <value>..\Resources\ssh1-rsa.ppk;System.Byte[], mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </data>
   <data name="ssh2_dsa_no_passphrase_ppk" type="System.Resources.ResXFileRef, System.Windows.Forms">
-    <value>..\resources\ssh2-dsa-no-passphrase.ppk;System.Byte[], mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+    <value>..\Resources\ssh2-dsa-no-passphrase.ppk;System.Byte[], mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </data>
   <data name="ssh2_dsa_ppk" type="System.Resources.ResXFileRef, System.Windows.Forms">
-    <value>..\resources\ssh2-dsa.ppk;System.Byte[], mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+    <value>..\Resources\ssh2-dsa.ppk;System.Byte[], mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </data>
   <data name="ssh2_rsa_non_ascii_passphrase_ppk" type="System.Resources.ResXFileRef, System.Windows.Forms">
-    <value>..\resources\ssh2-rsa-non-ascii-passphrase.ppk;System.Byte[], mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+    <value>..\Resources\ssh2-rsa-non-ascii-passphrase.ppk;System.Byte[], mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </data>
   <data name="ssh2_rsa_no_passphrase_ppk" type="System.Resources.ResXFileRef, System.Windows.Forms">
-    <value>..\resources\ssh2-rsa-no-passphrase.ppk;System.Byte[], mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+    <value>..\Resources\ssh2-rsa-no-passphrase.ppk;System.Byte[], mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </data>
   <data name="ssh2_rsa_ppk" type="System.Resources.ResXFileRef, System.Windows.Forms">
-    <value>..\resources\ssh2-rsa.ppk;System.Byte[], mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+    <value>..\Resources\ssh2-rsa.ppk;System.Byte[], mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </data>
 </root>
