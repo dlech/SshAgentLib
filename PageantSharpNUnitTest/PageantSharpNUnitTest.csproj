@@ -1,4 +1,4 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
+<?xml version="1.0" encoding="utf-8"?>
 <Project DefaultTargets="Build" ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <PropertyGroup>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
@@ -34,9 +34,11 @@
     </Reference>
     <Reference Include="nunit.core">
       <HintPath>..\..\..\..\Users\david\AppData\Local\Novell\Mono-2.10.8\lib\mono\4.0\nunit.core.dll</HintPath>
+      <Package>mono-nunit</Package>
     </Reference>
     <Reference Include="nunit.framework">
       <HintPath>..\..\..\..\Users\david\AppData\Local\Novell\Mono-2.10.8\lib\mono\4.0\nunit.framework.dll</HintPath>
+      <Package>mono-nunit</Package>
     </Reference>
     <Reference Include="System" />
     <Reference Include="System.Numerics" />
@@ -64,7 +66,6 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="Resources\emptyFile.ppk" />
-    <None Include="Resources\non-standard length.ppk" />
     <None Include="Resources\ssh1-rsa-no-passphrase.ppk" />
     <None Include="Resources\ssh1-rsa.ppk" />
     <None Include="Resources\ssh2-dsa-no-passphrase.ppk" />

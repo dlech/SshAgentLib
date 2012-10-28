@@ -17,8 +17,11 @@ namespace PageantSharpTest
   /// <summary>
   ///This is a test class for PageantWindowTest and is intended
   ///to contain all PageantWindowTest Unit Tests
-  ///</summary>
+  ///</summary>	
   [TestFixture()]
+#if __MonoCS__
+  [Ignore("Mono")]
+#endif
   public class WinPageantTest 
   {
 

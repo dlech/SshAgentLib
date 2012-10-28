@@ -15,7 +15,9 @@ using System.Net.Sockets;
 namespace PageantSharpTest
 {
   [TestFixture()]
-  [Ignore("NotMono")]
+#if NotMono
+  [Ignore("Not Mono")]
+#endif
   public class LinAgentTest
   {
     /// <summary>
