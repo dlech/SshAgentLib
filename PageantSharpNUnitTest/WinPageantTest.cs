@@ -57,7 +57,7 @@ namespace PageantSharpTest
         return true;
       };
 
-      Agent.CallBacks callbacks = new Agent.CallBacks();
+      Agent.Callbacks callbacks = new Agent.Callbacks();
       callbacks.removeAllSSH2Keys = removeAllKeys;
       using (WinPageant agent = new WinPageant(callbacks)) {
 

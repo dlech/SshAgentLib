@@ -24,11 +24,11 @@ namespace PageantSharpTest
     {
       PinnedByteArray array1 = new PinnedByteArray(new byte[] { 1, 2, 3, 4 });
       PSUtil.TrimLeadingZero(array1);
-      Assert.AreEqual(4, array1.Data.Length);
+      Assert.That(array1.Data, Is.EqualTo(new byte[]{ 1, 2, 3, 4 }));
 
       PinnedByteArray array2 = new PinnedByteArray(new byte[] { 0, 1, 2, 3, 4 });
       PSUtil.TrimLeadingZero(array2);
-      Assert.AreEqual(4, array2.Data.Length);
+      Assert.That(array2.Data, Is.EqualTo(new byte[] { 1, 2, 3, 4 }));
     }
 
     /// <summary>
@@ -47,10 +47,7 @@ namespace PageantSharpTest
      
       PinnedByteArray actual;
       actual = PSUtil.ModMinusOne(a, b);
-      Assert.AreEqual(expected.Length, actual.Data.Length);
-      for (int i=0; i< expected.Length; i++) {
-        Assert.AreEqual(expected[i], actual.Data[i]);
-      }
+      Assert.That(actual.Data, Is.EqualTo(expected));
     }
   }
 }

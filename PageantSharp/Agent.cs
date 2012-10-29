@@ -13,7 +13,7 @@ namespace dlech.PageantSharp
   public abstract class Agent : IDisposable
   {
     #region Instance Variables
-    private CallBacks mCallbacks;
+    private Callbacks mCallbacks;
     #endregion
 
 
@@ -52,7 +52,7 @@ namespace dlech.PageantSharp
     /// <returns>true if all keys were removed</returns>
     public delegate bool RemoveAllSSH2KeysCallback();
 
-    public struct CallBacks
+    public struct Callbacks
     {
       public GetSSH2KeyListCallback getSSH2KeyList;
       public GetSSH2KeyCallback getSSH2Key;
@@ -61,7 +61,7 @@ namespace dlech.PageantSharp
       public RemoveAllSSH2KeysCallback removeAllSSH2Keys;
     }
 
-    public Agent(CallBacks aCallbacks)
+    public Agent(Callbacks aCallbacks)
     {
       mCallbacks = aCallbacks;
     }
@@ -138,12 +138,12 @@ namespace dlech.PageantSharp
             goto default; // can't reply without callback
           }
           try {
-            byte[] keyBlob = parser.Read();
-            byte[] reqData = parser.Read();
+            PinnedByteArray keyBlob = parser.Read();
+            PinnedByteArray reqData = parser.Read();
 
             /* get matching key from callback */
             MD5 md5 = MD5.Create();
-            byte[] fingerprint = md5.ComputeHash(keyBlob);
+            byte[] fingerprint = md5.ComputeHash(keyBlob.Data);
             md5.Clear();
             using (PpkKey key = mCallbacks.getSSH2Key(fingerprint)) {
               if (key == null) {
@@ -163,7 +163,7 @@ namespace dlech.PageantSharp
                 goto default;
               }
               signer.Init(true, key.CipherKeyPair.Private);
-              signer.BlockUpdate(reqData, 0, reqData.Length);
+              signer.BlockUpdate(reqData.Data, 0, reqData.Data.Length);
               byte[] signature = signer.GenerateSignature();
 
               BlobBuilder sigBlobBuilder = new BlobBuilder();
@@ -207,7 +207,7 @@ namespace dlech.PageantSharp
           try {
             PpkKey key = new PpkKey();
             key.CipherKeyPair = OpenSsh.CreateCipherKeyPair(aMessageStream);
-            key.Comment = Encoding.UTF8.GetString(parser.Read());
+            key.Comment = Encoding.UTF8.GetString(parser.Read().Data);
 
             /* do callback */
             if (mCallbacks.addSSH2Key(key)) {
@@ -241,11 +241,11 @@ namespace dlech.PageantSharp
             goto default;
           }
           
-          byte[] rKeyBlob = parser.Read();          
+          PinnedByteArray rKeyBlob = parser.Read();          
 
           /* get matching key from callback */
           MD5 rMd5 = MD5.Create();
-          byte[] rFingerprint = rMd5.ComputeHash(rKeyBlob);
+          byte[] rFingerprint = rMd5.ComputeHash(rKeyBlob.Data);
           rMd5.Clear();
 
           if (mCallbacks.removeSSH2Key(rFingerprint)) {

@@ -64,12 +64,10 @@ namespace PageantSharpTest
       PpkFile.GetPassphraseCallback getPassphrase = null;
       PpkFile.WarnOldFileFormatCallback warnOldFileFormat = delegate() { };
       PpkKey target;
-      AsymmetricCipherKeyPair keyParam;
 
       /* test RSA key */
       target = PpkFile.ReadFile(ssh2_rsa_no_passphrase_ppk,
                                 getPassphrase, warnOldFileFormat);
-      keyParam = target.CipherKeyPair;
       expected = PSUtil.FromBase64(
         "AAAAB3NzaC1yc2EAAAABJQAAAIEAhWqdEs/lz1r4L8ZAAS76rX7hj3rrI/6FNlBw" +
         "6ERba2VFmn2AHxQwZmHHmqM+UtiY57angjD9fTbTzL74C0+f/NrRY+BYXf1cF+u5" +
@@ -85,7 +83,6 @@ namespace PageantSharpTest
       /* test DSA key */
       target = PpkFile.ReadFile(ssh2_dsa_no_passphrase_ppk,
                                 getPassphrase, warnOldFileFormat);
-      keyParam = target.CipherKeyPair;
       expected = PSUtil.FromBase64(
           "AAAAB3NzaC1kc3MAAACBAMXDM56ty6fV+qDpMyZxobn5VB4L/E6zvOibUead6HBc" +
           "OHUibA97EKgooUbqJ9qFUOhhw8TaFtN0UtTLZoHjOWN3JdyugK+f2HYIxvhlvW60" +

@@ -223,14 +223,9 @@ namespace dlech.PageantSharp
       FileStream stream;
       byte[] buffer;
 
-      stream = File.OpenRead(fileName);
-      try {
+      using (stream = File.OpenRead(fileName)) {
         buffer = new byte[stream.Length];
         stream.Read(buffer, 0, buffer.Length);
-      } catch {
-        throw;
-      } finally {
-        stream.Close();
       }
       return ParseData(buffer, getPassphrase, warnOldFileFormat);
     }

@@ -32,7 +32,9 @@
     <Reference Include="Mono.Posix">
       <HintPath>..\..\..\..\Users\david\AppData\Local\Novell\Mono-2.10.8\lib\mono\4.0\Mono.Posix.dll</HintPath>
     </Reference>
-    <Reference Include="nunit.framework" />
+    <Reference Include="nunit.framework">
+      <Package>mono-nunit</Package>
+    </Reference>
     <Reference Include="System" />
     <Reference Include="System.Numerics" />
     <Reference Include="System.Windows.Forms" />

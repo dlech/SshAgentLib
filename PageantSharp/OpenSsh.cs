@@ -144,16 +144,16 @@ namespace dlech.PageantSharp
     {
       BlobParser parser = new BlobParser(aSteam);
 
-      string algorithm = Encoding.UTF8.GetString(parser.Read());
+      string algorithm = Encoding.UTF8.GetString(parser.Read().Data);
 
       switch (algorithm) {
         case OpenSsh.PublicKeyAlgorithms.ssh_rsa:
-          BigInteger n = new BigInteger(1, parser.Read()); // modulus
-          BigInteger e = new BigInteger(1, parser.Read()); // exponent
-          BigInteger d = new BigInteger(1, parser.Read());
-          BigInteger iqmp = new BigInteger(1, parser.Read());
-          BigInteger p = new BigInteger(1, parser.Read());
-          BigInteger q = new BigInteger(1, parser.Read());
+          BigInteger n = new BigInteger(1, parser.Read().Data); // modulus
+          BigInteger e = new BigInteger(1, parser.Read().Data); // exponent
+          BigInteger d = new BigInteger(1, parser.Read().Data);
+          BigInteger iqmp = new BigInteger(1, parser.Read().Data);
+          BigInteger p = new BigInteger(1, parser.Read().Data);
+          BigInteger q = new BigInteger(1, parser.Read().Data);
 
           /* compute missing parameters */
           BigInteger dp = d.Remainder(p.Subtract(BigInteger.One));
@@ -167,14 +167,12 @@ namespace dlech.PageantSharp
 
         case OpenSsh.PublicKeyAlgorithms.ssh_dss:
           /*BigInteger*/
-          p = new BigInteger(1, parser.Read());
+          p = new BigInteger(1, parser.Read().Data);
           /*BigInteger*/
-          q = new BigInteger(1, parser.Read());
-          BigInteger g = new BigInteger(1, parser.Read());
-          BigInteger y = new BigInteger(1, parser.Read()); // public key
-          //PSUtil.TrimLeadingZero(parser.CurrentAsPinnedByteArray);
-          BigInteger x = new BigInteger(1, parser.Read()); // private key
-          //parser.MoveNext();
+          q = new BigInteger(1, parser.Read().Data);
+          BigInteger g = new BigInteger(1, parser.Read().Data);
+          BigInteger y = new BigInteger(1, parser.Read().Data); // public key
+          BigInteger x = new BigInteger(1, parser.Read().Data); // private key
 
           DsaParameters commonParams = new DsaParameters(p, q, g);
           DsaPublicKeyParameters dsaPublicKeyParams =

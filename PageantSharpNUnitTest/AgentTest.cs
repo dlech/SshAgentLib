@@ -1,4 +1,4 @@
-﻿using dlech.PageantSharp;
+using dlech.PageantSharp;
 using System;
 using System.Runtime.InteropServices;
 using System.Collections.Generic;
@@ -25,30 +25,10 @@ namespace PageantSharpTest
     private const string cAgentFailure = "AAAAAQU=";
     private const string cAgentSucess = "AAAAAQY=";
 
-    private PpkKey mSsh2RsaKey, mSsh2DsaKey;
-    private List<PpkKey> mSsh2KeyList;
-
-
-    [TestFixtureSetUp()]
-    public void Setup()
-    {
-      PpkFile.WarnOldFileFormatCallback WarnOldFileFormat = delegate()
-      {
-        // do nothing
-      };
-
-      mSsh2RsaKey = PpkFile.ParseData(Resources.ssh2_rsa_no_passphrase_ppk,
-        null, WarnOldFileFormat);
-      mSsh2DsaKey = PpkFile.ParseData(Resources.ssh2_dsa_no_passphrase_ppk,
-        null, WarnOldFileFormat);
-      mSsh2KeyList = new List<PpkKey>();
-      mSsh2KeyList.Add(mSsh2RsaKey);
-    }
-
     private class TestAgent : Agent
     {
-      public TestAgent(CallBacks aCallBacks) :
-        base(aCallBacks) { }
+      public TestAgent(Callbacks aCallbacks) :
+        base(aCallbacks) { }
     }
 
 
@@ -61,12 +41,17 @@ namespace PageantSharpTest
         "ekNCw+xrfVL+co6nNgMu1VYRqmTZyHhAAAAKlBhZ2VhbnRTaGFycCB0ZXN0OiBTU0gy" +
         "LVJTQSwgbm8gcGFzc3BocmFzZQ==";
 
+      PpkKey ssh2RsaKey = PpkFile.ParseData((byte[])Resources.ssh2_rsa_no_passphrase_ppk.Clone(),
+                                            null, delegate(){});
+      List<PpkKey> ssh2KeyList = new List<PpkKey>();
+      ssh2KeyList.Add(ssh2RsaKey);
+
       Agent.GetSSH2KeyListCallback GetSsh2KeyList = delegate()
       {
-        return mSsh2KeyList;
+        return ssh2KeyList;
       };
 
-      Agent.CallBacks callbacks = new Agent.CallBacks();
+      Agent.Callbacks callbacks = new Agent.Callbacks();
       callbacks.getSSH2KeyList = GetSsh2KeyList;
       Agent agent = new TestAgent(callbacks);
 
@@ -81,7 +66,7 @@ namespace PageantSharpTest
       stream.Position = 0;
       stream.Read(response, 0, response.Length);
       string actual = Encoding.UTF8.GetString(PSUtil.ToBase64(response));
-      Assert.AreEqual(expected, actual);
+      Assert.That(actual, Is.EqualTo(expected));
     }
 
     [Test()]
@@ -97,12 +82,6 @@ namespace PageantSharpTest
         "6FNlBw6ERba2VFmn2AHxQwZmHHmqM+UtiY57angjD9fTbTzL74C0+f/NrRY+BYXf1cF" +
         "+u5XmjNKygrsIq3yPMZV4q8YcN/ls9COcynOQMIEmJF6Q0LD7Gt9Uv5yjqc2Ay7VVhG" +
         "qZNnIeE=";
-
-      const string rsaExpectedReply =
-        "AAAAlA4AAACPAAAAB3NzaC1yc2EAAACAV3rOD8CwD+ewxJU+odr8vo6NyeEOxM64GO1" +
-        "C7s93aXW+rPCxo0CUmbzDjva3p5U6v6clH39nmuWaEdVofy5MiS6u8d9wuaNgHVXw96" +
-        "31iXllWVLE7ja6a+VWZeShMaO8xt5543lrUysNhhVo806aGE7WcKI+fcezwdswkQK0r" +
-        "Ag=";
 
       const string dsaSignRequestData =
         "AAADzw0AAAGxAAAAB3NzaC1kc3MAAACBAMXDM56ty6fV+qDpMyZxobn5VB4L/E6zvOi" +
@@ -128,7 +107,7 @@ namespace PageantSharpTest
 
       bool getSsh2KeyCalled = false;
 
-      PpkKey testKey = mSsh2RsaKey;
+      PpkKey testKey = null;
       Agent.GetSSH2KeyCallback GetSsh2Key = delegate(byte[] aFingerprint)
       {
         getSsh2KeyCalled = true;
@@ -136,52 +115,70 @@ namespace PageantSharpTest
           string requestedFingerprint = PSUtil.ToHex(aFingerprint);
           string testKeyFingerprint =
             PSUtil.ToHex(OpenSsh.GetFingerprint(testKey.CipherKeyPair));
-          Assert.AreEqual(requestedFingerprint, testKeyFingerprint);
+          Assert.That(testKeyFingerprint, Is.EqualTo(requestedFingerprint));
         }
         return testKey;
       };
-      Agent.CallBacks callbacks = new Agent.CallBacks();
+      Agent.Callbacks callbacks = new Agent.Callbacks();
       callbacks.getSSH2Key = GetSsh2Key;
       Agent agent = new TestAgent(callbacks);
       byte[] buffer = new byte[4096];
       MemoryStream stream = new MemoryStream(buffer);
+      BlobParser parser = new BlobParser(stream);
 
       /* test rsa signature */
 
+      testKey = PpkFile.ParseData((byte[])Resources.ssh2_rsa_no_passphrase_ppk.Clone(),
+                                         null, delegate() {});
       byte[] requestData = PSUtil.FromBase64(rsaSignRequestData);
       Array.Copy(requestData, buffer, requestData.Length);
-      agent.AnswerMessage(stream);
-      byte[] replyBytes = new byte[stream.Position];
       stream.Position = 0;
-      stream.Read(replyBytes, 0, replyBytes.Length);
-      string actual = Encoding.UTF8.GetString(PSUtil.ToBase64(replyBytes));
-      Assert.AreEqual(rsaExpectedReply, actual);
+      parser.ReadHeader();
+      parser.Read(); // read public key
+      PinnedByteArray reqData = parser.Read();
+      stream.Position = 0;
+      agent.AnswerMessage(stream);
+      stream.Position = 0;
+      OpenSsh.BlobHeader header = parser.ReadHeader();
+      Assert.That(header.Message,
+                  Is.EqualTo(OpenSsh.Message.SSH2_AGENT_SIGN_RESPONSE));
+      byte[] signatureBlob = parser.Read().Data;
+      BlobParser signatureParser = new BlobParser(signatureBlob);
+      string algorithm = Encoding.UTF8.GetString (signatureParser.Read().Data);
+      Assert.That(algorithm, Is.EqualTo (OpenSsh.PublicKeyAlgorithms.ssh_rsa));
+      byte[] signature = signatureParser.Read().Data;
+      ISigner rsaSigner = SignerUtilities.GetSigner("SHA-1withRSA");
+      rsaSigner.Init(false, testKey.CipherKeyPair.Public);
+      rsaSigner.BlockUpdate(reqData.Data, 0, reqData.Data.Length);
+      bool rsaOk = rsaSigner.VerifySignature(signature);
+      Assert.That(rsaOk, Is.True, "invalid signature");
 
       /* test dsa signature */
 
-      testKey = mSsh2DsaKey;
+      testKey = PpkFile.ParseData(Resources.ssh2_dsa_no_passphrase_ppk,
+                                  null, delegate(){});
       requestData = PSUtil.FromBase64(dsaSignRequestData);
       Array.Copy(requestData, buffer, requestData.Length);
       stream.Position = 0;
-      BlobParser parser = new BlobParser(stream);
       parser.ReadHeader();
       parser.Read();
-      byte[] reqData = parser.Read();
+      reqData = parser.Read();
       stream.Position = 0;
       agent.AnswerMessage(stream);
-      replyBytes = new byte[stream.Position];
       stream.Position = 0;
-      OpenSsh.BlobHeader header = parser.ReadHeader();
-      Assert.AreEqual(OpenSsh.Message.SSH2_AGENT_SIGN_RESPONSE, header.Message);
-      byte[] signatureBlob = parser.Read();
-      BlobParser signatureParser = new BlobParser(signatureBlob);
-      signatureParser.Read(); // read algorithm
-      byte[] signature = signatureParser.Read();
+      header = parser.ReadHeader();
+      Assert.That(header.Message,
+                  Is.EqualTo(OpenSsh.Message.SSH2_AGENT_SIGN_RESPONSE));
+      signatureBlob = parser.Read().Data;
+      signatureParser = new BlobParser(signatureBlob);
+      algorithm = Encoding.UTF8.GetString (signatureParser.Read().Data);
+      Assert.That(algorithm, Is.EqualTo (OpenSsh.PublicKeyAlgorithms.ssh_dss));
+      signature = signatureParser.Read().Data;
       ISigner dsaSigner = SignerUtilities.GetSigner("SHA-1withDSA");
       dsaSigner.Init(false, testKey.CipherKeyPair.Public);
-      dsaSigner.BlockUpdate(reqData, 0, reqData.Length);
+      dsaSigner.BlockUpdate(reqData.Data, 0, reqData.Data.Length);
       bool dsaOk = dsaSigner.VerifySignature(signature);
-      Assert.IsTrue(dsaOk, "invalid signature");
+      Assert.That(dsaOk, Is.True, "invalid signature");
 
       /* test callback returns null */
 
@@ -191,12 +188,12 @@ namespace PageantSharpTest
       Array.Copy(requestData, buffer, requestData.Length);
       stream.Position = 0;
       agent.AnswerMessage(stream);
-      replyBytes = new byte[stream.Position];
+      byte[] replyBytes = new byte[stream.Position];
       stream.Position = 0;
       stream.Read(replyBytes, 0, replyBytes.Length);
-      actual = Encoding.UTF8.GetString(PSUtil.ToBase64(replyBytes));
-      Assert.AreEqual(cAgentFailure, actual);
-      Assert.IsTrue(getSsh2KeyCalled, "Callback was not called");
+      string actual = Encoding.UTF8.GetString(PSUtil.ToBase64(replyBytes));
+      Assert.That(actual, Is.EqualTo(cAgentFailure));
+      Assert.That(getSsh2KeyCalled, Is.True, "Callback was not called");
     }
 
     [Test()]
@@ -258,7 +255,7 @@ namespace PageantSharpTest
         returnedKey = aKey;
         return addKeyReturnValue;
       };
-      Agent.CallBacks callbacks = new Agent.CallBacks();
+      Agent.Callbacks callbacks = new Agent.Callbacks();
       callbacks.addSSH2Key = AddSsh2Key;
       Agent agent = new TestAgent(callbacks);
 
@@ -272,13 +269,16 @@ namespace PageantSharpTest
       stream.Position = 0;
       stream.Read(response, 0, response.Length);
       actual = Encoding.UTF8.GetString(PSUtil.ToBase64(response));
-      Assert.AreEqual(cAgentSucess, actual);
-      Assert.IsInstanceOf<RsaKeyParameters>(returnedKey.CipherKeyPair.Public);
-      Assert.IsInstanceOf<RsaKeyParameters>(returnedKey.CipherKeyPair.Private);
-      Assert.AreEqual(rsaKeySize, returnedKey.Size);
-      Assert.AreEqual(rsaKeyComment, returnedKey.Comment);
-      Assert.AreEqual(rsaKeyFingerprint,
-        PSUtil.ToHex(OpenSsh.GetFingerprint(returnedKey.CipherKeyPair)));
+      Assert.That(actual, Is.EqualTo(cAgentSucess));
+      Assert.That(returnedKey.CipherKeyPair.Public,
+                  Is.InstanceOf<RsaKeyParameters>());
+      Assert.That(returnedKey.CipherKeyPair.Private,
+                  Is.InstanceOf<RsaKeyParameters>());
+      Assert.That(returnedKey.Size, Is.EqualTo(rsaKeySize));
+      Assert.That(returnedKey.Comment, Is.EqualTo(rsaKeyComment));
+     string returnedKeyFingerprint = 
+        PSUtil.ToHex(OpenSsh.GetFingerprint(returnedKey.CipherKeyPair));
+      Assert.That(returnedKeyFingerprint, Is.EqualTo(rsaKeyFingerprint));
 
       /* test adding dsa key */
 
@@ -291,13 +291,16 @@ namespace PageantSharpTest
       stream.Position = 0;
       stream.Read(response, 0, response.Length);
       actual = Encoding.UTF8.GetString(PSUtil.ToBase64(response));
-      Assert.AreEqual(cAgentSucess, actual);
-      Assert.IsInstanceOf<DsaKeyParameters>(returnedKey.CipherKeyPair.Public);
-      Assert.IsInstanceOf<DsaKeyParameters>(returnedKey.CipherKeyPair.Private);
-      Assert.AreEqual(dsaKeySize, returnedKey.Size);
-      Assert.AreEqual(dsaKeyComment, returnedKey.Comment);
-      Assert.AreEqual(dsaKeyFingerprint,
-        PSUtil.ToHex(OpenSsh.GetFingerprint(returnedKey.CipherKeyPair)));
+      Assert.That(actual, Is.EqualTo(cAgentSucess));
+      Assert.That(returnedKey.CipherKeyPair.Public,
+                  Is.InstanceOf<DsaKeyParameters>());
+      Assert.That(returnedKey.CipherKeyPair.Private,
+                  Is.InstanceOf<DsaKeyParameters>());
+      Assert.That(returnedKey.Size, Is.EqualTo(dsaKeySize));
+      Assert.That(returnedKey.Comment, Is.EqualTo(dsaKeyComment));
+      returnedKeyFingerprint = 
+        PSUtil.ToHex(OpenSsh.GetFingerprint(returnedKey.CipherKeyPair));
+      Assert.That(returnedKeyFingerprint, Is.EqualTo(dsaKeyFingerprint));
 
       /* test AddSsh2Key returns false => ssh agent failure*/
 
@@ -311,8 +314,8 @@ namespace PageantSharpTest
       stream.Position = 0;
       stream.Read(response, 0, response.Length);
       actual = Encoding.UTF8.GetString(PSUtil.ToBase64(response));
-      Assert.AreEqual(cAgentFailure, actual);
-      Assert.IsTrue(addKeyCalled, "Callback was not called");
+      Assert.That(actual, Is.EqualTo(cAgentFailure));
+      Assert.That(addKeyCalled, Is.True, "Callback was not called");
     }
 
     [Test()]
@@ -342,7 +345,7 @@ namespace PageantSharpTest
         removeFingerprint = aFingerprint;
         return removeKeyReturnValue;
       };
-      Agent.CallBacks callbacks = new Agent.CallBacks();
+      Agent.Callbacks callbacks = new Agent.Callbacks();
       callbacks.removeSSH2Key = RemoveSsh2Key;
       Agent agent = new TestAgent(callbacks);
 
@@ -357,8 +360,8 @@ namespace PageantSharpTest
       stream.Position = 0;
       stream.Read(response, 0, response.Length);
       actual = Encoding.UTF8.GetString(PSUtil.ToBase64(response));
-      Assert.AreEqual(cAgentSucess, actual);
-      Assert.AreEqual(requestFingerprint, PSUtil.ToHex(removeFingerprint));
+      Assert.That(actual, Is.EqualTo(cAgentSucess));
+      Assert.That(PSUtil.ToHex(removeFingerprint), Is.EqualTo(requestFingerprint));
 
       /* test callback returns false */
 
@@ -372,8 +375,8 @@ namespace PageantSharpTest
       stream.Position = 0;
       stream.Read(response, 0, response.Length);
       actual = Encoding.UTF8.GetString(PSUtil.ToBase64(response));
-      Assert.AreEqual(cAgentFailure, actual);
-      Assert.IsTrue(removeKeyCalled, "Callback was not called.");
+      Assert.That(actual, Is.EqualTo(cAgentFailure));
+      Assert.That(removeKeyCalled, Is.True, "Callback was not called.");
 
     }
 
@@ -392,7 +395,7 @@ namespace PageantSharpTest
         removeAllKeysCalled = true;
         return removeAllKeysReturnValue;
       };
-      Agent.CallBacks callbacks = new Agent.CallBacks();
+      Agent.Callbacks callbacks = new Agent.Callbacks();
       callbacks.removeAllSSH2Keys = RemoveAllSsh2Keys;
       Agent agent = new TestAgent(callbacks);
 
@@ -409,7 +412,7 @@ namespace PageantSharpTest
       stream.Position = 0;
       stream.Read(response, 0, response.Length);
       actual = Encoding.UTF8.GetString(PSUtil.ToBase64(response));
-      Assert.AreEqual(cAgentSucess, actual);
+      Assert.That(actual, Is.EqualTo(cAgentSucess));
 
       /* test callback returns false */
 
@@ -422,8 +425,8 @@ namespace PageantSharpTest
       stream.Position = 0;
       stream.Read(response, 0, response.Length);
       actual = Encoding.UTF8.GetString(PSUtil.ToBase64(response));
-      Assert.AreEqual(cAgentFailure, actual);
-      Assert.IsTrue(removeAllKeysCalled, "Callback was not called.");
+      Assert.That(actual, Is.EqualTo(cAgentFailure));
+      Assert.That(removeAllKeysCalled, Is.True, "Callback was not called.");
 
     }
 

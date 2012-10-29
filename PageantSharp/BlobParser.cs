@@ -43,7 +43,7 @@ namespace dlech.PageantSharp
       return header;
     }
 
-    public byte[] Read()
+    public PinnedByteArray Read()
     {
       byte[] dataLegthBytes = new byte[4];
       if (mStream.Length - mStream.Position  < dataLegthBytes.Length) {
@@ -56,7 +56,7 @@ namespace dlech.PageantSharp
       }
       PinnedByteArray blob = new PinnedByteArray(blobLength);
       mStream.Read(blob.Data, 0, blob.Data.Length);
-      return blob.Data;
+      return blob;
     }
 
   }

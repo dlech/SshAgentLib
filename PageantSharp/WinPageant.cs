@@ -126,7 +126,7 @@ namespace dlech.PageantSharp
     /// Thrown when another instance of Pageant is running.
     /// </exception>
     /// <remarks>This window is not meant to be used for UI.</remarks>
-    public WinPageant(CallBacks aCallbacks)
+    public WinPageant(Callbacks aCallbacks)
       : base(aCallbacks)
     {
       if (CheckAlreadyRunning()) {
