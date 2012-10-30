@@ -18,7 +18,7 @@ namespace dlech.PageantSharp
     /// </summary>
     /// <param name="i">integer to convert</param>
     /// <returns>four bytes</returns>
-    public static byte[] IntToBytes(int i)
+    public static byte[] ToBytes(this int i)
     {
       byte[] result = BitConverter.GetBytes(i);
       if (BitConverter.IsLittleEndian) {
@@ -32,9 +32,19 @@ namespace dlech.PageantSharp
     /// Converts 4 bytes in BigEndian order to 32 bit integer
     /// </summary>
     /// <param name="bytes">array of bytes</param>
+    /// <returns>32 bit integer</returns>
+    public static int ToInt(this byte[] bytes)
+    {
+      return bytes.ToInt(0);
+    }
+
+    /// <summary>
+    /// Converts 4 bytes in BigEndian order to 32 bit integer
+    /// </summary>
+    /// <param name="bytes">array of bytes</param>
     /// <param name="offset">the offset where to start reading the bytes</param>
     /// <returns>32 bit integer</returns>
-    public static int BytesToInt(byte[] bytes, int offset)
+    public static int ToInt(this byte[] bytes, int offset)
     {
       if (bytes == null) {
         throw new ArgumentNullException("bytes");
@@ -66,7 +76,7 @@ namespace dlech.PageantSharp
     /// two characters are converted into one byte
     /// </summary>
     /// <param name="base16String">the string to convert</param>
-    /// <param name="delimeter">the delimeter that is present between each pair of digits</param>
+    /// <param name="delimeter">the delimiter that is present between each pair of digits</param>
     /// <returns>array containing the converted bytes</returns>
     /// <exception cref="NullArgumentException">thrown if base16String is null or empty</exception>
     /// <exception cref="ArgumentException">thrown if base16String does not contain an even number of characters
@@ -77,7 +87,7 @@ namespace dlech.PageantSharp
         throw new ArgumentNullException("base16String");
       }
 
-      // remove delimeters
+      // remove delimiters
       if (!string.IsNullOrEmpty(delimeter)) {
         base16String = base16String.Replace(delimeter, string.Empty);
       }
@@ -101,22 +111,22 @@ namespace dlech.PageantSharp
     }
 
     /// <summary>
-    /// Converts array of bytes to a string of hexidecimal digits delimited by':'. Alpha digits will be lower case.
+    /// Converts array of bytes to a string of hexadecimal digits delimited by':'. Alpha digits will be lower case.
     /// </summary>
     /// <param name="bytes">the byte[] to convert</param>
     /// <returns>the resulting string</returns>
-    public static string ToHex(byte[] bytes)
+    public static string ToHexString(this byte[] bytes)
     {
-      return ToHex(bytes, ":");
+      return bytes.ToHexString(":");
     }
 
     /// <summary>
-    /// Converts array of bytes to a string of hexidecimal digits. Alpha digits will be lower case.
+    /// Converts array of bytes to a string of hexadecimal digits. Alpha digits will be lower case.
     /// </summary>
     /// <param name="bytes">the byte[] to convert</param>
-    /// <param name="delimeter">a delimeter to insert inbetween each pair of digits</param>
+    /// <param name="delimeter">a delimiter to insert in-between each pair of digits</param>
     /// <returns>the resulting string</returns>
-    public static string ToHex(byte[] bytes, string delimeter)
+    public static string ToHexString(this byte[] bytes, string delimeter)
     {
       if (bytes == null) {
         throw new ArgumentNullException("bytes");
@@ -128,7 +138,7 @@ namespace dlech.PageantSharp
       }
       return string.Join(delimeter, strings);
     }
-
+        
     public static byte[] FromBase64(string base64String)
     {
       return FromBase64(Encoding.UTF8.GetBytes(base64String));
@@ -141,7 +151,7 @@ namespace dlech.PageantSharp
       }
     }
 
-    public static byte[] ToBase64(byte[] binaryData)
+    public static byte[] ToBase64(this byte[] binaryData)
     {
       using (ToBase64Transform base64Transform = new ToBase64Transform()) {
         return GenericTransform(base64Transform, binaryData);
@@ -209,7 +219,7 @@ namespace dlech.PageantSharp
 
 
     /// <summary>
-    /// Compuutes a % (b -1) of 2 large numbers
+    /// Computes a % (b -1) of 2 large numbers
     /// </summary>
     /// <param name="a">variable a</param>
     /// <param name="b">variable b</param>
@@ -220,7 +230,7 @@ namespace dlech.PageantSharp
       using (PinnedByteArray bMinusOne = (PinnedByteArray)b.Clone()) {
 
         PinnedByteArray result = (PinnedByteArray)a.Clone();
-        // should't have to worry about borrowing because b should be prime and
+        // shouldn't have to worry about borrowing because b should be prime and
         // therefore not end in zero
         bMinusOne.Data[bMinusOne.Data.Length - 1]--;
         int bShift = a.Data.Length - b.Data.Length;
@@ -295,8 +305,8 @@ namespace dlech.PageantSharp
     /// <param name='unicodeChar'>
     /// Unicode char.
     /// </param>
-    /// <remarks>Based on http://www.unicode.org/Public/MAPPINGS/VENDORS/MICSFT/WindowsBestFit/bestfit1252.txt</remarks>
-    public static byte UnicodeToAnsi(int unicodeChar)
+    /// <remarks>Based on http://www.unicode.org/Public/MAPPINGS/VENDORS/MICSFT/WindowsBestFit/bestfit1252.txt </remarks>
+    public static byte UnicodeToAnsi(this int unicodeChar)
     {
       switch (unicodeChar) {
         case 0x0000:

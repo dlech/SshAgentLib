@@ -16,6 +16,11 @@ namespace dlech.PageantSharp
     private Callbacks mCallbacks;
     #endregion
 
+    /// <summary>
+    /// Implementer should remove all keys from its key store
+    /// </summary>
+    /// <returns>true if all keys were removed</returns>
+    public delegate bool RemoveAllSSH1KeysCallback();
 
     /// <summary>
     /// Implementer should return a list of public keys that will be 
@@ -36,8 +41,11 @@ namespace dlech.PageantSharp
     /// <summary>
     /// Implementer should Add the specified key to its key store
     /// </summary>
+    /// <param name="aKey">The PpkKey to add to storage</param>
+    /// <param name="aConstrained">Indicates that the key is constrained,
+    /// i.e. requires user consent before key can be used</param>
     /// <returns></returns>
-    public delegate bool AddSSH2KeyCallback(PpkKey key);
+    public delegate bool AddSSH2KeyCallback(PpkKey aKey, bool aConstrained);
 
     /// <summary>
     /// Implementer should remove the specified key from its key store
@@ -54,6 +62,7 @@ namespace dlech.PageantSharp
 
     public struct Callbacks
     {
+      public RemoveAllSSH1KeysCallback removeAllSSH1Keys;
       public GetSSH2KeyListCallback getSSH2KeyList;
       public GetSSH2KeyCallback getSSH2Key;
       public AddSSH2KeyCallback addSSH2Key;
@@ -75,8 +84,10 @@ namespace dlech.PageantSharp
     /// <remarks>code based on winpgnt.c from PuTTY source code</remarks>
     public void AnswerMessage(Stream aMessageStream)
     {
-      BlobParser parser = new BlobParser(aMessageStream);
-      OpenSsh.BlobHeader header = parser.ReadHeader();
+      BlobParser messageParser = new BlobParser(aMessageStream);
+      BlobBuilder responseBuilder = new BlobBuilder();
+
+      OpenSsh.BlobHeader header = messageParser.ReadHeader();
 
       switch (header.Message) {
         case OpenSsh.Message.SSH1_AGENTC_REQUEST_RSA_IDENTITIES:
@@ -94,30 +105,22 @@ namespace dlech.PageantSharp
           if (mCallbacks.getSSH2KeyList == null) {
             goto default; // can't reply without callback
           }
-          BlobBuilder builder = new BlobBuilder();
           try {
             int keyCount = 0;
-
             foreach (PpkKey key in mCallbacks.getSSH2KeyList()) {
               keyCount++;
-              builder.AddBlob(OpenSsh.GetSSH2PublicKeyBlob(key.CipherKeyPair));
-              builder.AddString(key.Comment);
+              responseBuilder.AddBlob(OpenSsh.GetSSH2PublicKeyBlob(key.CipherKeyPair));
+              responseBuilder.AddString(key.Comment);
               key.Dispose();
             }
-            if (aMessageStream.Length < 9 + builder.Length) {
-              goto default;
-            }            
-            aMessageStream.Position = 0;
-            aMessageStream.Write(PSUtil.IntToBytes(5 + builder.Length), 0, 4);
-            aMessageStream.WriteByte((byte)OpenSsh.Message.SSH2_AGENT_IDENTITIES_ANSWER);
-            aMessageStream.Write(PSUtil.IntToBytes(keyCount), 0, 4);
-            aMessageStream.Write(builder.GetBlob(), 0, builder.Length);
+            responseBuilder.InsertHeader(OpenSsh.Message.SSH2_AGENT_IDENTITIES_ANSWER,
+              keyCount);
+            // TODO may want to check that there is enough room in the message stream
             break; // succeeded            
           } catch (Exception ex) {
             Debug.Fail(ex.ToString());
-          } finally {
-            builder.Clear();
-          }
+          } 
+          responseBuilder.Clear();          
           goto default; // failed
         case OpenSsh.Message.SSH1_AGENTC_RSA_CHALLENGE:
           /*
@@ -138,8 +141,8 @@ namespace dlech.PageantSharp
             goto default; // can't reply without callback
           }
           try {
-            PinnedByteArray keyBlob = parser.Read();
-            PinnedByteArray reqData = parser.Read();
+            PinnedByteArray keyBlob = messageParser.Read();
+            PinnedByteArray reqData = messageParser.Read();
 
             /* get matching key from callback */
             MD5 md5 = MD5.Create();
@@ -166,25 +169,16 @@ namespace dlech.PageantSharp
               signer.BlockUpdate(reqData.Data, 0, reqData.Data.Length);
               byte[] signature = signer.GenerateSignature();
 
-              BlobBuilder sigBlobBuilder = new BlobBuilder();
-              sigBlobBuilder.AddString(algName);
-              sigBlobBuilder.AddBlob(signature);
-              signature = sigBlobBuilder.GetBlob(OpenSsh.Message.SSH2_AGENT_SIGN_RESPONSE);
-              sigBlobBuilder.Clear();
-
-              if (aMessageStream.Length < 9 + signature.Length) {
-                goto default;
-              }
-
-              /* write response to stream */
-
-              aMessageStream.Position = 0;
-              aMessageStream.Write(signature, 0, signature.Length);
+              responseBuilder.AddString(algName);
+              responseBuilder.AddBlob(signature);
+              responseBuilder.InsertHeader(OpenSsh.Message.SSH2_AGENT_SIGN_RESPONSE);
+              // TODO may want to check that there is enough room in the message stream
               break; // succeeded
             }
           } catch (Exception ex) {
             Debug.Fail(ex.ToString());
           }
+          responseBuilder.Clear();
           goto default; // failure
         case OpenSsh.Message.SSH1_AGENTC_ADD_RSA_IDENTITY:
           /*
@@ -196,6 +190,7 @@ namespace dlech.PageantSharp
 
           goto default; // failed
         case OpenSsh.Message.SSH2_AGENTC_ADD_IDENTITY:
+        case OpenSsh.Message.SSH2_AGENTC_ADD_ID_CONSTRAINED:
           /*
            * Add to the list and return SSH_AGENT_SUCCESS, or
            * SSH_AGENT_FAILURE if the key was malformed.
@@ -207,13 +202,14 @@ namespace dlech.PageantSharp
           try {
             PpkKey key = new PpkKey();
             key.CipherKeyPair = OpenSsh.CreateCipherKeyPair(aMessageStream);
-            key.Comment = Encoding.UTF8.GetString(parser.Read().Data);
+            key.Comment = Encoding.UTF8.GetString(messageParser.Read().Data);
+            
+            bool constrained = (header.Message ==
+              OpenSsh.Message.SSH2_AGENTC_ADD_ID_CONSTRAINED);
 
             /* do callback */
-            if (mCallbacks.addSSH2Key(key)) {
-              aMessageStream.Position = 0;
-              aMessageStream.Write(PSUtil.IntToBytes(1), 0, 4);
-              aMessageStream.WriteByte((byte)OpenSsh.Message.SSH_AGENT_SUCCESS);
+            if (mCallbacks.addSSH2Key(key, constrained)) {
+              responseBuilder.InsertHeader(OpenSsh.Message.SSH_AGENT_SUCCESS);
               break; // success!
             }
           } catch (Exception ex) {
@@ -228,7 +224,7 @@ namespace dlech.PageantSharp
            */
 
           // TODO implement SSH1_AGENTC_REMOVE_RSA_IDENTITY
-
+          
           goto default; // failed
         case OpenSsh.Message.SSH2_AGENTC_REMOVE_IDENTITY:
           /*
@@ -240,53 +236,67 @@ namespace dlech.PageantSharp
           if (mCallbacks.removeSSH2Key == null) {
             goto default;
           }
-          
-          PinnedByteArray rKeyBlob = parser.Read();          
 
-          /* get matching key from callback */
-          MD5 rMd5 = MD5.Create();
-          byte[] rFingerprint = rMd5.ComputeHash(rKeyBlob.Data);
-          rMd5.Clear();
+          try {
+            PinnedByteArray rKeyBlob = messageParser.Read();
 
-          if (mCallbacks.removeSSH2Key(rFingerprint)) {
-            aMessageStream.Position = 0;
-            aMessageStream.Write(PSUtil.IntToBytes(1), 0, 4);
-            aMessageStream.WriteByte((byte)OpenSsh.Message.SSH_AGENT_SUCCESS);
-            break; //success!
+            /* get matching key from callback */
+            MD5 rMd5 = MD5.Create();
+            byte[] rFingerprint = rMd5.ComputeHash(rKeyBlob.Data);
+            rMd5.Clear();
+
+            if (mCallbacks.removeSSH2Key(rFingerprint)) {
+              responseBuilder.InsertHeader(OpenSsh.Message.SSH_AGENT_SUCCESS);
+              break; //success!
+            }
+          } catch (Exception ex) {
+            Debug.Fail(ex.ToString());
           }
           goto default; // failed
         case OpenSsh.Message.SSH1_AGENTC_REMOVE_ALL_RSA_IDENTITIES:
           /*
-           * Remove all SSH-1 keys. Always returns success.
+           * Remove all SSH-1 keys.
            */
 
-          // TODO implement SSH1_AGENTC_REMOVE_ALL_RSA_IDENTITIES
+          if (mCallbacks.removeAllSSH1Keys == null) {
+            goto default;
+          }
 
+          try {
+            if (mCallbacks.removeAllSSH1Keys()) {
+              responseBuilder.InsertHeader(OpenSsh.Message.SSH_AGENT_SUCCESS);
+              break; //success!
+            }
+          } catch (Exception ex) {
+            Debug.Fail(ex.ToString());
+          }
           goto default; // failed
         case OpenSsh.Message.SSH2_AGENTC_REMOVE_ALL_IDENTITIES:
           /*
-           * Remove all SSH-2 keys. Always returns success.
+           * Remove all SSH-2 keys.
            */
 
           if (mCallbacks.removeAllSSH2Keys == null) {
             goto default;
           }
 
-          if (mCallbacks.removeAllSSH2Keys()) {
-            aMessageStream.Position = 0;
-            aMessageStream.Write(PSUtil.IntToBytes(1), 0, 4);
-            aMessageStream.WriteByte((byte)OpenSsh.Message.SSH_AGENT_SUCCESS);
-            break; //success!
+          try {
+            if (mCallbacks.removeAllSSH2Keys()) {
+              responseBuilder.InsertHeader(OpenSsh.Message.SSH_AGENT_SUCCESS);
+              break; //success!
+            }
+          } catch (Exception ex) {
+            Debug.Fail(ex.ToString());
           }
-
           goto default; // failed
 
         default:
-          aMessageStream.Position = 0;
-          aMessageStream.Write(PSUtil.IntToBytes(1), 0, 4);
-          aMessageStream.WriteByte((byte)OpenSsh.Message.SSH_AGENT_FAILURE);
+          responseBuilder.InsertHeader(OpenSsh.Message.SSH_AGENT_FAILURE);
           break;
       }
+      /* write response to stream */
+      aMessageStream.Position = 0;
+      aMessageStream.Write(responseBuilder.GetBlob(), 0, responseBuilder.Length);
     }
 
     public virtual void Dispose()

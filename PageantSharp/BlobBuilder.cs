@@ -56,7 +56,7 @@ namespace dlech.PageantSharp
     public void AddBigInt(BigInteger bigint)
     {
             byte[] bytes = bigint.ToByteArray();
-            byteList.AddRange(PSUtil.IntToBytes(bytes.Length));
+            byteList.AddRange(bytes.Length.ToBytes());
       byteList.AddRange(bytes);
     }
 
@@ -66,7 +66,7 @@ namespace dlech.PageantSharp
     /// <param name="blob"></param>
     public void AddBlob(byte[] blob)
     {
-      byteList.AddRange(PSUtil.IntToBytes(blob.Length));
+      byteList.AddRange(blob.Length.ToBytes());
       byteList.AddRange(blob);
     }
 
@@ -80,21 +80,32 @@ namespace dlech.PageantSharp
     }
 
     /// <summary>
-    /// Prepends header and returns the resulting blob from the blob builder.
+    /// Prepends header 
     /// </summary>
     /// <param name="aMessage">message number to include in header</param>
-    /// <returns>byte[] containing the blob</returns>
-    public byte[] GetBlob(OpenSsh.Message aMessage)
+    /// <param name="aHeaderData">data to include in header</param>
+    public void InsertHeader(OpenSsh.Message aMessage, int aHeaderData)
+    {      
+      byteList.InsertRange(0, aHeaderData.ToBytes());
+      byteList.Insert(0, (byte)aMessage);
+      byte[] blobLength = byteList.Count.ToBytes();
+      byteList.InsertRange(0, blobLength);
+    }
+
+    /// <summary>
+    /// Prepends header 
+    /// </summary>
+    /// <param name="aMessage">message number to include in header</param>
+    public void InsertHeader(OpenSsh.Message aMessage)
     {
       byte[] blobLength;
       if (byteList.Count > 0) {
-        blobLength = PSUtil.IntToBytes(byteList.Count);
+        blobLength = byteList.Count.ToBytes();
         byteList.InsertRange(0, blobLength);
       }
       byteList.Insert(0, (byte)aMessage);
-      blobLength = PSUtil.IntToBytes(byteList.Count);
+      blobLength = byteList.Count.ToBytes();
       byteList.InsertRange(0, blobLength);
-      return byteList.ToArray();
     }
 
     /// <summary>

@@ -466,15 +466,15 @@ namespace dlech.PageantSharp
 
       List<byte> macData = new List<byte>();
       if (fileData.fileVersion != FileVersions.v1) {
-        macData.AddRange(PSUtil.IntToBytes(fileData.publicKeyAlgorithm.Length));
+        macData.AddRange(fileData.publicKeyAlgorithm.Length.ToBytes());
         macData.AddRange(Encoding.UTF8.GetBytes(fileData.publicKeyAlgorithm));
-        macData.AddRange(PSUtil.IntToBytes(fileData.privateKeyAlgorithm.Length));
+        macData.AddRange(fileData.privateKeyAlgorithm.Length.ToBytes());
         macData.AddRange(Encoding.UTF8.GetBytes(fileData.privateKeyAlgorithm));
-        macData.AddRange(PSUtil.IntToBytes(fileData.comment.Length));
+        macData.AddRange(fileData.comment.Length.ToBytes());
         macData.AddRange(Encoding.UTF8.GetBytes(fileData.comment));
-        macData.AddRange(PSUtil.IntToBytes(fileData.publicKeyBlob.Length));
+        macData.AddRange(fileData.publicKeyBlob.Length.ToBytes());
         macData.AddRange(fileData.publicKeyBlob);
-        macData.AddRange(PSUtil.IntToBytes(fileData.privateKeyBlob.Data.Length));
+        macData.AddRange(fileData.privateKeyBlob.Data.Length.ToBytes());
       }
       macData.AddRange(fileData.privateKeyBlob.Data);
 

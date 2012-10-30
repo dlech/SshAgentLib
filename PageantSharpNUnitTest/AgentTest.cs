@@ -57,9 +57,8 @@ namespace PageantSharpTest
 
       byte[] buffer = new byte[4096];
       BlobBuilder builder = new BlobBuilder();
-      byte[] request =
-        builder.GetBlob(OpenSsh.Message.SSH2_AGENTC_REQUEST_IDENTITIES);
-      Array.Copy(request, buffer, request.Length);
+      builder.InsertHeader(OpenSsh.Message.SSH2_AGENTC_REQUEST_IDENTITIES);
+      Array.Copy(builder.GetBlob(), buffer, builder.Length);
       MemoryStream stream = new MemoryStream(buffer);
       agent.AnswerMessage(stream);
       byte[] response = new byte[stream.Position];
@@ -112,10 +111,8 @@ namespace PageantSharpTest
       {
         getSsh2KeyCalled = true;
         if (testKey != null) {
-          string requestedFingerprint = PSUtil.ToHex(aFingerprint);
-          string testKeyFingerprint =
-            PSUtil.ToHex(OpenSsh.GetFingerprint(testKey.CipherKeyPair));
-          Assert.That(testKeyFingerprint, Is.EqualTo(requestedFingerprint));
+          string requestedFingerprint = aFingerprint.ToHexString();
+          Assert.That(testKey.Fingerprint, Is.EqualTo(requestedFingerprint));
         }
         return testKey;
       };
@@ -276,9 +273,7 @@ namespace PageantSharpTest
                   Is.InstanceOf<RsaKeyParameters>());
       Assert.That(returnedKey.Size, Is.EqualTo(rsaKeySize));
       Assert.That(returnedKey.Comment, Is.EqualTo(rsaKeyComment));
-     string returnedKeyFingerprint = 
-        PSUtil.ToHex(OpenSsh.GetFingerprint(returnedKey.CipherKeyPair));
-      Assert.That(returnedKeyFingerprint, Is.EqualTo(rsaKeyFingerprint));
+      Assert.That(returnedKey.Fingerprint, Is.EqualTo(rsaKeyFingerprint));
 
       /* test adding dsa key */
 
@@ -298,9 +293,7 @@ namespace PageantSharpTest
                   Is.InstanceOf<DsaKeyParameters>());
       Assert.That(returnedKey.Size, Is.EqualTo(dsaKeySize));
       Assert.That(returnedKey.Comment, Is.EqualTo(dsaKeyComment));
-      returnedKeyFingerprint = 
-        PSUtil.ToHex(OpenSsh.GetFingerprint(returnedKey.CipherKeyPair));
-      Assert.That(returnedKeyFingerprint, Is.EqualTo(dsaKeyFingerprint));
+      Assert.That(returnedKey.Fingerprint, Is.EqualTo(dsaKeyFingerprint));
 
       /* test AddSsh2Key returns false => ssh agent failure*/
 
@@ -335,14 +328,14 @@ namespace PageantSharpTest
       byte[] buffer = new byte[4096];
       byte[] decodedData, response;
       MemoryStream stream = new MemoryStream(buffer);
-      byte[] removeFingerprint = new byte[0];
+      string removeFingerprint = null;
       bool removeKeyCalled = false;
       bool removeKeyReturnValue = true;
 
       Agent.RemoveSSH2KeyCallback RemoveSsh2Key = delegate(byte[] aFingerprint)
       {
         removeKeyCalled = true;
-        removeFingerprint = aFingerprint;
+        removeFingerprint = aFingerprint.ToHexString();
         return removeKeyReturnValue;
       };
       Agent.Callbacks callbacks = new Agent.Callbacks();
@@ -361,7 +354,7 @@ namespace PageantSharpTest
       stream.Read(response, 0, response.Length);
       actual = Encoding.UTF8.GetString(PSUtil.ToBase64(response));
       Assert.That(actual, Is.EqualTo(cAgentSucess));
-      Assert.That(PSUtil.ToHex(removeFingerprint), Is.EqualTo(requestFingerprint));
+      Assert.That(removeFingerprint, Is.EqualTo(requestFingerprint));
 
       /* test callback returns false */
 
@@ -403,9 +396,8 @@ namespace PageantSharpTest
 
       stream.Position = 0;
       BlobBuilder builder = new BlobBuilder();
-      byte[] request =
-        builder.GetBlob(OpenSsh.Message.SSH2_AGENTC_REMOVE_ALL_IDENTITIES);
-      Array.Copy(request, buffer, request.Length);
+      builder.InsertHeader(OpenSsh.Message.SSH2_AGENTC_REMOVE_ALL_IDENTITIES);
+      Array.Copy(builder.GetBlob(), buffer, builder.Length);
       removeAllKeysReturnValue = true;
       agent.AnswerMessage(stream);
       response = new byte[stream.Position];
@@ -419,7 +411,7 @@ namespace PageantSharpTest
       stream.Position = 0;
       removeAllKeysCalled = false;
       removeAllKeysReturnValue = false;
-      Array.Copy(request, buffer, request.Length);
+      Array.Copy(builder.GetBlob(), buffer, builder.Length);
       agent.AnswerMessage(stream);
       response = new byte[stream.Position];
       stream.Position = 0;

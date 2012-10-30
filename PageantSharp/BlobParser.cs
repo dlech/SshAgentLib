@@ -34,7 +34,7 @@ namespace dlech.PageantSharp
         throw new Exception("Not enough data");
       }
       mStream.Read(dataLegthBytes, 0, dataLegthBytes.Length);
-      header.BlobLength = PSUtil.BytesToInt(dataLegthBytes, 0);
+      header.BlobLength = dataLegthBytes.ToInt();
 
       if (mStream.Length - mStream.Position < header.BlobLength) {
         throw new Exception("Not enough data");
@@ -50,7 +50,7 @@ namespace dlech.PageantSharp
         throw new Exception("Not enough data");
       }
       mStream.Read(dataLegthBytes, 0, dataLegthBytes.Length);
-      int blobLength = PSUtil.BytesToInt(dataLegthBytes, 0);
+      int blobLength = dataLegthBytes.ToInt();
       if (mStream.Length - mStream.Position < blobLength) {
         throw new Exception("Not enough data");
       }

@@ -43,14 +43,14 @@ namespace PageantSharpTest
           delegate() {
         return null; }, delegate() { });
       string rsaExpectedFingerprint = "57:95:98:7f:c2:4e:98:1d:b9:5b:45:fe:6d:a4:6b:17";
-      string rsaActual = PSUtil.ToHex(OpenSsh.GetFingerprint(rsaTarget.CipherKeyPair));
+      string rsaActual = rsaTarget.Fingerprint;
       Assert.AreEqual(rsaExpectedFingerprint, rsaActual);
 
       PpkKey dsaTarget = PpkFile.ReadFile(ssh2_dsa_no_passphrase_ppk,
           delegate() {
         return null; }, delegate() { });
       string dsaExpectedFingerprint = "4e:f1:fc:5d:80:5b:37:b6:13:67:ce:df:4e:83:7b:0b";
-      string dsaActual = PSUtil.ToHex(OpenSsh.GetFingerprint(dsaTarget.CipherKeyPair));
+      string dsaActual = dsaTarget.Fingerprint;
       Assert.AreEqual(dsaExpectedFingerprint, dsaActual);
     }
 

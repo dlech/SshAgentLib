@@ -140,7 +140,7 @@ namespace dlech.PageantSharp
       WNDCLASS wind_class = new WNDCLASS();
       wind_class.lpszClassName = cClassName;
       wind_class.lpfnWndProc = mCustomWndProc;
-            
+
       UInt16 class_atom = RegisterClassW(ref wind_class);
 
       int last_error = Marshal.GetLastWin32Error();
@@ -195,7 +195,7 @@ namespace dlech.PageantSharp
             mHwnd = IntPtr.Zero;
             mDisposed = true;
           }
-        }        
+        }
       }
     }
 
@@ -232,8 +232,11 @@ namespace dlech.PageantSharp
       // convert lParam to something usable
       COPYDATASTRUCT copyData = (COPYDATASTRUCT)
         Marshal.PtrToStructure(lParam, typeof(COPYDATASTRUCT));
-      
-      if (Marshal.ReadInt64(copyData.dwData) != AGENT_COPYDATA_ID) {
+
+      if (((IntPtr.Size == 4) &&
+           (copyData.dwData.ToInt32() != (unchecked((int)AGENT_COPYDATA_ID)))) ||
+          ((IntPtr.Size == 8) &&
+           (copyData.dwData.ToInt64() != AGENT_COPYDATA_ID))) {
         return result; // failure
       }
 

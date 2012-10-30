@@ -19,20 +19,44 @@ namespace dlech.PageantSharp
       set;
     }
 
+    public string Algorithm
+    {
+      get
+      {
+        if (CipherKeyPair.Public is RsaKeyParameters) {
+          return OpenSsh.PublicKeyAlgorithms.ssh_rsa;
+        } else if (CipherKeyPair.Public is DsaPublicKeyParameters) {
+          return OpenSsh.PublicKeyAlgorithms.ssh_dss;
+        }
+        throw new Exception("Unknown algorithm");
+      }
+    }
+
     public int Size {
       get {
         if (CipherKeyPair.Public is RsaKeyParameters) {
           RsaKeyParameters rsaKeyParameters =
             (RsaKeyParameters)CipherKeyPair.Public;
           return rsaKeyParameters.Modulus.BitLength;
-        }
-        if (CipherKeyPair.Public is DsaPublicKeyParameters) {
+        } else if (CipherKeyPair.Public is DsaPublicKeyParameters) {
           DsaPublicKeyParameters dsaKeyParameters =
             (DsaPublicKeyParameters)CipherKeyPair.Public;
           return dsaKeyParameters.Parameters.P.BitLength;
         }
         // TODO need a better exception here
         throw new Exception("Not Defined");
+      }
+    }
+
+    public string Fingerprint
+    {
+      get
+      {
+        try {
+          return OpenSsh.GetFingerprint(CipherKeyPair).ToHexString();
+        } catch (Exception) {
+          return null;
+        }
       }
     }
 
@@ -55,6 +79,6 @@ namespace dlech.PageantSharp
         // TODO is there a way to clear parameters from memory?
       }
     }
-   
+
   }
 }
