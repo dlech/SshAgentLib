@@ -52,7 +52,7 @@ namespace PageantSharpTest
     {
       /* code based on agent_query function in winpgntc.c from PuTTY */
       
-      Agent.RemoveAllSSH2KeysCallback removeAllKeys = delegate()
+      Agent.RemoveAllSSHKeysCallback removeAllKeys = delegate()
       {
         return true;
       };

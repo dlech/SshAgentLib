@@ -7,6 +7,7 @@ using Org.BouncyCastle.Crypto;
 using System.Security.Cryptography;
 using System.IO;
 using Org.BouncyCastle.Math;
+using System.Diagnostics;
 
 namespace dlech.PageantSharp
 {
@@ -53,16 +54,35 @@ namespace dlech.PageantSharp
       SSH2_AGENT_SIGN_RESPONSE = 14
     }
 
-    public enum KeyConstraint : byte
+    public enum KeyConstraintType : byte
     {
       /* Key constraint identifiers */
       SSH_AGENT_CONSTRAIN_LIFETIME = 1,
       SSH_AGENT_CONSTRAIN_CONFIRM = 2
     }
 
+    public static Type GetDataType(this KeyConstraintType aConstraint)
+    {
+      switch (aConstraint) {
+        case KeyConstraintType.SSH_AGENT_CONSTRAIN_CONFIRM :
+          return null;
+        case KeyConstraintType.SSH_AGENT_CONSTRAIN_LIFETIME:
+          return typeof(UInt32);
+        default:
+          Debug.Fail("Unknown KeyConstraintType");
+          throw new ArgumentException("Unknown KeyConstraintType");
+      }
+    }
+
+    public struct KeyConstraint
+    {
+      public KeyConstraintType Type { get; set; }
+      public Object Data { get; set; }
+    }    
+
     public struct BlobHeader
     {
-      public int BlobLength { get; set; }
+      public UInt32 BlobLength { get; set; }
       public Message Message { get; set; }
     }
       
@@ -144,16 +164,16 @@ namespace dlech.PageantSharp
     {
       BlobParser parser = new BlobParser(aSteam);
 
-      string algorithm = Encoding.UTF8.GetString(parser.Read().Data);
+      string algorithm = Encoding.UTF8.GetString(parser.ReadBlob().Data);
 
       switch (algorithm) {
         case OpenSsh.PublicKeyAlgorithms.ssh_rsa:
-          BigInteger n = new BigInteger(1, parser.Read().Data); // modulus
-          BigInteger e = new BigInteger(1, parser.Read().Data); // exponent
-          BigInteger d = new BigInteger(1, parser.Read().Data);
-          BigInteger iqmp = new BigInteger(1, parser.Read().Data);
-          BigInteger p = new BigInteger(1, parser.Read().Data);
-          BigInteger q = new BigInteger(1, parser.Read().Data);
+          BigInteger n = new BigInteger(1, parser.ReadBlob().Data); // modulus
+          BigInteger e = new BigInteger(1, parser.ReadBlob().Data); // exponent
+          BigInteger d = new BigInteger(1, parser.ReadBlob().Data);
+          BigInteger iqmp = new BigInteger(1, parser.ReadBlob().Data);
+          BigInteger p = new BigInteger(1, parser.ReadBlob().Data);
+          BigInteger q = new BigInteger(1, parser.ReadBlob().Data);
 
           /* compute missing parameters */
           BigInteger dp = d.Remainder(p.Subtract(BigInteger.One));
@@ -167,12 +187,12 @@ namespace dlech.PageantSharp
 
         case OpenSsh.PublicKeyAlgorithms.ssh_dss:
           /*BigInteger*/
-          p = new BigInteger(1, parser.Read().Data);
+          p = new BigInteger(1, parser.ReadBlob().Data);
           /*BigInteger*/
-          q = new BigInteger(1, parser.Read().Data);
-          BigInteger g = new BigInteger(1, parser.Read().Data);
-          BigInteger y = new BigInteger(1, parser.Read().Data); // public key
-          BigInteger x = new BigInteger(1, parser.Read().Data); // private key
+          q = new BigInteger(1, parser.ReadBlob().Data);
+          BigInteger g = new BigInteger(1, parser.ReadBlob().Data);
+          BigInteger y = new BigInteger(1, parser.ReadBlob().Data); // public key
+          BigInteger x = new BigInteger(1, parser.ReadBlob().Data); // private key
 
           DsaParameters commonParams = new DsaParameters(p, q, g);
           DsaPublicKeyParameters dsaPublicKeyParams =

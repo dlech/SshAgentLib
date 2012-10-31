@@ -24,37 +24,49 @@ namespace dlech.PageantSharp
       }
       mStream = aStream;
     }
-    
-    public OpenSsh.BlobHeader ReadHeader()
-    {
-      OpenSsh.BlobHeader header = new OpenSsh.BlobHeader();
 
+    public byte ReadByte()
+    {
+      if (mStream.Length - mStream.Position < 1) {
+        throw new Exception("Not enough data");
+      }
+      return (byte)mStream.ReadByte();
+    }
+
+    public UInt32 ReadInt()
+    {
       byte[] dataLegthBytes = new byte[4];
       if (mStream.Length - mStream.Position < dataLegthBytes.Length) {
         throw new Exception("Not enough data");
       }
       mStream.Read(dataLegthBytes, 0, dataLegthBytes.Length);
-      header.BlobLength = dataLegthBytes.ToInt();
+      return dataLegthBytes.ToInt();
+    }
 
+    public OpenSsh.BlobHeader ReadHeader()
+    {
+      OpenSsh.BlobHeader header = new OpenSsh.BlobHeader();
+
+      header.BlobLength = ReadInt();
       if (mStream.Length - mStream.Position < header.BlobLength) {
         throw new Exception("Not enough data");
       }      
-      header.Message = (OpenSsh.Message)mStream.ReadByte();
+      header.Message = (OpenSsh.Message)ReadByte();
       return header;
     }
 
-    public PinnedByteArray Read()
+    public string ReadString()
     {
-      byte[] dataLegthBytes = new byte[4];
-      if (mStream.Length - mStream.Position  < dataLegthBytes.Length) {
-        throw new Exception("Not enough data");
-      }
-      mStream.Read(dataLegthBytes, 0, dataLegthBytes.Length);
-      int blobLength = dataLegthBytes.ToInt();
+      return Encoding.UTF8.GetString(ReadBlob().Data);
+    }
+
+    public PinnedByteArray ReadBlob()
+    {
+      UInt32 blobLength = ReadInt();
       if (mStream.Length - mStream.Position < blobLength) {
         throw new Exception("Not enough data");
       }
-      PinnedByteArray blob = new PinnedByteArray(blobLength);
+      PinnedByteArray blob = new PinnedByteArray((int)blobLength);
       mStream.Read(blob.Data, 0, blob.Data.Length);
       return blob;
     }

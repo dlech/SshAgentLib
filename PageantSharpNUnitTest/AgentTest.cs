@@ -29,6 +29,8 @@ namespace PageantSharpTest
     {
       public TestAgent(Callbacks aCallbacks) :
         base(aCallbacks) { }
+
+      public override void Dispose() { }
     }
 
 
@@ -46,7 +48,7 @@ namespace PageantSharpTest
       List<PpkKey> ssh2KeyList = new List<PpkKey>();
       ssh2KeyList.Add(ssh2RsaKey);
 
-      Agent.GetSSH2KeyListCallback GetSsh2KeyList = delegate()
+      Agent.GetSSHKeyListCallback GetSsh2KeyList = delegate()
       {
         return ssh2KeyList;
       };
@@ -107,7 +109,7 @@ namespace PageantSharpTest
       bool getSsh2KeyCalled = false;
 
       PpkKey testKey = null;
-      Agent.GetSSH2KeyCallback GetSsh2Key = delegate(byte[] aFingerprint)
+      Agent.GetSSHKeyCallback GetSsh2Key = delegate(byte[] aFingerprint)
       {
         getSsh2KeyCalled = true;
         if (testKey != null) {
@@ -131,19 +133,19 @@ namespace PageantSharpTest
       Array.Copy(requestData, buffer, requestData.Length);
       stream.Position = 0;
       parser.ReadHeader();
-      parser.Read(); // read public key
-      PinnedByteArray reqData = parser.Read();
+      parser.ReadBlob(); // read public key
+      PinnedByteArray reqData = parser.ReadBlob();
       stream.Position = 0;
       agent.AnswerMessage(stream);
       stream.Position = 0;
       OpenSsh.BlobHeader header = parser.ReadHeader();
       Assert.That(header.Message,
                   Is.EqualTo(OpenSsh.Message.SSH2_AGENT_SIGN_RESPONSE));
-      byte[] signatureBlob = parser.Read().Data;
+      byte[] signatureBlob = parser.ReadBlob().Data;
       BlobParser signatureParser = new BlobParser(signatureBlob);
-      string algorithm = Encoding.UTF8.GetString (signatureParser.Read().Data);
+      string algorithm = signatureParser.ReadString();
       Assert.That(algorithm, Is.EqualTo (OpenSsh.PublicKeyAlgorithms.ssh_rsa));
-      byte[] signature = signatureParser.Read().Data;
+      byte[] signature = signatureParser.ReadBlob().Data;
       ISigner rsaSigner = SignerUtilities.GetSigner("SHA-1withRSA");
       rsaSigner.Init(false, testKey.CipherKeyPair.Public);
       rsaSigner.BlockUpdate(reqData.Data, 0, reqData.Data.Length);
@@ -158,19 +160,19 @@ namespace PageantSharpTest
       Array.Copy(requestData, buffer, requestData.Length);
       stream.Position = 0;
       parser.ReadHeader();
-      parser.Read();
-      reqData = parser.Read();
+      parser.ReadBlob();
+      reqData = parser.ReadBlob();
       stream.Position = 0;
       agent.AnswerMessage(stream);
       stream.Position = 0;
       header = parser.ReadHeader();
       Assert.That(header.Message,
                   Is.EqualTo(OpenSsh.Message.SSH2_AGENT_SIGN_RESPONSE));
-      signatureBlob = parser.Read().Data;
+      signatureBlob = parser.ReadBlob().Data;
       signatureParser = new BlobParser(signatureBlob);
-      algorithm = Encoding.UTF8.GetString (signatureParser.Read().Data);
+      algorithm = Encoding.UTF8.GetString (signatureParser.ReadBlob().Data);
       Assert.That(algorithm, Is.EqualTo (OpenSsh.PublicKeyAlgorithms.ssh_dss));
-      signature = signatureParser.Read().Data;
+      signature = signatureParser.ReadBlob().Data;
       ISigner dsaSigner = SignerUtilities.GetSigner("SHA-1withDSA");
       dsaSigner.Init(false, testKey.CipherKeyPair.Public);
       dsaSigner.BlockUpdate(reqData.Data, 0, reqData.Data.Length);
@@ -246,7 +248,7 @@ namespace PageantSharpTest
       bool addKeyCalled = false;
       bool addKeyReturnValue = true;
 
-      Agent.AddSSH2KeyCallback AddSsh2Key = delegate(PpkKey aKey)
+      Agent.AddSSHKeyCallback AddSsh2Key = delegate(PpkKey aKey)
       {
         addKeyCalled = true;
         returnedKey = aKey;
@@ -332,7 +334,7 @@ namespace PageantSharpTest
       bool removeKeyCalled = false;
       bool removeKeyReturnValue = true;
 
-      Agent.RemoveSSH2KeyCallback RemoveSsh2Key = delegate(byte[] aFingerprint)
+      Agent.RemoveSSHKeyCallback RemoveSsh2Key = delegate(byte[] aFingerprint)
       {
         removeKeyCalled = true;
         removeFingerprint = aFingerprint.ToHexString();
@@ -383,7 +385,7 @@ namespace PageantSharpTest
       bool removeAllKeysCalled = false;
       bool removeAllKeysReturnValue = true;
 
-      Agent.RemoveAllSSH2KeysCallback RemoveAllSsh2Keys = delegate()
+      Agent.RemoveAllSSHKeysCallback RemoveAllSsh2Keys = delegate()
       {
         removeAllKeysCalled = true;
         return removeAllKeysReturnValue;

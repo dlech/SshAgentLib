@@ -66,7 +66,7 @@ namespace dlech.PageantSharp
 		{
 			// read length of next data group
 			if (index + 4 <= dataLength) {
-				int length = dataArray.Data.ToInt(index);
+				int length = (int)dataArray.Data.ToInt(index);
 				index += 4;
 				// read data from group
 				if ((length > 0) && (index + length <= dataLength)) {

@@ -7,6 +7,8 @@ using System.Diagnostics;
 using System.Runtime.InteropServices;
 using System.Threading;
 using AsyncSocketSample;
+using Mono.Unix;
+using Mono.Unix.Native;
 
 namespace dlech.PageantSharp
 {
@@ -76,18 +78,18 @@ namespace dlech.PageantSharp
 
       this.socket = new Socket(AddressFamily.Unix, SocketType.Stream,
                           ProtocolType.Unspecified);
-      Mono.Unix.UnixEndPoint endPoint = new Mono.Unix.UnixEndPoint(socketPath);
-      Mono.Unix.Native.FilePermissions prevUmask =
-        Mono.Unix.Native.Syscall.umask(
-          Mono.Unix.Native.FilePermissions.S_IXUSR |
-          Mono.Unix.Native.FilePermissions.S_IRWXG |
-          Mono.Unix.Native.FilePermissions.S_IRWXO);
+      UnixEndPoint endPoint = new UnixEndPoint(socketPath);
+      FilePermissions prevUmask =
+        Syscall.umask(
+          FilePermissions.S_IXUSR |
+          FilePermissions.S_IRWXG |
+          FilePermissions.S_IRWXO);
       try {
         this.socket.Bind(endPoint);
       } catch {
         throw;
       } finally {
-        Mono.Unix.Native.Syscall.umask(prevUmask);
+        Syscall.umask(prevUmask);
       }
       this.socket.Listen(SSH_LISTEN_BACKLOG);
 

@@ -33,7 +33,7 @@ namespace dlech.PageantSharp
     /// </summary>
     /// <param name="bytes">array of bytes</param>
     /// <returns>32 bit integer</returns>
-    public static int ToInt(this byte[] bytes)
+    public static UInt32 ToInt(this byte[] bytes)
     {
       return bytes.ToInt(0);
     }
@@ -44,7 +44,7 @@ namespace dlech.PageantSharp
     /// <param name="bytes">array of bytes</param>
     /// <param name="offset">the offset where to start reading the bytes</param>
     /// <returns>32 bit integer</returns>
-    public static int ToInt(this byte[] bytes, int offset)
+    public static UInt32 ToInt(this byte[] bytes, int offset)
     {
       if (bytes == null) {
         throw new ArgumentNullException("bytes");
@@ -54,7 +54,7 @@ namespace dlech.PageantSharp
       if (BitConverter.IsLittleEndian) {
         wokingBytes = wokingBytes.Reverse().ToArray();
       }
-      return BitConverter.ToInt32(wokingBytes, 0);
+      return BitConverter.ToUInt32(wokingBytes, 0);
     }
 
     /// <summary>
