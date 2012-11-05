@@ -4,6 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Security.Cryptography;
 using System.Text.RegularExpressions;
+using System.IO;
 
 namespace dlech.PageantSharp
 {
@@ -12,6 +13,15 @@ namespace dlech.PageantSharp
   /// </summary>
   public static class PSUtil
   {
+    /// <summary>
+    /// Writes aBuiler data to aStream at current position of aStream
+    /// </summary>
+    /// <param name="aStream">Stream to write to</param>
+    /// <param name="aBuilder">BlobBuilder to use</param>
+    public static void WriteBlob(this Stream aStream, BlobBuilder aBuilder)
+    {
+      aStream.Write(aBuilder.GetBlob(), 0, aBuilder.Length);
+    }
 
     /// <summary>
     /// Convert 32 bit integer to four bytes in BigEndian order

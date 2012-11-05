@@ -8,11 +8,11 @@ using System.IO;
 namespace PageantSharpTest
 {
   /// <summary>
-  ///This is a test class for PpkKeyTest and is intended
-  ///to contain all PpkKeyTest Unit Tests
+  ///This is a test class for SshKey and is intended
+  ///to contain all SshKey Unit Tests
   ///</summary>
   [TestFixture()]
-  public class PpkKeyTest
+  public class SshKeyTest
   {
 
     private const string ssh2_rsa_no_passphrase_ppk = "ssh2-rsa-no-passphrase.ppk" ;
@@ -39,14 +39,14 @@ namespace PageantSharpTest
     [Test()]
     public void GetFingerprintTest()
     {
-      PpkKey rsaTarget = PpkFile.ReadFile(ssh2_rsa_no_passphrase_ppk,
+      SshKey rsaTarget = PpkFile.ReadFile(ssh2_rsa_no_passphrase_ppk,
           delegate() {
         return null; }, delegate() { });
       string rsaExpectedFingerprint = "57:95:98:7f:c2:4e:98:1d:b9:5b:45:fe:6d:a4:6b:17";
       string rsaActual = rsaTarget.Fingerprint;
       Assert.AreEqual(rsaExpectedFingerprint, rsaActual);
 
-      PpkKey dsaTarget = PpkFile.ReadFile(ssh2_dsa_no_passphrase_ppk,
+      SshKey dsaTarget = PpkFile.ReadFile(ssh2_dsa_no_passphrase_ppk,
           delegate() {
         return null; }, delegate() { });
       string dsaExpectedFingerprint = "4e:f1:fc:5d:80:5b:37:b6:13:67:ce:df:4e:83:7b:0b";
@@ -63,7 +63,7 @@ namespace PageantSharpTest
       byte[] actual, expected;
       PpkFile.GetPassphraseCallback getPassphrase = null;
       PpkFile.WarnOldFileFormatCallback warnOldFileFormat = delegate() { };
-      PpkKey target;
+      SshKey target;
 
       /* test RSA key */
       target = PpkFile.ReadFile(ssh2_rsa_no_passphrase_ppk,

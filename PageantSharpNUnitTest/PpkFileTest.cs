@@ -24,7 +24,7 @@ namespace PageantSharpTest
     [Test()]
     public void PpkNonAsciiPassphraseTest()
     {
-      PpkKey target;
+      SshKey target;
 
       PpkFile.WarnOldFileFormatCallback warnOldFileNotExpected = delegate()
       {
@@ -57,7 +57,7 @@ namespace PageantSharpTest
     [Test()]
     public void PpkFileParseDataTest()
     {
-      PpkKey target;
+      SshKey target;
 
       PpkFile.WarnOldFileFormatCallback warnOldFileNotExpected = delegate()
       {
@@ -133,11 +133,12 @@ namespace PageantSharpTest
 //      string expectedSsh2DsaPrivateKey = "AAAAFQCMF35lBnFwFWyl40y0wTf4lfdhNQ==";
 
 
-      /* test for successful method call */
+       /* test for successful method call */
       byte[] fileData = File.ReadAllBytes("../../Resources/ssh2-rsa.ppk");
       target = PpkFile.ParseData(fileData, getPassphrase, warnOldFileNotExpected);
       Assert.AreEqual(expectedSsh2RsaWithPassComment, target.Comment);
       Assert.AreEqual(expectedKeySize, target.Size);
+      Assert.That(target.Version, Is.EqualTo(SshVersion.SSH2));
 
       /* read file to string for modification by subsequent tests */
       fileData = File.ReadAllBytes("../../Resources/ssh2-rsa-no-passphrase.ppk");

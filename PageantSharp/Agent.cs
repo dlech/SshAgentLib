@@ -72,12 +72,12 @@ namespace dlech.PageantSharp
     }
 
     /// <summary>
-    /// Implementer should return a list of public keys that will be 
+    /// Implementer should return a list of public keys that will be
     /// sent to a remote client
     /// </summary>
-    /// <returns>List of PpkKey objects. Keys will be disposed by callback, 
+    /// <returns>List of PpkKey objects. Keys will be disposed by callback,
     /// so a new list should be created on each call</returns>
-    public delegate IEnumerable<PpkKey> GetSSHKeyListCallback();
+    public delegate IEnumerable<SshKey> GetSSHKeyListCallback();
 
     /// <summary>
     /// Implementer should return the specific key that matches the fingerprint.
@@ -87,7 +87,7 @@ namespace dlech.PageantSharp
     /// PpkKey object that matches fingerprint or null. Keys will be disposed by
     /// callback, so a new object should be created on each call
     /// </returns>
-    public delegate PpkKey GetSSHKeyCallback(byte[] aFingerprint);
+    public delegate SshKey GetSSHKeyCallback(byte[] aFingerprint);
 
     /// <summary>
     /// Implementer should Add the specified key to its key store
@@ -96,7 +96,7 @@ namespace dlech.PageantSharp
     /// <returns>
     /// True if key was added successfully.
     /// </returns>
-    public delegate bool AddSSHKeyCallback(PpkKey aKey);
+    public delegate bool AddSSHKeyCallback(SshKey aKey);
 
     /// <summary>
     /// Implementer should Add the specified key to its key store with specified
@@ -106,8 +106,8 @@ namespace dlech.PageantSharp
     /// <param name="aConstraints">List of constraints on the key.</param>
     /// <returns>
     /// True if key was added successfully.
-    /// </returns> 
-    public delegate bool AddConstrainedSSHKeyCallback(PpkKey aKey,
+    /// </returns>
+    public delegate bool AddConstrainedSSHKeyCallback(SshKey aKey,
       IList<OpenSsh.KeyConstraint> aConstraints);
 
     /// <summary>
@@ -182,7 +182,7 @@ namespace dlech.PageantSharp
           try {
             int keyCount = 0;
             if (!IsLocked) {
-              foreach (PpkKey key in mCallbacks.getSSH2KeyList()) {
+              foreach (SshKey key in mCallbacks.getSSH2KeyList()) {
                 keyCount++;
                 responseBuilder.AddBlob(OpenSsh.GetSSH2PublicKeyBlob(key.CipherKeyPair));
                 responseBuilder.AddString(key.Comment);
@@ -192,7 +192,7 @@ namespace dlech.PageantSharp
             responseBuilder.InsertHeader(OpenSsh.Message.SSH2_AGENT_IDENTITIES_ANSWER,
               keyCount);
             // TODO may want to check that there is enough room in the message stream
-            break; // succeeded            
+            break; // succeeded
           } catch (Exception ex) {
             Debug.Fail(ex.ToString());
           }
@@ -226,7 +226,7 @@ namespace dlech.PageantSharp
             MD5 md5 = MD5.Create();
             byte[] fingerprint = md5.ComputeHash(keyBlob.Data);
             md5.Clear();
-            using (PpkKey key = mCallbacks.getSSH2Key(fingerprint)) {
+            using (SshKey key = mCallbacks.getSSH2Key(fingerprint)) {
               if (key == null) {
                 goto default;
               }
@@ -284,7 +284,8 @@ namespace dlech.PageantSharp
             goto default; // can't reply without callback
           }
           try {
-            PpkKey key = new PpkKey();
+            SshKey key = new SshKey();
+            key.Version = SshVersion.SSH2;
             key.CipherKeyPair = OpenSsh.CreateCipherKeyPair(aMessageStream);
             key.Comment = messageParser.ReadString();
 
@@ -397,8 +398,8 @@ namespace dlech.PageantSharp
             string passphrase = messageParser.ReadString();
             if (Lock(passphrase)) {
               responseBuilder.InsertHeader(OpenSsh.Message.SSH_AGENT_SUCCESS);
+              break;
             }
-            break;
           } catch (Exception ex) {
             Debug.Fail(ex.ToString());
           }

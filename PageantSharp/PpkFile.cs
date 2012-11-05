@@ -36,7 +36,7 @@ namespace dlech.PageantSharp
     /// <summary>
     /// contains fields with valid file version strings
     /// </summary>
-    private static class FileVersions
+    private static class PpkFileVersions
     {
       public const string v1 = "1";
       public const string v2 = "2";
@@ -46,7 +46,7 @@ namespace dlech.PageantSharp
     /// Collection of supported file versions
     /// </summary>
     private static ReadOnlyCollection<string> supportedFileVersions =
-        Array.AsReadOnly<string>(new string[] { FileVersions.v1, FileVersions.v2 });
+        Array.AsReadOnly<string>(new string[] { PpkFileVersions.v1, PpkFileVersions.v2 });
        
 
     /// <summary>
@@ -126,7 +126,7 @@ namespace dlech.PageantSharp
       /// Callers of this method should warn user 
       /// that version 1 has security issue and should not be used
       /// </summary>
-      public string fileVersion;
+      public string ppkFileVersion;
 
       /// <summary>
       /// Public key algorithm
@@ -216,7 +216,7 @@ namespace dlech.PageantSharp
     /// <exception cref="System.UnauthorizedAccessException">see <see cref="System.IO.File.OpenRead(string)"/></exception>
     /// <exception cref="System.IO.FileNotFoundException">see <see cref="System.IO.File.OpenRead(string)"/></exception>
     /// <exception cref="System.NotSupportedException">see <see cref="System.IO.File.OpenRead(string)"/></exception>
-    public static PpkKey ReadFile(string fileName,
+    public static SshKey ReadFile(string fileName,
                                   GetPassphraseCallback getPassphrase,
                                   WarnOldFileFormatCallback warnOldFileFormat)
     {
@@ -238,9 +238,13 @@ namespace dlech.PageantSharp
     /// if required. Can be null if no passphrase.</param>
     /// <param name="warnOldFileFormat">Callback method that warns user that
     /// they are using an old file format with known security problems.</param>
-    /// <exception cref="dlech.PageantSharp.PpkFileException">there was a problem parsing the file data</exception>
-    /// <exception cref="System.ArgumentNullException">data and warnOldFileFormat cannot be null</exception>
-    public static PpkKey ParseData(byte[] data,
+    /// <exception cref="dlech.PageantSharp.PpkFileException">
+    /// there was a problem parsing the file data
+    /// </exception>
+    /// <exception cref="System.ArgumentNullException">
+    /// data and warnOldFileFormat cannot be null
+    /// </exception>
+    public static SshKey ParseData(byte[] data,
                                    GetPassphraseCallback getPassphrase,
                                    WarnOldFileFormatCallback warnOldFileFormat)
     {
@@ -269,12 +273,12 @@ namespace dlech.PageantSharp
         if (!pair[0].StartsWith(puttyUserKeyFileKey)) {
           throw new PpkFileException(PpkFileException.ErrorType.FileFormat,
                                      puttyUserKeyFileKey + " expected");
-        }
-        fileData.fileVersion = pair[0].Remove(0, puttyUserKeyFileKey.Length);
-        if (!supportedFileVersions.Contains(fileData.fileVersion)) {
+        }        
+        fileData.ppkFileVersion = pair[0].Remove(0, puttyUserKeyFileKey.Length);
+        if (!supportedFileVersions.Contains(fileData.ppkFileVersion)) {
           throw new PpkFileException(PpkFileException.ErrorType.FileVersion);
         }
-        if (fileData.fileVersion == FileVersions.v1) {
+        if (fileData.ppkFileVersion == PpkFileVersions.v1) {
           warnOldFileFormat();
         }
 
@@ -344,7 +348,7 @@ namespace dlech.PageantSharp
         pair = line.Split(delimArray, 2);
         if (pair[0] != privateMACKey) {
           fileData.isHMAC = false;
-          if (pair[0] != privateHashKey || fileData.fileVersion != FileVersions.v1) {
+          if (pair[0] != privateHashKey || fileData.ppkFileVersion != PpkFileVersions.v1) {
             throw new PpkFileException(PpkFileException.ErrorType.FileFormat,
                                        privateMACKey + " expected");
           }
@@ -366,7 +370,8 @@ namespace dlech.PageantSharp
 
         VerifyIntegrity(fileData);
 
-        PpkKey key = new PpkKey();
+        SshKey key = new SshKey();
+        key.Version = SshVersion.SSH2;
         key.CipherKeyPair = CreateCipherKeyPair(fileData.publicKeyAlgorithm ,
           fileData.publicKeyBlob, fileData.privateKeyBlob.Data);
         key.Comment = fileData.comment;
@@ -465,7 +470,7 @@ namespace dlech.PageantSharp
     {
 
       List<byte> macData = new List<byte>();
-      if (fileData.fileVersion != FileVersions.v1) {
+      if (fileData.ppkFileVersion != PpkFileVersions.v1) {
         macData.AddRange(fileData.publicKeyAlgorithm.Length.ToBytes());
         macData.AddRange(Encoding.UTF8.GetBytes(fileData.publicKeyAlgorithm));
         macData.AddRange(fileData.privateKeyAlgorithm.Length.ToBytes());

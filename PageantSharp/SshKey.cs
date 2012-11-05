@@ -11,8 +11,10 @@ namespace dlech.PageantSharp
   /// Class for encapsulating information on encryption keys so that it can be
   /// used in PuTTY related programs
   /// </summary>
-  public class PpkKey : IDisposable
-  {       
+  public class SshKey : IDisposable
+  {
+
+    public SshVersion Version { get; set; }
 
     public AsymmetricCipherKeyPair CipherKeyPair {
       get;
@@ -68,7 +70,7 @@ namespace dlech.PageantSharp
       set;
     }
 
-    ~PpkKey()
+    ~SshKey()
     {
       this.Dispose();
     }
