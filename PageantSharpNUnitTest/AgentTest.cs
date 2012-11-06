@@ -149,7 +149,7 @@ namespace PageantSharpTest
       byte[] signatureBlob = parser.ReadBlob().Data;
       BlobParser signatureParser = new BlobParser(signatureBlob);
       string algorithm = signatureParser.ReadString();
-      Assert.That(algorithm, Is.EqualTo(OpenSsh.PublicKeyAlgorithms.ssh_rsa));
+      Assert.That(algorithm, Is.EqualTo(OpenSsh.PublicKeyAlgorithm.SSH_RSA.GetName()));
       byte[] signature = signatureParser.ReadBlob().Data;
       ISigner rsaSigner = SignerUtilities.GetSigner("SHA-1withRSA");
       rsaSigner.Init(false, testKey.CipherKeyPair.Public);
@@ -176,7 +176,7 @@ namespace PageantSharpTest
       signatureBlob = parser.ReadBlob().Data;
       signatureParser = new BlobParser(signatureBlob);
       algorithm = Encoding.UTF8.GetString(signatureParser.ReadBlob().Data);
-      Assert.That(algorithm, Is.EqualTo(OpenSsh.PublicKeyAlgorithms.ssh_dss));
+      Assert.That(algorithm, Is.EqualTo(OpenSsh.PublicKeyAlgorithm.SSH_DSS.GetName()));
       signature = signatureParser.ReadBlob().Data;
       ISigner dsaSigner = SignerUtilities.GetSigner("SHA-1withDSA");
       dsaSigner.Init(false, testKey.CipherKeyPair.Public);

@@ -14,7 +14,7 @@ namespace dlech.PageantSharp
   {
     #region Instance Variables
     private Callbacks mCallbacks;
-    private string mLockedPassphrase;
+    private string mLockedPassphrase; // TODO use SecureString here
     #endregion
 
 
@@ -233,13 +233,11 @@ namespace dlech.PageantSharp
               /* create signature */
 
               ISigner signer;
-              string algName;
+              string algName = key.Algorithm;
               if (key.CipherKeyPair.Public is RsaKeyParameters) {
                 signer = SignerUtilities.GetSigner("SHA-1withRSA");
-                algName = OpenSsh.PublicKeyAlgorithms.ssh_rsa;
               } else if (key.CipherKeyPair.Public is DsaPublicKeyParameters) {
                 signer = SignerUtilities.GetSigner("SHA-1withDSA");
-                algName = OpenSsh.PublicKeyAlgorithms.ssh_dss;
               } else {
                 goto default;
               }

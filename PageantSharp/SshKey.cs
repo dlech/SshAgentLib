@@ -26,9 +26,9 @@ namespace dlech.PageantSharp
       get
       {
         if (CipherKeyPair.Public is RsaKeyParameters) {
-          return OpenSsh.PublicKeyAlgorithms.ssh_rsa;
+          return OpenSsh.PublicKeyAlgorithm.SSH_RSA.GetName();
         } else if (CipherKeyPair.Public is DsaPublicKeyParameters) {
-          return OpenSsh.PublicKeyAlgorithms.ssh_dss;
+          return OpenSsh.PublicKeyAlgorithm.SSH_DSS.GetName();
         }
         throw new Exception("Unknown algorithm");
       }

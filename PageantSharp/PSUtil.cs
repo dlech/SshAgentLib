@@ -26,11 +26,21 @@ namespace dlech.PageantSharp
     /// <summary>
     /// Convert 32 bit integer to four bytes in BigEndian order
     /// </summary>
-    /// <param name="i">integer to convert</param>
+    /// <param name="aInt">integer to convert</param>
     /// <returns>four bytes</returns>
-    public static byte[] ToBytes(this int i)
+    public static byte[] ToBytes(this int aInt)
     {
-      byte[] result = BitConverter.GetBytes(i);
+      return ((UInt32)aInt).ToBytes();
+    }
+
+    /// <summary>
+    /// Convert 32 bit integer to four bytes in BigEndian order
+    /// </summary>
+    /// <param name="aInt">integer to convert</param>
+    /// <returns>four bytes</returns>
+    public static byte[] ToBytes(this UInt32 aInt)
+    {
+      byte[] result = BitConverter.GetBytes(aInt);
       if (BitConverter.IsLittleEndian) {
         return result.Reverse().ToArray();
       } else {
@@ -41,26 +51,26 @@ namespace dlech.PageantSharp
     /// <summary>
     /// Converts 4 bytes in BigEndian order to 32 bit integer
     /// </summary>
-    /// <param name="bytes">array of bytes</param>
+    /// <param name="aBytes">array of bytes</param>
     /// <returns>32 bit integer</returns>
-    public static UInt32 ToInt(this byte[] bytes)
+    public static UInt32 ToInt(this byte[] aBytes)
     {
-      return bytes.ToInt(0);
+      return aBytes.ToInt(0);
     }
 
     /// <summary>
     /// Converts 4 bytes in BigEndian order to 32 bit integer
     /// </summary>
-    /// <param name="bytes">array of bytes</param>
-    /// <param name="offset">the offset where to start reading the bytes</param>
+    /// <param name="aBytes">array of bytes</param>
+    /// <param name="aOffset">the offset where to start reading the bytes</param>
     /// <returns>32 bit integer</returns>
-    public static UInt32 ToInt(this byte[] bytes, int offset)
+    public static UInt32 ToInt(this byte[] aBytes, int aOffset)
     {
-      if (bytes == null) {
+      if (aBytes == null) {
         throw new ArgumentNullException("bytes");
       }
       byte[] wokingBytes = new byte[4];
-      Array.Copy(bytes, offset, wokingBytes, 0, 4);
+      Array.Copy(aBytes, aOffset, wokingBytes, 0, 4);
       if (BitConverter.IsLittleEndian) {
         wokingBytes = wokingBytes.Reverse().ToArray();
       }
