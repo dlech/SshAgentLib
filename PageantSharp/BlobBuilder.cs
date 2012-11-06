@@ -10,7 +10,7 @@ namespace dlech.PageantSharp
   /// used to build blobs that are used for storing and sending keys
   /// in open-ssh/PuTTY format
   /// </summary>
-  public class BlobBuilder 
+  public class BlobBuilder
   {
 
     private List<byte> byteList;
@@ -39,7 +39,26 @@ namespace dlech.PageantSharp
     {
       Clear();
     }
-    
+
+    /// <summary>
+    /// Adds bytes to builder
+    /// </summary>
+    /// <param name="aBytes"></param>
+    public void AddBytes(byte[] aBytes)
+    {
+      byteList.AddRange(aBytes);
+    }
+
+    public void AddInt(int aInt)
+    {
+      AddInt((UInt32)aInt);
+    }
+
+    public void AddInt(UInt32 aInt)
+    {
+      byteList.AddRange(aInt.ToBytes());
+    }
+
     /// <summary>
     /// Adds a string to the blob
     /// </summary>
@@ -48,16 +67,15 @@ namespace dlech.PageantSharp
     {
       AddBlob(Encoding.UTF8.GetBytes(str));
     }
-    
+
     /// <summary>
-    /// Adds 0 pad to byte[] if required and adds the result to the blob
+    /// Adds BigInteger to builder prefixed with size
     /// </summary>
     /// <param name="bigInt"></param>
-    public void AddBigInt(BigInteger bigint)
+    public void AddBigInt(BigInteger aBigInt)
     {
-            byte[] bytes = bigint.ToByteArray();
-            byteList.AddRange(bytes.Length.ToBytes());
-      byteList.AddRange(bytes);
+      byte[] bytes = aBigInt.ToByteArray();
+      AddBlob(bytes);
     }
 
     /// <summary>
@@ -69,23 +87,14 @@ namespace dlech.PageantSharp
       byteList.AddRange(blob.Length.ToBytes());
       byteList.AddRange(blob);
     }
-
-    /// <summary>
-    /// Gets the resulting blob from the blob builder.
-    /// </summary>
-    /// <returns>byte[] containing the blob</returns>
-    public byte[] GetBlob()
-    {
-      return byteList.ToArray();
-    }
-
+    
     /// <summary>
     /// Prepends header 
     /// </summary>
     /// <param name="aMessage">message number to include in header</param>
     /// <param name="aHeaderData">data to include in header</param>
     public void InsertHeader(OpenSsh.Message aMessage, int aHeaderData)
-    {      
+    {
       byteList.InsertRange(0, aHeaderData.ToBytes());
       byteList.Insert(0, (byte)aMessage);
       byte[] blobLength = byteList.Count.ToBytes();
@@ -109,6 +118,20 @@ namespace dlech.PageantSharp
     }
 
     /// <summary>
+    /// Gets the resulting blob from the blob builder.
+    /// </summary>
+    /// <returns>byte[] containing the blob</returns>
+    public byte[] GetBlob()
+    {
+      return byteList.ToArray();
+    }
+
+    public PinnedByteArray GetBlobAsPinnedByteArray()
+    {
+      return new PinnedByteArray(GetBlob());      
+    }
+
+    /// <summary>
     /// Writes 0 to all values, then clears list
     /// </summary>
     public void Clear()
@@ -116,6 +139,6 @@ namespace dlech.PageantSharp
       PSUtil.ClearByteList(byteList);
     }
 
-      
+
   }
 }
