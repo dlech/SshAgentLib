@@ -79,39 +79,7 @@ namespace dlech.PageantSharp
       public KeyConstraintType Type { get; set; }
       public Object Data { get; set; }
     }    
-
-    public const string ALGORITHM_DSA_KEY = "ssh-dss";
-    public const string ALGORITHM_DSA_CERT = "ssh-dss-cert-v00@openssh.com";
-    public const string ALGORITHM_ECDSA_SHA2_NISTP256_KEY = "ecdsa-sha2-nistp256";
-    public const string ALGORITHM_ECDSA_SHA2_NISTP384_KEY = "ecdsa-sha2-nistp384";
-    public const string ALGORITHM_ECDSA_SHA2_NISTP521_KEY = "ecdsa-sha2-nistp521";
-    public const string ALGORITHM_ECDSA_SHA2_NISTP256_CERT = "ecdsa-sha2-nistp256-cert-v01@openssh.com";
-    public const string ALGORITHM_ECDSA_SHA2_NISTP384_CERT = "ecdsa-sha2-nistp384-cert-v01@openssh.com";
-    public const string ALGORITHM_ECDSA_SHA2_NISTP521_CERT = "ecdsa-sha2-nistp521-cert-v01@openssh.com";
-    public const string ALGORITHM_RSA_KEY = "ssh-rsa";
-    public const string ALGORITHM_RSA_CERT = "ssh-rsa-cert-v00@openssh.com";
-
-    /// <summary>
-    /// Valid public key encryption algorithms
-    /// </summary>
-    public enum PublicKeyAlgorithm
-    {
-      SSH_RSA,  
-      SSH_DSS 
-    }
-
-    public static string GetName(this PublicKeyAlgorithm aPublicKeyAlgorithm) {
-      switch (aPublicKeyAlgorithm) {
-        case PublicKeyAlgorithm.SSH_RSA:
-          return ALGORITHM_RSA_KEY;
-        case PublicKeyAlgorithm.SSH_DSS:
-          return ALGORITHM_DSA_KEY;
-        default:
-          Debug.Fail("Unknown algorithm");
-          throw new Exception("Unknown algorithm");
-      }
-    }
-
+    
     public struct BlobHeader
     {
       public UInt32 BlobLength { get; set; }
@@ -136,7 +104,7 @@ namespace dlech.PageantSharp
           (RsaKeyParameters)aCipherKeyPair.Public;
         BlobBuilder builder = new BlobBuilder();
 
-        builder.AddString(OpenSsh.PublicKeyAlgorithm.SSH_RSA.GetName());
+        builder.AddString(PublicKeyAlgorithm.SSH_RSA.GetIdentifierString());
         builder.AddBigInt(rsaKeyParameters.Exponent);
         builder.AddBigInt(rsaKeyParameters.Modulus);
 
@@ -151,7 +119,7 @@ namespace dlech.PageantSharp
           (DsaPublicKeyParameters)aCipherKeyPair.Public;
         BlobBuilder builder = new BlobBuilder();
 
-        builder.AddString(OpenSsh.PublicKeyAlgorithm.SSH_DSS.GetName());
+        builder.AddString(PublicKeyAlgorithm.SSH_DSS.GetIdentifierString());
         builder.AddBigInt(dsaParameters.Parameters.P);
         builder.AddBigInt(dsaParameters.Parameters.Q);
         builder.AddBigInt(dsaParameters.Parameters.G);
@@ -190,7 +158,7 @@ namespace dlech.PageantSharp
       string algorithm = Encoding.UTF8.GetString(parser.ReadBlob().Data);
 
       switch (algorithm) {
-        case ALGORITHM_RSA_KEY:
+        case PublicKeyAlgorithmExt.ALGORITHM_RSA_KEY:
           BigInteger n = new BigInteger(1, parser.ReadBlob().Data); // modulus
           BigInteger e = new BigInteger(1, parser.ReadBlob().Data); // exponent
           BigInteger d = new BigInteger(1, parser.ReadBlob().Data);
@@ -208,7 +176,7 @@ namespace dlech.PageantSharp
 
           return new AsymmetricCipherKeyPair(rsaPublicKeyParams, rsaPrivateKeyParams);
 
-        case ALGORITHM_DSA_KEY:
+        case PublicKeyAlgorithmExt.ALGORITHM_DSA_KEY:
           /*BigInteger*/
           p = new BigInteger(1, parser.ReadBlob().Data);
           /*BigInteger*/

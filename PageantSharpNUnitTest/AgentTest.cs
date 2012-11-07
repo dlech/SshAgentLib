@@ -119,7 +119,7 @@ namespace PageantSharpTest
         getSsh2KeyCalled = true;
         if (testKey != null) {
           string requestedFingerprint = aFingerprint.ToHexString();
-          Assert.That(testKey.Fingerprint, Is.EqualTo(requestedFingerprint));
+          Assert.That(testKey.Fingerprint.ToHexString(), Is.EqualTo(requestedFingerprint));
         }
         return testKey;
       };
@@ -149,7 +149,7 @@ namespace PageantSharpTest
       byte[] signatureBlob = parser.ReadBlob().Data;
       BlobParser signatureParser = new BlobParser(signatureBlob);
       string algorithm = signatureParser.ReadString();
-      Assert.That(algorithm, Is.EqualTo(OpenSsh.PublicKeyAlgorithm.SSH_RSA.GetName()));
+      Assert.That(algorithm, Is.EqualTo(PublicKeyAlgorithm.SSH_RSA.GetIdentifierString()));
       byte[] signature = signatureParser.ReadBlob().Data;
       ISigner rsaSigner = SignerUtilities.GetSigner("SHA-1withRSA");
       rsaSigner.Init(false, testKey.CipherKeyPair.Public);
@@ -176,7 +176,7 @@ namespace PageantSharpTest
       signatureBlob = parser.ReadBlob().Data;
       signatureParser = new BlobParser(signatureBlob);
       algorithm = Encoding.UTF8.GetString(signatureParser.ReadBlob().Data);
-      Assert.That(algorithm, Is.EqualTo(OpenSsh.PublicKeyAlgorithm.SSH_DSS.GetName()));
+      Assert.That(algorithm, Is.EqualTo(PublicKeyAlgorithm.SSH_DSS.GetIdentifierString()));
       signature = signatureParser.ReadBlob().Data;
       ISigner dsaSigner = SignerUtilities.GetSigner("SHA-1withDSA");
       dsaSigner.Init(false, testKey.CipherKeyPair.Public);
@@ -277,7 +277,7 @@ namespace PageantSharpTest
                   Is.InstanceOf<RsaKeyParameters>());
       Assert.That(returnedKey.Size, Is.EqualTo(rsaKeySize));
       Assert.That(returnedKey.Comment, Is.EqualTo(rsaKeyComment));
-      Assert.That(returnedKey.Fingerprint, Is.EqualTo(rsaKeyFingerprint));
+      Assert.That(returnedKey.Fingerprint.ToHexString(), Is.EqualTo(rsaKeyFingerprint));
 
       /* test adding dsa key */
 
@@ -296,7 +296,7 @@ namespace PageantSharpTest
                   Is.InstanceOf<DsaKeyParameters>());
       Assert.That(returnedKey.Size, Is.EqualTo(dsaKeySize));
       Assert.That(returnedKey.Comment, Is.EqualTo(dsaKeyComment));
-      Assert.That(returnedKey.Fingerprint, Is.EqualTo(dsaKeyFingerprint));
+      Assert.That(returnedKey.Fingerprint.ToHexString(), Is.EqualTo(dsaKeyFingerprint));
 
       /* test AddSsh2Key returns false => ssh agent failure*/
 

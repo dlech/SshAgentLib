@@ -208,8 +208,10 @@
     <Compile Include="BountyCastle\util\Platform.cs" />
     <Compile Include="BountyCastle\util\Strings.cs" />
     <Compile Include="BlobParser.cs" />
+    <Compile Include="ISshKey.cs" />
     <Compile Include="OpenSsh.cs" />
     <Compile Include="PinnedByteArray.cs" />
+    <Compile Include="PublicKeyAlgorithm.cs" />
     <Compile Include="SshKey.cs" />
     <Compile Include="BlobBuilder.cs" />
     <Compile Include="PpkKeyBlobParser.cs" />

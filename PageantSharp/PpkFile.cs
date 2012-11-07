@@ -69,14 +69,14 @@ namespace dlech.PageantSharp
     }
 
     private static bool TryParsePublicKeyAlgorithm(this string aString,
-      ref OpenSsh.PublicKeyAlgorithm aAlgorithm)
+      ref PublicKeyAlgorithm aAlgorithm)
     {      
       switch (aString) {
-        case OpenSsh.ALGORITHM_RSA_KEY:
-          aAlgorithm = OpenSsh.PublicKeyAlgorithm.SSH_RSA;
+        case PublicKeyAlgorithmExt.ALGORITHM_RSA_KEY:
+          aAlgorithm = PublicKeyAlgorithm.SSH_RSA;
           return true;
-        case OpenSsh.ALGORITHM_DSA_KEY:
-          aAlgorithm = OpenSsh.PublicKeyAlgorithm.SSH_DSS;
+        case PublicKeyAlgorithmExt.ALGORITHM_DSA_KEY:
+          aAlgorithm = PublicKeyAlgorithm.SSH_DSS;
           return true;
         default:
           return false;
@@ -95,7 +95,7 @@ namespace dlech.PageantSharp
       AES256_CBC
     }
 
-    private static string GetName(this PrivateKeyAlgorithm aAlgorithm) {
+    private static string GetIdentifierString(this PrivateKeyAlgorithm aAlgorithm) {
       switch (aAlgorithm) {
         case PrivateKeyAlgorithm.None:
           return ALGORITHM_NONE;
@@ -182,7 +182,7 @@ namespace dlech.PageantSharp
       /// Public key algorithm
       /// One of <see cref="PublicKeyAlgorithms"/>
       /// </summary>
-      public OpenSsh.PublicKeyAlgorithm publicKeyAlgorithm;
+      public PublicKeyAlgorithm publicKeyAlgorithm;
 
       /// <summary>
       /// Private key encryption algorithm
@@ -521,8 +521,8 @@ namespace dlech.PageantSharp
 
       BlobBuilder builder = new BlobBuilder();
       if (fileData.ppkFileVersion != Version.V1) {
-        builder.AddString(fileData.publicKeyAlgorithm.GetName());
-        builder.AddString(fileData.privateKeyAlgorithm.GetName());
+        builder.AddString(fileData.publicKeyAlgorithm.GetIdentifierString());
+        builder.AddString(fileData.privateKeyAlgorithm.GetIdentifierString());
         builder.AddString(fileData.comment);
         builder.AddBlob(fileData.publicKeyBlob);
         builder.AddInt(fileData.privateKeyBlob.Data.Length);
@@ -596,7 +596,7 @@ namespace dlech.PageantSharp
     }
 
     private static AsymmetricCipherKeyPair CreateCipherKeyPair(
-      OpenSsh.PublicKeyAlgorithm aAlgorithm,
+      PublicKeyAlgorithm aAlgorithm,
       byte[] aPublicKeyBlob, byte[] aPrivateKeyBlob)
     {
       BigInteger exponent, modulus, d, p, q, inverseQ, dp, dq; // rsa params
@@ -606,12 +606,12 @@ namespace dlech.PageantSharp
       string algorithm = Encoding.UTF8.GetString(parser.CurrentAsPinnedByteArray.Data);
       parser.CurrentAsPinnedByteArray.Dispose();
       parser.MoveNext();
-      if (algorithm != aAlgorithm.GetName()) {
-        throw new InvalidOperationException("public key is not " + aAlgorithm.GetName());
+      if (algorithm != aAlgorithm.GetIdentifierString()) {
+        throw new InvalidOperationException("public key is not " + aAlgorithm.GetIdentifierString());
       }
 
       switch (aAlgorithm) {
-        case OpenSsh.PublicKeyAlgorithm.SSH_RSA:       
+        case PublicKeyAlgorithm.SSH_RSA:       
 
           /* read parameters that were stored in file */
 
@@ -644,7 +644,7 @@ namespace dlech.PageantSharp
 
           return new AsymmetricCipherKeyPair(rsaPublicKeyParams, rsaPrivateKeyParams);
 
-        case OpenSsh.PublicKeyAlgorithm.SSH_DSS:          
+        case PublicKeyAlgorithm.SSH_DSS:          
 
           /* read parameters that were stored in file */
 

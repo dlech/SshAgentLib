@@ -11,7 +11,7 @@ namespace dlech.PageantSharp
   /// Class for encapsulating information on encryption keys so that it can be
   /// used in PuTTY related programs
   /// </summary>
-  public class SshKey : IDisposable
+  public class SshKey : ISshKey
   {
 
     public SshVersion Version { get; set; }
@@ -21,14 +21,14 @@ namespace dlech.PageantSharp
       set;
     }
 
-    public string Algorithm
+    public PublicKeyAlgorithm Algorithm
     {
       get
       {
         if (CipherKeyPair.Public is RsaKeyParameters) {
-          return OpenSsh.PublicKeyAlgorithm.SSH_RSA.GetName();
+          return PublicKeyAlgorithm.SSH_RSA;
         } else if (CipherKeyPair.Public is DsaPublicKeyParameters) {
-          return OpenSsh.PublicKeyAlgorithm.SSH_DSS.GetName();
+          return PublicKeyAlgorithm.SSH_DSS;
         }
         throw new Exception("Unknown algorithm");
       }
@@ -50,12 +50,12 @@ namespace dlech.PageantSharp
       }
     }
 
-    public string Fingerprint
+    public byte[] Fingerprint
     {
       get
       {
         try {
-          return OpenSsh.GetFingerprint(CipherKeyPair).ToHexString();
+          return OpenSsh.GetFingerprint(CipherKeyPair);
         } catch (Exception) {
           return null;
         }
