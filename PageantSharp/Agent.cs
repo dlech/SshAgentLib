@@ -7,14 +7,18 @@ using Org.BouncyCastle.Crypto;
 using Org.BouncyCastle.Crypto.Parameters;
 using Org.BouncyCastle.Security;
 using System.Text;
+using System.Security;
+using System.Runtime.InteropServices;
 
 namespace dlech.PageantSharp
 {
   public abstract class Agent : IDisposable
   {
     #region Instance Variables
+
     private Callbacks mCallbacks;
-    private string mLockedPassphrase; // TODO use SecureString here
+    private SecureString mLockedPassphrase;
+
     #endregion
 
 
@@ -44,28 +48,42 @@ namespace dlech.PageantSharp
       }
     }
 
-    public bool Lock(string aPassphrase)
+    public bool Lock(byte[] aPassphrase)
     {
       if (IsLocked) {
         // can't lock if already locked
         return false;
       }
-      mLockedPassphrase = aPassphrase;
+      mLockedPassphrase = new SecureString();
+      foreach (byte b in aPassphrase) {
+        mLockedPassphrase.AppendChar((char)b);
+      }
       IsLocked = true;
       OnLocked();
       return true;
     }
 
-    public bool Unlock(string aPassphrase)
+    public bool Unlock(byte[] aPassphrase)
     {
       if (!IsLocked) {
         // can't unlock if not locked
         return false;
       }
-      if (mLockedPassphrase != aPassphrase) {
-        // bad passphrase
+      if (mLockedPassphrase.Length != aPassphrase.Length) {
+        // passwords definitely do not match
         return false;
       }
+      IntPtr lockedPassPtr =
+          Marshal.SecureStringToGlobalAllocUnicode(mLockedPassphrase);
+      for (int i = 0; i < mLockedPassphrase.Length; i++) {
+        Int16 lockedPassChar = Marshal.ReadInt16(lockedPassPtr, i * 2);
+        if (lockedPassChar != aPassphrase[i]) {
+          Marshal.ZeroFreeGlobalAllocUnicode(lockedPassPtr);
+          return false;
+        }
+      }
+      Marshal.ZeroFreeGlobalAllocUnicode(lockedPassPtr);
+      mLockedPassphrase.Clear();
       IsLocked = false;
       OnLocked();
       return true;
@@ -233,7 +251,7 @@ namespace dlech.PageantSharp
               /* create signature */
 
               ISigner signer;
-              string algName = key.Algorithm;
+              string algName = key.Algorithm.GetIdentifierString();
               if (key.CipherKeyPair.Public is RsaKeyParameters) {
                 signer = SignerUtilities.GetSigner("SHA-1withRSA");
               } else if (key.CipherKeyPair.Public is DsaPublicKeyParameters) {
@@ -393,8 +411,10 @@ namespace dlech.PageantSharp
 
         case OpenSsh.Message.SSH_AGENTC_LOCK:
           try {
-            string passphrase = messageParser.ReadString();
-            if (Lock(passphrase)) {
+            PinnedByteArray passphrase = messageParser.ReadBlob();
+            bool lockSucceeded = Lock(passphrase.Data);
+            passphrase.Clear();
+            if (lockSucceeded) {
               responseBuilder.InsertHeader(OpenSsh.Message.SSH_AGENT_SUCCESS);
               break;
             }
@@ -405,8 +425,10 @@ namespace dlech.PageantSharp
 
         case OpenSsh.Message.SSH_AGENTC_UNLOCK:
           try {
-            string passphrase = messageParser.ReadString();
-            if (Unlock(passphrase)) {
+            PinnedByteArray passphrase = messageParser.ReadBlob();
+            bool unlockSucceeded = Unlock(passphrase.Data);
+            passphrase.Clear();
+            if (unlockSucceeded) {
               responseBuilder.InsertHeader(OpenSsh.Message.SSH_AGENT_SUCCESS);
               break;
             }
