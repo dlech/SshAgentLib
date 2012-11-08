@@ -76,36 +76,36 @@ namespace PageantSharpNUnitTest
     public void TestInsertHeader()
     {
       BlobBuilder builder = new BlobBuilder();
-      builder.InsertHeader(OpenSsh.Message.SSH_AGENT_SUCCESS);
-      byte[] expected = { 0, 0, 0, 1, (byte)OpenSsh.Message.SSH_AGENT_SUCCESS };
+      builder.InsertHeader(Agent.Message.SSH_AGENT_SUCCESS);
+      byte[] expected = { 0, 0, 0, 1, (byte)Agent.Message.SSH_AGENT_SUCCESS };
       Assert.That(builder.GetBlob(), Is.EqualTo(expected));
 
       builder = new BlobBuilder();
       int value1 = 12345;
-      builder.InsertHeader(OpenSsh.Message.SSH_AGENT_SUCCESS, value1);
+      builder.InsertHeader(Agent.Message.SSH_AGENT_SUCCESS, value1);
       expected = new byte[9];
       Array.Copy((5).ToBytes(), expected, 4);
-      expected[4] = (byte)OpenSsh.Message.SSH_AGENT_SUCCESS;
+      expected[4] = (byte)Agent.Message.SSH_AGENT_SUCCESS;
       Array.Copy(value1.ToBytes(), 0, expected, 5, 4);
       Assert.That(builder.GetBlob(), Is.EqualTo(expected));
 
       builder = new BlobBuilder();
       byte[] value2 = { 1, 2, 3, 4, 5 };
       builder.AddBytes(value2);
-      builder.InsertHeader(OpenSsh.Message.SSH_AGENT_SUCCESS);
+      builder.InsertHeader(Agent.Message.SSH_AGENT_SUCCESS);
       expected = new byte[9 + value2.Length];
       Array.Copy((5 + value2.Length).ToBytes(), expected, 4);
-      expected[4] = (byte)OpenSsh.Message.SSH_AGENT_SUCCESS;
+      expected[4] = (byte)Agent.Message.SSH_AGENT_SUCCESS;
       Array.Copy(value2.Length.ToBytes(), 0, expected, 5, 4);
       Array.Copy(value2, 0, expected, 9, value2.Length);
       Assert.That(builder.GetBlob(), Is.EqualTo(expected));
 
       builder = new BlobBuilder();
       builder.AddBytes(value2);
-      builder.InsertHeader(OpenSsh.Message.SSH_AGENT_SUCCESS, value1);
+      builder.InsertHeader(Agent.Message.SSH_AGENT_SUCCESS, value1);
       expected = new byte[9 + value2.Length];
       Array.Copy((5 + value2.Length).ToBytes(), expected, 4);
-      expected[4] = (byte)OpenSsh.Message.SSH_AGENT_SUCCESS;
+      expected[4] = (byte)Agent.Message.SSH_AGENT_SUCCESS;
       Array.Copy(value1.ToBytes(), 0, expected, 5, 4);
       Array.Copy(value2, 0, expected, 9, value2.Length);
       Assert.That(builder.GetBlob(), Is.EqualTo(expected));

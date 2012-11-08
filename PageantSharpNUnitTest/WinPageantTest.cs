@@ -43,7 +43,6 @@ namespace PageantSharpTest
       public IntPtr lpData;
     }
 
-
     /// <summary>
     /// Test for WinPagent
     /// </summary>
@@ -52,20 +51,13 @@ namespace PageantSharpTest
     {
       /* code based on agent_query function in winpgntc.c from PuTTY */
 
-      Agent.RemoveAllSSHKeysCallback removeAllKeys = delegate()
-      {
-        return true;
-      };
-
-      Agent.Callbacks callbacks = new Agent.Callbacks();
-      callbacks.removeAllSSH2Keys = removeAllKeys;
-      using (WinPageant agent = new WinPageant(callbacks)) {
+      using (WinPageant agent = new WinPageant()) {
 
         /* try starting a second instance */
 
         Assert.That(delegate()
         {
-          WinPageant agent2 = new WinPageant(callbacks);
+          WinPageant agent2 = new WinPageant();
           agent2.Dispose();
         }, Throws.InstanceOf<PageantRunningException>());
 
@@ -79,7 +71,7 @@ namespace PageantSharpTest
           Assert.That(mappedFile.SafeMemoryMappedFileHandle.IsInvalid, Is.False);
           using (MemoryMappedViewStream stream = mappedFile.CreateViewStream()) {
             byte[] message = new byte[] {0, 0, 0, 1,
-            (byte)OpenSsh.Message.SSH2_AGENTC_REMOVE_ALL_IDENTITIES};
+            (byte)Agent.Message.SSH2_AGENTC_REMOVE_ALL_IDENTITIES};
             stream.Write(message, 0, message.Length);
             COPYDATASTRUCT copyData = new COPYDATASTRUCT();
             copyData.dwData = new IntPtr(AGENT_COPYDATA_ID);
@@ -92,7 +84,7 @@ namespace PageantSharpTest
             stream.Position = 0;
             stream.Read(reply, 0, reply.Length);
             byte[] expected = {0, 0, 0, 1,
-                               (byte)OpenSsh.Message.SSH_AGENT_SUCCESS};
+                               (byte)Agent.Message.SSH_AGENT_SUCCESS};
             Assert.That(reply, Is.EqualTo(expected));
           }
         }

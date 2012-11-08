@@ -74,11 +74,8 @@ namespace PageantSharpTest
         "XmjNKygrsIq3yPMZV4q8YcN/ls9COcynOQMIEmJF6Q0LD7Gt9Uv5yjqc2Ay7VVhG" +
         "qZNnIeE=");
 
-      actual = OpenSsh.GetSSH2PublicKeyBlob(target.CipherKeyPair);
-      Assert.AreEqual(expected.Length, actual.Length);
-      for (int i = 0; i < expected.Length; i++) {
-        Assert.AreEqual(expected[0], actual[1]);
-      }
+      actual = target.CipherKeyPair.Public.ToBlob();
+      Assert.That(expected, Is.EqualTo(actual));
 
       /* test DSA key */
       target = PpkFile.ReadFile(ssh2_dsa_no_passphrase_ppk,
@@ -94,11 +91,8 @@ namespace PageantSharpTest
           "M9zBXkqb5bdlqy9vRx72/1DXOjH08PIbvza7HfOLkhRri0TYBDJbufQOlK4vQPqF" +
           "0qhxkYfsgqrZBMBKbLKTZnNm+BW2dgu+QSud67b01IZPzS2i0Z4DgSja9vl3xong" +
           "Cw==");
-      actual = OpenSsh.GetSSH2PublicKeyBlob(target.CipherKeyPair);
-      Assert.AreEqual(expected.Length, actual.Length);
-      for (int i = 0; i < expected.Length; i++) {
-        Assert.AreEqual(expected[0], actual[1]);
-      }
+      actual = target.CipherKeyPair.Public.ToBlob();
+      Assert.That(expected, Is.EqualTo(actual));
     }
   }
 }

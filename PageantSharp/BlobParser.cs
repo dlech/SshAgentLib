@@ -43,15 +43,15 @@ namespace dlech.PageantSharp
       return dataLegthBytes.ToInt();
     }
 
-    public OpenSsh.BlobHeader ReadHeader()
+    public Agent.BlobHeader ReadHeader()
     {
-      OpenSsh.BlobHeader header = new OpenSsh.BlobHeader();
+      Agent.BlobHeader header = new Agent.BlobHeader();
 
       header.BlobLength = ReadInt();
       if (mStream.Length - mStream.Position < header.BlobLength) {
         throw new Exception("Not enough data");
-      }      
-      header.Message = (OpenSsh.Message)ReadByte();
+      }
+      header.Message = (Agent.Message)ReadByte();
       return header;
     }
 

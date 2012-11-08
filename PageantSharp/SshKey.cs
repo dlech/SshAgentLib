@@ -4,6 +4,8 @@ using Org.BouncyCastle.Crypto;
 using Org.BouncyCastle.Crypto.Parameters;
 using Org.BouncyCastle.Math;
 using System.Text;
+using System.Collections.Generic;
+using System.Collections.ObjectModel;
 
 namespace dlech.PageantSharp
 {
@@ -13,10 +15,13 @@ namespace dlech.PageantSharp
   /// </summary>
   public class SshKey : ISshKey
   {
+    private ObservableCollection<Agent.KeyConstraint> mKeyConstraints =
+      new ObservableCollection<Agent.KeyConstraint>();
 
     public SshVersion Version { get; set; }
 
-    public AsymmetricCipherKeyPair CipherKeyPair {
+    public AsymmetricCipherKeyPair CipherKeyPair
+    {
       get;
       set;
     }
@@ -34,8 +39,10 @@ namespace dlech.PageantSharp
       }
     }
 
-    public int Size {
-      get {
+    public int Size
+    {
+      get
+      {
         if (CipherKeyPair.Public is RsaKeyParameters) {
           RsaKeyParameters rsaKeyParameters =
             (RsaKeyParameters)CipherKeyPair.Public;
@@ -55,7 +62,9 @@ namespace dlech.PageantSharp
       get
       {
         try {
-          return OpenSsh.GetFingerprint(CipherKeyPair);
+          using (MD5 md5 = MD5.Create()) {
+            return md5.ComputeHash(CipherKeyPair.Public.ToBlob());
+          }
         } catch (Exception) {
           return null;
         }
@@ -65,9 +74,18 @@ namespace dlech.PageantSharp
     /// <summary>
     /// User comment
     /// </summary>
-    public string Comment {
+    public string Comment
+    {
       get;
       set;
+    }
+
+    public ObservableCollection<Agent.KeyConstraint> Constraints
+    {
+      get
+      {
+        return mKeyConstraints;
+      }
     }
 
     ~SshKey()

@@ -11,6 +11,8 @@
     <RootNamespace>dlech.PageantSharp</RootNamespace>
     <AssemblyName>PageantSharp</AssemblyName>
     <FileAlignment>512</FileAlignment>
+    <TargetFrameworkVersion>v4.0</TargetFrameworkVersion>
+    <TargetFrameworkProfile>Client</TargetFrameworkProfile>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|x86' ">
     <DebugSymbols>true</DebugSymbols>
@@ -209,7 +211,6 @@
     <Compile Include="BountyCastle\util\Strings.cs" />
     <Compile Include="BlobParser.cs" />
     <Compile Include="ISshKey.cs" />
-    <Compile Include="OpenSsh.cs" />
     <Compile Include="PinnedByteArray.cs" />
     <Compile Include="PublicKeyAlgorithm.cs" />
     <Compile Include="SshKey.cs" />

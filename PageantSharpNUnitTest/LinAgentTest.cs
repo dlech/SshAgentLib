@@ -22,8 +22,7 @@ namespace PageantSharpTest
       string socketDir;
       string socketPathEnv;
       string pidEnv;
-      Agent.Callbacks callbacks = new Agent.Callbacks();
-      using (LinAgent agent = new LinAgent(callbacks)) {
+      using (LinAgent agent = new LinAgent()) {
         socketDir = GetField<string>(agent, "socketDir");
         int pid = UnixProcess.GetCurrentProcessId();
         socketPathEnv = Environment
@@ -46,7 +45,7 @@ namespace PageantSharpTest
             byte[] reply = new byte[5];
             stream.Read(reply, 0, 5);
             byte[] expected = { 0, 0, 0, 1,
-              (byte)OpenSsh.Message.SSH_AGENT_FAILURE };
+              (byte)Agent.Message.SSH_AGENT_FAILURE };
             Assert.That(reply, Is.EqualTo(expected));
           }
         }

@@ -93,7 +93,7 @@ namespace dlech.PageantSharp
     /// </summary>
     /// <param name="aMessage">message number to include in header</param>
     /// <param name="aHeaderData">data to include in header</param>
-    public void InsertHeader(OpenSsh.Message aMessage, int aHeaderData)
+    public void InsertHeader(Agent.Message aMessage, int aHeaderData)
     {
       byteList.InsertRange(0, aHeaderData.ToBytes());
       byteList.Insert(0, (byte)aMessage);
@@ -105,7 +105,7 @@ namespace dlech.PageantSharp
     /// Prepends header 
     /// </summary>
     /// <param name="aMessage">message number to include in header</param>
-    public void InsertHeader(OpenSsh.Message aMessage)
+    public void InsertHeader(Agent.Message aMessage)
     {
       byte[] blobLength;
       if (byteList.Count > 0) {

@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Diagnostics;
 using System.IO.MemoryMappedFiles;
 using System.Runtime.InteropServices;
@@ -126,8 +126,7 @@ namespace dlech.PageantSharp
     /// Thrown when another instance of Pageant is running.
     /// </exception>
     /// <remarks>This window is not meant to be used for UI.</remarks>
-    public WinPageant(Callbacks aCallbacks)
-      : base(aCallbacks)
+    public WinPageant()
     {
       if (CheckAlreadyRunning()) {
         throw new PageantRunningException();

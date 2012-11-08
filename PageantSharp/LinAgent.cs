@@ -52,8 +52,7 @@ namespace dlech.PageantSharp
 
     /* constructor */
 
-    public LinAgent(Callbacks aCallBacks)
-      : base(aCallBacks)
+    public LinAgent()
     {
       // TODO load Mono.Unix assembly so that we can run on windows.
 

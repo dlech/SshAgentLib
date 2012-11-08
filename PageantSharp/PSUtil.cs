@@ -5,6 +5,10 @@ using System.Text;
 using System.Security.Cryptography;
 using System.Text.RegularExpressions;
 using System.IO;
+using System.Diagnostics;
+using System.Collections.ObjectModel;
+using Org.BouncyCastle.Crypto;
+using Org.BouncyCastle.Crypto.Parameters;
 
 namespace dlech.PageantSharp
 {
@@ -13,6 +17,89 @@ namespace dlech.PageantSharp
   /// </summary>
   public static class PSUtil
   {
+    public static bool Remove(this ObservableCollection<ISshKey> aKeyList,
+      SshVersion aVersion,
+      byte[] aPublicKeyBlob)
+    {
+      ISshKey key = aKeyList.Get(aVersion, aPublicKeyBlob);
+      return aKeyList.Remove(key);
+    }
+
+    public static ISshKey Get(this ObservableCollection<ISshKey> aKeyList,
+      SshVersion aVersion,
+      byte[] aPublicKeyBlob)
+    {
+      foreach (ISshKey key in aKeyList.Where(key => key.Version == aVersion)) {
+        byte[] keyBlob = key.CipherKeyPair.Public.ToBlob();
+        if (keyBlob.SequenceEqual(aPublicKeyBlob)) {
+          return key;
+        }        
+      }
+      return null;
+    }
+
+    /// <summary>
+    /// Gets OpenSsh formatted bytes from public key
+    /// </summary>
+    /// <param name="Algorithm">AsymmetricAlgorithm to convert.</param>
+    /// <returns>byte array containing key information</returns>
+    /// <exception cref="ArgumentException">
+    /// AsymmetricAlgorithm is not supported
+    /// </exception>
+    /// <remarks>
+    /// Currently only supports RSA and DSA public keys
+    /// </remarks>
+    public static byte[] ToBlob(this AsymmetricKeyParameter aParameter)
+    {
+      if (aParameter is RsaKeyParameters) {        
+          RsaKeyParameters rsaKeyParameters = (RsaKeyParameters)aParameter;
+          BlobBuilder builder = new BlobBuilder();
+          builder.AddString(PublicKeyAlgorithm.SSH_RSA.GetIdentifierString());
+
+
+          builder.AddBigInt(rsaKeyParameters.Exponent);
+          builder.AddBigInt(rsaKeyParameters.Modulus);
+          byte[] result = builder.GetBlob();
+          builder.Clear();
+          return result;
+      } else if (aParameter is DsaPublicKeyParameters) {
+
+        DsaPublicKeyParameters dsaParameters =
+          (DsaPublicKeyParameters)aParameter;
+        BlobBuilder builder = new BlobBuilder();
+
+        builder.AddString(PublicKeyAlgorithm.SSH_DSS.GetIdentifierString());
+        builder.AddBigInt(dsaParameters.Parameters.P);
+        builder.AddBigInt(dsaParameters.Parameters.Q);
+        builder.AddBigInt(dsaParameters.Parameters.G);
+        builder.AddBigInt(dsaParameters.Y);
+
+        byte[] result = builder.GetBlob();
+        builder.Clear();
+        return result;
+      }
+
+      throw new ArgumentException(aParameter.GetType() + " is not supported");
+    }
+    
+    /// <summary>
+    /// Gets the Type of the Data object for a given Agent.KeyConstraintType
+    /// </summary>
+    /// <param name="aConstraint"></param>
+    /// <returns></returns>
+    public static Type GetDataType(this Agent.KeyConstraintType aConstraint)
+    {
+      switch (aConstraint) {
+        case Agent.KeyConstraintType.SSH_AGENT_CONSTRAIN_CONFIRM:
+          return null;
+        case Agent.KeyConstraintType.SSH_AGENT_CONSTRAIN_LIFETIME:
+          return typeof(UInt32);
+        default:
+          Debug.Fail("Unknown KeyConstraintType");
+          throw new ArgumentException("Unknown KeyConstraintType");
+      }
+    }
+
     /// <summary>
     /// Writes aBuiler data to aStream at current position of aStream
     /// </summary>
@@ -158,7 +245,7 @@ namespace dlech.PageantSharp
       }
       return string.Join(delimeter, strings);
     }
-        
+
     public static byte[] FromBase64(string base64String)
     {
       return FromBase64(Encoding.UTF8.GetBytes(base64String));
