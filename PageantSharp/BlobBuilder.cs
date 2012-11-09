@@ -96,9 +96,7 @@ namespace dlech.PageantSharp
     public void InsertHeader(Agent.Message aMessage, int aHeaderData)
     {
       byteList.InsertRange(0, aHeaderData.ToBytes());
-      byteList.Insert(0, (byte)aMessage);
-      byte[] blobLength = byteList.Count.ToBytes();
-      byteList.InsertRange(0, blobLength);
+      InsertHeader(aMessage);
     }
 
     /// <summary>
@@ -107,13 +105,8 @@ namespace dlech.PageantSharp
     /// <param name="aMessage">message number to include in header</param>
     public void InsertHeader(Agent.Message aMessage)
     {
-      byte[] blobLength;
-      if (byteList.Count > 0) {
-        blobLength = byteList.Count.ToBytes();
-        byteList.InsertRange(0, blobLength);
-      }
       byteList.Insert(0, (byte)aMessage);
-      blobLength = byteList.Count.ToBytes();
+      byte[] blobLength = byteList.Count.ToBytes();
       byteList.InsertRange(0, blobLength);
     }
 

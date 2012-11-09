@@ -254,20 +254,12 @@ namespace dlech.PageantSharp
             PinnedByteArray keyBlob = messageParser.ReadBlob();
             PinnedByteArray reqData = messageParser.ReadBlob();
 
-            IEnumerable<ISshKey> matchingKeys =
-              from key in KeyList
-              where key.Version == SshVersion.SSH2 &&
-                    key.CipherKeyPair.Public.ToBlob().SequenceEqual(keyBlob.Data)
-              select key;
-
-            if (matchingKeys.Count() != 1) {
-              Debug.Assert(matchingKeys.Count() == 0,
-                "should not have multiple matching keys");
-              goto default;
-            }
+            ISshKey matchingKey =
+              KeyList.Where(key => key.Version == SshVersion.SSH2 &&
+              key.CipherKeyPair.Public.ToBlob().SequenceEqual(keyBlob.Data)).Single();              
 
             /* create signature */
-            ISshKey signKey = matchingKeys.First();
+            ISshKey signKey = matchingKey;
             ISigner signer;
             string algName = signKey.Algorithm.GetIdentifierString();
             if (signKey.CipherKeyPair.Public is RsaKeyParameters) {
@@ -281,11 +273,14 @@ namespace dlech.PageantSharp
             signer.BlockUpdate(reqData.Data, 0, reqData.Data.Length);
             byte[] signature = signer.GenerateSignature();
 
-            responseBuilder.AddString(algName);
-            responseBuilder.AddBlob(signature);
+            BlobBuilder signatureBuilder = new BlobBuilder();
+            signatureBuilder.AddString(algName);
+            signatureBuilder.AddBlob(signature);
+            responseBuilder.AddBlob(signatureBuilder.GetBlob());
             responseBuilder.InsertHeader(Message.SSH2_AGENT_SIGN_RESPONSE);
-            // TODO may want to check that there is enough room in the message stream
             break; // succeeded
+          }catch (InvalidOperationException) {
+            // this is expected if there is not a matching key
           } catch (Exception ex) {
             Debug.Fail(ex.ToString());
           }
@@ -308,6 +303,10 @@ namespace dlech.PageantSharp
            * Add to the list and return SSH_AGENT_SUCCESS, or
            * SSH_AGENT_FAILURE if the key was malformed.
            */
+
+          if (IsLocked) {
+            goto default;
+          }
 
           bool constrained = (header.Message ==
               Message.SSH2_AGENTC_ADD_ID_CONSTRAINED);
@@ -394,10 +393,8 @@ namespace dlech.PageantSharp
           }
 
           try {
-            IEnumerable<ISshKey> removeKeyList =
-              from key in KeyList
-              where key.Version == removeAllVersion
-              select key;
+            List<ISshKey> removeKeyList =
+              KeyList.Where(key => key.Version == removeAllVersion).ToList();
 
             foreach (ISshKey key in removeKeyList) {
               KeyList.Remove(key);

@@ -6,12 +6,14 @@ using System.Collections.Generic;
 using System.Security.Cryptography;
 using Org.BouncyCastle.Crypto;
 using Org.BouncyCastle.Crypto.Parameters;
+using Org.BouncyCastle.Crypto.Generators;
 using Org.BouncyCastle.Math;
 using Org.BouncyCastle.Security;
 using NUnit.Framework;
 using PageantSharpNUnitTest.Properties;
 using System.IO;
 using System.Text;
+using System.Collections.ObjectModel;
 
 namespace PageantSharpTest
 {
@@ -24,157 +26,192 @@ namespace PageantSharpTest
   public class AgentTest
   {
     // these are 'constants', so don't modify the values!
-    private readonly byte[] cAgentFailure =
-      { 0x00, 0x00, 0x00, 0x01, (byte)Agent.Message.SSH_AGENT_FAILURE };
-    private readonly byte[] cAgentSucess =
-      { 0x00, 0x00, 0x00, 0x01, (byte)Agent.Message.SSH_AGENT_SUCCESS };
+    private readonly byte[] cAgentFailure = { 0x00, 0x00, 0x00, 0x01, (byte)Agent.Message.SSH_AGENT_FAILURE };
+    private readonly byte[] cAgentSucess = { 0x00, 0x00, 0x00, 0x01, (byte)Agent.Message.SSH_AGENT_SUCCESS };
+
+    /* instance variables */
+    byte[] mBuffer;
+    MemoryStream mStream;
+    BlobParser mParser;
+    SshKey mRsa1Key;
+    SshKey mRsaKey;
+    SshKey mDsaKey;
+    ReadOnlyCollection<ISshKey> mAllKeys;
+
 
     // since Agent is an abstract class, we need to create a trivial
     // implementation
     private class TestAgent : Agent
     {
+      public TestAgent() { }
+
+      public TestAgent(IEnumerable<ISshKey> keyList)
+      {
+        foreach (ISshKey key in keyList) {
+          KeyList.Add(key);
+        }
+      }
+
       public override void Dispose() { }
     }
+    
 
+    [TestFixtureSetUp()]
+    public void Setup()
+    {
+      mBuffer = new byte[4096];
+      mStream = new MemoryStream(mBuffer);
+      mParser = new BlobParser(mStream);
+
+      SecureRandom secureRandom = new SecureRandom();
+      KeyGenerationParameters keyGenParam =
+        new KeyGenerationParameters(secureRandom, 512);
+
+      RsaKeyPairGenerator rsaKeyPairGen = new RsaKeyPairGenerator();
+      rsaKeyPairGen.Init(keyGenParam);
+      mRsa1Key = new SshKey();
+      mRsa1Key.CipherKeyPair = rsaKeyPairGen.GenerateKeyPair();
+      mRsa1Key.Version = SshVersion.SSH1;
+      mRsa1Key.Comment = "SSH1 RSA test key";
+      mRsaKey = new SshKey();
+      mRsaKey.CipherKeyPair = mRsa1Key.CipherKeyPair;
+      mRsaKey.Version = SshVersion.SSH2;
+      mRsaKey.Comment = "SSH2 RSA test key";
+
+      DsaParametersGenerator dsaParamGen = new DsaParametersGenerator();
+      dsaParamGen.Init(512, 10, secureRandom);
+      DsaParameters dsaParam = dsaParamGen.GenerateParameters();
+      DsaKeyGenerationParameters dsaKeyGenParam =
+        new DsaKeyGenerationParameters(secureRandom, dsaParam);
+      DsaKeyPairGenerator dsaKeyPairGen = new DsaKeyPairGenerator();
+      dsaKeyPairGen.Init(dsaKeyGenParam);
+      mDsaKey = new SshKey();
+      mDsaKey.CipherKeyPair = dsaKeyPairGen.GenerateKeyPair();
+      mDsaKey.Version = SshVersion.SSH2;
+      mDsaKey.Comment = "SSH2 DSA test key";
+
+      // TODO add more key types here when they are implemented
+
+      List<ISshKey> allKeys = new List<ISshKey>();
+      allKeys.Add(mRsa1Key);
+      allKeys.Add(mRsaKey);
+      allKeys.Add(mDsaKey);      
+      mAllKeys = allKeys.AsReadOnly();
+    }
 
     [Test()]
     public void TestAnswerSSH2_AGENTC_REQUEST_IDENTITIES()
     {
-      string expected = "AAAAzAwAAAABAAAAlQAAAAdzc2gtcnNhAAAAASUAAACBAIVqnRL" +
-        "P5c9a+C/GQAEu+q1+4Y966yP+hTZQcOhEW2tlRZp9gB8UMGZhx5qjPlLYmOe2p4Iw/X" +
-        "0208y++AtPn/za0WPgWF39XBfruV5ozSsoK7CKt8jzGVeKvGHDf5bPQjnMpzkDCBJiR" +
-        "ekNCw+xrfVL+co6nNgMu1VYRqmTZyHhAAAAKlBhZ2VhbnRTaGFycCB0ZXN0OiBTU0gy" +
-        "LVJTQSwgbm8gcGFzc3BocmFzZQ==";
+      Agent agent = new TestAgent(mAllKeys);      
 
-      SshKey ssh2RsaKey =
-        PpkFile.ParseData((byte[])Resources.ssh2_rsa_no_passphrase_ppk.Clone(),
-                           null, delegate() { });      
-            
-      Agent agent = new TestAgent();
-      agent.KeyList.Add(ssh2RsaKey);
+      /* send request for SSH2 identities */
+      PrepareSimpleMessage(Agent.Message.SSH2_AGENTC_REQUEST_IDENTITIES);
+      agent.AnswerMessage(mStream);
+      RewindStream();
 
-      byte[] buffer = new byte[4096];
-      MemoryStream stream = new MemoryStream(buffer);
+      /* check that we received proper response type */
+      Agent.BlobHeader header = mParser.ReadHeader();
+      Assert.That(header.Message,
+        Is.EqualTo(Agent.Message.SSH2_AGENT_IDENTITIES_ANSWER));
+      
+      /* check that we received the correct key count */
+      UInt32 actualKeyCount = mParser.ReadInt();
+      List<ISshKey> ssh2KeyList =
+        agent.KeyList.Where(key => key.Version == SshVersion.SSH2).ToList();
+      int expectedSsh2KeyCount = ssh2KeyList.Count; 
+      Assert.That(actualKeyCount, Is.EqualTo(expectedSsh2KeyCount));
 
-      PrepareSimpleMessage(Agent.Message.SSH2_AGENTC_REQUEST_IDENTITIES, stream);
-      agent.AnswerMessage(stream);
-      byte[] response = new byte[stream.Position];
-      stream.Position = 0;
-      stream.Read(response, 0, response.Length);
-      string actual = Encoding.UTF8.GetString(PSUtil.ToBase64(response));
-      Assert.That(actual, Is.EqualTo(expected));
+      /* check that we have data for each key */
+      for (int i = 0; i < actualKeyCount; i++) {
+        byte[] actualPublicKeyBlob = mParser.ReadBlob().Data;
+        byte[] expectedPublicKeyBlob =
+          ssh2KeyList[i].CipherKeyPair.Public.ToBlob();
+        Assert.That(actualPublicKeyBlob, Is.EqualTo(expectedPublicKeyBlob));
+        string actualComment = mParser.ReadString();
+        string expectedComment = ssh2KeyList[i].Comment;
+        Assert.That(actualComment, Is.EqualTo(expectedComment));
+      }
+      /* verify that the overall response length is correct */
+      Assert.That(header.BlobLength, Is.EqualTo(mStream.Position - 4));
     }
 
     [Test()]
     public void TestAnswerSSH2_AGENTC_SIGN_REQUEST()
     {
-      const string rsaSignRequestData =
-        "AAABlw0AAACVAAAAB3NzaC1yc2EAAAABJQAAAIEAhWqdEs/lz1r4L8ZAAS76rX7hj3r" +
-        "rI/6FNlBw6ERba2VFmn2AHxQwZmHHmqM+UtiY57angjD9fTbTzL74C0+f/NrRY+BYXf" +
-        "1cF+u5XmjNKygrsIq3yPMZV4q8YcN/ls9COcynOQMIEmJF6Q0LD7Gt9Uv5yjqc2Ay7V" +
-        "VhGqZNnIeEAAAD1AAAAIDFXxpObEs3/LsBAw4dqt4zo16AD/GYi9T5GCVjtsCRwMgAA" +
-        "AAhrZWVhZ2VudAAAAA5zc2gtY29ubmVjdGlvbgAAAAlwdWJsaWNrZXkBAAAAB3NzaC1" +
-        "yc2EAAACVAAAAB3NzaC1yc2EAAAABJQAAAIEAhWqdEs/lz1r4L8ZAAS76rX7hj3rrI/" +
-        "6FNlBw6ERba2VFmn2AHxQwZmHHmqM+UtiY57angjD9fTbTzL74C0+f/NrRY+BYXf1cF" +
-        "+u5XmjNKygrsIq3yPMZV4q8YcN/ls9COcynOQMIEmJF6Q0LD7Gt9Uv5yjqc2Ay7VVhG" +
-        "qZNnIeE=";
+      const string signatureData = "this is the data that gets signed";
+      byte[] signatureDataBytes = Encoding.UTF8.GetBytes(signatureData);
 
-      const string dsaSignRequestData =
-        "AAADzw0AAAGxAAAAB3NzaC1kc3MAAACBAMXDM56ty6fV+qDpMyZxobn5VB4L/E6zvOi" +
-        "bUead6HBcOHUibA97EKgooUbqJ9qFUOhhw8TaFtN0UtTLZoHjOWN3JdyugK+f2HYIxv" +
-        "hlvW608g0lfDU0G4KIXdZukTYm66C0jVSCIdHQ1Iz219JeaEZK00v6wEW7Pp7T7yE71" +
-        "W65AAAAFQDcFrJ83lxI15fUnVl6TSYjB0H7IwAAAIAGatuDAwP1rkYqRH3MbwUTOpzr" +
-        "k/qBYkWbM/8iJlYaWiHjl0rG0HxnwY8Dvb9Knk7Qp6KC8l58KRAiGMrOLBOfPntEgej" +
-        "aXSejM6OARoOtt31IXfOMkbsjAFKFssN+RUDnTPvXPpcL5C3rO1Up4hO3FPqiJQJpL5" +
-        "0gTHnDG2Q4BgAAAIA7w6OX/G/pXHDU0M7xXtTN2SOhFQwP8+Tc6h9/Yw/wM9zBXkqb5" +
-        "bdlqy9vRx72/1DXOjH08PIbvza7HfOLkhRri0TYBDJbufQOlK4vQPqF0qhxkYfsgqrZ" +
-        "BMBKbLKTZnNm+BW2dgu+QSud67b01IZPzS2i0Z4DgSja9vl3xongCwAAAhEAAAAgFRt" +
-        "YDRrD3rmAJpZF7YItBpdkkUCMr4Djh349wyvemlIyAAAACGtlZWFnZW50AAAADnNzaC" +
-        "1jb25uZWN0aW9uAAAACXB1YmxpY2tleQEAAAAHc3NoLWRzcwAAAbEAAAAHc3NoLWRzc" +
-        "wAAAIEAxcMznq3Lp9X6oOkzJnGhuflUHgv8TrO86JtR5p3ocFw4dSJsD3sQqCihRuon" +
-        "2oVQ6GHDxNoW03RS1MtmgeM5Y3cl3K6Ar5/YdgjG+GW9brTyDSV8NTQbgohd1m6RNib" +
-        "roLSNVIIh0dDUjPbX0l5oRkrTS/rARbs+ntPvITvVbrkAAAAVANwWsnzeXEjXl9SdWX" +
-        "pNJiMHQfsjAAAAgAZq24MDA/WuRipEfcxvBRM6nOuT+oFiRZsz/yImVhpaIeOXSsbQf" +
-        "GfBjwO9v0qeTtCnooLyXnwpECIYys4sE58+e0SB6NpdJ6Mzo4BGg623fUhd84yRuyMA" +
-        "UoWyw35FQOdM+9c+lwvkLes7VSniE7cU+qIlAmkvnSBMecMbZDgGAAAAgDvDo5f8b+l" +
-        "ccNTQzvFe1M3ZI6EVDA/z5NzqH39jD/Az3MFeSpvlt2WrL29HHvb/UNc6MfTw8hu/Nr" +
-        "sd84uSFGuLRNgEMlu59A6Uri9A+oXSqHGRh+yCqtkEwEpsspNmc2b4FbZ2C75BK53rt" +
-        "vTUhk/NLaLRngOBKNr2+XfGieAL";
-
-      SshKey testKey = null;
-      Agent agent = new TestAgent();
-      byte[] buffer = new byte[4096];
-      MemoryStream stream = new MemoryStream(buffer);
-      BlobParser parser = new BlobParser(stream);
+      Agent agent = new TestAgent(mAllKeys);
 
       /* test rsa signature */
 
-      testKey = PpkFile.ParseData((byte[])Resources.ssh2_rsa_no_passphrase_ppk.Clone(),
-                                         null, delegate() { });
-      agent.KeyList.Add(testKey);
-      byte[] requestData = PSUtil.FromBase64(rsaSignRequestData);
-      Array.Copy(requestData, buffer, requestData.Length);
-      stream.Position = 0;
-      parser.ReadHeader();
-      parser.ReadBlob(); // read public key
-      PinnedByteArray reqData = parser.ReadBlob();
-      stream.Position = 0;
-      agent.AnswerMessage(stream);
-      stream.Position = 0;
-      Agent.BlobHeader header = parser.ReadHeader();
+      BlobBuilder builder = new BlobBuilder();
+      builder.AddBlob(mRsaKey.CipherKeyPair.Public.ToBlob());
+      builder.AddString(signatureData);
+      builder.AddInt(0); // flags
+      builder.InsertHeader(Agent.Message.SSH2_AGENTC_SIGN_REQUEST);
+      PrepareMessage(builder);
+      agent.AnswerMessage(mStream);
+      RewindStream();
+
+      /* check that proper response type was received */
+      Agent.BlobHeader header = mParser.ReadHeader();
       Assert.That(header.Message,
                   Is.EqualTo(Agent.Message.SSH2_AGENT_SIGN_RESPONSE));
-      byte[] signatureBlob = parser.ReadBlob().Data;
+
+      /* check that signature is valid */
+      byte[] signatureBlob = mParser.ReadBlob().Data;
       BlobParser signatureParser = new BlobParser(signatureBlob);
       string algorithm = signatureParser.ReadString();
       Assert.That(algorithm, Is.EqualTo(PublicKeyAlgorithm.SSH_RSA.GetIdentifierString()));
       byte[] signature = signatureParser.ReadBlob().Data;
       ISigner rsaSigner = SignerUtilities.GetSigner("SHA-1withRSA");
-      rsaSigner.Init(false, testKey.CipherKeyPair.Public);
-      rsaSigner.BlockUpdate(reqData.Data, 0, reqData.Data.Length);
+      rsaSigner.Init(false, mRsaKey.CipherKeyPair.Public);
+      rsaSigner.BlockUpdate(signatureDataBytes, 0, signatureDataBytes.Length);
       bool rsaOk = rsaSigner.VerifySignature(signature);
       Assert.That(rsaOk, Is.True, "invalid signature");
 
+      /* check that overall message length is correct */
+      Assert.That(header.BlobLength, Is.EqualTo(mStream.Position - 4));
+
       /* test dsa signature */
 
-      testKey = PpkFile.ParseData(Resources.ssh2_dsa_no_passphrase_ppk,
-                                  null, delegate() { });
-      agent.KeyList.Add(testKey);
-      requestData = PSUtil.FromBase64(dsaSignRequestData);
-      Array.Copy(requestData, buffer, requestData.Length);
-      stream.Position = 0;
-      parser.ReadHeader();
-      parser.ReadBlob();
-      reqData = parser.ReadBlob();
-      stream.Position = 0;
-      agent.AnswerMessage(stream);
-      stream.Position = 0;
-      header = parser.ReadHeader();
+      builder.Clear();
+      builder.AddBlob(mDsaKey.CipherKeyPair.Public.ToBlob());
+      builder.AddString(signatureData);
+      builder.InsertHeader(Agent.Message.SSH2_AGENTC_SIGN_REQUEST);
+      PrepareMessage(builder);
+      agent.AnswerMessage(mStream);
+      RewindStream();
+
+      /* check that proper response type was received */
+      header = mParser.ReadHeader();
       Assert.That(header.Message,
                   Is.EqualTo(Agent.Message.SSH2_AGENT_SIGN_RESPONSE));
-      signatureBlob = parser.ReadBlob().Data;
+      signatureBlob = mParser.ReadBlob().Data;
       signatureParser = new BlobParser(signatureBlob);
       algorithm = Encoding.UTF8.GetString(signatureParser.ReadBlob().Data);
       Assert.That(algorithm, Is.EqualTo(PublicKeyAlgorithm.SSH_DSS.GetIdentifierString()));
       signature = signatureParser.ReadBlob().Data;
       ISigner dsaSigner = SignerUtilities.GetSigner("SHA-1withDSA");
-      dsaSigner.Init(false, testKey.CipherKeyPair.Public);
-      dsaSigner.BlockUpdate(reqData.Data, 0, reqData.Data.Length);
+      dsaSigner.Init(false, mDsaKey.CipherKeyPair.Public);
+      dsaSigner.BlockUpdate(signatureDataBytes, 0, signatureDataBytes.Length);
       bool dsaOk = dsaSigner.VerifySignature(signature);
       Assert.That(dsaOk, Is.True, "invalid signature");
 
       /* test key not found */
 
       agent.KeyList.Clear();
-      testKey = null;
-      requestData = PSUtil.FromBase64(rsaSignRequestData);
-      Array.Copy(requestData, buffer, requestData.Length);
-      stream.Position = 0;
-      agent.AnswerMessage(stream);
-      byte[] replyBytes = new byte[stream.Position];
-      stream.Position = 0;
-      stream.Read(replyBytes, 0, replyBytes.Length);
-      Assert.That(replyBytes, Is.EqualTo(cAgentFailure));
+      builder.Clear();
+      builder.AddBlob(mDsaKey.CipherKeyPair.Public.ToBlob());
+      builder.AddString(signatureData);
+      builder.InsertHeader(Agent.Message.SSH2_AGENTC_SIGN_REQUEST);
+      PrepareMessage(builder);
+      agent.AnswerMessage(mStream);
+      RewindStream();
+      header = mParser.ReadHeader();      
+      Assert.That(header.BlobLength, Is.EqualTo(1));
+      Assert.That(header.Message, Is.EqualTo(Agent.Message.SSH_AGENT_FAILURE));
     }
 
     [Test()]
@@ -225,7 +262,7 @@ namespace PageantSharpTest
       byte[] buffer = new byte[4096];
       byte[] decodedData, response;
       MemoryStream stream = new MemoryStream(buffer);
-      
+
 
       Agent agent = new TestAgent();
 
@@ -266,7 +303,18 @@ namespace PageantSharpTest
       Assert.That(returnedKey.Comment, Is.EqualTo(dsaKeyComment));
       Assert.That(returnedKey.Fingerprint.ToHexString(), Is.EqualTo(dsaKeyFingerprint));
 
-      /* test locked => failure*/
+      /* test adding key that already is in KeyList does not create duplicate */
+      int startingCount = agent.KeyList.Count();
+      stream.Position = 0;
+      Array.Copy(decodedData, buffer, decodedData.Length);
+      agent.AnswerMessage(stream);
+      response = new byte[stream.Position];
+      stream.Position = 0;
+      stream.Read(response, 0, response.Length);
+      Assert.That(response, Is.EqualTo(cAgentSucess));
+      Assert.That(agent.KeyList.Count(), Is.EqualTo(startingCount));
+
+      /* test locked => failure */
       agent.KeyList.Clear();
       agent.Lock(new byte[0]);
       stream.Position = 0;
@@ -298,10 +346,10 @@ namespace PageantSharpTest
       MemoryStream stream = new MemoryStream(buffer);
       string removeFingerprint = null;
 
-       Agent agent = new TestAgent();
-       SshKey testKey = PpkFile.ParseData((byte[])Resources.ssh2_rsa_no_passphrase_ppk.Clone(),
-         null, delegate() { });
-       agent.KeyList.Add(testKey);
+      Agent agent = new TestAgent();
+      SshKey testKey = PpkFile.ParseData((byte[])Resources.ssh2_rsa_no_passphrase_ppk.Clone(),
+        null, delegate() { });
+      agent.KeyList.Add(testKey);
 
       /* test remove key */
 
@@ -332,30 +380,37 @@ namespace PageantSharpTest
     [Test()]
     public void TestAnswerSSH2_AGENTC_REMOVE_ALL_IDENTITIES()
     {
-      byte[] buffer = new byte[4096];
-      byte[] response;
-      MemoryStream stream = new MemoryStream(buffer);
+      Agent agent = new TestAgent(mAllKeys);
 
-      Agent agent = new TestAgent();
+      /* test that remove all keys removes keys */
 
-      /* test remove all keys */
+      PrepareSimpleMessage(Agent.Message.SSH2_AGENTC_REMOVE_ALL_IDENTITIES);
+      agent.AnswerMessage(mStream);
+      RewindStream();
+      Agent.BlobHeader header = mParser.ReadHeader();
+      Assert.That(header.BlobLength, Is.EqualTo(1));
+      Assert.That(header.Message, Is.EqualTo(Agent.Message.SSH_AGENT_SUCCESS));
+      int actualKeyCount = agent.KeyList.Count(key => key.Version != SshVersion.SSH2);
+      int expectedKeyCount = mAllKeys.Count(key => key.Version != SshVersion.SSH2);
+      Assert.That(actualKeyCount, Is.EqualTo(expectedKeyCount));
 
-      PrepareSimpleMessage(Agent.Message.SSH2_AGENTC_REMOVE_ALL_IDENTITIES, stream);
-      agent.AnswerMessage(stream);
-      response = new byte[stream.Position];
-      stream.Position = 0;
-      stream.Read(response, 0, response.Length);
-      Assert.That(response, Is.EqualTo(cAgentSucess));
+      /* test that remove all keys returns success even when there are no keys */
+      agent.KeyList.Clear();
+      PrepareSimpleMessage(Agent.Message.SSH2_AGENTC_REMOVE_ALL_IDENTITIES);
+      agent.AnswerMessage(mStream);
+      RewindStream();
+       header = mParser.ReadHeader();
+      Assert.That(header.BlobLength, Is.EqualTo(1));
+      Assert.That(header.Message, Is.EqualTo(Agent.Message.SSH_AGENT_SUCCESS));
 
       /* test that returns failure when locked */
-
       agent.Lock(new byte[0]);
-      PrepareSimpleMessage(Agent.Message.SSH2_AGENTC_REMOVE_ALL_IDENTITIES, stream);
-      agent.AnswerMessage(stream);
-      response = new byte[stream.Position];
-      stream.Position = 0;
-      stream.Read(response, 0, response.Length);
-      Assert.That(response, Is.EqualTo(cAgentFailure));
+      PrepareSimpleMessage(Agent.Message.SSH2_AGENTC_REMOVE_ALL_IDENTITIES);
+      agent.AnswerMessage(mStream);
+      RewindStream();
+      header = mParser.ReadHeader();
+      Assert.That(header.BlobLength, Is.EqualTo(1));
+      Assert.That(header.Message, Is.EqualTo(Agent.Message.SSH_AGENT_FAILURE));
     }
 
     [Test()]
@@ -379,18 +434,14 @@ namespace PageantSharpTest
 
       agent.Locked += new Agent.LockEventHandler(agentLocked);
 
-      byte[] buffer = new byte[4096];
-      MemoryStream stream = new MemoryStream(buffer);
-      BlobParser messageParser = new BlobParser(stream);
-
-
+      
       /* test that unlock does nothing when already unlocked */
 
-      PrepareLockMessage(false, password, stream);
+      PrepareLockMessage(false, password);
       agentLockedCalled = false;
-      agent.AnswerMessage(stream);
-      stream.Position = 0;
-      replyHeader = messageParser.ReadHeader();
+      agent.AnswerMessage(mStream);
+      RewindStream();
+      replyHeader = mParser.ReadHeader();
       Assert.That(replyHeader.Message,
         Is.EqualTo(Agent.Message.SSH_AGENT_FAILURE),
         "Unlock should have failed because agent was already unlocked");
@@ -400,11 +451,11 @@ namespace PageantSharpTest
 
       /* test that locking works */
 
-      PrepareLockMessage(true, password, stream);
+      PrepareLockMessage(true, password);
       agentLockedCalled = false;
-      agent.AnswerMessage(stream);
-      stream.Position = 0;
-      replyHeader = messageParser.ReadHeader();
+      agent.AnswerMessage(mStream);
+      RewindStream();
+      replyHeader = mParser.ReadHeader();
       Assert.That(replyHeader.Message,
         Is.EqualTo(Agent.Message.SSH_AGENT_SUCCESS),
         "Locking should have succeeded");
@@ -415,11 +466,11 @@ namespace PageantSharpTest
 
       /* test that trying to lock when already locked fails */
 
-      PrepareLockMessage(true, password, stream);
+      PrepareLockMessage(true, password);
       agentLockedCalled = false;
-      agent.AnswerMessage(stream);
-      stream.Position = 0;
-      replyHeader = messageParser.ReadHeader();
+      agent.AnswerMessage(mStream);
+      RewindStream();
+      replyHeader = mParser.ReadHeader();
       Assert.That(replyHeader.Message,
         Is.EqualTo(Agent.Message.SSH_AGENT_FAILURE),
         "Unlock should have failed because agent was already unlocked");
@@ -429,11 +480,11 @@ namespace PageantSharpTest
 
       /* test that unlocking with wrong password fails */
 
-      PrepareLockMessage(false, password + "x", stream);
+      PrepareLockMessage(false, password + "x");
       agentLockedCalled = false;
-      agent.AnswerMessage(stream);
-      stream.Position = 0;
-      replyHeader = messageParser.ReadHeader();
+      agent.AnswerMessage(mStream);
+      RewindStream();
+      replyHeader = mParser.ReadHeader();
       Assert.That(replyHeader.Message,
         Is.EqualTo(Agent.Message.SSH_AGENT_FAILURE),
         "Unlock should have failed because password was incorrect");
@@ -443,11 +494,11 @@ namespace PageantSharpTest
 
       /* test that unlocking works */
 
-      PrepareLockMessage(false, password, stream);
+      PrepareLockMessage(false, password);
       agentLockedCalled = false;
-      agent.AnswerMessage(stream);
-      stream.Position = 0;
-      replyHeader = messageParser.ReadHeader();
+      agent.AnswerMessage(mStream);
+      RewindStream();
+      replyHeader = mParser.ReadHeader();
       Assert.That(replyHeader.Message,
         Is.EqualTo(Agent.Message.SSH_AGENT_SUCCESS),
         "Unlock should have succeeded");
@@ -458,30 +509,32 @@ namespace PageantSharpTest
       agent.Locked -= new Agent.LockEventHandler(agentLocked);
     }
 
+    #region helper methods
+    
     /// <summary>
     /// writes BlobBuilder data to beginning of Stream and resets Stream
     /// </summary>
-    private void PrepareMessage(BlobBuilder aBuilder, Stream aStream)
+    private void PrepareMessage(BlobBuilder aBuilder)
     {
-      aStream.Position = 0;
-      aStream.WriteBlob(aBuilder);
-      aStream.Position = 0;
+      ResetStream();
+      mStream.WriteBlob(aBuilder);
+      RewindStream();
     }
 
     /// <summary>
     /// prepares a message with no data
     /// </summary>
-    private void PrepareSimpleMessage(Agent.Message aMessage, Stream aStream)
+    private void PrepareSimpleMessage(Agent.Message aMessage)
     {
       BlobBuilder builder = new BlobBuilder();
       builder.InsertHeader(aMessage);
-      PrepareMessage(builder, aStream);
+      PrepareMessage(builder);
     }
 
     /// <summary>
     /// prepares a lock or unlock message with specified password
     /// </summary>
-    private void PrepareLockMessage(bool aLock, string aPassword, Stream aStream)
+    private void PrepareLockMessage(bool aLock, string aPassword)
     {
       BlobBuilder builder = new BlobBuilder();
       builder.AddString(aPassword);
@@ -490,7 +543,20 @@ namespace PageantSharpTest
       } else {
         builder.InsertHeader(Agent.Message.SSH_AGENTC_UNLOCK);
       }
-      PrepareMessage(builder, aStream);
+      PrepareMessage(builder);
+    }
+
+    private void ResetStream()
+    {
+      Array.Clear(mBuffer, 0, mBuffer.Length);
+      RewindStream();
+    }
+
+    private void RewindStream()
+    {
+      mStream.Position = 0;
     }
   }
+
+  #endregion
 }
