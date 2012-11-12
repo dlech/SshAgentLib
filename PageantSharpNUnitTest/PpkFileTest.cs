@@ -45,7 +45,7 @@ namespace PageantSharpTest
       string expectedComment = "rsa-key-20120818";
 
       /* test for successful method call */
-      byte[] fileData = File.ReadAllBytes("../../Resources/ssh2-rsa-non-ascii-passphrase.ppk");
+      byte[] fileData = File.ReadAllBytes("../../../Resources/ssh2-rsa-non-ascii-passphrase.ppk");
       target = PpkFile.ParseData(fileData, getPassphrase, warnOldFileNotExpected);
 
       Assert.AreEqual(expectedComment, target.Comment);
@@ -134,14 +134,14 @@ namespace PageantSharpTest
 
 
        /* test for successful method call */
-      byte[] fileData = File.ReadAllBytes("../../Resources/ssh2-rsa.ppk");
+      byte[] fileData = File.ReadAllBytes("../../../Resources/ssh2-rsa.ppk");
       target = PpkFile.ParseData(fileData, getPassphrase, warnOldFileNotExpected);
       Assert.AreEqual(expectedSsh2RsaWithPassComment, target.Comment);
       Assert.AreEqual(expectedKeySize, target.Size);
       Assert.That(target.Version, Is.EqualTo(SshVersion.SSH2));
 
       /* read file to string for modification by subsequent tests */
-      fileData = File.ReadAllBytes("../../Resources/ssh2-rsa-no-passphrase.ppk");
+      fileData = File.ReadAllBytes("../../../Resources/ssh2-rsa-no-passphrase.ppk");
       string withoutPassFileContents;
       byte[] modifiedFileContents;
       withoutPassFileContents = Encoding.UTF8.GetString(fileData);
@@ -187,7 +187,7 @@ namespace PageantSharpTest
       }
 
       /* test bad passphrase */
-      fileData = File.ReadAllBytes("../../Resources/ssh2-rsa.ppk");
+      fileData = File.ReadAllBytes("../../../Resources/ssh2-rsa.ppk");
       try {
         target = PpkFile.ParseData(fileData, null, warnOldFileNotExpected);
         Assert.Fail("Exception did not occur");
@@ -195,7 +195,7 @@ namespace PageantSharpTest
         Assert.IsInstanceOf<PpkFileException>(ex);
         Assert.AreEqual(PpkFileException.ErrorType.BadPassphrase, ((PpkFileException)ex).Error);
       }
-      fileData = File.ReadAllBytes("../../Resources/ssh2-rsa.ppk");
+      fileData = File.ReadAllBytes("../../../Resources/ssh2-rsa.ppk");
       try {
         target = PpkFile.ParseData(fileData, getBadPassphrase, warnOldFileNotExpected);
         Assert.Fail("Exception did not occur");
@@ -219,7 +219,7 @@ namespace PageantSharpTest
       }
 
       /* test reading bad file */
-      fileData = File.ReadAllBytes("../../Resources/emptyFile.ppk");
+      fileData = File.ReadAllBytes("../../../Resources/emptyFile.ppk");
       try {
         target = PpkFile.ParseData(fileData, null, warnOldFileNotExpected);
       } catch (Exception ex) {
@@ -228,7 +228,7 @@ namespace PageantSharpTest
       }
 
       /* test reading SSH2-DSA files */
-      fileData = File.ReadAllBytes("../../Resources/ssh2-dsa.ppk");
+      fileData = File.ReadAllBytes("../../../Resources/ssh2-dsa.ppk");
       target = PpkFile.ParseData(fileData, getPassphrase, warnOldFileNotExpected);
       Assert.AreEqual(expectedSsh2DsaWithPassComment, target.Comment);
       Assert.AreEqual(expectedKeySize, target.Size);

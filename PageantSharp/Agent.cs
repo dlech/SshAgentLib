@@ -12,6 +12,11 @@ using System.Security;
 using System.Runtime.InteropServices;
 using System.Collections.ObjectModel;
 using Org.BouncyCastle.Math;
+using Org.BouncyCastle.Math.EC;
+using Org.BouncyCastle.Asn1;
+using Org.BouncyCastle.Asn1.Nist;
+using Org.BouncyCastle.Asn1.Sec;
+using Org.BouncyCastle.Asn1.X9;
 
 namespace dlech.PageantSharp
 {
@@ -26,7 +31,7 @@ namespace dlech.PageantSharp
   {
     #region Instance Variables
 
-    private ObservableCollection<ISshKey> mKeyList;      
+    private ObservableCollection<ISshKey> mKeyList;
     private SecureString mLockedPassphrase;
 
     #endregion
@@ -39,7 +44,8 @@ namespace dlech.PageantSharp
 
     #region Enums
 
-    /* Protocol message number - from PROTOCOL.agent in openssh source code */
+    /* Protocol message number - from PROTOCOL.agent in OpenSSH source code */
+    /* note: changed SSH_* to SSH1_* on protocol v1 specific items for clarity */
     public enum Message : byte
     {
       /* Requests from client to agent for protocol 1 key operations */
@@ -135,7 +141,7 @@ namespace dlech.PageantSharp
 
     public Agent()
     {
-      mKeyList = new ObservableCollection<ISshKey>();      
+      mKeyList = new ObservableCollection<ISshKey>();
     }
 
     #endregion
@@ -194,7 +200,6 @@ namespace dlech.PageantSharp
     {
       BlobParser messageParser = new BlobParser(aMessageStream);
       BlobBuilder responseBuilder = new BlobBuilder();
-
       BlobHeader header = messageParser.ReadHeader();
 
       switch (header.Message) {
@@ -256,19 +261,12 @@ namespace dlech.PageantSharp
 
             ISshKey matchingKey =
               KeyList.Where(key => key.Version == SshVersion.SSH2 &&
-              key.CipherKeyPair.Public.ToBlob().SequenceEqual(keyBlob.Data)).Single();              
+              key.CipherKeyPair.Public.ToBlob().SequenceEqual(keyBlob.Data)).Single();
 
             /* create signature */
             ISshKey signKey = matchingKey;
-            ISigner signer;
+            ISigner signer = signKey.CipherKeyPair.GetSigner();
             string algName = signKey.Algorithm.GetIdentifierString();
-            if (signKey.CipherKeyPair.Public is RsaKeyParameters) {
-              signer = SignerUtilities.GetSigner("SHA-1withRSA");
-            } else if (signKey.CipherKeyPair.Public is DsaPublicKeyParameters) {
-              signer = SignerUtilities.GetSigner("SHA-1withDSA");
-            } else {
-              goto default;
-            }
             signer.Init(true, signKey.CipherKeyPair.Private);
             signer.BlockUpdate(reqData.Data, 0, reqData.Data.Length);
             byte[] signature = signer.GenerateSignature();
@@ -279,7 +277,7 @@ namespace dlech.PageantSharp
             responseBuilder.AddBlob(signatureBuilder.GetBlob());
             responseBuilder.InsertHeader(Message.SSH2_AGENT_SIGN_RESPONSE);
             break; // succeeded
-          }catch (InvalidOperationException) {
+          } catch (InvalidOperationException) {
             // this is expected if there is not a matching key
           } catch (Exception ex) {
             Debug.Fail(ex.ToString());
@@ -319,14 +317,14 @@ namespace dlech.PageantSharp
 
             if (constrained) {
               while (aMessageStream.Position < header.BlobLength) {
-                  KeyConstraint constraint = new KeyConstraint();
-                  constraint.Type =
-                    (KeyConstraintType)messageParser.ReadByte();
-                  if (constraint.Type ==
-                    KeyConstraintType.SSH_AGENT_CONSTRAIN_LIFETIME) {
-                    constraint.Data = messageParser.ReadInt();
-                  }
-                  key.Constraints.Add(constraint);
+                KeyConstraint constraint = new KeyConstraint();
+                constraint.Type =
+                  (KeyConstraintType)messageParser.ReadByte();
+                if (constraint.Type ==
+                  KeyConstraintType.SSH_AGENT_CONSTRAIN_LIFETIME) {
+                  constraint.Data = messageParser.ReadInt();
+                }
+                key.Constraints.Add(constraint);
               }
             }
             KeyList.Remove(key.Version, key.CipherKeyPair.Public.ToBlob());
@@ -465,43 +463,76 @@ namespace dlech.PageantSharp
 
       switch (algorithm) {
         case PublicKeyAlgorithmExt.ALGORITHM_RSA_KEY:
-          BigInteger n = new BigInteger(1, parser.ReadBlob().Data); // modulus
-          BigInteger e = new BigInteger(1, parser.ReadBlob().Data); // exponent
-          BigInteger d = new BigInteger(1, parser.ReadBlob().Data);
-          BigInteger iqmp = new BigInteger(1, parser.ReadBlob().Data);
-          BigInteger p = new BigInteger(1, parser.ReadBlob().Data);
-          BigInteger q = new BigInteger(1, parser.ReadBlob().Data);
+          BigInteger rsaN = new BigInteger(1, parser.ReadBlob().Data); // modulus
+          BigInteger rsaE = new BigInteger(1, parser.ReadBlob().Data); // exponent
+          BigInteger rsaD = new BigInteger(1, parser.ReadBlob().Data);
+          BigInteger rsaIQMP = new BigInteger(1, parser.ReadBlob().Data);
+          BigInteger rsaP = new BigInteger(1, parser.ReadBlob().Data);
+          BigInteger rsaQ = new BigInteger(1, parser.ReadBlob().Data);
 
           /* compute missing parameters */
-          BigInteger dp = d.Remainder(p.Subtract(BigInteger.One));
-          BigInteger dq = d.Remainder(q.Subtract(BigInteger.One));
+          BigInteger rsaDP = rsaD.Remainder(rsaP.Subtract(BigInteger.One));
+          BigInteger rsaDQ = rsaD.Remainder(rsaQ.Subtract(BigInteger.One));
 
-          RsaKeyParameters rsaPublicKeyParams = new RsaKeyParameters(false, n, e);
+          RsaKeyParameters rsaPublicKeyParams =
+            new RsaKeyParameters(false, rsaN, rsaE);
           RsaPrivateCrtKeyParameters rsaPrivateKeyParams =
-            new RsaPrivateCrtKeyParameters(n, e, d, p, q, dp, dq, iqmp);
+            new RsaPrivateCrtKeyParameters(rsaN, rsaE, rsaD, rsaP, rsaQ, rsaDP,
+              rsaDQ, rsaIQMP);
 
           return new AsymmetricCipherKeyPair(rsaPublicKeyParams, rsaPrivateKeyParams);
 
         case PublicKeyAlgorithmExt.ALGORITHM_DSA_KEY:
-          /*BigInteger*/
-          p = new BigInteger(1, parser.ReadBlob().Data);
-          /*BigInteger*/
-          q = new BigInteger(1, parser.ReadBlob().Data);
-          BigInteger g = new BigInteger(1, parser.ReadBlob().Data);
-          BigInteger y = new BigInteger(1, parser.ReadBlob().Data); // public key
-          BigInteger x = new BigInteger(1, parser.ReadBlob().Data); // private key
+          BigInteger dsaP = new BigInteger(1, parser.ReadBlob().Data);
+          BigInteger dsaQ = new BigInteger(1, parser.ReadBlob().Data);
+          BigInteger dsaG = new BigInteger(1, parser.ReadBlob().Data);
+          BigInteger dsaY = new BigInteger(1, parser.ReadBlob().Data); // public key
+          BigInteger dsaX = new BigInteger(1, parser.ReadBlob().Data); // private key
 
-          DsaParameters commonParams = new DsaParameters(p, q, g);
+          DsaParameters commonParams = new DsaParameters(dsaP, dsaQ, dsaG);
           DsaPublicKeyParameters dsaPublicKeyParams =
-            new DsaPublicKeyParameters(y, commonParams);
+            new DsaPublicKeyParameters(dsaY, commonParams);
           DsaPrivateKeyParameters dsaPrivateKeyParams =
-            new DsaPrivateKeyParameters(x, commonParams);
+            new DsaPrivateKeyParameters(dsaX, commonParams);
 
           return new AsymmetricCipherKeyPair(dsaPublicKeyParams, dsaPrivateKeyParams);
 
+        case PublicKeyAlgorithmExt.ALGORITHM_ECDSA_SHA2_NISTP256_KEY:
+        case PublicKeyAlgorithmExt.ALGORITHM_ECDSA_SHA2_NISTP384_KEY:
+        case PublicKeyAlgorithmExt.ALGORITHM_ECDSA_SHA2_NISTP521_KEY:
+
+          string ecdsaCurveName = parser.ReadString();
+          byte[] ecdsaPublicKey = parser.ReadBlob().Data;
+          BigInteger ecdsaPrivate = new BigInteger(1, parser.ReadBlob().Data);
+
+          switch (ecdsaCurveName) {
+            case PublicKeyAlgorithmExt.EC_ALGORITHM_NISTP256:
+              ecdsaCurveName = "secp256r1";
+              break;
+            case PublicKeyAlgorithmExt.EC_ALGORITHM_NISTP384:
+              ecdsaCurveName = "secp384r1";
+              break;
+            case PublicKeyAlgorithmExt.EC_ALGORITHM_NISTP521:
+              ecdsaCurveName = "secp521r1";
+              break;
+            default:
+              throw new Exception("Unsupported EC algorithm: " + ecdsaCurveName);
+          }
+          X9ECParameters ecdsaX9Params = SecNamedCurves.GetByName(ecdsaCurveName);
+          ECDomainParameters ecdsaDomainParams =
+            new ECDomainParameters(ecdsaX9Params.Curve, ecdsaX9Params.G,
+              ecdsaX9Params.N, ecdsaX9Params.H);
+          ECPoint ecdsaPoint = ecdsaX9Params.Curve.DecodePoint(ecdsaPublicKey);
+          ECPublicKeyParameters ecPublicKeyParams =
+            new ECPublicKeyParameters(ecdsaPoint, ecdsaDomainParams);
+          ECPrivateKeyParameters ecPrivateKeyParams =
+            new ECPrivateKeyParameters(ecdsaPrivate, ecdsaDomainParams);
+
+          return new AsymmetricCipherKeyPair(ecPublicKeyParams, ecPrivateKeyParams);
+    
         default:
           // unsupported encryption algorithm
-          throw new PpkFileException(PpkFileException.ErrorType.PublicKeyEncryption);
+          throw new Exception("Unsupported algorithm");
       }
     }
 

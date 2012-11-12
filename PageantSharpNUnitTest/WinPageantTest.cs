@@ -30,7 +30,7 @@ namespace PageantSharpTest
 
     [DllImport("user32.dll")]
     private static extern IntPtr SendMessage(IntPtr hWnd, uint Msg,
-      IntPtr wParam, COPYDATASTRUCT lParam);
+      IntPtr wParam, IntPtr lParam);
 
     [DllImport("user32.dll")]
     private static extern IntPtr FindWindow(String sClassName, String sAppName);
@@ -52,7 +52,7 @@ namespace PageantSharpTest
       /* code based on agent_query function in winpgntc.c from PuTTY */
 
       using (WinPageant agent = new WinPageant()) {
-
+                
         /* try starting a second instance */
 
         Assert.That(delegate()
@@ -74,10 +74,17 @@ namespace PageantSharpTest
             (byte)Agent.Message.SSH2_AGENTC_REMOVE_ALL_IDENTITIES};
             stream.Write(message, 0, message.Length);
             COPYDATASTRUCT copyData = new COPYDATASTRUCT();
-            copyData.dwData = new IntPtr(AGENT_COPYDATA_ID);
+            if (IntPtr.Size == 4) {
+              copyData.dwData = new IntPtr(unchecked((int)AGENT_COPYDATA_ID));
+            } else {
+              copyData.dwData = new IntPtr(AGENT_COPYDATA_ID);
+            }
             copyData.cbData = mapName.Length + 1;
             copyData.lpData = Marshal.StringToCoTaskMemAnsi(mapName);
-            IntPtr resultPtr = SendMessage(hwnd, WM_COPYDATA, IntPtr.Zero, copyData);
+            GCHandle copyDataGCHandle = GCHandle.Alloc(copyData, GCHandleType.Pinned);
+            IntPtr copyDataPtr = copyDataGCHandle.AddrOfPinnedObject();
+            IntPtr resultPtr = SendMessage(hwnd, WM_COPYDATA, IntPtr.Zero, copyDataPtr);
+            copyDataGCHandle.Free();
             int result = Marshal.ReadInt32(resultPtr);
             Assert.That(result, Is.Not.EqualTo(0));
             byte[] reply = new byte[5];

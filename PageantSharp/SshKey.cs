@@ -34,6 +34,17 @@ namespace dlech.PageantSharp
           return PublicKeyAlgorithm.SSH_RSA;
         } else if (CipherKeyPair.Public is DsaPublicKeyParameters) {
           return PublicKeyAlgorithm.SSH_DSS;
+        } else if (CipherKeyPair.Public is ECPublicKeyParameters) {
+          ECPublicKeyParameters ecdsaParameters =
+            (ECPublicKeyParameters)CipherKeyPair.Public;
+          switch (ecdsaParameters.Q.Curve.FieldSize) {
+            case 256:
+              return PublicKeyAlgorithm.ECDSA_SHA2_NISTP256;
+            case 384:
+              return PublicKeyAlgorithm.ECDSA_SHA2_NISTP384;
+            case 521:
+              return PublicKeyAlgorithm.ECDSA_SHA2_NISTP521;
+          }
         }
         throw new Exception("Unknown algorithm");
       }
@@ -51,6 +62,10 @@ namespace dlech.PageantSharp
           DsaPublicKeyParameters dsaKeyParameters =
             (DsaPublicKeyParameters)CipherKeyPair.Public;
           return dsaKeyParameters.Parameters.P.BitLength;
+        } else if (CipherKeyPair.Public is ECPublicKeyParameters) {
+          ECPublicKeyParameters ecdsaParameters =
+            (ECPublicKeyParameters)CipherKeyPair.Public;
+          return ecdsaParameters.Q.Curve.FieldSize;
         }
         // TODO need a better exception here
         throw new Exception("Not Defined");

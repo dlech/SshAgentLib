@@ -41,7 +41,7 @@ namespace dlech.PageantSharp
     }
 
     /// <summary>
-    /// Adds bytes to builder
+    /// Adds byte[] as-is to the blob - no length prefix
     /// </summary>
     /// <param name="aBytes"></param>
     public void AddBytes(byte[] aBytes)
@@ -79,7 +79,7 @@ namespace dlech.PageantSharp
     }
 
     /// <summary>
-    /// Adds byte[] as-is to the blob
+    /// Adds byte[] to builder as sub-blob
     /// </summary>
     /// <param name="blob"></param>
     public void AddBlob(byte[] blob)

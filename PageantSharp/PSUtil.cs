@@ -9,6 +9,9 @@ using System.Diagnostics;
 using System.Collections.ObjectModel;
 using Org.BouncyCastle.Crypto;
 using Org.BouncyCastle.Crypto.Parameters;
+using Org.BouncyCastle.Security;
+using Org.BouncyCastle.Asn1.X9;
+using Org.BouncyCastle.Asn1.Pkcs;
 
 namespace dlech.PageantSharp
 {
@@ -17,6 +20,28 @@ namespace dlech.PageantSharp
   /// </summary>
   public static class PSUtil
   {
+
+    public static ISigner GetSigner(this AsymmetricCipherKeyPair aCipherKeyPair)
+    {
+      AsymmetricKeyParameter publicKey = aCipherKeyPair.Public;
+      if (publicKey is DsaPublicKeyParameters) {
+        return SignerUtilities.GetSigner(X9ObjectIdentifiers.IdDsaWithSha1);
+      } else if (publicKey is RsaKeyParameters) {
+        return SignerUtilities.GetSigner(PkcsObjectIdentifiers.Sha1WithRsaEncryption);
+      } else if (publicKey is ECPublicKeyParameters) {
+        int ecdsaFieldSize =
+         ((ECPublicKeyParameters)aCipherKeyPair.Public).Q.Curve.FieldSize;
+        if (ecdsaFieldSize <= 256) {
+          return SignerUtilities.GetSigner(X9ObjectIdentifiers.ECDsaWithSha256.Id);
+        } else if (ecdsaFieldSize > 256 && ecdsaFieldSize <= 384) {
+          return SignerUtilities.GetSigner(X9ObjectIdentifiers.ECDsaWithSha384.Id);
+        } else if (ecdsaFieldSize > 384) {
+          return SignerUtilities.GetSigner(X9ObjectIdentifiers.ECDsaWithSha512.Id);
+        } 
+      }
+      throw new Exception("Unsupported algorithm");
+    }
+
     public static bool Remove(this ObservableCollection<ISshKey> aKeyList,
       SshVersion aVersion,
       byte[] aPublicKeyBlob)
@@ -51,35 +76,53 @@ namespace dlech.PageantSharp
     /// </remarks>
     public static byte[] ToBlob(this AsymmetricKeyParameter aParameter)
     {
+      BlobBuilder builder = new BlobBuilder();
       if (aParameter is RsaKeyParameters) {        
-          RsaKeyParameters rsaKeyParameters = (RsaKeyParameters)aParameter;
-          BlobBuilder builder = new BlobBuilder();
+          RsaKeyParameters rsaPublicKeyParameters = (RsaKeyParameters)aParameter;
+          
           builder.AddString(PublicKeyAlgorithm.SSH_RSA.GetIdentifierString());
-
-
-          builder.AddBigInt(rsaKeyParameters.Exponent);
-          builder.AddBigInt(rsaKeyParameters.Modulus);
-          byte[] result = builder.GetBlob();
-          builder.Clear();
-          return result;
+          builder.AddBigInt(rsaPublicKeyParameters.Exponent);
+          builder.AddBigInt(rsaPublicKeyParameters.Modulus);
       } else if (aParameter is DsaPublicKeyParameters) {
-
         DsaPublicKeyParameters dsaParameters =
           (DsaPublicKeyParameters)aParameter;
-        BlobBuilder builder = new BlobBuilder();
-
+        
         builder.AddString(PublicKeyAlgorithm.SSH_DSS.GetIdentifierString());
         builder.AddBigInt(dsaParameters.Parameters.P);
         builder.AddBigInt(dsaParameters.Parameters.Q);
         builder.AddBigInt(dsaParameters.Parameters.G);
-        builder.AddBigInt(dsaParameters.Y);
+        builder.AddBigInt(dsaParameters.Y);        
+      } else if (aParameter is ECPublicKeyParameters) {
+        ECPublicKeyParameters ecdsaParameters =
+          (ECPublicKeyParameters)aParameter;
 
-        byte[] result = builder.GetBlob();
-        builder.Clear();
-        return result;
+        string algorithm;
+        switch (ecdsaParameters.Parameters.Curve.FieldSize) {
+          case 256:
+            algorithm = PublicKeyAlgorithm.ECDSA_SHA2_NISTP256.GetIdentifierString();
+            break;
+          case 384:
+            algorithm = PublicKeyAlgorithm.ECDSA_SHA2_NISTP384.GetIdentifierString();
+            break;
+          case 521:
+            algorithm = PublicKeyAlgorithm.ECDSA_SHA2_NISTP521.GetIdentifierString();
+            break;
+          default:
+            throw new ArgumentException("Unsupported EC size: " +
+              ecdsaParameters.Parameters.Curve.FieldSize);
+        }
+        builder.AddString(algorithm);
+        algorithm = 
+          algorithm.Replace(PublicKeyAlgorithmExt.ALGORITHM_ECDSA_SHA2_PREFIX,
+          string.Empty);
+        builder.AddString(algorithm);
+        builder.AddBlob(ecdsaParameters.Q.GetEncoded());
+      } else {
+        throw new ArgumentException(aParameter.GetType() + " is not supported");
       }
-
-      throw new ArgumentException(aParameter.GetType() + " is not supported");
+      byte[] result = builder.GetBlob();
+      builder.Clear();
+      return result;
     }
     
     /// <summary>

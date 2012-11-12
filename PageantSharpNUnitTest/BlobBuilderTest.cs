@@ -93,11 +93,11 @@ namespace PageantSharpNUnitTest
       byte[] value2 = { 1, 2, 3, 4, 5 };
       builder.AddBytes(value2);
       builder.InsertHeader(Agent.Message.SSH_AGENT_SUCCESS);
-      expected = new byte[9 + value2.Length];
-      Array.Copy((5 + value2.Length).ToBytes(), expected, 4);
+      expected = new byte[5 + value2.Length];
+      int length = value2.Length + 1;
+      Array.Copy(length.ToBytes(), expected, 4);
       expected[4] = (byte)Agent.Message.SSH_AGENT_SUCCESS;
-      Array.Copy(value2.Length.ToBytes(), 0, expected, 5, 4);
-      Array.Copy(value2, 0, expected, 9, value2.Length);
+      Array.Copy(value2, 0, expected, 5, value2.Length);
       Assert.That(builder.GetBlob(), Is.EqualTo(expected));
 
       builder = new BlobBuilder();
