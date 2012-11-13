@@ -3,20 +3,16 @@ using System.Linq;
 using System.IO;
 using System.Collections.Generic;
 using System.Diagnostics;
-using System.Security.Cryptography;
 using Org.BouncyCastle.Crypto;
 using Org.BouncyCastle.Crypto.Parameters;
-using Org.BouncyCastle.Security;
 using System.Text;
 using System.Security;
 using System.Runtime.InteropServices;
 using System.Collections.ObjectModel;
 using Org.BouncyCastle.Math;
 using Org.BouncyCastle.Math.EC;
-using Org.BouncyCastle.Asn1;
-using Org.BouncyCastle.Asn1.Nist;
-using Org.BouncyCastle.Asn1.Sec;
 using Org.BouncyCastle.Asn1.X9;
+using Org.BouncyCastle.Asn1.Sec;
 
 namespace dlech.PageantSharp
 {

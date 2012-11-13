@@ -57,7 +57,7 @@ namespace Org.BouncyCastle.Crypto.Signers
 		// 5.3 pg 28
 		/**
 		 * Generate a signature for the given message using the key we were
-		 * initialised with. For conventional DSA the message should be a SHA-1
+		 * initialized with. For conventional DSA the message should be a SHA-1
 		 * hash of the message of interest.
 		 *
 		 * @param message the message that will be verified later.

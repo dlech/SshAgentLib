@@ -32,11 +32,11 @@ namespace dlech.PageantSharp
         int ecdsaFieldSize =
          ((ECPublicKeyParameters)aCipherKeyPair.Public).Q.Curve.FieldSize;
         if (ecdsaFieldSize <= 256) {
-          return SignerUtilities.GetSigner(X9ObjectIdentifiers.ECDsaWithSha256.Id);
+          return SignerUtilities.GetSigner(X9ObjectIdentifiers.ECDsaWithSha256);
         } else if (ecdsaFieldSize > 256 && ecdsaFieldSize <= 384) {
-          return SignerUtilities.GetSigner(X9ObjectIdentifiers.ECDsaWithSha384.Id);
+          return SignerUtilities.GetSigner(X9ObjectIdentifiers.ECDsaWithSha384);
         } else if (ecdsaFieldSize > 384) {
-          return SignerUtilities.GetSigner(X9ObjectIdentifiers.ECDsaWithSha512.Id);
+          return SignerUtilities.GetSigner(X9ObjectIdentifiers.ECDsaWithSha512);
         } 
       }
       throw new Exception("Unsupported algorithm");

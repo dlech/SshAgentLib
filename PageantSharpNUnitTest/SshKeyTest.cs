@@ -24,7 +24,7 @@ namespace PageantSharpTest
       string[] fileList = { ssh2_rsa_no_passphrase_ppk ,
                             ssh2_dsa_no_passphrase_ppk
                           };
-      string resourceDir = Path.GetFullPath("../../Resources");
+      string resourceDir = Path.GetFullPath("../../../Resources");
       string workingDir = Environment.CurrentDirectory;
       foreach (string fileName in fileList) {
         string sourceFile = Path.Combine(resourceDir, fileName);

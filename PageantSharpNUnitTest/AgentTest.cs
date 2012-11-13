@@ -365,11 +365,20 @@ namespace PageantSharpTest
         string algorithm = Encoding.UTF8.GetString(signatureParser.ReadBlob().Data);
         Assert.That(algorithm, Is.EqualTo(key.Algorithm.GetIdentifierString()));
         byte[] signature = signatureParser.ReadBlob().Data;
-        ISigner ecdsaSigner = key.CipherKeyPair.GetSigner();        
-        ecdsaSigner.Init(false, key.CipherKeyPair.Public);
-        ecdsaSigner.BlockUpdate(signatureDataBytes, 0, signatureDataBytes.Length);
-        bool ecdsaOk = ecdsaSigner.VerifySignature(signature);
-        Assert.That(ecdsaOk, Is.True, "invalid signature");
+        if (key.Algorithm == PublicKeyAlgorithm.SSH_RSA) {
+          Assert.That(signature.Length == key.Size / 8);
+        } else if (key.Algorithm == PublicKeyAlgorithm.SSH_DSS) {
+          Assert.That(signature.Length, Is.EqualTo(40));
+        } else if (key.Algorithm == PublicKeyAlgorithm.ECDSA_SHA2_NISTP256 ||
+          key.Algorithm == PublicKeyAlgorithm.ECDSA_SHA2_NISTP384 ||
+          key.Algorithm == PublicKeyAlgorithm.ECDSA_SHA2_NISTP521) {
+            Assert.That(signature.Length == key.Size / 4);
+        }
+        ISigner signer = key.CipherKeyPair.GetSigner();        
+        signer.Init(false, key.CipherKeyPair.Public);
+        signer.BlockUpdate(signatureDataBytes, 0, signatureDataBytes.Length);
+        bool signatureOk = signer.VerifySignature(signature);
+        Assert.That(signatureOk, Is.True, "invalid signature");
         Assert.That(header.BlobLength, Is.EqualTo(mStream.Position - 4));
       }
 
