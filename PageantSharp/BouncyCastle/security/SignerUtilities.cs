@@ -187,29 +187,29 @@ namespace Org.BouncyCastle.Security
             //algorithms["SHA-224WITHECDSA"] = "SHA-224withECDSA";
             //algorithms[X9ObjectIdentifiers.ECDsaWithSha224.Id] = "SHA-224withECDSA";
 
-            //algorithms["SHA256/ECDSA"] = "SHA-256withECDSA";
-            //algorithms["SHA-256/ECDSA"] = "SHA-256withECDSA";
-            //algorithms["ECDSAWITHSHA256"] = "SHA-256withECDSA";
-            //algorithms["ECDSAWITHSHA-256"] = "SHA-256withECDSA";
-            //algorithms["SHA256WITHECDSA"] = "SHA-256withECDSA";
-            //algorithms["SHA-256WITHECDSA"] = "SHA-256withECDSA";
-            //algorithms[X9ObjectIdentifiers.ECDsaWithSha256.Id] = "SHA-256withECDSA";
+            algorithms["SHA256/ECDSA"] = "SHA-256withECDSA";
+            algorithms["SHA-256/ECDSA"] = "SHA-256withECDSA";
+            algorithms["ECDSAWITHSHA256"] = "SHA-256withECDSA";
+            algorithms["ECDSAWITHSHA-256"] = "SHA-256withECDSA";
+            algorithms["SHA256WITHECDSA"] = "SHA-256withECDSA";
+            algorithms["SHA-256WITHECDSA"] = "SHA-256withECDSA";
+            algorithms[X9ObjectIdentifiers.ECDsaWithSha256.Id] = "SHA-256withECDSA";
 
-            //algorithms["SHA384/ECDSA"] = "SHA-384withECDSA";
-            //algorithms["SHA-384/ECDSA"] = "SHA-384withECDSA";
-            //algorithms["ECDSAWITHSHA384"] = "SHA-384withECDSA";
-            //algorithms["ECDSAWITHSHA-384"] = "SHA-384withECDSA";
-            //algorithms["SHA384WITHECDSA"] = "SHA-384withECDSA";
-            //algorithms["SHA-384WITHECDSA"] = "SHA-384withECDSA";
-            //algorithms[X9ObjectIdentifiers.ECDsaWithSha384.Id] = "SHA-384withECDSA";
+            algorithms["SHA384/ECDSA"] = "SHA-384withECDSA";
+            algorithms["SHA-384/ECDSA"] = "SHA-384withECDSA";
+            algorithms["ECDSAWITHSHA384"] = "SHA-384withECDSA";
+            algorithms["ECDSAWITHSHA-384"] = "SHA-384withECDSA";
+            algorithms["SHA384WITHECDSA"] = "SHA-384withECDSA";
+            algorithms["SHA-384WITHECDSA"] = "SHA-384withECDSA";
+            algorithms[X9ObjectIdentifiers.ECDsaWithSha384.Id] = "SHA-384withECDSA";
 
-            //algorithms["SHA512/ECDSA"] = "SHA-512withECDSA";
-            //algorithms["SHA-512/ECDSA"] = "SHA-512withECDSA";
-            //algorithms["ECDSAWITHSHA512"] = "SHA-512withECDSA";
-            //algorithms["ECDSAWITHSHA-512"] = "SHA-512withECDSA";
-            //algorithms["SHA512WITHECDSA"] = "SHA-512withECDSA";
-            //algorithms["SHA-512WITHECDSA"] = "SHA-512withECDSA";
-            //algorithms[X9ObjectIdentifiers.ECDsaWithSha512.Id] = "SHA-512withECDSA";
+            algorithms["SHA512/ECDSA"] = "SHA-512withECDSA";
+            algorithms["SHA-512/ECDSA"] = "SHA-512withECDSA";
+            algorithms["ECDSAWITHSHA512"] = "SHA-512withECDSA";
+            algorithms["ECDSAWITHSHA-512"] = "SHA-512withECDSA";
+            algorithms["SHA512WITHECDSA"] = "SHA-512withECDSA";
+            algorithms["SHA-512WITHECDSA"] = "SHA-512withECDSA";
+            algorithms[X9ObjectIdentifiers.ECDsaWithSha512.Id] = "SHA-512withECDSA";
 
             //algorithms["RIPEMD160/ECDSA"] = "RIPEMD160withECDSA";
             //algorithms["SHA-512/ECDSA"] = "RIPEMD160withECDSA";
@@ -256,9 +256,9 @@ namespace Org.BouncyCastle.Security
 
             //oids["SHA-1withECDSA"] = X9ObjectIdentifiers.ECDsaWithSha1;
             //oids["SHA-224withECDSA"] = X9ObjectIdentifiers.ECDsaWithSha224;
-            //oids["SHA-256withECDSA"] = X9ObjectIdentifiers.ECDsaWithSha256;
-            //oids["SHA-384withECDSA"] = X9ObjectIdentifiers.ECDsaWithSha384;
-            //oids["SHA-512withECDSA"] = X9ObjectIdentifiers.ECDsaWithSha512;
+      oids["SHA-256withECDSA"] = X9ObjectIdentifiers.ECDsaWithSha256;
+      oids["SHA-384withECDSA"] = X9ObjectIdentifiers.ECDsaWithSha384;
+      oids["SHA-512withECDSA"] = X9ObjectIdentifiers.ECDsaWithSha512;
 
             //oids["GOST3410"] = CryptoProObjectIdentifiers.GostR3411x94WithGostR3410x94;
             //oids["ECGOST3410"] = CryptoProObjectIdentifiers.GostR3411x94WithGostR3410x2001;
@@ -268,6 +268,13 @@ namespace Org.BouncyCastle.Security
         {
             get { return oids.Keys; }
         }
+
+    public static ISigner GetSigner(
+        DerObjectIdentifier id)
+    {
+      return GetSigner(id.Id);
+    }
+
 
 		public static ISigner GetSigner(
 			string algorithm)
@@ -398,19 +405,15 @@ namespace Org.BouncyCastle.Security
             //{
             //    return (new DsaDigestSigner(new ECDsaSigner(), new Sha224Digest()));
             //}
-            //if (mechanism.Equals("SHA-256withECDSA"))
-            //{
-            //    return (new DsaDigestSigner(new ECDsaSigner(), new Sha256Digest()));
-            //}
-            //if (mechanism.Equals("SHA-384withECDSA"))
-            //{
-            //    return (new DsaDigestSigner(new ECDsaSigner(), new Sha384Digest()));
-            //}
-            //if (mechanism.Equals("SHA-512withECDSA"))
-            //{
-            //    return (new DsaDigestSigner(new ECDsaSigner(), new Sha512Digest()));
-            //}
-
+      if (mechanism.Equals("SHA-256withECDSA")) {
+        return (new DsaDigestSigner(new ECDsaSigner(), new Sha256Digest()));
+      }
+      if (mechanism.Equals("SHA-384withECDSA")) {
+        return (new DsaDigestSigner(new ECDsaSigner(), new Sha384Digest()));
+      }
+      if (mechanism.Equals("SHA-512withECDSA")) {
+        return (new DsaDigestSigner(new ECDsaSigner(), new Sha512Digest()));
+      }
             //if (mechanism.Equals("RIPEMD160withECDSA"))
             //{
             //    return (new DsaDigestSigner(new ECDsaSigner(), new RipeMD160Digest()));
