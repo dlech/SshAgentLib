@@ -266,7 +266,7 @@ namespace dlech.PageantSharp
             signer.Init(true, signKey.CipherKeyPair.Private);
             signer.BlockUpdate(reqData.Data, 0, reqData.Data.Length);
             byte[] signature = signer.GenerateSignature();
-
+            signature = signKey.CipherKeyPair.FormatSignature(signature);
             BlobBuilder signatureBuilder = new BlobBuilder();
             signatureBuilder.AddString(algName);
             signatureBuilder.AddBlob(signature);

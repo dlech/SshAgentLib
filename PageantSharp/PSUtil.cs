@@ -12,6 +12,9 @@ using Org.BouncyCastle.Crypto.Parameters;
 using Org.BouncyCastle.Security;
 using Org.BouncyCastle.Asn1.X9;
 using Org.BouncyCastle.Asn1.Pkcs;
+using Org.BouncyCastle.Asn1;
+using Org.BouncyCastle.Math;
+using System.Collections;
 
 namespace dlech.PageantSharp
 {
@@ -20,6 +23,29 @@ namespace dlech.PageantSharp
   /// </summary>
   public static class PSUtil
   {
+
+    public static byte[] FormatSignature(this AsymmetricCipherKeyPair aCipherKeyPair, byte[] aSignature)
+    {
+      AsymmetricKeyParameter publicKey = aCipherKeyPair.Public;
+      if (publicKey is DsaPublicKeyParameters ||
+        publicKey is ECPublicKeyParameters) {
+        Asn1Sequence seq = (Asn1Sequence)Asn1Object.FromByteArray(aSignature);
+        BigInteger r = ((DerInteger)seq[0]).PositiveValue;
+        BigInteger s = ((DerInteger)seq[1]).PositiveValue;
+        BlobBuilder formatedSignature = new BlobBuilder();
+        if (publicKey is ECPublicKeyParameters) {
+          formatedSignature.AddBlob(r.ToByteArray());
+          formatedSignature.AddBlob(s.ToByteArray());
+        } else {
+          formatedSignature.AddBytes(r.ToByteArrayUnsigned());
+          formatedSignature.AddBytes(s.ToByteArrayUnsigned());
+        }
+        return formatedSignature.GetBlob();
+      } else if (publicKey is RsaKeyParameters) {
+        return aSignature;
+      }
+      throw new Exception("Unsupported algorithm");
+    }
 
     public static ISigner GetSigner(this AsymmetricCipherKeyPair aCipherKeyPair)
     {

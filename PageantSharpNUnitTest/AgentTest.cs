@@ -17,6 +17,7 @@ using System.Collections.ObjectModel;
 using Org.BouncyCastle.Math.EC;
 using Org.BouncyCastle.Asn1.X9;
 using Org.BouncyCastle.Asn1.Sec;
+using Org.BouncyCastle.Asn1;
 
 namespace PageantSharpTest
 {
@@ -172,15 +173,16 @@ namespace PageantSharpTest
 
     [Test()]
     public void TestAnswerSSH2_AGENTC_ADD_IDENTITY()
-    {   
+    {
       Agent agent = new TestAgent();
-      agent.KeyList.CollectionChanged += 
-        (aSender, aEventArgs) =>  {
+      agent.KeyList.CollectionChanged +=
+        (aSender, aEventArgs) =>
+        {
           int x = 1;
-        };      
+        };
       /* test adding rsa key */
 
-     BlobBuilder builder = new BlobBuilder();
+      BlobBuilder builder = new BlobBuilder();
       RsaPrivateCrtKeyParameters rsaParameters =
         (RsaPrivateCrtKeyParameters)mRsaKey.CipherKeyPair.Private;
       builder.AddString(mRsaKey.Algorithm.GetIdentifierString());
@@ -303,7 +305,7 @@ namespace PageantSharpTest
     [Test()]
     public void TestAnswerSSH2_AGENTC_REQUEST_IDENTITIES()
     {
-      Agent agent = new TestAgent(mAllKeys);      
+      Agent agent = new TestAgent(mAllKeys);
 
       /* send request for SSH2 identities */
       PrepareSimpleMessage(Agent.Message.SSH2_AGENTC_REQUEST_IDENTITIES);
@@ -314,12 +316,12 @@ namespace PageantSharpTest
       Agent.BlobHeader header = mParser.ReadHeader();
       Assert.That(header.Message,
         Is.EqualTo(Agent.Message.SSH2_AGENT_IDENTITIES_ANSWER));
-      
+
       /* check that we received the correct key count */
       UInt32 actualKeyCount = mParser.ReadInt();
       List<ISshKey> ssh2KeyList =
         agent.KeyList.Where(key => key.Version == SshVersion.SSH2).ToList();
-      int expectedSsh2KeyCount = ssh2KeyList.Count; 
+      int expectedSsh2KeyCount = ssh2KeyList.Count;
       Assert.That(actualKeyCount, Is.EqualTo(expectedSsh2KeyCount));
 
       /* check that we have data for each key */
@@ -344,9 +346,9 @@ namespace PageantSharpTest
       BlobBuilder builder = new BlobBuilder();
 
       Agent agent = new TestAgent(mAllKeys);
-           
+
       /* test signatures */
-           
+
       foreach (ISshKey key in mAllKeys.Where(key => key.Version == SshVersion.SSH2)) {
         builder.Clear();
         builder.AddBlob(key.CipherKeyPair.Public.ToBlob());
@@ -369,12 +371,22 @@ namespace PageantSharpTest
           Assert.That(signature.Length == key.Size / 8);
         } else if (key.Algorithm == PublicKeyAlgorithm.SSH_DSS) {
           Assert.That(signature.Length, Is.EqualTo(40));
+          BigInteger r = new BigInteger(1, signature, 0, 20);
+          BigInteger s = new BigInteger(1, signature, 20, 20);
+          DerSequence seq = new DerSequence(new DerInteger(r), new DerInteger(s));
+          signature = seq.GetDerEncoded();
         } else if (key.Algorithm == PublicKeyAlgorithm.ECDSA_SHA2_NISTP256 ||
           key.Algorithm == PublicKeyAlgorithm.ECDSA_SHA2_NISTP384 ||
           key.Algorithm == PublicKeyAlgorithm.ECDSA_SHA2_NISTP521) {
-            Assert.That(signature.Length == key.Size / 4);
+          Assert.That(signature.Length, Is.AtLeast(key.Size / 4 + 8));
+          Assert.That(signature.Length, Is.AtMost(key.Size / 4 + 10));
+          BlobParser parser = new BlobParser(signature);
+          BigInteger r = new BigInteger(parser.ReadBlob().Data);
+          BigInteger s = new BigInteger(parser.ReadBlob().Data);
+          DerSequence seq = new DerSequence(new DerInteger(r), new DerInteger(s));
+          signature = seq.GetDerEncoded();
         }
-        ISigner signer = key.CipherKeyPair.GetSigner();        
+        ISigner signer = key.CipherKeyPair.GetSigner();
         signer.Init(false, key.CipherKeyPair.Public);
         signer.BlockUpdate(signatureDataBytes, 0, signatureDataBytes.Length);
         bool signatureOk = signer.VerifySignature(signature);
@@ -392,14 +404,14 @@ namespace PageantSharpTest
       PrepareMessage(builder);
       agent.AnswerMessage(mStream);
       RewindStream();
-      Agent.BlobHeader header2 = mParser.ReadHeader();      
+      Agent.BlobHeader header2 = mParser.ReadHeader();
       Assert.That(header2.BlobLength, Is.EqualTo(1));
       Assert.That(header2.Message, Is.EqualTo(Agent.Message.SSH_AGENT_FAILURE));
     }
-    
+
     [Test()]
     public void TestAnswerSSH2_AGENTC_REMOVE_IDENTITY()
-    {      
+    {
       Agent agent = new TestAgent(mAllKeys);
       BlobBuilder builder = new BlobBuilder();
 
@@ -463,7 +475,7 @@ namespace PageantSharpTest
       PrepareSimpleMessage(Agent.Message.SSH2_AGENTC_REMOVE_ALL_IDENTITIES);
       agent.AnswerMessage(mStream);
       RewindStream();
-       header = mParser.ReadHeader();
+      header = mParser.ReadHeader();
       Assert.That(header.BlobLength, Is.EqualTo(1));
       Assert.That(header.Message, Is.EqualTo(Agent.Message.SSH_AGENT_SUCCESS));
 
@@ -498,7 +510,7 @@ namespace PageantSharpTest
 
       agent.Locked += new Agent.LockEventHandler(agentLocked);
 
-      
+
       /* test that unlock does nothing when already unlocked */
 
       PrepareLockMessage(false, password);
@@ -574,7 +586,7 @@ namespace PageantSharpTest
     }
 
     #region helper methods
-    
+
     /// <summary>
     /// writes BlobBuilder data to beginning of Stream and resets Stream
     /// </summary>
@@ -622,5 +634,5 @@ namespace PageantSharpTest
     }
   }
 
-  #endregion
+    #endregion
 }
