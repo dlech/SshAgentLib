@@ -176,11 +176,7 @@ namespace PageantSharpTest
     public void TestAnswerSSH2_AGENTC_ADD_IDENTITY()
     {
       Agent agent = new TestAgent();
-      agent.KeyList.CollectionChanged +=
-        (aSender, aEventArgs) =>
-        {
-          int x = 1;
-        };
+      
       /* test adding rsa key */
 
       BlobBuilder builder = new BlobBuilder();
@@ -312,7 +308,7 @@ namespace PageantSharpTest
 
       Agent agent = new TestAgent();
 
-      /* test adding key with confirm constraint */
+      /* test that no confirmation callback returns failure */
 
       BlobBuilder builder = new BlobBuilder();
       RsaPrivateCrtKeyParameters rsaParameters =
@@ -333,6 +329,17 @@ namespace PageantSharpTest
       agent.AnswerMessage(mStream);
       RewindStream();
       Agent.BlobHeader header = mParser.ReadHeader();
+      Assert.That(header.BlobLength, Is.EqualTo(1));
+      Assert.That(header.Message, Is.EqualTo(Agent.Message.SSH_AGENT_FAILURE));
+
+      /* test adding key with confirm constraint */
+
+      agent.ConfirmUserPermissionCallback =
+        delegate(ISshKey key) { return true; };
+      PrepareMessage(builder);
+      agent.AnswerMessage(mStream);
+      RewindStream();
+      header = mParser.ReadHeader();
       Assert.That(header.BlobLength, Is.EqualTo(1));
       Assert.That(header.Message, Is.EqualTo(Agent.Message.SSH_AGENT_SUCCESS));
       ISshKey returnedKey = agent.KeyList.First();
@@ -359,7 +366,7 @@ namespace PageantSharpTest
       Assert.That(returnedKey.Constraints.Count(), Is.EqualTo(1));
       Assert.That(returnedKey.Constraints[0].Type,
         Is.EqualTo(Agent.KeyConstraintType.SSH_AGENT_CONSTRAIN_LIFETIME));
-      Assert.That(returnedKey.Constraints[0].Data.GetType(), 
+      Assert.That(returnedKey.Constraints[0].Data.GetType(),
         Is.EqualTo(Agent.KeyConstraintType.SSH_AGENT_CONSTRAIN_LIFETIME.GetDataType()));
       Assert.That(returnedKey.Constraints[0].Data, Is.EqualTo(10));
 
@@ -384,7 +391,7 @@ namespace PageantSharpTest
         Is.EqualTo(Agent.KeyConstraintType.SSH_AGENT_CONSTRAIN_CONFIRM));
       Assert.That(returnedKey.Constraints[0].Data, Is.Null);
       Assert.That(returnedKey.Constraints[1].Type,
-        Is.EqualTo(Agent.KeyConstraintType.SSH_AGENT_CONSTRAIN_LIFETIME));      
+        Is.EqualTo(Agent.KeyConstraintType.SSH_AGENT_CONSTRAIN_LIFETIME));
       Assert.That(returnedKey.Constraints[1].Data, Is.EqualTo(10));
 
       /* test adding key with multiple constraints in different order */
@@ -409,7 +416,7 @@ namespace PageantSharpTest
       Assert.That(returnedKey.Constraints[0].Data, Is.EqualTo(10));
       Assert.That(returnedKey.Constraints[1].Type,
         Is.EqualTo(Agent.KeyConstraintType.SSH_AGENT_CONSTRAIN_CONFIRM));
-      Assert.That(returnedKey.Constraints[1].Data, Is.Null);      
+      Assert.That(returnedKey.Constraints[1].Data, Is.Null);
     }
 
     [Test()]
@@ -456,6 +463,15 @@ namespace PageantSharpTest
       BlobBuilder builder = new BlobBuilder();
 
       Agent agent = new TestAgent(mAllKeys);
+      Agent.BlobHeader header;
+      byte[] signatureBlob;
+      BlobParser signatureParser;
+      string algorithm;
+      byte[] signature;
+      ISigner signer;
+      bool signatureOk;
+      BigInteger r, s;
+      DerSequence seq;
 
       /* test signatures */
 
@@ -469,21 +485,21 @@ namespace PageantSharpTest
         RewindStream();
 
         /* check that proper response type was received */
-        Agent.BlobHeader header = mParser.ReadHeader();
+        header = mParser.ReadHeader();
         Assert.That(header.Message,
                     Is.EqualTo(Agent.Message.SSH2_AGENT_SIGN_RESPONSE));
-        byte[] signatureBlob = mParser.ReadBlob().Data;
-        BlobParser signatureParser = new BlobParser(signatureBlob);
-        string algorithm = Encoding.UTF8.GetString(signatureParser.ReadBlob().Data);
+        signatureBlob = mParser.ReadBlob().Data;
+        signatureParser = new BlobParser(signatureBlob);
+        algorithm = signatureParser.ReadString();
         Assert.That(algorithm, Is.EqualTo(key.Algorithm.GetIdentifierString()));
-        byte[] signature = signatureParser.ReadBlob().Data;
+        signature = signatureParser.ReadBlob().Data;
         if (key.Algorithm == PublicKeyAlgorithm.SSH_RSA) {
           Assert.That(signature.Length == key.Size / 8);
         } else if (key.Algorithm == PublicKeyAlgorithm.SSH_DSS) {
           Assert.That(signature.Length, Is.EqualTo(40));
-          BigInteger r = new BigInteger(1, signature, 0, 20);
-          BigInteger s = new BigInteger(1, signature, 20, 20);
-          DerSequence seq = new DerSequence(new DerInteger(r), new DerInteger(s));
+          r = new BigInteger(1, signature, 0, 20);
+          s = new BigInteger(1, signature, 20, 20);
+          seq = new DerSequence(new DerInteger(r), new DerInteger(s));
           signature = seq.GetDerEncoded();
         } else if (key.Algorithm == PublicKeyAlgorithm.ECDSA_SHA2_NISTP256 ||
           key.Algorithm == PublicKeyAlgorithm.ECDSA_SHA2_NISTP384 ||
@@ -491,18 +507,46 @@ namespace PageantSharpTest
           Assert.That(signature.Length, Is.AtLeast(key.Size / 4 + 8));
           Assert.That(signature.Length, Is.AtMost(key.Size / 4 + 10));
           BlobParser parser = new BlobParser(signature);
-          BigInteger r = new BigInteger(parser.ReadBlob().Data);
-          BigInteger s = new BigInteger(parser.ReadBlob().Data);
-          DerSequence seq = new DerSequence(new DerInteger(r), new DerInteger(s));
+          r = new BigInteger(parser.ReadBlob().Data);
+          s = new BigInteger(parser.ReadBlob().Data);
+          seq = new DerSequence(new DerInteger(r), new DerInteger(s));
           signature = seq.GetDerEncoded();
         }
-        ISigner signer = key.CipherKeyPair.GetSigner();
+        signer = key.CipherKeyPair.GetSigner();
         signer.Init(false, key.CipherKeyPair.Public);
         signer.BlockUpdate(signatureDataBytes, 0, signatureDataBytes.Length);
-        bool signatureOk = signer.VerifySignature(signature);
+        signatureOk = signer.VerifySignature(signature);
         Assert.That(signatureOk, Is.True, "invalid signature");
         Assert.That(header.BlobLength, Is.EqualTo(mStream.Position - 4));
       }
+
+      /* test dsa key old signature format */
+
+      builder.Clear();
+      builder.AddBlob(mDsaKey.CipherKeyPair.Public.ToBlob());
+      builder.AddStringBlob(signatureData);
+      builder.AddInt((uint)Agent.SignRequestFlags.SSH_AGENT_OLD_SIGNATURE);
+      builder.InsertHeader(Agent.Message.SSH2_AGENTC_SIGN_REQUEST);
+      PrepareMessage(builder);
+      agent.AnswerMessage(mStream);
+      RewindStream();      
+      header = mParser.ReadHeader();
+      Assert.That(header.Message,
+                  Is.EqualTo(Agent.Message.SSH2_AGENT_SIGN_RESPONSE));
+      signatureBlob = mParser.ReadBlob().Data;
+      signatureParser = new BlobParser(signatureBlob);
+      signature = signatureParser.ReadBlob().Data;
+      Assert.That(signature.Length == 40);
+      r = new BigInteger(1, signature, 0, 20);
+      s = new BigInteger(1, signature, 20, 20);
+      seq = new DerSequence(new DerInteger(r), new DerInteger(s));
+      signature = seq.GetDerEncoded();
+      signer = mDsaKey.CipherKeyPair.GetSigner();
+      signer.Init(false, mDsaKey.CipherKeyPair.Public);
+      signer.BlockUpdate(signatureDataBytes, 0, signatureDataBytes.Length);
+      signatureOk = signer.VerifySignature(signature);
+      Assert.That(signatureOk, Is.True, "invalid signature");
+      Assert.That(header.BlobLength, Is.EqualTo(mStream.Position - 4));
 
       /* test key not found */
 

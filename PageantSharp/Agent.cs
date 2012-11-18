@@ -90,6 +90,11 @@ namespace dlech.PageantSharp
       SSH_AGENT_CONSTRAIN_CONFIRM = 2
     }
 
+    [Flags()]
+    public enum SignRequestFlags : uint {
+      SSH_AGENT_OLD_SIGNATURE = 1
+    }
+
     #endregion
 
     #region Data Types
@@ -130,7 +135,21 @@ namespace dlech.PageantSharp
       public bool IsLocked { get; private set; }
     }
 
+    /// <summary>
+    /// Handles events when Agent is locked and unlocked
+    /// </summary>
+    /// <param name="aSender"></param>
+    /// <param name="aEventArgs"></param>
     public delegate void LockEventHandler(object aSender, LockEventArgs aEventArgs);
+
+    /// <summary>
+    /// Requests user for permission to use specified key.
+    /// </summary>
+    /// <param name="key">The key that will be used</param>
+    /// <returns>
+    /// true if user grants permission, false if user denies permission
+    /// </returns>
+    public delegate bool ConfirmUserPermission(ISshKey key);
 
     #endregion
 
@@ -148,6 +167,8 @@ namespace dlech.PageantSharp
         return mKeyList;
       }
     }
+
+    public ConfirmUserPermission ConfirmUserPermissionCallback { get; set; }
 
     #endregion
 
@@ -251,7 +272,6 @@ namespace dlech.PageantSharp
           } catch (Exception ex) {
             Debug.Fail(ex.ToString());
           }
-          responseBuilder.Clear();
           goto default; // failed
 
         case Message.SSH1_AGENTC_RSA_CHALLENGE:
@@ -273,6 +293,11 @@ namespace dlech.PageantSharp
           try {
             PinnedByteArray keyBlob = messageParser.ReadBlob();
             PinnedByteArray reqData = messageParser.ReadBlob();
+            SignRequestFlags flags = new SignRequestFlags();
+            try {
+              // usually, there are no flags, so parser will throw
+              flags = (SignRequestFlags)messageParser.ReadInt();
+            } catch { }
 
             ISshKey matchingKey =
               KeyList.Where(key => key.Version == SshVersion.SSH2 &&
@@ -296,7 +321,9 @@ namespace dlech.PageantSharp
             byte[] signature = signer.GenerateSignature();
             signature = signKey.CipherKeyPair.FormatSignature(signature);
             BlobBuilder signatureBuilder = new BlobBuilder();
-            signatureBuilder.AddStringBlob(algName);
+            if (!flags.HasFlag(SignRequestFlags.SSH_AGENT_OLD_SIGNATURE)) {
+              signatureBuilder.AddStringBlob(algName);
+            }
             signatureBuilder.AddBlob(signature);
             responseBuilder.AddBlob(signatureBuilder.GetBlob());
             responseBuilder.InsertHeader(Message.SSH2_AGENT_SIGN_RESPONSE);
@@ -306,7 +333,6 @@ namespace dlech.PageantSharp
           } catch (Exception ex) {
             Debug.Fail(ex.ToString());
           }
-          responseBuilder.Clear();
           goto default; // failure
 
         case Message.SSH1_AGENTC_ADD_RSA_IDENTITY:
@@ -344,6 +370,13 @@ namespace dlech.PageantSharp
                 KeyConstraint constraint = new KeyConstraint();
                 constraint.Type =
                   (KeyConstraintType)messageParser.ReadByte();
+                if (constraint.Type ==
+                  KeyConstraintType.SSH_AGENT_CONSTRAIN_CONFIRM &&
+                  ConfirmUserPermissionCallback == null) {
+                  // can't add key with confirm constraint if we don't have
+                  // confirm callback
+                  goto default;
+                }
                 if (constraint.Type ==
                   KeyConstraintType.SSH_AGENT_CONSTRAIN_LIFETIME) {
                   constraint.Data = messageParser.ReadInt();
@@ -457,6 +490,7 @@ namespace dlech.PageantSharp
           goto default;
 
         default:
+          responseBuilder.Clear();
           responseBuilder.InsertHeader(Message.SSH_AGENT_FAILURE);
           break;
       }
