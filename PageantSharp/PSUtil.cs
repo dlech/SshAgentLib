@@ -24,9 +24,9 @@ namespace dlech.PageantSharp
   public static class PSUtil
   {
 
-    public static byte[] FormatSignature(this AsymmetricCipherKeyPair aCipherKeyPair, byte[] aSignature)
+    public static byte[] FormatSignature(this ISshKey aKey, byte[] aSignature)
     {
-      AsymmetricKeyParameter publicKey = aCipherKeyPair.Public;
+      AsymmetricKeyParameter publicKey = aKey.GetPublicKeyParameters();
       if (publicKey is DsaPublicKeyParameters ||
         publicKey is ECPublicKeyParameters) {
         Asn1Sequence seq = (Asn1Sequence)Asn1Object.FromByteArray(aSignature);
@@ -47,23 +47,23 @@ namespace dlech.PageantSharp
       throw new Exception("Unsupported algorithm");
     }
 
-    public static ISigner GetSigner(this AsymmetricCipherKeyPair aCipherKeyPair)
+    public static ISigner GetSigner(this ISshKey aKey)
     {
-      AsymmetricKeyParameter publicKey = aCipherKeyPair.Public;
+      AsymmetricKeyParameter publicKey = aKey.GetPublicKeyParameters();
       if (publicKey is DsaPublicKeyParameters) {
         return SignerUtilities.GetSigner(X9ObjectIdentifiers.IdDsaWithSha1);
       } else if (publicKey is RsaKeyParameters) {
         return SignerUtilities.GetSigner(PkcsObjectIdentifiers.Sha1WithRsaEncryption);
       } else if (publicKey is ECPublicKeyParameters) {
         int ecdsaFieldSize =
-         ((ECPublicKeyParameters)aCipherKeyPair.Public).Q.Curve.FieldSize;
+         ((ECPublicKeyParameters)publicKey).Q.Curve.FieldSize;
         if (ecdsaFieldSize <= 256) {
           return SignerUtilities.GetSigner(X9ObjectIdentifiers.ECDsaWithSha256);
         } else if (ecdsaFieldSize > 256 && ecdsaFieldSize <= 384) {
           return SignerUtilities.GetSigner(X9ObjectIdentifiers.ECDsaWithSha384);
         } else if (ecdsaFieldSize > 384) {
           return SignerUtilities.GetSigner(X9ObjectIdentifiers.ECDsaWithSha512);
-        } 
+        }
       }
       throw new Exception("Unsupported algorithm");
     }
@@ -81,10 +81,10 @@ namespace dlech.PageantSharp
       byte[] aPublicKeyBlob)
     {
       foreach (ISshKey key in aKeyList.Where(key => key.Version == aVersion)) {
-        byte[] keyBlob = key.CipherKeyPair.Public.ToBlob();
+        byte[] keyBlob = key.GetPublicKeyBlob();
         if (keyBlob.SequenceEqual(aPublicKeyBlob)) {
           return key;
-        }        
+        }
       }
       return null;
     }
@@ -100,27 +100,28 @@ namespace dlech.PageantSharp
     /// <remarks>
     /// Currently only supports RSA and DSA public keys
     /// </remarks>
-    public static byte[] ToBlob(this AsymmetricKeyParameter aParameter)
+    public static byte[] GetPublicKeyBlob(this ISshKey aKey)
     {
+      AsymmetricKeyParameter parameters = aKey.GetPublicKeyParameters();
       BlobBuilder builder = new BlobBuilder();
-      if (aParameter is RsaKeyParameters) {        
-          RsaKeyParameters rsaPublicKeyParameters = (RsaKeyParameters)aParameter;
-          
-          builder.AddStringBlob(PublicKeyAlgorithm.SSH_RSA.GetIdentifierString());
-          builder.AddBigIntBlob(rsaPublicKeyParameters.Exponent);
-          builder.AddBigIntBlob(rsaPublicKeyParameters.Modulus);
-      } else if (aParameter is DsaPublicKeyParameters) {
+      if (parameters is RsaKeyParameters) {
+        RsaKeyParameters rsaPublicKeyParameters = (RsaKeyParameters)parameters;
+
+        builder.AddStringBlob(PublicKeyAlgorithm.SSH_RSA.GetIdentifierString());
+        builder.AddBigIntBlob(rsaPublicKeyParameters.Exponent);
+        builder.AddBigIntBlob(rsaPublicKeyParameters.Modulus);
+      } else if (parameters is DsaPublicKeyParameters) {
         DsaPublicKeyParameters dsaParameters =
-          (DsaPublicKeyParameters)aParameter;
-        
+          (DsaPublicKeyParameters)parameters;
+
         builder.AddStringBlob(PublicKeyAlgorithm.SSH_DSS.GetIdentifierString());
         builder.AddBigIntBlob(dsaParameters.Parameters.P);
         builder.AddBigIntBlob(dsaParameters.Parameters.Q);
         builder.AddBigIntBlob(dsaParameters.Parameters.G);
-        builder.AddBigIntBlob(dsaParameters.Y);        
-      } else if (aParameter is ECPublicKeyParameters) {
+        builder.AddBigIntBlob(dsaParameters.Y);
+      } else if (parameters is ECPublicKeyParameters) {
         ECPublicKeyParameters ecdsaParameters =
-          (ECPublicKeyParameters)aParameter;
+          (ECPublicKeyParameters)parameters;
 
         string algorithm;
         switch (ecdsaParameters.Parameters.Curve.FieldSize) {
@@ -138,19 +139,19 @@ namespace dlech.PageantSharp
               ecdsaParameters.Parameters.Curve.FieldSize);
         }
         builder.AddStringBlob(algorithm);
-        algorithm = 
+        algorithm =
           algorithm.Replace(PublicKeyAlgorithmExt.ALGORITHM_ECDSA_SHA2_PREFIX,
           string.Empty);
         builder.AddStringBlob(algorithm);
         builder.AddBlob(ecdsaParameters.Q.GetEncoded());
       } else {
-        throw new ArgumentException(aParameter.GetType() + " is not supported");
+        throw new ArgumentException(parameters.GetType() + " is not supported");
       }
       byte[] result = builder.GetBlob();
       builder.Clear();
       return result;
     }
-    
+
     /// <summary>
     /// Gets the Type of the Data object for a given Agent.KeyConstraintType
     /// </summary>

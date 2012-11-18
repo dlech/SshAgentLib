@@ -43,14 +43,14 @@ namespace PageantSharpTest
           delegate() {
         return null; }, delegate() { });
       string rsaExpectedFingerprint = "57:95:98:7f:c2:4e:98:1d:b9:5b:45:fe:6d:a4:6b:17";
-      string rsaActual = rsaTarget.Fingerprint.ToHexString();
+      string rsaActual = rsaTarget.MD5Fingerprint.ToHexString();
       Assert.That(rsaExpectedFingerprint, Is.EqualTo(rsaActual));
 
       SshKey dsaTarget = PpkFile.ReadFile(ssh2_dsa_no_passphrase_ppk,
           delegate() {
         return null; }, delegate() { });
       string dsaExpectedFingerprint = "4e:f1:fc:5d:80:5b:37:b6:13:67:ce:df:4e:83:7b:0b";
-      string dsaActual = dsaTarget.Fingerprint.ToHexString();
+      string dsaActual = dsaTarget.MD5Fingerprint.ToHexString();
       Assert.That(dsaExpectedFingerprint, Is.EqualTo(dsaActual));
     }
 
@@ -74,7 +74,7 @@ namespace PageantSharpTest
         "XmjNKygrsIq3yPMZV4q8YcN/ls9COcynOQMIEmJF6Q0LD7Gt9Uv5yjqc2Ay7VVhG" +
         "qZNnIeE=");
 
-      actual = target.CipherKeyPair.Public.ToBlob();
+      actual = target.GetPublicKeyBlob();
       Assert.That(expected, Is.EqualTo(actual));
 
       /* test DSA key */
@@ -91,7 +91,7 @@ namespace PageantSharpTest
           "M9zBXkqb5bdlqy9vRx72/1DXOjH08PIbvza7HfOLkhRri0TYBDJbufQOlK4vQPqF" +
           "0qhxkYfsgqrZBMBKbLKTZnNm+BW2dgu+QSud67b01IZPzS2i0Z4DgSja9vl3xong" +
           "Cw==");
-      actual = target.CipherKeyPair.Public.ToBlob();
+      actual = target.GetPublicKeyBlob();
       Assert.That(expected, Is.EqualTo(actual));
     }
   }

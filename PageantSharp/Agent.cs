@@ -91,7 +91,8 @@ namespace dlech.PageantSharp
     }
 
     [Flags()]
-    public enum SignRequestFlags : uint {
+    public enum SignRequestFlags : uint
+    {
       SSH_AGENT_OLD_SIGNATURE = 1
     }
 
@@ -261,7 +262,7 @@ namespace dlech.PageantSharp
                                             select key;
               foreach (SshKey key in v2Keys) {
                 keyCount++;
-                responseBuilder.AddBlob(key.CipherKeyPair.Public.ToBlob());
+                responseBuilder.AddBlob(key.GetPublicKeyBlob());
                 responseBuilder.AddStringBlob(key.Comment);
               }
             }
@@ -301,7 +302,7 @@ namespace dlech.PageantSharp
 
             ISshKey matchingKey =
               KeyList.Where(key => key.Version == SshVersion.SSH2 &&
-              key.CipherKeyPair.Public.ToBlob()
+              key.GetPublicKeyBlob()
               .SequenceEqual(keyBlob.Data))
               .Single();
             var confirmConstraints = matchingKey.Constraints
@@ -314,12 +315,12 @@ namespace dlech.PageantSharp
 
             /* create signature */
             ISshKey signKey = matchingKey;
-            ISigner signer = signKey.CipherKeyPair.GetSigner();
+            ISigner signer = signKey.GetSigner();
             string algName = signKey.Algorithm.GetIdentifierString();
-            signer.Init(true, signKey.CipherKeyPair.Private);
+            signer.Init(true, signKey.GetPrivateKeyParameters());
             signer.BlockUpdate(reqData.Data, 0, reqData.Data.Length);
             byte[] signature = signer.GenerateSignature();
-            signature = signKey.CipherKeyPair.FormatSignature(signature);
+            signature = signKey.FormatSignature(signature);
             BlobBuilder signatureBuilder = new BlobBuilder();
             if (!flags.HasFlag(SignRequestFlags.SSH_AGENT_OLD_SIGNATURE)) {
               signatureBuilder.AddStringBlob(algName);
@@ -360,9 +361,8 @@ namespace dlech.PageantSharp
               Message.SSH2_AGENTC_ADD_ID_CONSTRAINED);
 
           try {
-            SshKey key = new SshKey();
-            key.Version = SshVersion.SSH2;
-            key.CipherKeyPair = CreateCipherKeyPair(aMessageStream);
+            SshKey key = new SshKey(SshVersion.SSH2,
+              CreateCipherKeyPair(aMessageStream));
             key.Comment = messageParser.ReadString();
 
             if (constrained) {
@@ -384,7 +384,7 @@ namespace dlech.PageantSharp
                 key.Constraints.Add(constraint);
               }
             }
-            KeyList.Remove(key.Version, key.CipherKeyPair.Public.ToBlob());
+            KeyList.Remove(key.Version, key.GetPublicKeyBlob());
             KeyList.Add(key);
             responseBuilder.InsertHeader(Message.SSH_AGENT_SUCCESS);
             break; // success!            

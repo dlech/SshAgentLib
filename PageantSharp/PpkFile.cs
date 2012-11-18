@@ -420,11 +420,10 @@ namespace dlech.PageantSharp
 
         VerifyIntegrity(fileData);
 
-        SshKey key = new SshKey();
-        key.Version = SshVersion.SSH2;
-        key.CipherKeyPair = CreateCipherKeyPair(fileData.publicKeyAlgorithm,
+        AsymmetricCipherKeyPair cipherKeyPair =
+          CreateCipherKeyPair(fileData.publicKeyAlgorithm,
           fileData.publicKeyBlob, fileData.privateKeyBlob.Data);
-        key.Comment = fileData.comment;
+        SshKey key = new SshKey(SshVersion.SSH2, cipherKeyPair, fileData.comment);
         return key;
 
       } catch (PpkFileException) {

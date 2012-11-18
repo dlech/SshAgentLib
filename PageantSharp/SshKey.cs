@@ -15,28 +15,31 @@ namespace dlech.PageantSharp
   /// </summary>
   public class SshKey : ISshKey
   {
-    private ObservableCollection<Agent.KeyConstraint> mKeyConstraints =
-      new ObservableCollection<Agent.KeyConstraint>();
+    private ObservableCollection<Agent.KeyConstraint> mKeyConstraints;
+    private AsymmetricCipherKeyPair mCipherKeyPair;
 
-    public SshVersion Version { get; set; }
-
-    public AsymmetricCipherKeyPair CipherKeyPair
+    public SshKey(SshVersion aVersion, AsymmetricCipherKeyPair aCipherKeyPair,
+      string aComment = "")
     {
-      get;
-      set;
+      Version = aVersion;
+      mCipherKeyPair = aCipherKeyPair;
+      Comment = aComment;
+      mKeyConstraints = new ObservableCollection<Agent.KeyConstraint>();
     }
 
+    public SshVersion Version { get; private set; }
+    
     public PublicKeyAlgorithm Algorithm
     {
       get
       {
-        if (CipherKeyPair.Public is RsaKeyParameters) {
+        if (mCipherKeyPair.Public is RsaKeyParameters) {
           return PublicKeyAlgorithm.SSH_RSA;
-        } else if (CipherKeyPair.Public is DsaPublicKeyParameters) {
+        } else if (mCipherKeyPair.Public is DsaPublicKeyParameters) {
           return PublicKeyAlgorithm.SSH_DSS;
-        } else if (CipherKeyPair.Public is ECPublicKeyParameters) {
+        } else if (mCipherKeyPair.Public is ECPublicKeyParameters) {
           ECPublicKeyParameters ecdsaParameters =
-            (ECPublicKeyParameters)CipherKeyPair.Public;
+            (ECPublicKeyParameters)mCipherKeyPair.Public;
           switch (ecdsaParameters.Q.Curve.FieldSize) {
             case 256:
               return PublicKeyAlgorithm.ECDSA_SHA2_NISTP256;
@@ -54,17 +57,17 @@ namespace dlech.PageantSharp
     {
       get
       {
-        if (CipherKeyPair.Public is RsaKeyParameters) {
+        if (mCipherKeyPair.Public is RsaKeyParameters) {
           RsaKeyParameters rsaKeyParameters =
-            (RsaKeyParameters)CipherKeyPair.Public;
+            (RsaKeyParameters)mCipherKeyPair.Public;
           return rsaKeyParameters.Modulus.BitLength;
-        } else if (CipherKeyPair.Public is DsaPublicKeyParameters) {
+        } else if (mCipherKeyPair.Public is DsaPublicKeyParameters) {
           DsaPublicKeyParameters dsaKeyParameters =
-            (DsaPublicKeyParameters)CipherKeyPair.Public;
+            (DsaPublicKeyParameters)mCipherKeyPair.Public;
           return dsaKeyParameters.Parameters.P.BitLength;
-        } else if (CipherKeyPair.Public is ECPublicKeyParameters) {
+        } else if (mCipherKeyPair.Public is ECPublicKeyParameters) {
           ECPublicKeyParameters ecdsaParameters =
-            (ECPublicKeyParameters)CipherKeyPair.Public;
+            (ECPublicKeyParameters)mCipherKeyPair.Public;
           return ecdsaParameters.Q.Curve.FieldSize;
         }
         // TODO need a better exception here
@@ -72,13 +75,13 @@ namespace dlech.PageantSharp
       }
     }
 
-    public byte[] Fingerprint
+    public byte[] MD5Fingerprint
     {
       get
       {
         try {
           using (MD5 md5 = MD5.Create()) {
-            return md5.ComputeHash(CipherKeyPair.Public.ToBlob());
+            return md5.ComputeHash(this.GetPublicKeyBlob());
           }
         } catch (Exception) {
           return null;
@@ -103,6 +106,16 @@ namespace dlech.PageantSharp
       }
     }
 
+    public AsymmetricKeyParameter GetPublicKeyParameters()
+    {
+      return mCipherKeyPair.Public;
+    }
+
+    public AsymmetricKeyParameter GetPrivateKeyParameters()
+    {
+      return mCipherKeyPair.Private;
+    }
+
     ~SshKey()
     {
       this.Dispose();
@@ -110,7 +123,7 @@ namespace dlech.PageantSharp
 
     public void Dispose()
     {
-      if (this.CipherKeyPair != null) {
+      if (this.mCipherKeyPair != null) {
         // TODO is there a way to clear parameters from memory?
       }
     }

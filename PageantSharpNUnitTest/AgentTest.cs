@@ -74,13 +74,10 @@ namespace PageantSharpTest
 
       RsaKeyPairGenerator rsaKeyPairGen = new RsaKeyPairGenerator();
       rsaKeyPairGen.Init(keyGenParam);
-      mRsa1Key = new SshKey();
-      mRsa1Key.CipherKeyPair = rsaKeyPairGen.GenerateKeyPair();
-      mRsa1Key.Version = SshVersion.SSH1;
+      AsymmetricCipherKeyPair keyPair = rsaKeyPairGen.GenerateKeyPair();
+      mRsa1Key = new SshKey(SshVersion.SSH1, keyPair);
       mRsa1Key.Comment = "SSH1 RSA test key";
-      mRsaKey = new SshKey();
-      mRsaKey.CipherKeyPair = mRsa1Key.CipherKeyPair;
-      mRsaKey.Version = SshVersion.SSH2;
+      mRsaKey = new SshKey(SshVersion.SSH2, keyPair);
       mRsaKey.Comment = "SSH2 RSA test key";
 
       DsaParametersGenerator dsaParamGen = new DsaParametersGenerator();
@@ -90,9 +87,8 @@ namespace PageantSharpTest
         new DsaKeyGenerationParameters(secureRandom, dsaParam);
       DsaKeyPairGenerator dsaKeyPairGen = new DsaKeyPairGenerator();
       dsaKeyPairGen.Init(dsaKeyGenParam);
-      mDsaKey = new SshKey();
-      mDsaKey.CipherKeyPair = dsaKeyPairGen.GenerateKeyPair();
-      mDsaKey.Version = SshVersion.SSH2;
+      keyPair = dsaKeyPairGen.GenerateKeyPair();
+      mDsaKey = new SshKey(SshVersion.SSH2, keyPair);
       mDsaKey.Comment = "SSH2 DSA test key";
 
       X9ECParameters ecdsa256X9Params =
@@ -104,9 +100,8 @@ namespace PageantSharpTest
         new ECKeyGenerationParameters(ecdsa256DomainParams, secureRandom);
       ECKeyPairGenerator ecdsa256Gen = new ECKeyPairGenerator();
       ecdsa256Gen.Init(ecdsa256GenParams);
-      mEcdsa256Key = new SshKey();
-      mEcdsa256Key.CipherKeyPair = ecdsa256Gen.GenerateKeyPair();
-      mEcdsa256Key.Version = SshVersion.SSH2;
+      keyPair = ecdsa256Gen.GenerateKeyPair();
+      mEcdsa256Key = new SshKey(SshVersion.SSH2, keyPair);
       mEcdsa256Key.Comment = "SSH2 ECDSA 256 test key";
 
       X9ECParameters ecdsa384X9Params =
@@ -118,9 +113,8 @@ namespace PageantSharpTest
         new ECKeyGenerationParameters(ecdsa384DomainParams, secureRandom);
       ECKeyPairGenerator ecdsa384Gen = new ECKeyPairGenerator();
       ecdsa384Gen.Init(ecdsa384GenParams);
-      mEcdsa384Key = new SshKey();
-      mEcdsa384Key.CipherKeyPair = ecdsa384Gen.GenerateKeyPair();
-      mEcdsa384Key.Version = SshVersion.SSH2;
+      keyPair = ecdsa384Gen.GenerateKeyPair();
+      mEcdsa384Key = new SshKey(SshVersion.SSH2, keyPair);
       mEcdsa384Key.Comment = "SSH2 ECDSA 384 test key";
 
       X9ECParameters ecdsa521X9Params =
@@ -132,9 +126,8 @@ namespace PageantSharpTest
         new ECKeyGenerationParameters(ecdsa521DomainParams, secureRandom);
       ECKeyPairGenerator ecdsa521Gen = new ECKeyPairGenerator();
       ecdsa521Gen.Init(ecdsa521GenParams);
-      mEcdsa521Key = new SshKey();
-      mEcdsa521Key.CipherKeyPair = ecdsa521Gen.GenerateKeyPair();
-      mEcdsa521Key.Version = SshVersion.SSH2;
+      keyPair = ecdsa521Gen.GenerateKeyPair();
+      mEcdsa521Key = new SshKey(SshVersion.SSH2, keyPair);
       mEcdsa521Key.Comment = "SSH2 ECDSA 521 test key";
 
       // TODO add more key types here when they are implemented
@@ -176,12 +169,12 @@ namespace PageantSharpTest
     public void TestAnswerSSH2_AGENTC_ADD_IDENTITY()
     {
       Agent agent = new TestAgent();
-      
+
       /* test adding rsa key */
 
       BlobBuilder builder = new BlobBuilder();
       RsaPrivateCrtKeyParameters rsaParameters =
-        (RsaPrivateCrtKeyParameters)mRsaKey.CipherKeyPair.Private;
+        (RsaPrivateCrtKeyParameters)mRsaKey.GetPrivateKeyParameters();
       builder.AddStringBlob(mRsaKey.Algorithm.GetIdentifierString());
       builder.AddBigIntBlob(rsaParameters.Modulus);
       builder.AddBigIntBlob(rsaParameters.PublicExponent);
@@ -198,22 +191,22 @@ namespace PageantSharpTest
       Assert.That(header.BlobLength, Is.EqualTo(1));
       Assert.That(header.Message, Is.EqualTo(Agent.Message.SSH_AGENT_SUCCESS));
       ISshKey returnedKey = agent.KeyList.First();
-      Assert.That(returnedKey.CipherKeyPair.Public,
+      Assert.That(returnedKey.GetPublicKeyParameters(),
                   Is.InstanceOf<RsaKeyParameters>());
-      Assert.That(returnedKey.CipherKeyPair.Private,
+      Assert.That(returnedKey.GetPrivateKeyParameters(),
                   Is.InstanceOf<RsaKeyParameters>());
       Assert.That(returnedKey.Size, Is.EqualTo(mRsaKey.Size));
       Assert.That(returnedKey.Comment, Is.EqualTo(mRsaKey.Comment));
-      Assert.That(returnedKey.Fingerprint, Is.EqualTo(mRsaKey.Fingerprint));
+      Assert.That(returnedKey.MD5Fingerprint, Is.EqualTo(mRsaKey.MD5Fingerprint));
 
       /* test adding dsa key */
 
       agent.KeyList.Clear();
       builder.Clear();
       DsaPublicKeyParameters dsaPublicParameters =
-        (DsaPublicKeyParameters)mDsaKey.CipherKeyPair.Public;
+        (DsaPublicKeyParameters)mDsaKey.GetPublicKeyParameters();
       DsaPrivateKeyParameters dsaPrivateParameters =
-        (DsaPrivateKeyParameters)mDsaKey.CipherKeyPair.Private;
+        (DsaPrivateKeyParameters)mDsaKey.GetPrivateKeyParameters();
       builder.AddStringBlob(mDsaKey.Algorithm.GetIdentifierString());
       builder.AddBigIntBlob(dsaPublicParameters.Parameters.P);
       builder.AddBigIntBlob(dsaPublicParameters.Parameters.Q);
@@ -229,13 +222,13 @@ namespace PageantSharpTest
       Assert.That(header.BlobLength, Is.EqualTo(1));
       Assert.That(header.Message, Is.EqualTo(Agent.Message.SSH_AGENT_SUCCESS));
       returnedKey = agent.KeyList.First();
-      Assert.That(returnedKey.CipherKeyPair.Public,
+      Assert.That(returnedKey.GetPublicKeyParameters(),
                   Is.InstanceOf<DsaKeyParameters>());
-      Assert.That(returnedKey.CipherKeyPair.Private,
+      Assert.That(returnedKey.GetPrivateKeyParameters(),
                   Is.InstanceOf<DsaKeyParameters>());
       Assert.That(returnedKey.Size, Is.EqualTo(mDsaKey.Size));
       Assert.That(returnedKey.Comment, Is.EqualTo(mDsaKey.Comment));
-      Assert.That(returnedKey.Fingerprint, Is.EqualTo(mDsaKey.Fingerprint));
+      Assert.That(returnedKey.MD5Fingerprint, Is.EqualTo(mDsaKey.MD5Fingerprint));
 
       /* test adding ecdsa keys */
 
@@ -247,9 +240,9 @@ namespace PageantSharpTest
         agent.KeyList.Clear();
         builder.Clear();
         ECPublicKeyParameters ecdsaPublicParameters =
-          (ECPublicKeyParameters)key.CipherKeyPair.Public;
+          (ECPublicKeyParameters)key.GetPublicKeyParameters();
         ECPrivateKeyParameters ecdsaPrivateParameters =
-          (ECPrivateKeyParameters)key.CipherKeyPair.Private;
+          (ECPrivateKeyParameters)key.GetPrivateKeyParameters();
         string ecdsaAlgorithm = key.Algorithm.GetIdentifierString();
         builder.AddStringBlob(ecdsaAlgorithm);
         ecdsaAlgorithm =
@@ -267,13 +260,13 @@ namespace PageantSharpTest
         Assert.That(header.BlobLength, Is.EqualTo(1));
         Assert.That(header.Message, Is.EqualTo(Agent.Message.SSH_AGENT_SUCCESS));
         returnedKey = agent.KeyList.First();
-        Assert.That(returnedKey.CipherKeyPair.Public,
+        Assert.That(returnedKey.GetPublicKeyParameters(),
                     Is.InstanceOf<ECPublicKeyParameters>());
-        Assert.That(returnedKey.CipherKeyPair.Private,
+        Assert.That(returnedKey.GetPrivateKeyParameters(),
                     Is.InstanceOf<ECPrivateKeyParameters>());
         Assert.That(returnedKey.Size, Is.EqualTo(key.Size));
         Assert.That(returnedKey.Comment, Is.EqualTo(key.Comment));
-        Assert.That(returnedKey.Fingerprint, Is.EqualTo(key.Fingerprint));
+        Assert.That(returnedKey.MD5Fingerprint, Is.EqualTo(key.MD5Fingerprint));
         Assert.That(returnedKey.Constraints.Count(), Is.EqualTo(0));
       }
 
@@ -312,7 +305,7 @@ namespace PageantSharpTest
 
       BlobBuilder builder = new BlobBuilder();
       RsaPrivateCrtKeyParameters rsaParameters =
-        (RsaPrivateCrtKeyParameters)mRsaKey.CipherKeyPair.Private;
+        (RsaPrivateCrtKeyParameters)mRsaKey.GetPrivateKeyParameters();
       builder.AddStringBlob(mRsaKey.Algorithm.GetIdentifierString());
       builder.AddBigIntBlob(rsaParameters.Modulus);
       builder.AddBigIntBlob(rsaParameters.PublicExponent);
@@ -445,7 +438,7 @@ namespace PageantSharpTest
       for (int i = 0; i < actualKeyCount; i++) {
         byte[] actualPublicKeyBlob = mParser.ReadBlob().Data;
         byte[] expectedPublicKeyBlob =
-          ssh2KeyList[i].CipherKeyPair.Public.ToBlob();
+          ssh2KeyList[i].GetPublicKeyBlob();
         Assert.That(actualPublicKeyBlob, Is.EqualTo(expectedPublicKeyBlob));
         string actualComment = mParser.ReadString();
         string expectedComment = ssh2KeyList[i].Comment;
@@ -477,7 +470,7 @@ namespace PageantSharpTest
 
       foreach (ISshKey key in mAllKeys.Where(key => key.Version == SshVersion.SSH2)) {
         builder.Clear();
-        builder.AddBlob(key.CipherKeyPair.Public.ToBlob());
+        builder.AddBlob(key.GetPublicKeyBlob());
         builder.AddStringBlob(signatureData);
         builder.InsertHeader(Agent.Message.SSH2_AGENTC_SIGN_REQUEST);
         PrepareMessage(builder);
@@ -512,8 +505,8 @@ namespace PageantSharpTest
           seq = new DerSequence(new DerInteger(r), new DerInteger(s));
           signature = seq.GetDerEncoded();
         }
-        signer = key.CipherKeyPair.GetSigner();
-        signer.Init(false, key.CipherKeyPair.Public);
+        signer = key.GetSigner();
+        signer.Init(false, key.GetPublicKeyParameters());
         signer.BlockUpdate(signatureDataBytes, 0, signatureDataBytes.Length);
         signatureOk = signer.VerifySignature(signature);
         Assert.That(signatureOk, Is.True, "invalid signature");
@@ -523,13 +516,13 @@ namespace PageantSharpTest
       /* test dsa key old signature format */
 
       builder.Clear();
-      builder.AddBlob(mDsaKey.CipherKeyPair.Public.ToBlob());
+      builder.AddBlob(mDsaKey.GetPublicKeyBlob());
       builder.AddStringBlob(signatureData);
       builder.AddInt((uint)Agent.SignRequestFlags.SSH_AGENT_OLD_SIGNATURE);
       builder.InsertHeader(Agent.Message.SSH2_AGENTC_SIGN_REQUEST);
       PrepareMessage(builder);
       agent.AnswerMessage(mStream);
-      RewindStream();      
+      RewindStream();
       header = mParser.ReadHeader();
       Assert.That(header.Message,
                   Is.EqualTo(Agent.Message.SSH2_AGENT_SIGN_RESPONSE));
@@ -541,8 +534,8 @@ namespace PageantSharpTest
       s = new BigInteger(1, signature, 20, 20);
       seq = new DerSequence(new DerInteger(r), new DerInteger(s));
       signature = seq.GetDerEncoded();
-      signer = mDsaKey.CipherKeyPair.GetSigner();
-      signer.Init(false, mDsaKey.CipherKeyPair.Public);
+      signer = mDsaKey.GetSigner();
+      signer.Init(false, mDsaKey.GetPublicKeyParameters());
       signer.BlockUpdate(signatureDataBytes, 0, signatureDataBytes.Length);
       signatureOk = signer.VerifySignature(signature);
       Assert.That(signatureOk, Is.True, "invalid signature");
@@ -552,7 +545,7 @@ namespace PageantSharpTest
 
       agent.KeyList.Clear();
       builder.Clear();
-      builder.AddBlob(mDsaKey.CipherKeyPair.Public.ToBlob());
+      builder.AddBlob(mDsaKey.GetPublicKeyBlob());
       builder.AddStringBlob(signatureData);
       builder.InsertHeader(Agent.Message.SSH2_AGENTC_SIGN_REQUEST);
       PrepareMessage(builder);
@@ -571,7 +564,7 @@ namespace PageantSharpTest
 
       /* test remove key returns success when key is removed */
 
-      builder.AddBlob(mRsaKey.CipherKeyPair.Public.ToBlob());
+      builder.AddBlob(mRsaKey.GetPublicKeyBlob());
       builder.InsertHeader(Agent.Message.SSH2_AGENTC_REMOVE_IDENTITY);
       PrepareMessage(builder);
       agent.AnswerMessage(mStream);
@@ -596,7 +589,7 @@ namespace PageantSharpTest
 
       agent.Lock(new byte[0]);
       startCount = agent.KeyList.Count();
-      builder.AddBlob(mDsaKey.CipherKeyPair.Public.ToBlob());
+      builder.AddBlob(mDsaKey.GetPublicKeyBlob());
       builder.InsertHeader(Agent.Message.SSH2_AGENTC_REMOVE_IDENTITY);
       PrepareMessage(builder);
       agent.AnswerMessage(mStream);
@@ -746,7 +739,10 @@ namespace PageantSharpTest
 
       /* test that key with lifetime constraint is automatically removed *
        * after lifetime expires */
-      ISshKey key = new SshKey();
+      AsymmetricCipherKeyPair keyPair =
+        new AsymmetricCipherKeyPair(mRsaKey.GetPublicKeyParameters(),
+          mRsaKey.GetPrivateKeyParameters());
+      ISshKey key = new SshKey(SshVersion.SSH2, keyPair);
       Agent.KeyConstraint constraint = new Agent.KeyConstraint();
       constraint.Type = Agent.KeyConstraintType.SSH_AGENT_CONSTRAIN_LIFETIME;
       constraint.Data = (UInt32)1;

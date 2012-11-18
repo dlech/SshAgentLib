@@ -12,7 +12,7 @@ namespace dlech.PageantSharp
     /// <summary>
     /// The SSH protocol version
     /// </summary>
-    SshVersion Version { get; set; }
+    SshVersion Version { get; }
 
     /// <summary>
     /// The public key algorithm
@@ -25,14 +25,9 @@ namespace dlech.PageantSharp
     int Size { get; }
 
     /// <summary>
-    /// Used to store public and private key pair
-    /// </summary>
-    AsymmetricCipherKeyPair CipherKeyPair { get; set; }
-
-    /// <summary>
     /// The MD5 has of the public key
     /// </summary>
-    byte[] Fingerprint { get; }
+    byte[] MD5Fingerprint { get; }
 
     /// <summary>
     /// Comment associated with key
@@ -43,5 +38,17 @@ namespace dlech.PageantSharp
     /// List of key constraints applied to this key
     /// </summary>
     ObservableCollection<Agent.KeyConstraint> Constraints { get; }
+
+    /// <summary>
+    /// Gets a copy of the public key parameters
+    /// </summary>
+    /// <returns></returns>
+    AsymmetricKeyParameter GetPublicKeyParameters();
+
+    /// <summary>
+    /// Gets a copy of the private key parameters
+    /// </summary>
+    /// <returns></returns>
+    AsymmetricKeyParameter GetPrivateKeyParameters();
   }
 }
