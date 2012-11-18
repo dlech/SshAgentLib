@@ -18,6 +18,7 @@ using Org.BouncyCastle.Math.EC;
 using Org.BouncyCastle.Asn1.X9;
 using Org.BouncyCastle.Asn1.Sec;
 using Org.BouncyCastle.Asn1;
+using System.Threading;
 
 namespace PageantSharpTest
 {
@@ -185,14 +186,14 @@ namespace PageantSharpTest
       BlobBuilder builder = new BlobBuilder();
       RsaPrivateCrtKeyParameters rsaParameters =
         (RsaPrivateCrtKeyParameters)mRsaKey.CipherKeyPair.Private;
-      builder.AddString(mRsaKey.Algorithm.GetIdentifierString());
-      builder.AddBigInt(rsaParameters.Modulus);
-      builder.AddBigInt(rsaParameters.PublicExponent);
-      builder.AddBigInt(rsaParameters.Exponent);
-      builder.AddBigInt(rsaParameters.QInv);
-      builder.AddBigInt(rsaParameters.P);
-      builder.AddBigInt(rsaParameters.Q);
-      builder.AddString(mRsaKey.Comment);
+      builder.AddStringBlob(mRsaKey.Algorithm.GetIdentifierString());
+      builder.AddBigIntBlob(rsaParameters.Modulus);
+      builder.AddBigIntBlob(rsaParameters.PublicExponent);
+      builder.AddBigIntBlob(rsaParameters.Exponent);
+      builder.AddBigIntBlob(rsaParameters.QInv);
+      builder.AddBigIntBlob(rsaParameters.P);
+      builder.AddBigIntBlob(rsaParameters.Q);
+      builder.AddStringBlob(mRsaKey.Comment);
       builder.InsertHeader(Agent.Message.SSH2_AGENTC_ADD_IDENTITY);
       PrepareMessage(builder);
       agent.AnswerMessage(mStream);
@@ -217,13 +218,13 @@ namespace PageantSharpTest
         (DsaPublicKeyParameters)mDsaKey.CipherKeyPair.Public;
       DsaPrivateKeyParameters dsaPrivateParameters =
         (DsaPrivateKeyParameters)mDsaKey.CipherKeyPair.Private;
-      builder.AddString(mDsaKey.Algorithm.GetIdentifierString());
-      builder.AddBigInt(dsaPublicParameters.Parameters.P);
-      builder.AddBigInt(dsaPublicParameters.Parameters.Q);
-      builder.AddBigInt(dsaPublicParameters.Parameters.G);
-      builder.AddBigInt(dsaPublicParameters.Y);
-      builder.AddBigInt(dsaPrivateParameters.X);
-      builder.AddString(mDsaKey.Comment);
+      builder.AddStringBlob(mDsaKey.Algorithm.GetIdentifierString());
+      builder.AddBigIntBlob(dsaPublicParameters.Parameters.P);
+      builder.AddBigIntBlob(dsaPublicParameters.Parameters.Q);
+      builder.AddBigIntBlob(dsaPublicParameters.Parameters.G);
+      builder.AddBigIntBlob(dsaPublicParameters.Y);
+      builder.AddBigIntBlob(dsaPrivateParameters.X);
+      builder.AddStringBlob(mDsaKey.Comment);
       builder.InsertHeader(Agent.Message.SSH2_AGENTC_ADD_IDENTITY);
       PrepareMessage(builder);
       agent.AnswerMessage(mStream);
@@ -254,14 +255,14 @@ namespace PageantSharpTest
         ECPrivateKeyParameters ecdsaPrivateParameters =
           (ECPrivateKeyParameters)key.CipherKeyPair.Private;
         string ecdsaAlgorithm = key.Algorithm.GetIdentifierString();
-        builder.AddString(ecdsaAlgorithm);
+        builder.AddStringBlob(ecdsaAlgorithm);
         ecdsaAlgorithm =
           ecdsaAlgorithm.Replace(PublicKeyAlgorithmExt.ALGORITHM_ECDSA_SHA2_PREFIX,
           string.Empty);
-        builder.AddString(ecdsaAlgorithm);
+        builder.AddStringBlob(ecdsaAlgorithm);
         builder.AddBlob(ecdsaPublicParameters.Q.GetEncoded());
-        builder.AddBigInt(ecdsaPrivateParameters.D);
-        builder.AddString(key.Comment);
+        builder.AddBigIntBlob(ecdsaPrivateParameters.D);
+        builder.AddStringBlob(key.Comment);
         builder.InsertHeader(Agent.Message.SSH2_AGENTC_ADD_IDENTITY);
         PrepareMessage(builder);
         agent.AnswerMessage(mStream);
@@ -277,6 +278,7 @@ namespace PageantSharpTest
         Assert.That(returnedKey.Size, Is.EqualTo(key.Size));
         Assert.That(returnedKey.Comment, Is.EqualTo(key.Comment));
         Assert.That(returnedKey.Fingerprint, Is.EqualTo(key.Fingerprint));
+        Assert.That(returnedKey.Constraints.Count(), Is.EqualTo(0));
       }
 
       /* test adding key that already is in KeyList does not create duplicate */
@@ -300,6 +302,114 @@ namespace PageantSharpTest
       Assert.That(header.BlobLength, Is.EqualTo(1));
       Assert.That(header.Message, Is.EqualTo(Agent.Message.SSH_AGENT_FAILURE));
       Assert.That(agent.KeyList.Count, Is.EqualTo(0));
+    }
+
+    [Test()]
+    public void TestAnswerSSH2_AGENTC_ADD_ID_CONSTRAINED()
+    {
+      /* most code is shared with SSH2_AGENTC_ADD_IDENTITY, so we just
+       * need to test the differences */
+
+      Agent agent = new TestAgent();
+
+      /* test adding key with confirm constraint */
+
+      BlobBuilder builder = new BlobBuilder();
+      RsaPrivateCrtKeyParameters rsaParameters =
+        (RsaPrivateCrtKeyParameters)mRsaKey.CipherKeyPair.Private;
+      builder.AddStringBlob(mRsaKey.Algorithm.GetIdentifierString());
+      builder.AddBigIntBlob(rsaParameters.Modulus);
+      builder.AddBigIntBlob(rsaParameters.PublicExponent);
+      builder.AddBigIntBlob(rsaParameters.Exponent);
+      builder.AddBigIntBlob(rsaParameters.QInv);
+      builder.AddBigIntBlob(rsaParameters.P);
+      builder.AddBigIntBlob(rsaParameters.Q);
+      builder.AddStringBlob(mRsaKey.Comment);
+      //save blob so far so we don't have to repeat later.
+      byte[] commonBlob = builder.GetBlob();
+      builder.AddByte((byte)Agent.KeyConstraintType.SSH_AGENT_CONSTRAIN_CONFIRM);
+      builder.InsertHeader(Agent.Message.SSH2_AGENTC_ADD_ID_CONSTRAINED);
+      PrepareMessage(builder);
+      agent.AnswerMessage(mStream);
+      RewindStream();
+      Agent.BlobHeader header = mParser.ReadHeader();
+      Assert.That(header.BlobLength, Is.EqualTo(1));
+      Assert.That(header.Message, Is.EqualTo(Agent.Message.SSH_AGENT_SUCCESS));
+      ISshKey returnedKey = agent.KeyList.First();
+      Assert.That(returnedKey.Constraints.Count(), Is.EqualTo(1));
+      Assert.That(returnedKey.Constraints[0].Type,
+        Is.EqualTo(Agent.KeyConstraintType.SSH_AGENT_CONSTRAIN_CONFIRM));
+      Assert.That(returnedKey.Constraints[0].Data, Is.Null);
+
+      /* test adding key with lifetime constraint */
+
+      agent.KeyList.Clear();
+      builder.Clear();
+      builder.AddBytes(commonBlob);
+      builder.AddByte((byte)Agent.KeyConstraintType.SSH_AGENT_CONSTRAIN_LIFETIME);
+      builder.AddInt(10);
+      builder.InsertHeader(Agent.Message.SSH2_AGENTC_ADD_ID_CONSTRAINED);
+      PrepareMessage(builder);
+      agent.AnswerMessage(mStream);
+      RewindStream();
+      header = mParser.ReadHeader();
+      Assert.That(header.BlobLength, Is.EqualTo(1));
+      Assert.That(header.Message, Is.EqualTo(Agent.Message.SSH_AGENT_SUCCESS));
+      returnedKey = agent.KeyList.First();
+      Assert.That(returnedKey.Constraints.Count(), Is.EqualTo(1));
+      Assert.That(returnedKey.Constraints[0].Type,
+        Is.EqualTo(Agent.KeyConstraintType.SSH_AGENT_CONSTRAIN_LIFETIME));
+      Assert.That(returnedKey.Constraints[0].Data.GetType(), 
+        Is.EqualTo(Agent.KeyConstraintType.SSH_AGENT_CONSTRAIN_LIFETIME.GetDataType()));
+      Assert.That(returnedKey.Constraints[0].Data, Is.EqualTo(10));
+
+      /* test adding key with multiple constraints */
+
+      agent.KeyList.Clear();
+      builder.Clear();
+      builder.AddBytes(commonBlob);
+      builder.AddByte((byte)Agent.KeyConstraintType.SSH_AGENT_CONSTRAIN_CONFIRM);
+      builder.AddByte((byte)Agent.KeyConstraintType.SSH_AGENT_CONSTRAIN_LIFETIME);
+      builder.AddInt(10);
+      builder.InsertHeader(Agent.Message.SSH2_AGENTC_ADD_ID_CONSTRAINED);
+      PrepareMessage(builder);
+      agent.AnswerMessage(mStream);
+      RewindStream();
+      header = mParser.ReadHeader();
+      Assert.That(header.BlobLength, Is.EqualTo(1));
+      Assert.That(header.Message, Is.EqualTo(Agent.Message.SSH_AGENT_SUCCESS));
+      returnedKey = agent.KeyList.First();
+      Assert.That(returnedKey.Constraints.Count(), Is.EqualTo(2));
+      Assert.That(returnedKey.Constraints[0].Type,
+        Is.EqualTo(Agent.KeyConstraintType.SSH_AGENT_CONSTRAIN_CONFIRM));
+      Assert.That(returnedKey.Constraints[0].Data, Is.Null);
+      Assert.That(returnedKey.Constraints[1].Type,
+        Is.EqualTo(Agent.KeyConstraintType.SSH_AGENT_CONSTRAIN_LIFETIME));      
+      Assert.That(returnedKey.Constraints[1].Data, Is.EqualTo(10));
+
+      /* test adding key with multiple constraints in different order */
+
+      agent.KeyList.Clear();
+      builder.Clear();
+      builder.AddBytes(commonBlob);
+      builder.AddByte((byte)Agent.KeyConstraintType.SSH_AGENT_CONSTRAIN_LIFETIME);
+      builder.AddInt(10);
+      builder.AddByte((byte)Agent.KeyConstraintType.SSH_AGENT_CONSTRAIN_CONFIRM);
+      builder.InsertHeader(Agent.Message.SSH2_AGENTC_ADD_ID_CONSTRAINED);
+      PrepareMessage(builder);
+      agent.AnswerMessage(mStream);
+      RewindStream();
+      header = mParser.ReadHeader();
+      Assert.That(header.BlobLength, Is.EqualTo(1));
+      Assert.That(header.Message, Is.EqualTo(Agent.Message.SSH_AGENT_SUCCESS));
+      returnedKey = agent.KeyList.First();
+      Assert.That(returnedKey.Constraints.Count(), Is.EqualTo(2));
+      Assert.That(returnedKey.Constraints[0].Type,
+        Is.EqualTo(Agent.KeyConstraintType.SSH_AGENT_CONSTRAIN_LIFETIME));
+      Assert.That(returnedKey.Constraints[0].Data, Is.EqualTo(10));
+      Assert.That(returnedKey.Constraints[1].Type,
+        Is.EqualTo(Agent.KeyConstraintType.SSH_AGENT_CONSTRAIN_CONFIRM));
+      Assert.That(returnedKey.Constraints[1].Data, Is.Null);      
     }
 
     [Test()]
@@ -352,7 +462,7 @@ namespace PageantSharpTest
       foreach (ISshKey key in mAllKeys.Where(key => key.Version == SshVersion.SSH2)) {
         builder.Clear();
         builder.AddBlob(key.CipherKeyPair.Public.ToBlob());
-        builder.AddString(signatureData);
+        builder.AddStringBlob(signatureData);
         builder.InsertHeader(Agent.Message.SSH2_AGENTC_SIGN_REQUEST);
         PrepareMessage(builder);
         agent.AnswerMessage(mStream);
@@ -399,7 +509,7 @@ namespace PageantSharpTest
       agent.KeyList.Clear();
       builder.Clear();
       builder.AddBlob(mDsaKey.CipherKeyPair.Public.ToBlob());
-      builder.AddString(signatureData);
+      builder.AddStringBlob(signatureData);
       builder.InsertHeader(Agent.Message.SSH2_AGENTC_SIGN_REQUEST);
       PrepareMessage(builder);
       agent.AnswerMessage(mStream);
@@ -585,6 +695,25 @@ namespace PageantSharpTest
       agent.Locked -= new Agent.LockEventHandler(agentLocked);
     }
 
+    [Test()]
+    public void TestOnKeyListChanged()
+    {
+      Agent agent = new TestAgent();
+
+      /* test that key with lifetime constraint is automatically removed *
+       * after lifetime expires */
+      ISshKey key = new SshKey();
+      Agent.KeyConstraint constraint = new Agent.KeyConstraint();
+      constraint.Type = Agent.KeyConstraintType.SSH_AGENT_CONSTRAIN_LIFETIME;
+      constraint.Data = (UInt32)1;
+      key.Constraints.Add(constraint);
+      agent.KeyList.Add(key);
+      Thread.Sleep(500);
+      Assert.That(agent.KeyList.Count, Is.EqualTo(1));
+      Thread.Sleep(1000);
+      Assert.That(agent.KeyList.Count, Is.EqualTo(0));
+    }
+
     #region helper methods
 
     /// <summary>
@@ -613,7 +742,7 @@ namespace PageantSharpTest
     private void PrepareLockMessage(bool aLock, string aPassword)
     {
       BlobBuilder builder = new BlobBuilder();
-      builder.AddString(aPassword);
+      builder.AddStringBlob(aPassword);
       if (aLock) {
         builder.InsertHeader(Agent.Message.SSH_AGENTC_LOCK);
       } else {

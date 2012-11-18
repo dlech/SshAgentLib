@@ -50,7 +50,7 @@ namespace PageantSharpNUnitTest
     {
       BlobBuilder builder = new BlobBuilder();
       string value = "test string";
-      builder.AddString(value);
+      builder.AddStringBlob(value);
       byte[] valueBytes = Encoding.UTF8.GetBytes(value);
       byte[] expected = new byte[valueBytes.Length + 4];
       Array.Copy(valueBytes.Length.ToBytes(), expected, 4);
@@ -63,7 +63,7 @@ namespace PageantSharpNUnitTest
     {
       BlobBuilder builder = new BlobBuilder();
       BigInteger value = new BigInteger("12398259028592293582039293420948023");
-      builder.AddBigInt(value);
+      builder.AddBigIntBlob(value);
       byte[] valueBytes = value.ToByteArrayUnsigned();
       //Assert.That(valueBytes[0], Is.EqualTo(0));
       byte[] expected = new byte[valueBytes.Length + 4];

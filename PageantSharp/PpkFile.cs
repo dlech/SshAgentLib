@@ -521,9 +521,9 @@ namespace dlech.PageantSharp
 
       BlobBuilder builder = new BlobBuilder();
       if (fileData.ppkFileVersion != Version.V1) {
-        builder.AddString(fileData.publicKeyAlgorithm.GetIdentifierString());
-        builder.AddString(fileData.privateKeyAlgorithm.GetIdentifierString());
-        builder.AddString(fileData.comment);
+        builder.AddStringBlob(fileData.publicKeyAlgorithm.GetIdentifierString());
+        builder.AddStringBlob(fileData.privateKeyAlgorithm.GetIdentifierString());
+        builder.AddStringBlob(fileData.comment);
         builder.AddBlob(fileData.publicKeyBlob);
         builder.AddInt(fileData.privateKeyBlob.Data.Length);
       }

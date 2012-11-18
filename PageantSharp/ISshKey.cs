@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using Org.BouncyCastle.Crypto;
+using System.Collections.ObjectModel;
 
 namespace dlech.PageantSharp
 {
@@ -37,5 +38,10 @@ namespace dlech.PageantSharp
     /// Comment associated with key
     /// </summary>
     string Comment { get; set; }
+
+    /// <summary>
+    /// List of key constraints applied to this key
+    /// </summary>
+    ObservableCollection<Agent.KeyConstraint> Constraints { get; }
   }
 }

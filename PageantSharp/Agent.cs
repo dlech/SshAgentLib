@@ -13,6 +13,9 @@ using Org.BouncyCastle.Math;
 using Org.BouncyCastle.Math.EC;
 using Org.BouncyCastle.Asn1.X9;
 using Org.BouncyCastle.Asn1.Sec;
+using System.Collections.Specialized;
+using System.Timers;
+using System.ComponentModel;
 
 namespace dlech.PageantSharp
 {
@@ -93,8 +96,23 @@ namespace dlech.PageantSharp
 
     public struct KeyConstraint
     {
+      private object mData;
+
       public KeyConstraintType Type { get; set; }
-      public Object Data { get; set; }
+      public Object Data
+      {
+        get
+        {
+          return mData;
+        }
+        set
+        {
+          if (value.GetType() != Type.GetDataType()) {
+            throw new Exception("Incorrect data type");
+          }
+          mData = value;
+        }
+      }
     }
 
     public struct BlobHeader
@@ -138,6 +156,7 @@ namespace dlech.PageantSharp
     public Agent()
     {
       mKeyList = new ObservableCollection<ISshKey>();
+      mKeyList.CollectionChanged += OnKeyListChanged;
     }
 
     #endregion
@@ -222,7 +241,7 @@ namespace dlech.PageantSharp
               foreach (SshKey key in v2Keys) {
                 keyCount++;
                 responseBuilder.AddBlob(key.CipherKeyPair.Public.ToBlob());
-                responseBuilder.AddString(key.Comment);
+                responseBuilder.AddStringBlob(key.Comment);
               }
             }
             responseBuilder.InsertHeader(Message.SSH2_AGENT_IDENTITIES_ANSWER,
@@ -257,7 +276,16 @@ namespace dlech.PageantSharp
 
             ISshKey matchingKey =
               KeyList.Where(key => key.Version == SshVersion.SSH2 &&
-              key.CipherKeyPair.Public.ToBlob().SequenceEqual(keyBlob.Data)).Single();
+              key.CipherKeyPair.Public.ToBlob()
+              .SequenceEqual(keyBlob.Data))
+              .Single();
+            var confirmConstraints = matchingKey.Constraints
+              .Where(constraint => constraint.Type ==
+                KeyConstraintType.SSH_AGENT_CONSTRAIN_CONFIRM);
+            if (confirmConstraints.Count() > 0) {
+              // TODO implement confirmation callback
+              throw new NotImplementedException();
+            }
 
             /* create signature */
             ISshKey signKey = matchingKey;
@@ -268,7 +296,7 @@ namespace dlech.PageantSharp
             byte[] signature = signer.GenerateSignature();
             signature = signKey.CipherKeyPair.FormatSignature(signature);
             BlobBuilder signatureBuilder = new BlobBuilder();
-            signatureBuilder.AddString(algName);
+            signatureBuilder.AddStringBlob(algName);
             signatureBuilder.AddBlob(signature);
             responseBuilder.AddBlob(signatureBuilder.GetBlob());
             responseBuilder.InsertHeader(Message.SSH2_AGENT_SIGN_RESPONSE);
@@ -312,7 +340,7 @@ namespace dlech.PageantSharp
             key.Comment = messageParser.ReadString();
 
             if (constrained) {
-              while (aMessageStream.Position < header.BlobLength) {
+              while (aMessageStream.Position < header.BlobLength + 4) {
                 KeyConstraint constraint = new KeyConstraint();
                 constraint.Type =
                   (KeyConstraintType)messageParser.ReadByte();
@@ -525,14 +553,47 @@ namespace dlech.PageantSharp
             new ECPrivateKeyParameters(ecdsaPrivate, ecdsaDomainParams);
 
           return new AsymmetricCipherKeyPair(ecPublicKeyParams, ecPrivateKeyParams);
-    
+
         default:
           // unsupported encryption algorithm
           throw new Exception("Unsupported algorithm");
       }
     }
 
+    private void OnKeyListChanged(Object aSender,
+      NotifyCollectionChangedEventArgs aEventArgs)
+    {
+      if (aEventArgs.NewItems != null) {
+        foreach (ISshKey key in aEventArgs.NewItems) {
+          HandleKeyConstraintChanged(key);
+        }
+      }
+    }
+
+    private void HandleKeyConstraintChanged(ISshKey key)
+    {
+      foreach (KeyConstraint lifetimeConstraint in
+            key.Constraints.Where(constraint => constraint.Type ==
+            Agent.KeyConstraintType.SSH_AGENT_CONSTRAIN_LIFETIME)) {
+
+        // TODO may want error checking here for data type
+        UInt32 lifetime = (UInt32)lifetimeConstraint.Data * 1000;
+        Timer timer = new Timer(lifetime);
+        ElapsedEventHandler onTimerElapsed = null;
+        onTimerElapsed =
+          delegate(object aSender, ElapsedEventArgs aEventArgs)
+          {
+            timer.Elapsed -= onTimerElapsed;
+            mKeyList.Remove(key);
+          };
+        timer.Elapsed += onTimerElapsed;
+        timer.Start();
+      }
+    }
+
     #endregion
+
+
   }
 }
 

@@ -106,18 +106,18 @@ namespace dlech.PageantSharp
       if (aParameter is RsaKeyParameters) {        
           RsaKeyParameters rsaPublicKeyParameters = (RsaKeyParameters)aParameter;
           
-          builder.AddString(PublicKeyAlgorithm.SSH_RSA.GetIdentifierString());
-          builder.AddBigInt(rsaPublicKeyParameters.Exponent);
-          builder.AddBigInt(rsaPublicKeyParameters.Modulus);
+          builder.AddStringBlob(PublicKeyAlgorithm.SSH_RSA.GetIdentifierString());
+          builder.AddBigIntBlob(rsaPublicKeyParameters.Exponent);
+          builder.AddBigIntBlob(rsaPublicKeyParameters.Modulus);
       } else if (aParameter is DsaPublicKeyParameters) {
         DsaPublicKeyParameters dsaParameters =
           (DsaPublicKeyParameters)aParameter;
         
-        builder.AddString(PublicKeyAlgorithm.SSH_DSS.GetIdentifierString());
-        builder.AddBigInt(dsaParameters.Parameters.P);
-        builder.AddBigInt(dsaParameters.Parameters.Q);
-        builder.AddBigInt(dsaParameters.Parameters.G);
-        builder.AddBigInt(dsaParameters.Y);        
+        builder.AddStringBlob(PublicKeyAlgorithm.SSH_DSS.GetIdentifierString());
+        builder.AddBigIntBlob(dsaParameters.Parameters.P);
+        builder.AddBigIntBlob(dsaParameters.Parameters.Q);
+        builder.AddBigIntBlob(dsaParameters.Parameters.G);
+        builder.AddBigIntBlob(dsaParameters.Y);        
       } else if (aParameter is ECPublicKeyParameters) {
         ECPublicKeyParameters ecdsaParameters =
           (ECPublicKeyParameters)aParameter;
@@ -137,11 +137,11 @@ namespace dlech.PageantSharp
             throw new ArgumentException("Unsupported EC size: " +
               ecdsaParameters.Parameters.Curve.FieldSize);
         }
-        builder.AddString(algorithm);
+        builder.AddStringBlob(algorithm);
         algorithm = 
           algorithm.Replace(PublicKeyAlgorithmExt.ALGORITHM_ECDSA_SHA2_PREFIX,
           string.Empty);
-        builder.AddString(algorithm);
+        builder.AddStringBlob(algorithm);
         builder.AddBlob(ecdsaParameters.Q.GetEncoded());
       } else {
         throw new ArgumentException(aParameter.GetType() + " is not supported");

@@ -41,7 +41,15 @@ namespace dlech.PageantSharp
     }
 
     /// <summary>
-    /// Adds byte[] as-is to the blob - no length prefix
+    /// Adds byte to the blob
+    /// </summary>
+    public void AddByte(byte aByte)
+    {
+      byteList.Add(aByte);
+    }
+
+    /// <summary>
+    /// Adds byte[] to the blob
     /// </summary>
     /// <param name="aBytes"></param>
     public void AddBytes(byte[] aBytes)
@@ -62,17 +70,17 @@ namespace dlech.PageantSharp
     /// <summary>
     /// Adds a string to the blob
     /// </summary>
-    /// <param name="str">the string to add</param>
-    public void AddString(string str)
+    /// <param name="aString">the string to add</param>
+    public void AddStringBlob(string aString)
     {
-      AddBlob(Encoding.UTF8.GetBytes(str));
+      AddBlob(Encoding.UTF8.GetBytes(aString));
     }
 
     /// <summary>
     /// Adds BigInteger to builder prefixed with size
     /// </summary>
     /// <param name="bigInt"></param>
-    public void AddBigInt(BigInteger aBigInt)
+    public void AddBigIntBlob(BigInteger aBigInt)
     {
       byte[] bytes = aBigInt.ToByteArray();
       AddBlob(bytes);
@@ -131,7 +139,5 @@ namespace dlech.PageantSharp
     {
       PSUtil.ClearByteList(byteList);
     }
-
-
   }
 }
