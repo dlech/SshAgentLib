@@ -68,15 +68,7 @@ namespace dlech.PageantSharp
       throw new Exception("Unsupported algorithm");
     }
 
-    public static bool Remove(this ObservableCollection<ISshKey> aKeyList,
-      SshVersion aVersion,
-      byte[] aPublicKeyBlob)
-    {
-      ISshKey key = aKeyList.Get(aVersion, aPublicKeyBlob);
-      return aKeyList.Remove(key);
-    }
-
-    public static ISshKey Get(this ObservableCollection<ISshKey> aKeyList,
+    public static ISshKey Get(this ICollection<ISshKey> aKeyList,
       SshVersion aVersion,
       byte[] aPublicKeyBlob)
     {

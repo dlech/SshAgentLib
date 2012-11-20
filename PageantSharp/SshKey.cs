@@ -15,7 +15,7 @@ namespace dlech.PageantSharp
   /// </summary>
   public class SshKey : ISshKey
   {
-    private ObservableCollection<Agent.KeyConstraint> mKeyConstraints;
+    private List<Agent.KeyConstraint> mKeyConstraints;
     private AsymmetricCipherKeyPair mCipherKeyPair;
 
     public SshKey(SshVersion aVersion, AsymmetricCipherKeyPair aCipherKeyPair,
@@ -24,7 +24,7 @@ namespace dlech.PageantSharp
       Version = aVersion;
       mCipherKeyPair = aCipherKeyPair;
       Comment = aComment;
-      mKeyConstraints = new ObservableCollection<Agent.KeyConstraint>();
+      mKeyConstraints = new List<Agent.KeyConstraint>();
     }
 
     public SshVersion Version { get; private set; }
@@ -98,11 +98,11 @@ namespace dlech.PageantSharp
       set;
     }
 
-    public ObservableCollection<Agent.KeyConstraint> Constraints
+    public ReadOnlyCollection<Agent.KeyConstraint> Constraints
     {
       get
       {
-        return mKeyConstraints;
+        return mKeyConstraints.AsReadOnly();
       }
     }
 
@@ -114,6 +114,11 @@ namespace dlech.PageantSharp
     public AsymmetricKeyParameter GetPrivateKeyParameters()
     {
       return mCipherKeyPair.Private;
+    }
+
+    public void AddConstraint(Agent.KeyConstraint aConstraint)
+    {
+      mKeyConstraints.Add(aConstraint);
     }
 
     ~SshKey()

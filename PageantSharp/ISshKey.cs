@@ -37,7 +37,7 @@ namespace dlech.PageantSharp
     /// <summary>
     /// List of key constraints applied to this key
     /// </summary>
-    ObservableCollection<Agent.KeyConstraint> Constraints { get; }
+    ReadOnlyCollection<Agent.KeyConstraint> Constraints { get; }
 
     /// <summary>
     /// Gets a copy of the public key parameters
@@ -50,5 +50,11 @@ namespace dlech.PageantSharp
     /// </summary>
     /// <returns></returns>
     AsymmetricKeyParameter GetPrivateKeyParameters();
+
+    /// <summary>
+    /// Add constraint to key
+    /// </summary>
+    /// <param name="aConstraint"></param>
+    void AddConstraint(Agent.KeyConstraint aConstraint);
   }
 }

@@ -30,7 +30,7 @@ namespace dlech.PageantSharp
   {
     #region Instance Variables
 
-    private ObservableCollection<ISshKey> mKeyList;
+    private List<ISshKey> mKeyList;
     private SecureString mLockedPassphrase;
 
     #endregion
@@ -38,6 +38,8 @@ namespace dlech.PageantSharp
     #region Events
 
     public event LockEventHandler Locked;
+
+    public event KeyListChangeEventHandler KeyListChanged;
 
     #endregion
 
@@ -96,6 +98,12 @@ namespace dlech.PageantSharp
       SSH_AGENT_OLD_SIGNATURE = 1
     }
 
+    public enum KeyListChangeEventAction
+    {
+      Add,
+      Remove
+    }
+
     #endregion
 
     #region Data Types
@@ -143,6 +151,20 @@ namespace dlech.PageantSharp
     /// <param name="aEventArgs"></param>
     public delegate void LockEventHandler(object aSender, LockEventArgs aEventArgs);
 
+    public class KeyListChangeEventArgs : EventArgs
+    {
+      public KeyListChangeEventArgs(KeyListChangeEventAction aAction, ISshKey aKey)
+      {
+        Action = aAction;
+        Key = aKey;
+      }
+      public KeyListChangeEventAction Action { get; private set; }
+      public ISshKey Key { get; private set; }
+    }
+
+    public delegate void KeyListChangeEventHandler(object aSender,
+      KeyListChangeEventArgs aEventArgs);
+
     /// <summary>
     /// Requests user for permission to use specified key.
     /// </summary>
@@ -161,11 +183,11 @@ namespace dlech.PageantSharp
     /// </summary>
     public bool IsLocked { get; private set; }
 
-    public ObservableCollection<ISshKey> KeyList
+    public ReadOnlyCollection<ISshKey> KeyList
     {
       get
       {
-        return mKeyList;
+        return mKeyList.AsReadOnly();
       }
     }
 
@@ -177,8 +199,7 @@ namespace dlech.PageantSharp
 
     public Agent()
     {
-      mKeyList = new ObservableCollection<ISshKey>();
-      mKeyList.CollectionChanged += OnKeyListChanged;
+      mKeyList = new List<ISshKey>();
     }
 
     #endregion
@@ -381,11 +402,10 @@ namespace dlech.PageantSharp
                   KeyConstraintType.SSH_AGENT_CONSTRAIN_LIFETIME) {
                   constraint.Data = messageParser.ReadInt();
                 }
-                key.Constraints.Add(constraint);
+                key.AddConstraint(constraint);
               }
             }
-            KeyList.Remove(key.Version, key.GetPublicKeyBlob());
-            KeyList.Add(key);
+            AddKey(key);
             responseBuilder.InsertHeader(Message.SSH_AGENT_SUCCESS);
             break; // success!            
           } catch (Exception ex) {
@@ -418,7 +438,8 @@ namespace dlech.PageantSharp
           try {
             PinnedByteArray rKeyBlob = messageParser.ReadBlob();
 
-            if (KeyList.Remove(removeVersion, rKeyBlob.Data)) {
+            ISshKey matchingKey = mKeyList.Get(removeVersion, rKeyBlob.Data);
+            if (RemoveKey(matchingKey)) {
               responseBuilder.InsertHeader(Message.SSH_AGENT_SUCCESS);
               break; //success!
             }
@@ -452,7 +473,7 @@ namespace dlech.PageantSharp
               KeyList.Where(key => key.Version == removeAllVersion).ToList();
 
             foreach (ISshKey key in removeKeyList) {
-              KeyList.Remove(key);
+              RemoveKey(key);
             }
             responseBuilder.InsertHeader(Message.SSH_AGENT_SUCCESS);
             break; //success!
@@ -497,6 +518,50 @@ namespace dlech.PageantSharp
       /* write response to stream */
       aMessageStream.Position = 0;
       aMessageStream.Write(responseBuilder.GetBlob(), 0, responseBuilder.Length);
+    }
+
+    public void AddKey(ISshKey aKey)
+    {
+      /* first remove matching key if it exists */
+      ISshKey matchingKey = mKeyList.Get(aKey.Version, aKey.GetPublicKeyBlob());
+      RemoveKey(matchingKey);
+
+      mKeyList.Add(aKey);
+
+      /* handle constraints */
+
+      foreach (KeyConstraint lifetimeConstraint in
+            aKey.Constraints.Where(constraint => constraint.Type ==
+            Agent.KeyConstraintType.SSH_AGENT_CONSTRAIN_LIFETIME)) {
+
+        // TODO may want error checking here for data type
+        UInt32 lifetime = (UInt32)lifetimeConstraint.Data * 1000;
+        Timer timer = new Timer(lifetime);
+        ElapsedEventHandler onTimerElapsed = null;
+        onTimerElapsed =
+          delegate(object aSender, ElapsedEventArgs aEventArgs)
+          {
+            timer.Elapsed -= onTimerElapsed;
+            RemoveKey(aKey);
+          };
+        timer.Elapsed += onTimerElapsed;
+        timer.Start();
+      }
+
+      KeyListChangeEventArgs args =
+        new KeyListChangeEventArgs(KeyListChangeEventAction.Add, aKey);
+      KeyListChanged(this, args);
+    }
+
+    public bool RemoveKey(ISshKey aKey)
+    {
+      if (mKeyList.Remove(aKey)) {
+        KeyListChangeEventArgs args =
+        new KeyListChangeEventArgs(KeyListChangeEventAction.Remove, aKey);
+        KeyListChanged(this, args);
+        return true;
+      }
+      return false;
     }
 
     public abstract void Dispose();
@@ -591,37 +656,6 @@ namespace dlech.PageantSharp
         default:
           // unsupported encryption algorithm
           throw new Exception("Unsupported algorithm");
-      }
-    }
-
-    private void OnKeyListChanged(Object aSender,
-      NotifyCollectionChangedEventArgs aEventArgs)
-    {
-      if (aEventArgs.NewItems != null) {
-        foreach (ISshKey key in aEventArgs.NewItems) {
-          HandleKeyConstraintChanged(key);
-        }
-      }
-    }
-
-    private void HandleKeyConstraintChanged(ISshKey key)
-    {
-      foreach (KeyConstraint lifetimeConstraint in
-            key.Constraints.Where(constraint => constraint.Type ==
-            Agent.KeyConstraintType.SSH_AGENT_CONSTRAIN_LIFETIME)) {
-
-        // TODO may want error checking here for data type
-        UInt32 lifetime = (UInt32)lifetimeConstraint.Data * 1000;
-        Timer timer = new Timer(lifetime);
-        ElapsedEventHandler onTimerElapsed = null;
-        onTimerElapsed =
-          delegate(object aSender, ElapsedEventArgs aEventArgs)
-          {
-            timer.Elapsed -= onTimerElapsed;
-            mKeyList.Remove(key);
-          };
-        timer.Elapsed += onTimerElapsed;
-        timer.Start();
       }
     }
 
