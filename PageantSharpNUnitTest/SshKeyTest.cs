@@ -39,14 +39,14 @@ namespace PageantSharpTest
     [Test()]
     public void GetFingerprintTest()
     {
-      SshKey rsaTarget = PpkFile.ReadFile(ssh2_rsa_no_passphrase_ppk,
+      SshKey rsaTarget = PpkFormatter.ReadFile(ssh2_rsa_no_passphrase_ppk,
           delegate() {
         return null; }, delegate() { });
       string rsaExpectedFingerprint = "57:95:98:7f:c2:4e:98:1d:b9:5b:45:fe:6d:a4:6b:17";
       string rsaActual = rsaTarget.MD5Fingerprint.ToHexString();
       Assert.That(rsaExpectedFingerprint, Is.EqualTo(rsaActual));
 
-      SshKey dsaTarget = PpkFile.ReadFile(ssh2_dsa_no_passphrase_ppk,
+      SshKey dsaTarget = PpkFormatter.ReadFile(ssh2_dsa_no_passphrase_ppk,
           delegate() {
         return null; }, delegate() { });
       string dsaExpectedFingerprint = "4e:f1:fc:5d:80:5b:37:b6:13:67:ce:df:4e:83:7b:0b";
@@ -61,12 +61,12 @@ namespace PageantSharpTest
     public void GetSSH2PublicKeyBlobTest()
     {
       byte[] actual, expected;
-      PpkFile.GetPassphraseCallback getPassphrase = null;
-      PpkFile.WarnOldFileFormatCallback warnOldFileFormat = delegate() { };
+      PpkFormatter.GetPassphraseCallback getPassphrase = null;
+      PpkFormatter.WarnOldFileFormatCallback warnOldFileFormat = delegate() { };
       SshKey target;
 
       /* test RSA key */
-      target = PpkFile.ReadFile(ssh2_rsa_no_passphrase_ppk,
+      target = PpkFormatter.ReadFile(ssh2_rsa_no_passphrase_ppk,
                                 getPassphrase, warnOldFileFormat);
       expected = PSUtil.FromBase64(
         "AAAAB3NzaC1yc2EAAAABJQAAAIEAhWqdEs/lz1r4L8ZAAS76rX7hj3rrI/6FNlBw" +
@@ -78,7 +78,7 @@ namespace PageantSharpTest
       Assert.That(expected, Is.EqualTo(actual));
 
       /* test DSA key */
-      target = PpkFile.ReadFile(ssh2_dsa_no_passphrase_ppk,
+      target = PpkFormatter.ReadFile(ssh2_dsa_no_passphrase_ppk,
                                 getPassphrase, warnOldFileFormat);
       expected = PSUtil.FromBase64(
           "AAAAB3NzaC1kc3MAAACBAMXDM56ty6fV+qDpMyZxobn5VB4L/E6zvOibUead6HBc" +

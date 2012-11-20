@@ -19,21 +19,20 @@ namespace PageantSharpTest
   {
 
     /// <summary>
-    ///A test for PpkFile with non-ascii chars in passphrase
+    ///A test for Deserialize Ppk file with non-ascii chars in passphrase
     ///</summary>
     [Test()]
-    public void PpkNonAsciiPassphraseTest()
+    public void PpkDeserializeNonAsciiPassphraseTest()
     {
-      SshKey target;
-
-      PpkFile.WarnOldFileFormatCallback warnOldFileNotExpected = delegate()
+      ISshKey key;
+      PpkFormatter formatter = new PpkFormatter();
+      formatter.WarnOldFileFormatCallbackMethod = delegate()
       {
         Assert.Fail("Warn old file format was not expected");
       };
 
       string passphrase = "Ŧéşť";
-
-      PpkFile.GetPassphraseCallback getPassphrase = delegate()
+      formatter.GetPassphraseCallbackMethod = delegate()
       {
         SecureString result = new SecureString();
         foreach (char c in passphrase) {
@@ -45,10 +44,13 @@ namespace PageantSharpTest
       string expectedComment = "rsa-key-20120818";
 
       /* test for successful method call */
-      byte[] fileData = File.ReadAllBytes("../../../Resources/ssh2-rsa-non-ascii-passphrase.ppk");
-      target = PpkFile.ParseData(fileData, getPassphrase, warnOldFileNotExpected);
+      using (FileStream fileStream =
+        new FileStream("../../../Resources/ssh2-rsa-non-ascii-passphrase.ppk",
+          FileMode.Open, FileAccess.Read)) {
+        key = (ISshKey)formatter.Deserialize(fileStream);
+      }
 
-      Assert.AreEqual(expectedComment, target.Comment);
+      Assert.AreEqual(expectedComment, key.Comment);
     }
 
     /// <summary>
@@ -59,18 +61,18 @@ namespace PageantSharpTest
     {
       SshKey target;
 
-      PpkFile.WarnOldFileFormatCallback warnOldFileNotExpected = delegate()
+      PpkFormatter.WarnOldFileFormatCallback warnOldFileNotExpected = delegate()
       {
         Assert.Fail("Warn old file format was not expected");
       };
       bool warnCallbackCalled; // set to false before calling warnOldFileExpceted
-      PpkFile.WarnOldFileFormatCallback warnOldFileExpected = delegate()
+      PpkFormatter.WarnOldFileFormatCallback warnOldFileExpected = delegate()
       {
         warnCallbackCalled = true;
       };
 
       string passphrase = "PageantSharp";
-      PpkFile.GetPassphraseCallback getPassphrase = delegate()
+      PpkFormatter.GetPassphraseCallback getPassphrase = delegate()
       {
         SecureString result = new SecureString();
         foreach (char c in passphrase) {
@@ -80,7 +82,7 @@ namespace PageantSharpTest
       };
 
 
-      PpkFile.GetPassphraseCallback getBadPassphrase = delegate()
+      PpkFormatter.GetPassphraseCallback getBadPassphrase = delegate()
       {
         SecureString result = new SecureString();
         foreach (char c in "badword") {
@@ -135,7 +137,7 @@ namespace PageantSharpTest
 
        /* test for successful method call */
       byte[] fileData = File.ReadAllBytes("../../../Resources/ssh2-rsa.ppk");
-      target = PpkFile.ParseData(fileData, getPassphrase, warnOldFileNotExpected);
+      target = PpkFormatter.ParseData(fileData, getPassphrase, warnOldFileNotExpected);
       Assert.AreEqual(expectedSsh2RsaWithPassComment, target.Comment);
       Assert.AreEqual(expectedKeySize, target.Size);
       Assert.That(target.Version, Is.EqualTo(SshVersion.SSH2));
@@ -149,7 +151,7 @@ namespace PageantSharpTest
       /* test bad file version */
       modifiedFileContents = Encoding.UTF8.GetBytes(withoutPassFileContents.Replace("2", "3"));
       try {
-        target = PpkFile.ParseData(modifiedFileContents, null, warnOldFileNotExpected);
+        target = PpkFormatter.ParseData(modifiedFileContents, null, warnOldFileNotExpected);
         Assert.Fail("Exception did not occur");
       } catch (Exception ex) {
         Assert.IsInstanceOf<PpkFileException>(ex);
@@ -159,7 +161,7 @@ namespace PageantSharpTest
       /* test bad public key encryption algorithm */
       modifiedFileContents = Encoding.UTF8.GetBytes(withoutPassFileContents.Replace("ssh-rsa", "xyz"));
       try {
-        target = PpkFile.ParseData(modifiedFileContents, null, warnOldFileNotExpected);
+        target = PpkFormatter.ParseData(modifiedFileContents, null, warnOldFileNotExpected);
         Assert.Fail("Exception did not occur");
       } catch (Exception ex) {
         Assert.IsInstanceOf<PpkFileException>(ex);
@@ -169,7 +171,7 @@ namespace PageantSharpTest
       /* test bad private key encryption algorithm */
       modifiedFileContents = Encoding.UTF8.GetBytes(withoutPassFileContents.Replace("none", "xyz"));
       try {
-        target = PpkFile.ParseData(modifiedFileContents, null, warnOldFileNotExpected);
+        target = PpkFormatter.ParseData(modifiedFileContents, null, warnOldFileNotExpected);
         Assert.Fail("Exception did not occur");
       } catch (Exception ex) {
         Assert.IsInstanceOf<PpkFileException>(ex);
@@ -179,7 +181,7 @@ namespace PageantSharpTest
       /* test bad file integrity */
       modifiedFileContents = Encoding.UTF8.GetBytes(withoutPassFileContents.Replace("no passphrase", "xyz"));
       try {
-        target = PpkFile.ParseData(modifiedFileContents, null, warnOldFileNotExpected);
+        target = PpkFormatter.ParseData(modifiedFileContents, null, warnOldFileNotExpected);
         Assert.Fail("Exception did not occur");
       } catch (Exception ex) {
         Assert.IsInstanceOf<PpkFileException>(ex);
@@ -189,7 +191,7 @@ namespace PageantSharpTest
       /* test bad passphrase */
       fileData = File.ReadAllBytes("../../../Resources/ssh2-rsa.ppk");
       try {
-        target = PpkFile.ParseData(fileData, null, warnOldFileNotExpected);
+        target = PpkFormatter.ParseData(fileData, null, warnOldFileNotExpected);
         Assert.Fail("Exception did not occur");
       } catch (Exception ex) {
         Assert.IsInstanceOf<PpkFileException>(ex);
@@ -197,7 +199,7 @@ namespace PageantSharpTest
       }
       fileData = File.ReadAllBytes("../../../Resources/ssh2-rsa.ppk");
       try {
-        target = PpkFile.ParseData(fileData, getBadPassphrase, warnOldFileNotExpected);
+        target = PpkFormatter.ParseData(fileData, getBadPassphrase, warnOldFileNotExpected);
         Assert.Fail("Exception did not occur");
       } catch (Exception ex) {
         Assert.IsInstanceOf<PpkFileException>(ex);
@@ -212,7 +214,7 @@ namespace PageantSharpTest
                oldFileFormatSsh2RsaWithoutPassPrivateMACString));
       try {
         warnCallbackCalled = false;
-        target = PpkFile.ParseData(modifiedFileContents, null, warnOldFileExpected);
+        target = PpkFormatter.ParseData(modifiedFileContents, null, warnOldFileExpected);
         Assert.IsTrue(warnCallbackCalled);
       } catch (Exception ex) {
         Assert.Fail(ex.ToString());
@@ -221,7 +223,7 @@ namespace PageantSharpTest
       /* test reading bad file */
       fileData = File.ReadAllBytes("../../../Resources/emptyFile.ppk");
       try {
-        target = PpkFile.ParseData(fileData, null, warnOldFileNotExpected);
+        target = PpkFormatter.ParseData(fileData, null, warnOldFileNotExpected);
       } catch (Exception ex) {
         Assert.IsInstanceOf<PpkFileException>(ex);
         Assert.AreEqual(PpkFileException.ErrorType.FileFormat, ((PpkFileException)ex).Error);
@@ -229,7 +231,7 @@ namespace PageantSharpTest
 
       /* test reading SSH2-DSA files */
       fileData = File.ReadAllBytes("../../../Resources/ssh2-dsa.ppk");
-      target = PpkFile.ParseData(fileData, getPassphrase, warnOldFileNotExpected);
+      target = PpkFormatter.ParseData(fileData, getPassphrase, warnOldFileNotExpected);
       Assert.AreEqual(expectedSsh2DsaWithPassComment, target.Comment);
       Assert.AreEqual(expectedKeySize, target.Size);
     }

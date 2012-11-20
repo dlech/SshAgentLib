@@ -12,13 +12,14 @@ using System.Runtime.InteropServices;
 using Org.BouncyCastle.Crypto;
 using Org.BouncyCastle.Crypto.Parameters;
 using Org.BouncyCastle.Math;
+using System.Runtime.Serialization;
 
 namespace dlech.PageantSharp
 {
   /// <summary>
   /// Used to read PuTTY Private Key (.ppk) files
   /// </summary>
-  public static class PpkFile
+  public class PpkFormatter : IFormatter
   {
 
     #region -- Constants --
@@ -26,102 +27,9 @@ namespace dlech.PageantSharp
     private const string cPrivateKeyDecryptSalt1 = "\0\0\0\0";
     private const string cPrivateKeyDecryptSalt2 = "\0\0\0\x1";
     private const string cMACKeySalt = "putty-private-key-file-mac-key";
+    internal const string ALGORITHM_NONE = "none";
+    internal const string ALGORITHM_AES256_CBC = "aes256-cbc";
 
-    /// <summary>
-    /// The delimiter used by the file
-    /// </summary>
-    private const char cDelimeter = ':';
-
-    /// <summary>
-    /// contains fields with valid file version strings
-    /// </summary>
-    private enum Version
-    {
-      V1,
-      V2
-    }
-
-    private static string GetName(this Version aVersion)
-    {
-      switch (aVersion) {
-        case Version.V1:
-          return "1";
-        case Version.V2:
-          return "2";
-        default:
-          Debug.Fail("Unknown version");
-          throw new Exception("Unknown version");
-      }
-    }
-
-    private static bool TryParseVersion(this string aString, ref Version aVersion)
-    {
-      switch (aString) {
-        case "1":
-          aVersion = Version.V1;
-          return true;
-        case "2":
-          aVersion = Version.V2;
-          return true;
-        default:
-          return false;
-      }
-    }
-
-    private static bool TryParsePublicKeyAlgorithm(this string aString,
-      ref PublicKeyAlgorithm aAlgorithm)
-    {      
-      switch (aString) {
-        case PublicKeyAlgorithmExt.ALGORITHM_RSA_KEY:
-          aAlgorithm = PublicKeyAlgorithm.SSH_RSA;
-          return true;
-        case PublicKeyAlgorithmExt.ALGORITHM_DSA_KEY:
-          aAlgorithm = PublicKeyAlgorithm.SSH_DSS;
-          return true;
-        default:
-          return false;
-      }
-    }
-    
-    private const string ALGORITHM_NONE = "none";
-    private const string ALGORITHM_AES256_CBC = "aes256-cbc";
-
-    /// <summary>
-    /// Valid private key encryption algorithms
-    /// </summary>
-    private enum PrivateKeyAlgorithm
-    {
-      None,
-      AES256_CBC
-    }
-
-    private static string GetIdentifierString(this PrivateKeyAlgorithm aAlgorithm) {
-      switch (aAlgorithm) {
-        case PrivateKeyAlgorithm.None:
-          return ALGORITHM_NONE;
-        case PrivateKeyAlgorithm.AES256_CBC:
-          return ALGORITHM_AES256_CBC;
-        default:
-          Debug.Fail("Unknown algorithm");
-          throw new Exception("Unknown algorithm");
-      }
-    }
-
-    private static bool TryParsePrivateKeyAlgorithm(this string aString,
-      ref PrivateKeyAlgorithm aAlgorithm)
-    {
-      switch (aString) {
-        case ALGORITHM_NONE:
-          aAlgorithm = PrivateKeyAlgorithm.None;
-          return true;
-        case ALGORITHM_AES256_CBC:
-          aAlgorithm = PrivateKeyAlgorithm.AES256_CBC;
-          return true;
-        default:
-          return false;
-      }
-    }
-        
     /// <summary>
     /// Key that identifies the file version and the public key algorithm
     /// It is the first thing in the file, so it can also be used as a signature
@@ -163,9 +71,38 @@ namespace dlech.PageantSharp
     /// </summary>
     private const string privateHashKey = "Private-Hash";
 
+    /// <summary>
+    /// The delimiter used by the file
+    /// </summary>
+    private const char cDelimeter = ':';
+
     #endregion -- Constants --
+    
+
+    #region -- Enums --
+
+    /// <summary>
+    /// contains fields with valid file version strings
+    /// </summary>
+    internal enum Version
+    {
+      V1,
+      V2
+    }
+
+    /// <summary>
+    /// Valid private key encryption algorithms
+    /// </summary>
+    internal enum PrivateKeyAlgorithm
+    {
+      None,
+      AES256_CBC
+    }
 
 
+    #endregion -- Enums --
+    
+   
     #region -- structures --
 
     private struct FileData
@@ -231,12 +168,26 @@ namespace dlech.PageantSharp
     public delegate SecureString GetPassphraseCallback();
 
     /// <summary>
-    /// Implementation of this function shoud warn the user that they are using
+    /// Implementation of this function should warn the user that they are using
     /// an old file format that has know security issues.
     /// </summary>
     public delegate void WarnOldFileFormatCallback();
 
     #endregion -- Delegates --
+
+    #region -- Properties --
+
+    public SerializationBinder Binder { get; set; }
+
+    public StreamingContext Context { get; set; }
+
+    public ISurrogateSelector SurrogateSelector { get; set; }
+
+    public GetPassphraseCallback GetPassphraseCallbackMethod { get; set; }
+
+    public WarnOldFileFormatCallback WarnOldFileFormatCallbackMethod { get; set; }
+
+    #endregion  -- Properties --
 
 
     #region -- Constructors --
@@ -248,72 +199,43 @@ namespace dlech.PageantSharp
 
     #region -- Public Methods --
 
-
-    /// <summary>
-    /// Reads the specified file, parsed data and creates new PpkKey object
-    /// from file data
-    /// </summary>
-    /// <param name="fileName">The name of the file to open</param>
-    /// <param name="getPassphrase">Callback method for getting passphrase
-    /// if required. Can be null if no passphrase.</param>
-    /// <param name="warnOldFileFormat">Callback method that warns user that
-    /// they are using an old file format with known security problems.</param>
-    /// <exception cref="dlech.PageantSharp.PpkFileException">there was a problem reading the file</exception>
-    /// <exception cref="System.ArgumentNullException">fileName and warnOldFileFormat cannot be null</exception>
-    /// <exception cref="System.ArgumentException">see <see cref="System.IO.File.OpenRead(string)"/></exception>
-    /// <exception cref="System.IO.PathTooLongException">see <see cref="System.IO.File.OpenRead(string)"/></exception>
-    /// <exception cref="System.IO.DirectoryNotFoundException">see <see cref="System.IO.File.OpenRead(string)"/></exception>
-    /// <exception cref="System.UnauthorizedAccessException">see <see cref="System.IO.File.OpenRead(string)"/></exception>
-    /// <exception cref="System.IO.FileNotFoundException">see <see cref="System.IO.File.OpenRead(string)"/></exception>
-    /// <exception cref="System.NotSupportedException">see <see cref="System.IO.File.OpenRead(string)"/></exception>
-    public static SshKey ReadFile(string fileName,
-                                  GetPassphraseCallback getPassphrase,
-                                  WarnOldFileFormatCallback warnOldFileFormat)
+    public void Serialize(Stream aStream, object aObject)
     {
-      FileStream stream;
-      byte[] buffer;
-
-      using (stream = File.OpenRead(fileName)) {
-        buffer = new byte[stream.Length];
-        stream.Read(buffer, 0, buffer.Length);
-      }
-      return ParseData(buffer, getPassphrase, warnOldFileFormat);
+      throw new NotImplementedException();
     }
 
     /// <summary>
     /// Parses the data from a PuTTY Private Key (.ppk) file.
     /// </summary>
     /// <param name="data">The data to parse.</param>
-    /// <param name="getPassphrase">Callback method for getting passphrase
-    /// if required. Can be null if no passphrase.</param>
-    /// <param name="warnOldFileFormat">Callback method that warns user that
-    /// they are using an old file format with known security problems.</param>
+    /// <param name="getPassphrase">
+    /// Callback method for getting passphrase if required.
+    /// Can be null if no passphrase.
+    /// </param>
+    /// <param name="warnOldFileFormat">
+    /// Callback method that warns user that they are using an old file format
+    /// with known security problems.
+    /// </param>
     /// <exception cref="dlech.PageantSharp.PpkFileException">
     /// there was a problem parsing the file data
     /// </exception>
     /// <exception cref="System.ArgumentNullException">
     /// data and warnOldFileFormat cannot be null
     /// </exception>
-    public static SshKey ParseData(byte[] data,
-                                   GetPassphraseCallback getPassphrase,
-                                   WarnOldFileFormatCallback warnOldFileFormat)
+    public object Deserialize(Stream aStream)
     {
       FileData fileData = new FileData();
 
       /* check for required parameters */
-      if (data == null) {
-        throw new ArgumentNullException("data");
+      if (aStream == null) {
+        throw new ArgumentNullException("aStream");
       }
-      if (warnOldFileFormat == null) {
-        throw new ArgumentNullException("warnOldFileFormat");
-      }
-
+      
       string line;
       string[] pair = new string[2];
       int lineCount, i;
-
-      Stream stream = new MemoryStream(data);
-      StreamReader reader = new StreamReader(stream);
+            
+      StreamReader reader = new StreamReader(aStream);
       char[] delimArray = { cDelimeter };
 
       try {
@@ -329,7 +251,8 @@ namespace dlech.PageantSharp
           throw new PpkFileException(PpkFileException.ErrorType.FileVersion);
         }
         if (fileData.ppkFileVersion == Version.V1) {
-          warnOldFileFormat();
+          // TODO handle warnOldFileFormatCallback
+          WarnOldFileFormatCallbackMethod.Invoke();
         }
 
         /* read public key encryption algorithm type */
@@ -411,10 +334,10 @@ namespace dlech.PageantSharp
 
         /* get passphrase and decrypt private key if required */
         if (fileData.privateKeyAlgorithm != PrivateKeyAlgorithm.None) {
-          if (getPassphrase == null) {
+          if (GetPassphraseCallbackMethod == null) {
             throw new PpkFileException(PpkFileException.ErrorType.BadPassphrase);
           }
-          fileData.passphrase = getPassphrase();
+          fileData.passphrase = GetPassphraseCallbackMethod.Invoke();
           DecryptPrivateKey(ref fileData);
         }
 
@@ -433,7 +356,6 @@ namespace dlech.PageantSharp
             PpkFileException.ErrorType.FileFormat,
             "See inner exception.", ex);
       } finally {
-        Array.Clear(data, 0, data.Length);
         if (fileData.publicKeyBlob != null) {
           Array.Clear(fileData.publicKeyBlob, 0, fileData.publicKeyBlob.Length);
         }
@@ -444,7 +366,6 @@ namespace dlech.PageantSharp
           Array.Clear(fileData.privateMAC, 0, fileData.privateMAC.Length);
         }
         reader.Close();
-        stream.Close();
       }
     }
 
@@ -680,6 +601,80 @@ namespace dlech.PageantSharp
     }
 
     # endregion -- Private Methods --
+    
+  }
+
+  internal static class PpkFormatterExt
+  {
+    public static string GetIdentifierString(this PpkFormatter.PrivateKeyAlgorithm aAlgorithm)
+    {
+      switch (aAlgorithm) {
+        case PpkFormatter.PrivateKeyAlgorithm.None:
+          return PpkFormatter.ALGORITHM_NONE;
+        case PpkFormatter.PrivateKeyAlgorithm.AES256_CBC:
+          return PpkFormatter.ALGORITHM_AES256_CBC;
+        default:
+          Debug.Fail("Unknown algorithm");
+          throw new Exception("Unknown algorithm");
+      }
+    }
+
+    public static bool TryParsePrivateKeyAlgorithm(this string aString,
+      ref PpkFormatter.PrivateKeyAlgorithm aAlgorithm)
+    {
+      switch (aString) {
+        case PpkFormatter.ALGORITHM_NONE:
+          aAlgorithm = PpkFormatter.PrivateKeyAlgorithm.None;
+          return true;
+        case PpkFormatter.ALGORITHM_AES256_CBC:
+          aAlgorithm = PpkFormatter.PrivateKeyAlgorithm.AES256_CBC;
+          return true;
+        default:
+          return false;
+      }
+    }
+
+    public static string GetName(this PpkFormatter.Version aVersion)
+    {
+      switch (aVersion) {
+        case PpkFormatter.Version.V1:
+          return "1";
+        case PpkFormatter.Version.V2:
+          return "2";
+        default:
+          Debug.Fail("Unknown version");
+          throw new Exception("Unknown version");
+      }
+    }
+
+    public static bool TryParseVersion(this string aString, ref PpkFormatter.Version aVersion)
+    {
+      switch (aString) {
+        case "1":
+          aVersion = PpkFormatter.Version.V1;
+          return true;
+        case "2":
+          aVersion = PpkFormatter.Version.V2;
+          return true;
+        default:
+          return false;
+      }
+    }
+
+    public static bool TryParsePublicKeyAlgorithm(this string aString,
+      ref PublicKeyAlgorithm aAlgorithm)
+    {
+      switch (aString) {
+        case PublicKeyAlgorithmExt.ALGORITHM_RSA_KEY:
+          aAlgorithm = PublicKeyAlgorithm.SSH_RSA;
+          return true;
+        case PublicKeyAlgorithmExt.ALGORITHM_DSA_KEY:
+          aAlgorithm = PublicKeyAlgorithm.SSH_DSS;
+          return true;
+        default:
+          return false;
+      }
+    }
 
   }
 }

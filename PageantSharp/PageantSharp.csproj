@@ -267,7 +267,7 @@
     <Compile Include="WinPageant.cs" />
     <Compile Include="PpkFileException.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="PpkFile.cs" />
+    <Compile Include="PpkFormatter.cs" />
     <Compile Include="LinAgent.cs" />
     <Compile Include="Agent.cs" />
     <Compile Include="Microsoft\AsyncUserToken.cs" />

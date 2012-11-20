@@ -23,6 +23,7 @@ namespace dlech.PageantSharp
   /// </summary>
   public static class PSUtil
   {
+         
 
     public static byte[] FormatSignature(this ISshKey aKey, byte[] aSignature)
     {
