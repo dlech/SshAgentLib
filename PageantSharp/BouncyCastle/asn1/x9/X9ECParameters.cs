@@ -124,7 +124,7 @@ namespace Org.BouncyCastle.Asn1.X9
 			{
 				if (h == null)
 				{
-					// TODO - this should be calculated, it will cause issues with custom curves.
+					// this should be calculated, it will cause issues with custom curves.
 					return BigInteger.One;
 				}
 

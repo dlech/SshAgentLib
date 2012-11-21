@@ -135,7 +135,7 @@ namespace Org.BouncyCastle.Crypto.Generators
 
 		internal static X9ECParameters FindECCurveByOid(DerObjectIdentifier oid)
 		{
-			// TODO ECGost3410NamedCurves support (returns ECDomainParameters though)
+			// ECGost3410NamedCurves support (returns ECDomainParameters though)
 
 			X9ECParameters ecP = X962NamedCurves.GetByOid(oid);
 

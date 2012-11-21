@@ -143,7 +143,7 @@ namespace Org.BouncyCastle.Math.EC
 			// p mod 4 == 3
 			if (q.TestBit(1))
 			{
-				// TODO Can this be optimised (inline the Square?)
+				// Can this be optimised (inline the Square?)
 				// z = g^(u+1) + p, p = 4u + 3
 				ECFieldElement z = new FpFieldElement(q, x.ModPow(q.ShiftRight(2).Add(BigInteger.One), q));
 
@@ -258,7 +258,7 @@ namespace Org.BouncyCastle.Math.EC
 			BigInteger	Q,
 			BigInteger	k)
 		{
-			// TODO Research and apply "common-multiplicand multiplication here"
+			// Research and apply "common-multiplicand multiplication here"
 
 			int n = k.BitLength;
 			int s = k.GetLowestSetBit();

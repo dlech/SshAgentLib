@@ -159,7 +159,7 @@ namespace Org.BouncyCastle.Math.EC
 			BigInteger	Y1,
 			bool		withCompression)
 		{
-			// TODO Validation of X1, Y1?
+			// Validation of X1, Y1?
 			return new FpPoint(
 				this,
 				FromBigInteger(X1),
@@ -506,7 +506,7 @@ namespace Org.BouncyCastle.Math.EC
 			BigInteger	Y1,
 			bool		withCompression)
 		{
-			// TODO Validation of X1, Y1?
+			// Validation of X1, Y1?
 			return new F2mPoint(
 				this,
 				FromBigInteger(X1),

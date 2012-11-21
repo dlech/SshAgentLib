@@ -5,9 +5,9 @@ namespace Org.BouncyCastle.Math.EC
 {
 	internal class IntArray
     {
-        // TODO make m fixed for the IntArray, and hence compute T once and for all
+        // make m fixed for the IntArray, and hence compute T once and for all
 
-		// TODO Use uint's internally?
+		// Use uint's internally?
 		private int[] m_ints;
 
 		public IntArray(int intLen)
@@ -359,7 +359,7 @@ namespace Org.BouncyCastle.Math.EC
 		// return c;
 		// }
 
-		// TODO note, redPol.Length must be 3 for TPB and 5 for PPB
+		// note, redPol.Length must be 3 for TPB and 5 for PPB
 		public void Reduce(int m, int[] redPol)
 		{
 			for (int i = m + m - 2; i >= m; i--)
@@ -381,7 +381,7 @@ namespace Org.BouncyCastle.Math.EC
 
 		public IntArray Square(int m)
 		{
-			// TODO make the table static readonly
+			// make the table static readonly
 			int[] table = { 0x0, 0x1, 0x4, 0x5, 0x10, 0x11, 0x14, 0x15, 0x40,
 									0x41, 0x44, 0x45, 0x50, 0x51, 0x54, 0x55 };
 
@@ -393,7 +393,7 @@ namespace Org.BouncyCastle.Math.EC
 
 			IntArray c = new IntArray(t + t);
 
-			// TODO twice the same code, put in separate private method
+			// twice the same code, put in separate private method
 			for (int i = 0; i < t; i++)
 			{
 				int v0 = 0;

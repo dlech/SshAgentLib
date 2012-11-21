@@ -9,7 +9,7 @@ using Org.BouncyCastle.Utilities.Encoders;
 
 namespace Org.BouncyCastle.Crypto.Generators
 {
-	// TODO Update docs to mention FIPS 186-3 when done
+	// Update docs to mention FIPS 186-3 when done
     /**
      * Generate suitable parameters for DSA, in line with FIPS 186-2.
      */
@@ -37,15 +37,15 @@ namespace Org.BouncyCastle.Crypto.Generators
 			Init(size, GetDefaultN(size), certainty, random);
 		}
 
-		// TODO Make public to enable support for DSA keys > 1024 bits
+		// Make public to enable support for DSA keys > 1024 bits
 		private void Init(
 			int				L,
 			int				N,
 			int				certainty,
 			SecureRandom	random)
 		{
-			// TODO Check that the (L, N) pair is in the list of acceptable (L, N pairs) (see Section 4.2)
-			// TODO Should we enforce the minimum 'certainty' values as per C.3 Table C.1?
+			// Check that the (L, N) pair is in the list of acceptable (L, N pairs) (see Section 4.2)
+			// Should we enforce the minimum 'certainty' values as per C.3 Table C.1?
 
 			this.L = L;
 			this.N = N;
@@ -214,7 +214,7 @@ namespace Org.BouncyCastle.Crypto.Generators
 					U.Mod(BigInteger.Two));
 
 // 8. Test whether or not q is prime as specified in Appendix C.3.
-				// TODO Review C.3 for primality checking
+				// Review C.3 for primality checking
 				if (!q.IsProbablePrime(certainty))
 				{
 // 9. If q is not a prime, then go to step 5.
@@ -232,7 +232,7 @@ namespace Org.BouncyCastle.Crypto.Generators
 // 11.1 For j = 0 to n do
 //      Vj = Hash ((domain_parameter_seed + offset + j) mod 2^seedlen).
 // 11.2 W = V0 + (V1 ∗ 2^outlen) + ... + (V^(n–1) ∗ 2^((n–1) ∗ outlen)) + ((Vn mod 2^b) ∗ 2^(n ∗ outlen)).
-					// TODO Assemble w as a byte array
+					// Assemble w as a byte array
 					BigInteger W = BigInteger.Zero;
 					for (int j = 0, exp = 0; j <= n; ++j, exp += outlen)
 					{
@@ -262,17 +262,17 @@ namespace Org.BouncyCastle.Crypto.Generators
 						continue;
 
 // 11.7 Test whether or not p is prime as specified in Appendix C.3.
-					// TODO Review C.3 for primality checking
+					// Review C.3 for primality checking
 					if (p.IsProbablePrime(certainty))
 					{
 // 11.8 If p is determined to be prime, then return VALID and the values of p, q and
 //      (optionally) the values of domain_parameter_seed and counter.
-						// TODO Make configurable (8-bit unsigned)?
+						// Make configurable (8-bit unsigned)?
 //	                    int index = 1;
 //	                    BigInteger g = CalculateGenerator_FIPS186_3_Verifiable(d, p, q, seed, index);
 //	                    if (g != null)
 //	                    {
-//	                        // TODO Should 'index' be a part of the validation parameters?
+//	                        // Should 'index' be a part of the validation parameters?
 //	                        return new DsaParameters(p, q, g, new DsaValidationParameters(seed, counter));
 //	                    }
 

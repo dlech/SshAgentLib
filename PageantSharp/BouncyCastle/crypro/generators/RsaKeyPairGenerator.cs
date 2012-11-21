@@ -45,7 +45,7 @@ namespace Org.BouncyCastle.Crypto.Generators
 
 			e = param.PublicExponent;
 
-			// TODO Consider generating safe primes for p, q (see DHParametersHelper.generateSafePrimes)
+			// Consider generating safe primes for p, q (see DHParametersHelper.generateSafePrimes)
 			// (then p-1 and q-1 will not consist of only small factors - see "Pollard's algorithm")
 
 			//

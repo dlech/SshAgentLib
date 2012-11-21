@@ -94,7 +94,7 @@ namespace Org.BouncyCastle.Asn1.X9
 					}
 					X9FieldElement x9A = new X9FieldElement(m, k1, k2, k3, (Asn1OctetString)seq[0]);
 					X9FieldElement x9B = new X9FieldElement(m, k1, k2, k3, (Asn1OctetString)seq[1]);
-					// TODO Is it possible to get the order (n) and cofactor(h) too?
+					// Is it possible to get the order (n) and cofactor(h) too?
 					curve = new F2mCurve(m, k1, k2, k3, x9A.Value.ToBigInteger(), x9B.Value.ToBigInteger());
 				}
 			}

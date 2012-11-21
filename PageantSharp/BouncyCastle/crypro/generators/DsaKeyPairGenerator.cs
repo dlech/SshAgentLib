@@ -44,7 +44,7 @@ namespace Org.BouncyCastle.Crypto.Generators
 
 		private static BigInteger GeneratePrivateKey(BigInteger q, SecureRandom random)
 		{
-			// TODO Prefer this method? (change test cases that used fixed random)
+			// Prefer this method? (change test cases that used fixed random)
 			// B.1.1 Key Pair Generation Using Extra Random Bits
 //	        BigInteger c = new BigInteger(q.BitLength + 64, random);
 //	        return c.Mod(q.Subtract(BigInteger.One)).Add(BigInteger.One);

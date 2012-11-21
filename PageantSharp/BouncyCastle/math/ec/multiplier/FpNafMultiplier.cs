@@ -12,7 +12,7 @@ namespace Org.BouncyCastle.Math.EC.Multiplier
 		*/
 		public ECPoint Multiply(ECPoint p, BigInteger k, PreCompInfo preCompInfo)
 		{
-			// TODO Probably should try to add this
+			// Probably should try to add this
 			// BigInteger e = k.Mod(n); // n == order of p
 			BigInteger e = k;
 			BigInteger h = e.Multiply(BigInteger.Three);

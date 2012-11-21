@@ -560,7 +560,7 @@ namespace PageantSharpTest
       Assert.That(header2.BlobLength, Is.EqualTo(1));
       Assert.That(header2.Message, Is.EqualTo(Agent.Message.SSH_AGENT_FAILURE));
 
-      /* test confirm restraint */
+      /* test confirm constraint */
 
       agent = new TestAgent();
       Agent.KeyConstraint testConstraint = new Agent.KeyConstraint();
