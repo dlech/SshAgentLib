@@ -368,6 +368,14 @@ namespace dlech.PageantSharp
         reader.Close();
       }
     }
+        
+    public ISshKey DeserializeFile(string aFileName)
+    {
+      using (FileStream stream =
+        new FileStream(aFileName, FileMode.Open, FileAccess.Read)) {
+        return (ISshKey)Deserialize(stream);
+      }
+    }
 
     #endregion -- Public Methods --
 

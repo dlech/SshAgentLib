@@ -172,7 +172,7 @@ namespace dlech.PageantSharp
     /// <returns>
     /// true if user grants permission, false if user denies permission
     /// </returns>
-    public delegate bool ConfirmUserPermission(ISshKey key);
+    public delegate bool ConfirmUserPermissionDelegate(ISshKey key);
 
     #endregion
 
@@ -191,7 +191,7 @@ namespace dlech.PageantSharp
       }
     }
 
-    public ConfirmUserPermission ConfirmUserPermissionCallback { get; set; }
+    public ConfirmUserPermissionDelegate ConfirmUserPermissionCallback { get; set; }
 
     #endregion
 
@@ -550,7 +550,9 @@ namespace dlech.PageantSharp
 
       KeyListChangeEventArgs args =
         new KeyListChangeEventArgs(KeyListChangeEventAction.Add, aKey);
-      KeyListChanged(this, args);
+      if (KeyListChanged != null) {
+        KeyListChanged(this, args);
+      }
     }
 
     public bool RemoveKey(ISshKey aKey)
@@ -558,7 +560,9 @@ namespace dlech.PageantSharp
       if (mKeyList.Remove(aKey)) {
         KeyListChangeEventArgs args =
         new KeyListChangeEventArgs(KeyListChangeEventAction.Remove, aKey);
-        KeyListChanged(this, args);
+        if (KeyListChanged != null) {
+          KeyListChanged(this, args);
+        }
         return true;
       }
       return false;

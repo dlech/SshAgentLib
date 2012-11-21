@@ -54,7 +54,7 @@ namespace PageantSharpTest
       public TestAgent(IEnumerable<ISshKey> keyList)
       {
         foreach (ISshKey key in keyList) {
-          KeyList.Add(key);
+          AddKey(key);
         }
       }
 
@@ -201,7 +201,7 @@ namespace PageantSharpTest
 
       /* test adding dsa key */
 
-      agent.KeyList.Clear();
+      agent = new TestAgent();
       builder.Clear();
       DsaPublicKeyParameters dsaPublicParameters =
         (DsaPublicKeyParameters)mDsaKey.GetPublicKeyParameters();
@@ -237,7 +237,7 @@ namespace PageantSharpTest
       ecdsaKeysList.Add(mEcdsa384Key);
       ecdsaKeysList.Add(mEcdsa521Key);
       foreach (ISshKey key in ecdsaKeysList) {
-        agent.KeyList.Clear();
+        agent = new TestAgent();
         builder.Clear();
         ECPublicKeyParameters ecdsaPublicParameters =
           (ECPublicKeyParameters)key.GetPublicKeyParameters();
@@ -282,7 +282,7 @@ namespace PageantSharpTest
       Assert.That(agent.KeyList.Count(), Is.EqualTo(startingCount));
 
       /* test locked => failure */
-      agent.KeyList.Clear();
+      agent = new TestAgent();
       agent.Lock(new byte[0]);
       PrepareMessage(builder);
       agent.AnswerMessage(mStream);
@@ -298,6 +298,9 @@ namespace PageantSharpTest
     {
       /* most code is shared with SSH2_AGENTC_ADD_IDENTITY, so we just
        * need to test the differences */
+
+      Agent.ConfirmUserPermissionDelegate confirmCallback =
+        delegate(ISshKey key) { return true; };
 
       Agent agent = new TestAgent();
 
@@ -327,8 +330,8 @@ namespace PageantSharpTest
 
       /* test adding key with confirm constraint */
 
-      agent.ConfirmUserPermissionCallback =
-        delegate(ISshKey key) { return true; };
+      agent = new TestAgent();
+      agent.ConfirmUserPermissionCallback = confirmCallback;
       PrepareMessage(builder);
       agent.AnswerMessage(mStream);
       RewindStream();
@@ -343,7 +346,7 @@ namespace PageantSharpTest
 
       /* test adding key with lifetime constraint */
 
-      agent.KeyList.Clear();
+      agent = new TestAgent();
       builder.Clear();
       builder.AddBytes(commonBlob);
       builder.AddByte((byte)Agent.KeyConstraintType.SSH_AGENT_CONSTRAIN_LIFETIME);
@@ -365,7 +368,8 @@ namespace PageantSharpTest
 
       /* test adding key with multiple constraints */
 
-      agent.KeyList.Clear();
+      agent = new TestAgent();
+      agent.ConfirmUserPermissionCallback = confirmCallback;
       builder.Clear();
       builder.AddBytes(commonBlob);
       builder.AddByte((byte)Agent.KeyConstraintType.SSH_AGENT_CONSTRAIN_CONFIRM);
@@ -389,7 +393,8 @@ namespace PageantSharpTest
 
       /* test adding key with multiple constraints in different order */
 
-      agent.KeyList.Clear();
+      agent = new TestAgent();
+      agent.ConfirmUserPermissionCallback = confirmCallback;
       builder.Clear();
       builder.AddBytes(commonBlob);
       builder.AddByte((byte)Agent.KeyConstraintType.SSH_AGENT_CONSTRAIN_LIFETIME);
@@ -543,7 +548,7 @@ namespace PageantSharpTest
 
       /* test key not found */
 
-      agent.KeyList.Clear();
+      agent = new TestAgent();
       builder.Clear();
       builder.AddBlob(mDsaKey.GetPublicKeyBlob());
       builder.AddStringBlob(signatureData);
@@ -618,7 +623,7 @@ namespace PageantSharpTest
       Assert.That(actualKeyCount, Is.EqualTo(expectedKeyCount));
 
       /* test that remove all keys returns success even when there are no keys */
-      agent.KeyList.Clear();
+      agent = new TestAgent();
       PrepareSimpleMessage(Agent.Message.SSH2_AGENTC_REMOVE_ALL_IDENTITIES);
       agent.AnswerMessage(mStream);
       RewindStream();
@@ -746,8 +751,8 @@ namespace PageantSharpTest
       Agent.KeyConstraint constraint = new Agent.KeyConstraint();
       constraint.Type = Agent.KeyConstraintType.SSH_AGENT_CONSTRAIN_LIFETIME;
       constraint.Data = (UInt32)1;
-      key.Constraints.Add(constraint);
-      agent.KeyList.Add(key);
+      key.AddConstraint(constraint);
+      agent.AddKey(key);
       Thread.Sleep(500);
       Assert.That(agent.KeyList.Count, Is.EqualTo(1));
       Thread.Sleep(1000);

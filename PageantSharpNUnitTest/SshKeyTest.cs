@@ -39,16 +39,14 @@ namespace PageantSharpTest
     [Test()]
     public void GetFingerprintTest()
     {
-      SshKey rsaTarget = PpkFormatter.ReadFile(ssh2_rsa_no_passphrase_ppk,
-          delegate() {
-        return null; }, delegate() { });
+      PpkFormatter formatter = new PpkFormatter();
+      ISshKey rsaTarget = formatter.DeserializeFile(ssh2_rsa_no_passphrase_ppk);
+          
       string rsaExpectedFingerprint = "57:95:98:7f:c2:4e:98:1d:b9:5b:45:fe:6d:a4:6b:17";
       string rsaActual = rsaTarget.MD5Fingerprint.ToHexString();
       Assert.That(rsaExpectedFingerprint, Is.EqualTo(rsaActual));
 
-      SshKey dsaTarget = PpkFormatter.ReadFile(ssh2_dsa_no_passphrase_ppk,
-          delegate() {
-        return null; }, delegate() { });
+      ISshKey dsaTarget = formatter.DeserializeFile(ssh2_dsa_no_passphrase_ppk);
       string dsaExpectedFingerprint = "4e:f1:fc:5d:80:5b:37:b6:13:67:ce:df:4e:83:7b:0b";
       string dsaActual = dsaTarget.MD5Fingerprint.ToHexString();
       Assert.That(dsaExpectedFingerprint, Is.EqualTo(dsaActual));
@@ -61,13 +59,11 @@ namespace PageantSharpTest
     public void GetSSH2PublicKeyBlobTest()
     {
       byte[] actual, expected;
-      PpkFormatter.GetPassphraseCallback getPassphrase = null;
-      PpkFormatter.WarnOldFileFormatCallback warnOldFileFormat = delegate() { };
-      SshKey target;
+      PpkFormatter formatter = new PpkFormatter();
+      ISshKey target;
 
       /* test RSA key */
-      target = PpkFormatter.ReadFile(ssh2_rsa_no_passphrase_ppk,
-                                getPassphrase, warnOldFileFormat);
+      target = formatter.DeserializeFile(ssh2_rsa_no_passphrase_ppk);
       expected = PSUtil.FromBase64(
         "AAAAB3NzaC1yc2EAAAABJQAAAIEAhWqdEs/lz1r4L8ZAAS76rX7hj3rrI/6FNlBw" +
         "6ERba2VFmn2AHxQwZmHHmqM+UtiY57angjD9fTbTzL74C0+f/NrRY+BYXf1cF+u5" +
@@ -78,8 +74,7 @@ namespace PageantSharpTest
       Assert.That(expected, Is.EqualTo(actual));
 
       /* test DSA key */
-      target = PpkFormatter.ReadFile(ssh2_dsa_no_passphrase_ppk,
-                                getPassphrase, warnOldFileFormat);
+      target = formatter.DeserializeFile(ssh2_dsa_no_passphrase_ppk);
       expected = PSUtil.FromBase64(
           "AAAAB3NzaC1kc3MAAACBAMXDM56ty6fV+qDpMyZxobn5VB4L/E6zvOibUead6HBc" +
           "OHUibA97EKgooUbqJ9qFUOhhw8TaFtN0UtTLZoHjOWN3JdyugK+f2HYIxvhlvW60" +
