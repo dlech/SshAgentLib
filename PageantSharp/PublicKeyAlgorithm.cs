@@ -20,7 +20,6 @@ namespace dlech.PageantSharp
     ECDSA_SHA2_NISTP256,
     ECDSA_SHA2_NISTP384,
     ECDSA_SHA2_NISTP521
-    // TODO implement other algorithms
   }
 
   public static class PublicKeyAlgorithmExt
@@ -70,7 +69,6 @@ namespace dlech.PageantSharp
           return ALGORITHM_ECDSA_SHA2_NISTP384_KEY;
         case PublicKeyAlgorithm.ECDSA_SHA2_NISTP521:
           return ALGORITHM_ECDSA_SHA2_NISTP521_KEY;
-        // TODO implement other algorithms
         default:
           Debug.Fail("Unknown algorithm");
           throw new Exception("Unknown algorithm");
@@ -90,7 +88,6 @@ namespace dlech.PageantSharp
           return SignerUtilities.GetSigner(X9ObjectIdentifiers.ECDsaWithSha384.Id);
         case PublicKeyAlgorithm.ECDSA_SHA2_NISTP521:
           return SignerUtilities.GetSigner(X9ObjectIdentifiers.ECDsaWithSha512.Id);
-        // TODO implement other algorithms
         default:
           Debug.Fail("Unknown algorithm");
           throw new Exception("Unknown algorithm");

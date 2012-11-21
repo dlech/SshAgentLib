@@ -330,8 +330,9 @@ namespace dlech.PageantSharp
               .Where(constraint => constraint.Type ==
                 KeyConstraintType.SSH_AGENT_CONSTRAIN_CONFIRM);
             if (confirmConstraints.Count() > 0) {
-              // TODO implement confirmation callback
-              throw new NotImplementedException();
+              if (!ConfirmUserPermissionCallback.Invoke(matchingKey)) {
+                goto default;
+              }
             }
 
             /* create signature */

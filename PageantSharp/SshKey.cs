@@ -133,5 +133,16 @@ namespace dlech.PageantSharp
       }
     }
 
+
+    public SshKey Clone()
+    {
+      AsymmetricCipherKeyPair keyPair = new AsymmetricCipherKeyPair(
+        GetPublicKeyParameters(), GetPrivateKeyParameters());
+      SshKey newKey = new SshKey(Version, keyPair, Comment);
+      foreach (Agent.KeyConstraint constraint in mKeyConstraints) {
+        newKey.AddConstraint(constraint);
+      }
+      return newKey;
+    }
   }
 }

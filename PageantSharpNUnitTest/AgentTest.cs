@@ -170,7 +170,7 @@ namespace PageantSharpTest
     {
       Agent agent = new TestAgent();
 
-      /* test adding rsa key */
+      /* test adding RSA key */
 
       BlobBuilder builder = new BlobBuilder();
       RsaPrivateCrtKeyParameters rsaParameters =
@@ -199,7 +199,7 @@ namespace PageantSharpTest
       Assert.That(returnedKey.Comment, Is.EqualTo(mRsaKey.Comment));
       Assert.That(returnedKey.MD5Fingerprint, Is.EqualTo(mRsaKey.MD5Fingerprint));
 
-      /* test adding dsa key */
+      /* test adding DSA key */
 
       agent = new TestAgent();
       builder.Clear();
@@ -230,7 +230,7 @@ namespace PageantSharpTest
       Assert.That(returnedKey.Comment, Is.EqualTo(mDsaKey.Comment));
       Assert.That(returnedKey.MD5Fingerprint, Is.EqualTo(mDsaKey.MD5Fingerprint));
 
-      /* test adding ecdsa keys */
+      /* test adding ECDSA keys */
 
       List<ISshKey> ecdsaKeysList = new List<ISshKey>();
       ecdsaKeysList.Add(mEcdsa256Key);
@@ -518,7 +518,7 @@ namespace PageantSharpTest
         Assert.That(header.BlobLength, Is.EqualTo(mStream.Position - 4));
       }
 
-      /* test dsa key old signature format */
+      /* test DSA key old signature format */
 
       builder.Clear();
       builder.AddBlob(mDsaKey.GetPublicKeyBlob());
@@ -559,6 +559,37 @@ namespace PageantSharpTest
       Agent.BlobHeader header2 = mParser.ReadHeader();
       Assert.That(header2.BlobLength, Is.EqualTo(1));
       Assert.That(header2.Message, Is.EqualTo(Agent.Message.SSH_AGENT_FAILURE));
+
+      /* test confirm restraint */
+
+      agent = new TestAgent();
+      Agent.KeyConstraint testConstraint = new Agent.KeyConstraint();
+      testConstraint.Type = Agent.KeyConstraintType.SSH_AGENT_CONSTRAIN_CONFIRM;      
+      SshKey testKey = mDsaKey.Clone();
+      testKey.AddConstraint(testConstraint);
+      agent.AddKey(testKey);
+      bool confirmCallbackReturnValue = false;
+      agent.ConfirmUserPermissionCallback = delegate(ISshKey aKey)
+      {
+        return confirmCallbackReturnValue;
+      };
+      builder.Clear();
+      builder.AddBlob(mDsaKey.GetPublicKeyBlob());
+      builder.AddStringBlob(signatureData);
+      builder.InsertHeader(Agent.Message.SSH2_AGENTC_SIGN_REQUEST);
+      PrepareMessage(builder);
+      agent.AnswerMessage(mStream);
+      RewindStream();
+      header2 = mParser.ReadHeader();
+      Assert.That(header2.BlobLength, Is.EqualTo(1));
+      Assert.That(header2.Message, Is.EqualTo(Agent.Message.SSH_AGENT_FAILURE));
+      confirmCallbackReturnValue = true;
+      PrepareMessage(builder);
+      agent.AnswerMessage(mStream);
+      RewindStream();
+      header2 = mParser.ReadHeader();
+      Assert.That(header2.BlobLength, Is.Not.EqualTo(1));
+      Assert.That(header2.Message, Is.EqualTo(Agent.Message.SSH2_AGENT_SIGN_RESPONSE));
     }
 
     [Test()]
@@ -744,6 +775,7 @@ namespace PageantSharpTest
 
       /* test that key with lifetime constraint is automatically removed *
        * after lifetime expires */
+
       AsymmetricCipherKeyPair keyPair =
         new AsymmetricCipherKeyPair(mRsaKey.GetPublicKeyParameters(),
           mRsaKey.GetPrivateKeyParameters());
