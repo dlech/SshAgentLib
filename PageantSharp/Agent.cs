@@ -217,7 +217,7 @@ namespace dlech.PageantSharp
         mLockedPassphrase.AppendChar((char)b);
       }
       IsLocked = true;
-      OnLocked();
+      FireLocked();
       return true;
     }
 
@@ -243,7 +243,7 @@ namespace dlech.PageantSharp
       Marshal.ZeroFreeGlobalAllocUnicode(lockedPassPtr);
       mLockedPassphrase.Clear();
       IsLocked = false;
-      OnLocked();
+      FireLocked();
       return true;
     }
 
@@ -384,7 +384,7 @@ namespace dlech.PageantSharp
 
           try {
             SshKey key = new SshKey(SshVersion.SSH2,
-              CreateCipherKeyPair(aMessageStream));
+              ParseSsh2KeyData(aMessageStream));
             key.Comment = messageParser.ReadString();
 
             if (constrained) {
@@ -548,22 +548,13 @@ namespace dlech.PageantSharp
         timer.Elapsed += onTimerElapsed;
         timer.Start();
       }
-
-      KeyListChangeEventArgs args =
-        new KeyListChangeEventArgs(KeyListChangeEventAction.Add, aKey);
-      if (KeyListChanged != null) {
-        KeyListChanged(this, args);
-      }
+      FireKeyListChanged(KeyListChangeEventAction.Add, aKey);
     }
 
     public bool RemoveKey(ISshKey aKey)
     {
       if (mKeyList.Remove(aKey)) {
-        KeyListChangeEventArgs args =
-        new KeyListChangeEventArgs(KeyListChangeEventAction.Remove, aKey);
-        if (KeyListChanged != null) {
-          KeyListChanged(this, args);
-        }
+        FireKeyListChanged(KeyListChangeEventAction.Remove, aKey);
         return true;
       }
       return false;
@@ -573,9 +564,24 @@ namespace dlech.PageantSharp
 
     #endregion
 
+
     #region Private Methods
 
-    private void OnLocked()
+    /// <summary>
+    /// Fires KeyListChanged event
+    /// </summary>
+    private void FireKeyListChanged(KeyListChangeEventAction aAction, ISshKey aKey)
+    {
+      if (KeyListChanged != null) {
+        KeyListChangeEventArgs args = new KeyListChangeEventArgs(aAction, aKey);
+        KeyListChanged(this, args);
+      }
+    }
+
+    /// <summary>
+    /// Fires lock event for listeners
+    /// </summary>
+    private void FireLocked()
     {
       if (Locked != null) {
         LockEventArgs args = new LockEventArgs(IsLocked);
@@ -583,7 +589,12 @@ namespace dlech.PageantSharp
       }
     }
 
-    public static AsymmetricCipherKeyPair CreateCipherKeyPair(Stream aSteam)
+    /// <summary>
+    /// reads OpenSSH formatted key blob from stream and creates a key pair
+    /// </summary>
+    /// <param name="aSteam">stream to parse</param>
+    /// <returns>key pair</returns>
+    public static AsymmetricCipherKeyPair ParseSsh2KeyData(Stream aSteam)
     {
       BlobParser parser = new BlobParser(aSteam);
 

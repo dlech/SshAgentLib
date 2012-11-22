@@ -9,7 +9,7 @@ using Org.BouncyCastle.Crypto.Parameters;
 using Org.BouncyCastle.Math;
 using Org.BouncyCastle.Security;
 using NUnit.Framework;
-using PageantSharpNUnitTest.Properties;
+using PageantSharpTests.Properties;
 using System.IO;
 using System.Threading;
 using System.IO.MemoryMappedFiles;
@@ -22,7 +22,7 @@ namespace PageantSharpTest
   ///</summary>
   [TestFixture()]
   [Platform(Include = "Win")]
-  public class WinPageantTest
+  public class PageantAgentTest
   {
 
     private const int WM_COPYDATA = 0x004A;
@@ -47,17 +47,17 @@ namespace PageantSharpTest
     /// Test for WinPagent
     /// </summary>
     [Test()]
-    public void WinPageantInstanceTest()
+    public void PageantAgentInstanceTest()
     {
       /* code based on agent_query function in winpgntc.c from PuTTY */
 
-      using (WinPageant agent = new WinPageant()) {
+      using (PageantAgent agent = new PageantAgent()) {
                 
         /* try starting a second instance */
 
         Assert.That(delegate()
         {
-          WinPageant agent2 = new WinPageant();
+          PageantAgent agent2 = new PageantAgent();
           agent2.Dispose();
         }, Throws.InstanceOf<PageantRunningException>());
 

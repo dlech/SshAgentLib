@@ -7,8 +7,8 @@
     <SchemaVersion>2.0</SchemaVersion>
     <ProjectGuid>{4C052A55-5F53-4756-AC2C-103EE602E60F}</ProjectGuid>
     <OutputType>Library</OutputType>
-    <RootNamespace>PageantSharpNUnitTest</RootNamespace>
-    <AssemblyName>PageantSharpNUnitTest</AssemblyName>
+    <RootNamespace>PageantSharpTests</RootNamespace>
+    <AssemblyName>PageantSharpTests</AssemblyName>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <DebugSymbols>true</DebugSymbols>
@@ -68,7 +68,7 @@
     <Compile Include="PSUtilTest.cs" />
     <Compile Include="SshKeyTest.cs" />
     <Compile Include="LinAgentTest.cs" />
-    <Compile Include="WinPageantTest.cs" />
+    <Compile Include="PageantAgentTest.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
   <ItemGroup>

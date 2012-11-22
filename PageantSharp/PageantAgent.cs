@@ -3,6 +3,8 @@ using System.Diagnostics;
 using System.IO.MemoryMappedFiles;
 using System.Runtime.InteropServices;
 using System.Security.Principal;
+using System.Threading;
+using System.Windows.Forms;
 
 
 namespace dlech.PageantSharp
@@ -15,7 +17,7 @@ namespace dlech.PageantSharp
   /// of the window. This is how putty "talks" to pageant. This window will not
   /// actually be shown, just used to receive messages from clients.
   /// </summary>
-  public class WinPageant : Agent
+  public class PageantAgent : Agent
   {
     #region /* constants */
 
@@ -37,6 +39,8 @@ namespace dlech.PageantSharp
     private bool mDisposed;
     private IntPtr mHwnd;
     private WndProc mCustomWndProc;
+    private ApplicationContext mAppContext;
+    private object mMonitorObject = new object();
 
     #endregion
 
@@ -126,7 +130,7 @@ namespace dlech.PageantSharp
     /// Thrown when another instance of Pageant is running.
     /// </exception>
     /// <remarks>This window is not meant to be used for UI.</remarks>
-    public WinPageant()
+    public PageantAgent()
     {
       if (CheckAlreadyRunning()) {
         throw new PageantRunningException();
@@ -148,21 +152,13 @@ namespace dlech.PageantSharp
         throw new Exception("Could not register window class");
       }
 
-      // Create window
-      mHwnd = CreateWindowExW(
-          0, // dwExStyle
-          cClassName, // lpClassName
-          cClassName, // lpWindowName
-          0, // dwStyle
-          0, // x
-          0, // y
-          0, // nWidth
-          0, // nHeight
-          IntPtr.Zero, // hWndParent
-          IntPtr.Zero, // hMenu
-          IntPtr.Zero, // hInstance
-          IntPtr.Zero // lpParam
-      );
+      Thread winThread = new Thread(RunWindowInNewAppcontext);
+      winThread.SetApartmentState(ApartmentState.STA);
+      winThread.Name = "PageantWindow";
+      winThread.Start();
+      lock (mMonitorObject) {
+        Monitor.Wait(mMonitorObject);
+      }
     }
 
     #endregion
@@ -181,13 +177,38 @@ namespace dlech.PageantSharp
 
     #region /* private methods */
 
+    private void RunWindowInNewAppcontext()
+    {
+      lock (mMonitorObject) {
+        // Create window
+        mHwnd = CreateWindowExW(
+            0, // dwExStyle
+            cClassName, // lpClassName
+            cClassName, // lpWindowName
+            0, // dwStyle
+            0, // x
+            0, // y
+            0, // nWidth
+            0, // nHeight
+            IntPtr.Zero, // hWndParent
+            IntPtr.Zero, // hMenu
+            IntPtr.Zero, // hInstance
+            IntPtr.Zero // lpParam
+        );
+
+        mAppContext = new ApplicationContext();
+        Monitor.Pulse(mMonitorObject);
+      }
+      Application.Run(mAppContext);
+    }
+
     private void Dispose(bool aDisposing)
     {
       if (!mDisposed) {
         if (aDisposing) {
           // Dispose managed resources
         }
-
+        mAppContext.ExitThread();
         // Dispose unmanaged resources       
         if (mHwnd != IntPtr.Zero) {
           if (DestroyWindow(mHwnd)) {
@@ -266,7 +287,9 @@ namespace dlech.PageantSharp
           SecurityIdentifier sid = user.User;
 
           if (sid == mapOwner) {
-            AnswerMessage(fileMap);
+            using (MemoryMappedViewStream stream = fileMap.CreateViewStream()) {
+              AnswerMessage(stream);
+            }
             Marshal.WriteInt32(result, 1);
             return result; // success
           }
@@ -275,14 +298,6 @@ namespace dlech.PageantSharp
         Debug.Fail(ex.ToString());
       }
       return result; // failure
-
-    }
-
-    private void AnswerMessage(MemoryMappedFile aFileMap)
-    {
-      using (MemoryMappedViewStream stream = aFileMap.CreateViewStream()) {
-        AnswerMessage(stream);
-      }
     }
 
     #endregion

@@ -10,7 +10,7 @@ using Org.BouncyCastle.Crypto.Generators;
 using Org.BouncyCastle.Math;
 using Org.BouncyCastle.Security;
 using NUnit.Framework;
-using PageantSharpNUnitTest.Properties;
+using PageantSharpTests.Properties;
 using System.IO;
 using System.Text;
 using System.Collections.ObjectModel;
@@ -129,9 +129,7 @@ namespace PageantSharpTest
       keyPair = ecdsa521Gen.GenerateKeyPair();
       mEcdsa521Key = new SshKey(SshVersion.SSH2, keyPair);
       mEcdsa521Key.Comment = "SSH2 ECDSA 521 test key";
-
-      // TODO add more key types here when they are implemented
-
+           
       List<ISshKey> allKeys = new List<ISshKey>();
       allKeys.Add(mRsa1Key);
       allKeys.Add(mRsaKey);

@@ -11,7 +11,7 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution 
 		TraceAndTestImpact.testsettings = TraceAndTestImpact.testsettings
 	EndProjectSection
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PageantSharpNUnitTest", "PageantSharpNUnitTest\PageantSharpNUnitTest.csproj", "{4C052A55-5F53-4756-AC2C-103EE602E60F}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PageantSharpTests", "PageantSharpNUnitTest\PageantSharpTests.csproj", "{4C052A55-5F53-4756-AC2C-103EE602E60F}"
 EndProject
 Global
 	GlobalSection(TestCaseManagementSettings) = postSolution

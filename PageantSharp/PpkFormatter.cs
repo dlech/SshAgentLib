@@ -251,8 +251,9 @@ namespace dlech.PageantSharp
           throw new PpkFileException(PpkFileException.ErrorType.FileVersion);
         }
         if (fileData.ppkFileVersion == Version.V1) {
-          // TODO handle warnOldFileFormatCallback
-          WarnOldFileFormatCallbackMethod.Invoke();
+          if (WarnOldFileFormatCallbackMethod != null) {
+            WarnOldFileFormatCallbackMethod.Invoke();
+          }
         }
 
         /* read public key encryption algorithm type */
@@ -373,6 +374,13 @@ namespace dlech.PageantSharp
     {
       using (FileStream stream =
         new FileStream(aFileName, FileMode.Open, FileAccess.Read)) {
+        return (ISshKey)Deserialize(stream);
+      }
+    }
+
+    public ISshKey Deserialize(byte[] aBytes)
+    {
+      using (MemoryStream stream = new MemoryStream(aBytes)) {
         return (ISshKey)Deserialize(stream);
       }
     }
