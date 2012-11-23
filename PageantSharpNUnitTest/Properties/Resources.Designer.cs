@@ -60,6 +60,62 @@ namespace PageantSharpTests.Properties {
             }
         }
         
+        internal static byte[] dsa_no_passphrase {
+            get {
+                object obj = ResourceManager.GetObject("dsa_no_passphrase", resourceCulture);
+                return ((byte[])(obj));
+            }
+        }
+        
+        internal static byte[] dsa_no_passphrase_pub {
+            get {
+                object obj = ResourceManager.GetObject("dsa_no_passphrase_pub", resourceCulture);
+                return ((byte[])(obj));
+            }
+        }
+        
+        internal static byte[] dsa_with_passphrase {
+            get {
+                object obj = ResourceManager.GetObject("dsa_with_passphrase", resourceCulture);
+                return ((byte[])(obj));
+            }
+        }
+        
+        internal static byte[] dsa_with_passphrase_pub {
+            get {
+                object obj = ResourceManager.GetObject("dsa_with_passphrase_pub", resourceCulture);
+                return ((byte[])(obj));
+            }
+        }
+        
+        internal static byte[] ecdsa_no_passphrase {
+            get {
+                object obj = ResourceManager.GetObject("ecdsa_no_passphrase", resourceCulture);
+                return ((byte[])(obj));
+            }
+        }
+        
+        internal static byte[] ecdsa_no_passphrase_pub {
+            get {
+                object obj = ResourceManager.GetObject("ecdsa_no_passphrase_pub", resourceCulture);
+                return ((byte[])(obj));
+            }
+        }
+        
+        internal static byte[] ecdsa_with_passphrase {
+            get {
+                object obj = ResourceManager.GetObject("ecdsa_with_passphrase", resourceCulture);
+                return ((byte[])(obj));
+            }
+        }
+        
+        internal static byte[] ecdsa_with_passphrase_pub {
+            get {
+                object obj = ResourceManager.GetObject("ecdsa_with_passphrase_pub", resourceCulture);
+                return ((byte[])(obj));
+            }
+        }
+        
         internal static byte[] emptyFile_ppk {
             get {
                 object obj = ResourceManager.GetObject("emptyFile_ppk", resourceCulture);
@@ -70,6 +126,34 @@ namespace PageantSharpTests.Properties {
         internal static byte[] non_standard_length_ppk {
             get {
                 object obj = ResourceManager.GetObject("non_standard_length_ppk", resourceCulture);
+                return ((byte[])(obj));
+            }
+        }
+        
+        internal static byte[] rsa_no_passphrase {
+            get {
+                object obj = ResourceManager.GetObject("rsa_no_passphrase", resourceCulture);
+                return ((byte[])(obj));
+            }
+        }
+        
+        internal static byte[] rsa_no_passphrase_pub {
+            get {
+                object obj = ResourceManager.GetObject("rsa_no_passphrase_pub", resourceCulture);
+                return ((byte[])(obj));
+            }
+        }
+        
+        internal static byte[] rsa_with_passphrase {
+            get {
+                object obj = ResourceManager.GetObject("rsa_with_passphrase", resourceCulture);
+                return ((byte[])(obj));
+            }
+        }
+        
+        internal static byte[] rsa_with_passphrase_pub {
+            get {
+                object obj = ResourceManager.GetObject("rsa_with_passphrase_pub", resourceCulture);
                 return ((byte[])(obj));
             }
         }

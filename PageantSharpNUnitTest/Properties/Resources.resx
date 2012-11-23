@@ -145,4 +145,40 @@
   <data name="ssh2_rsa_ppk" type="System.Resources.ResXFileRef, System.Windows.Forms">
     <value>..\Resources\ssh2-rsa.ppk;System.Byte[], mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </data>
+  <data name="dsa_no_passphrase" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\Resources\dsa_no_passphrase;System.Byte[], mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
+  <data name="dsa_no_passphrase_pub" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\Resources\dsa_no_passphrase.pub;System.Byte[], mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
+  <data name="dsa_with_passphrase" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\Resources\dsa_with_passphrase;System.Byte[], mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
+  <data name="dsa_with_passphrase_pub" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\Resources\dsa_with_passphrase.pub;System.Byte[], mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
+  <data name="ecdsa_no_passphrase" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\Resources\ecdsa_no_passphrase;System.Byte[], mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
+  <data name="ecdsa_no_passphrase_pub" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\Resources\ecdsa_no_passphrase.pub;System.Byte[], mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
+  <data name="ecdsa_with_passphrase" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\Resources\ecdsa_with_passphrase;System.Byte[], mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
+  <data name="ecdsa_with_passphrase_pub" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\Resources\ecdsa_with_passphrase.pub;System.Byte[], mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
+  <data name="rsa_no_passphrase" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\Resources\rsa_no_passphrase;System.Byte[], mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
+  <data name="rsa_no_passphrase_pub" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\Resources\rsa_no_passphrase.pub;System.Byte[], mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
+  <data name="rsa_with_passphrase" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\Resources\rsa_with_passphrase;System.Byte[], mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
+  <data name="rsa_with_passphrase_pub" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\Resources\rsa_with_passphrase.pub;System.Byte[], mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
 </root>

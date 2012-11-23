@@ -156,8 +156,8 @@ namespace PageantSharpTest
         target = (ISshKey)formatter.Deserialize(modifiedFileContentsStream);
         Assert.Fail("Exception did not occur");
       } catch (Exception ex) {
-        Assert.IsInstanceOf<PpkFileException>(ex);
-        Assert.AreEqual(PpkFileException.ErrorType.FileVersion, ((PpkFileException)ex).Error);
+        Assert.IsInstanceOf<PpkException>(ex);
+        Assert.AreEqual(PpkException.ErrorType.FileVersion, ((PpkException)ex).Error);
       }
 
       /* test bad public key encryption algorithm */
@@ -169,8 +169,8 @@ namespace PageantSharpTest
         target = (ISshKey)formatter.Deserialize(modifiedFileContentsStream);
         Assert.Fail("Exception did not occur");
       } catch (Exception ex) {
-        Assert.IsInstanceOf<PpkFileException>(ex);
-        Assert.AreEqual(PpkFileException.ErrorType.PublicKeyEncryption, ((PpkFileException)ex).Error);
+        Assert.IsInstanceOf<PpkException>(ex);
+        Assert.AreEqual(PpkException.ErrorType.PublicKeyEncryption, ((PpkException)ex).Error);
       }
 
       /* test bad private key encryption algorithm */
@@ -182,8 +182,8 @@ namespace PageantSharpTest
         target = (ISshKey)formatter.Deserialize(modifiedFileContentsStream);
         Assert.Fail("Exception did not occur");
       } catch (Exception ex) {
-        Assert.IsInstanceOf<PpkFileException>(ex);
-        Assert.AreEqual(PpkFileException.ErrorType.PrivateKeyEncryption, ((PpkFileException)ex).Error);
+        Assert.IsInstanceOf<PpkException>(ex);
+        Assert.AreEqual(PpkException.ErrorType.PrivateKeyEncryption, ((PpkException)ex).Error);
       }
 
       /* test bad file integrity */
@@ -195,8 +195,8 @@ namespace PageantSharpTest
         target = (ISshKey)formatter.Deserialize(modifiedFileContentsStream);
         Assert.Fail("Exception did not occur");
       } catch (Exception ex) {
-        Assert.IsInstanceOf<PpkFileException>(ex);
-        Assert.AreEqual(PpkFileException.ErrorType.FileCorrupt, ((PpkFileException)ex).Error);
+        Assert.IsInstanceOf<PpkException>(ex);
+        Assert.AreEqual(PpkException.ErrorType.FileCorrupt, ((PpkException)ex).Error);
       }
 
       /* test bad passphrase */
@@ -208,8 +208,8 @@ namespace PageantSharpTest
         target = (ISshKey)formatter.Deserialize(modifiedFileContentsStream);
         Assert.Fail("Exception did not occur");
       } catch (Exception ex) {
-        Assert.IsInstanceOf<PpkFileException>(ex);
-        Assert.AreEqual(PpkFileException.ErrorType.BadPassphrase, ((PpkFileException)ex).Error);
+        Assert.IsInstanceOf<PpkException>(ex);
+        Assert.AreEqual(PpkException.ErrorType.BadPassphrase, ((PpkException)ex).Error);
       }
       fileData = File.ReadAllBytes("../../../Resources/ssh2-rsa.ppk");
       modifiedFileContentsStream = new MemoryStream(fileData);
@@ -219,8 +219,8 @@ namespace PageantSharpTest
         target = (ISshKey)formatter.Deserialize(modifiedFileContentsStream);
         Assert.Fail("Exception did not occur");
       } catch (Exception ex) {
-        Assert.IsInstanceOf<PpkFileException>(ex);
-        Assert.AreEqual(PpkFileException.ErrorType.BadPassphrase, ((PpkFileException)ex).Error);
+        Assert.IsInstanceOf<PpkException>(ex);
+        Assert.AreEqual(PpkException.ErrorType.BadPassphrase, ((PpkException)ex).Error);
       }
 
       /* test old file format */
@@ -248,8 +248,8 @@ namespace PageantSharpTest
       try {
         target = (ISshKey)formatter.Deserialize(modifiedFileContentsStream);
       } catch (Exception ex) {
-        Assert.IsInstanceOf<PpkFileException>(ex);
-        Assert.AreEqual(PpkFileException.ErrorType.FileFormat, ((PpkFileException)ex).Error);
+        Assert.IsInstanceOf<PpkException>(ex);
+        Assert.AreEqual(PpkException.ErrorType.FileFormat, ((PpkException)ex).Error);
       }
 
       /* test reading SSH2-DSA files */

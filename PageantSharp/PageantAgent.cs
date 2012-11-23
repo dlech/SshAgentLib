@@ -37,10 +37,9 @@ namespace dlech.PageantSharp
     #region /* instance variables */
 
     private bool mDisposed;
-    private IntPtr mHwnd;
     private WndProc mCustomWndProc;
     private ApplicationContext mAppContext;
-    private object mMonitorObject = new object();
+    private object mLockObject = new object();
 
     #endregion
 
@@ -156,8 +155,10 @@ namespace dlech.PageantSharp
       winThread.SetApartmentState(ApartmentState.STA);
       winThread.Name = "PageantWindow";
       winThread.Start();
-      lock (mMonitorObject) {
-        Monitor.Wait(mMonitorObject);
+      lock (mLockObject) {
+        // wait for window to be created before continuing to prevent more than
+        // one instance being run at a time.
+        Monitor.Wait(mLockObject);
       }
     }
 
@@ -179,9 +180,10 @@ namespace dlech.PageantSharp
 
     private void RunWindowInNewAppcontext()
     {
-      lock (mMonitorObject) {
+      IntPtr hwnd;
+      lock (mLockObject) {
         // Create window
-        mHwnd = CreateWindowExW(
+        hwnd = CreateWindowExW(
             0, // dwExStyle
             cClassName, // lpClassName
             cClassName, // lpWindowName
@@ -197,9 +199,17 @@ namespace dlech.PageantSharp
         );
 
         mAppContext = new ApplicationContext();
-        Monitor.Pulse(mMonitorObject);
+        Monitor.Pulse(mLockObject);
       }
+      // Pageant window is run in its own application context so that it does
+      // not block the UI thread of applications that use it.
       Application.Run(mAppContext);
+      if (hwnd != IntPtr.Zero) {
+        if (DestroyWindow(hwnd)) {
+          hwnd = IntPtr.Zero;
+          mDisposed = true;
+        }
+      }
     }
 
     private void Dispose(bool aDisposing)
@@ -209,13 +219,7 @@ namespace dlech.PageantSharp
           // Dispose managed resources
         }
         mAppContext.ExitThread();
-        // Dispose unmanaged resources       
-        if (mHwnd != IntPtr.Zero) {
-          if (DestroyWindow(mHwnd)) {
-            mHwnd = IntPtr.Zero;
-            mDisposed = true;
-          }
-        }
+        // Dispose unmanaged resources 
       }
     }
 

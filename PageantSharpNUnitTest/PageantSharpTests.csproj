@@ -62,6 +62,7 @@
   <ItemGroup>
     <Compile Include="AgentTest.cs" />
     <Compile Include="BlobBuilderTest.cs" />
+    <Compile Include="Ssh2KeyFormatterTest.cs" />
     <Compile Include="PpkFormatterTest.cs" />
     <Compile Include="Properties\Resources.Designer.cs">
       <AutoGen>True</AutoGen>
@@ -81,8 +82,20 @@
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>
+    <None Include="Resources\dsa_no_passphrase" />
+    <None Include="Resources\dsa_no_passphrase.pub" />
+    <None Include="Resources\dsa_with_passphrase" />
+    <None Include="Resources\dsa_with_passphrase.pub" />
+    <None Include="Resources\ecdsa_no_passphrase" />
+    <None Include="Resources\ecdsa_no_passphrase.pub" />
+    <None Include="Resources\ecdsa_with_passphrase" />
+    <None Include="Resources\ecdsa_with_passphrase.pub" />
     <None Include="Resources\emptyFile.ppk" />
     <None Include="Resources\non-standard-length.ppk" />
+    <None Include="Resources\rsa_no_passphrase" />
+    <None Include="Resources\rsa_no_passphrase.pub" />
+    <None Include="Resources\rsa_with_passphrase" />
+    <None Include="Resources\rsa_with_passphrase.pub" />
     <None Include="Resources\ssh1-rsa-no-passphrase.ppk" />
     <None Include="Resources\ssh1-rsa.ppk" />
     <None Include="Resources\ssh2-dsa-no-passphrase.ppk" />
