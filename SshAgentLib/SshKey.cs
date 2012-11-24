@@ -6,6 +6,7 @@ using Org.BouncyCastle.Math;
 using System.Text;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.Linq;
 
 namespace dlech.SshAgentLib
 {
@@ -120,7 +121,7 @@ namespace dlech.SshAgentLib
     {
       mKeyConstraints.Add(aConstraint);
     }
-
+    
     ~SshKey()
     {
       this.Dispose();

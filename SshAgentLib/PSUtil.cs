@@ -23,7 +23,12 @@ namespace dlech.SshAgentLib
   /// </summary>
   public static class PSUtil
   {
-         
+
+    public static bool HasConstraint(this ISshKey aKey, 
+      Agent.KeyConstraintType aType)
+    {
+      return aKey.Constraints.Count(c => c.Type == aType) > 0;
+    } 
 
     public static byte[] FormatSignature(this ISshKey aKey, byte[] aSignature)
     {

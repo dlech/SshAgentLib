@@ -80,7 +80,6 @@
     <Compile Include="BlobParser.cs" />
     <Compile Include="KeyFormatter.cs" />
     <Compile Include="Ssh2KeyFormatter.cs" />
-    <Compile Include="Ssh2PublicKeyFormatter.cs" />
     <Compile Include="ISshKey.cs" />
     <Compile Include="PinnedByteArray.cs" />
     <Compile Include="PublicKeyAlgorithm.cs" />
