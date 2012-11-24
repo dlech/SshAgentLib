@@ -213,8 +213,10 @@ namespace dlech.SshAgentLib
         return false;
       }
       mLockedPassphrase = new SecureString();
-      foreach (byte b in aPassphrase) {
-        mLockedPassphrase.AppendChar((char)b);
+      if (aPassphrase != null) {
+        foreach (byte b in aPassphrase) {
+          mLockedPassphrase.AppendChar((char)b);
+        }
       }
       IsLocked = true;
       FireLocked();
@@ -226,6 +228,9 @@ namespace dlech.SshAgentLib
       if (!IsLocked) {
         // can't unlock if not locked
         return false;
+      }
+      if (aPassphrase == null) {
+        aPassphrase = new byte[0];
       }
       if (mLockedPassphrase.Length != aPassphrase.Length) {
         // passwords definitely do not match
