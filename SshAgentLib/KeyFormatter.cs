@@ -2,6 +2,7 @@
 using System.Runtime.Serialization;
 using System.Security;
 using System.IO;
+using System.Text.RegularExpressions;
 
 namespace dlech.SshAgentLib
 {
@@ -26,7 +27,9 @@ namespace dlech.SshAgentLib
 
     public void SerializeFile(object aObject, string aFileName)
     {
-      using (FileStream stream = new FileStream(aFileName, FileMode.CreateNew, FileAccess.Write)) {
+      using (FileStream stream = new FileStream(aFileName, FileMode.CreateNew,
+        FileAccess.Write)) {
+
         Serialize(stream, aObject);
       }
     }
@@ -37,7 +40,11 @@ namespace dlech.SshAgentLib
     {
       using (FileStream stream =
         new FileStream(aFileName, FileMode.Open, FileAccess.Read)) {
-        return (ISshKey)Deserialize(stream);
+        var key = Deserialize(stream) as ISshKey;
+        if (string.IsNullOrEmpty(key.Comment)) {
+          key.Comment = Path.GetFileName(aFileName);
+        }
+        return key;
       }
     }
 
@@ -48,5 +55,24 @@ namespace dlech.SshAgentLib
       }
     }
 
+    /// <summary>
+    /// Attempts to return a Formatter that can deserialize data given the
+    /// specified first line
+    /// </summary>
+    /// <param name="aFirstLine">first line of data to be deserialized</param>
+    /// <returns>KeyFormatter that should be able to deserialize the data</returns>
+    public static KeyFormatter GetFormatter(string aFirstLine)
+    {
+      var ppkRegex = new Regex("PuTTY-User-Key-File-[12]");
+      var pemPrivateKeyRegex = new Regex("-----BEGIN .* PRIVATE KEY-----");
+
+      if (ppkRegex.IsMatch(aFirstLine)) {
+        return new PpkFormatter();
+      } else if (pemPrivateKeyRegex.IsMatch(aFirstLine)) {
+        return new Ssh2KeyFormatter();
+      } else {
+        throw new Exception("Unknown format");
+      }
+    }
   }
 }

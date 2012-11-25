@@ -565,6 +565,27 @@ namespace dlech.SshAgentLib
       return false;
     }
 
+    public IDictionary<string, Exception> AddFiles(string[] aFileNames,
+      KeyFormatter.GetPassphraseCallback aGetPassPhraseCallback)
+    {
+      var results = new Dictionary<string, Exception>();
+      foreach (var fileName in aFileNames) {
+        try {
+          string firstLine;
+          using (var fileReader = File.OpenText(fileName)) {
+            firstLine = fileReader.ReadLine();
+          }
+          var formatter = KeyFormatter.GetFormatter(firstLine);          
+          formatter.GetPassphraseCallbackMethod = aGetPassPhraseCallback;
+          var key = formatter.DeserializeFile(fileName);
+          AddKey(key);
+        } catch (Exception ex) {
+          results.Add(fileName, ex);
+        }
+      }
+      return results;
+    }
+
     public abstract void Dispose();
 
     #endregion

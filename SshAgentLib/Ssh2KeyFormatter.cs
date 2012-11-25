@@ -21,8 +21,8 @@ namespace dlech.SshAgentLib
   /// Formats SSH2 public keys in file format specified by RFC 4716
   /// </summary>
   public class Ssh2KeyFormatter : KeyFormatter
-  {       
-   
+  {
+ 
     public override void Serialize(Stream aStream, object aObject)
     {
       /* check for required parameters */
