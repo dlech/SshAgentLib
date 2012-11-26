@@ -131,7 +131,7 @@ namespace dlech.SshAgentLib
     /// <remarks>This window is not meant to be used for UI.</remarks>
     public PageantAgent()
     {
-      if (CheckAlreadyRunning()) {
+      if (CheckPageantRunning()) {
         throw new PageantRunningException();
       }
 
@@ -166,6 +166,17 @@ namespace dlech.SshAgentLib
 
 
     #region /* public methods */
+
+    /// <summary>
+    /// Checks to see if any Pageant-like application is running
+    /// </summary>
+    /// <returns>true if Pageant is running</returns>
+    public static bool CheckPageantRunning()
+    {
+      IntPtr hwnd = FindWindow(cClassName, cClassName);
+      return (hwnd != IntPtr.Zero);
+    }
+
 
     public override void Dispose()
     {
@@ -222,17 +233,6 @@ namespace dlech.SshAgentLib
         // Dispose unmanaged resources 
       }
     }
-
-    /// <summary>
-    /// Checks to see if Pageant is already running
-    /// </summary>
-    /// <returns>true if Pageant is running</returns>
-    private bool CheckAlreadyRunning()
-    {
-      IntPtr hwnd = FindWindow(cClassName, cClassName);
-      return (hwnd != IntPtr.Zero);
-    }
-
 
     /// <summary>
     /// 
