@@ -19,7 +19,7 @@ namespace dlech.SshAgentLib
   /// Code based on ssh-agent.c from OpenBSD/OpenSSH and
   /// http://msdn.microsoft.com/en-us/library/system.net.sockets.socketasynceventargs.aspx
   /// </remarks>
-  public class LinAgent : Agent
+  public class UnixAgent : Agent
   {
     /* constants */
 
@@ -52,11 +52,11 @@ namespace dlech.SshAgentLib
 
     /* constructor */
 
-    public LinAgent()
+    public UnixAgent()
     {
       // TODO load Mono.Unix assembly so that we can run on windows.
 
-      if (Environment.GetEnvironmentVariable(LinAgent.SSH_AUTHSOCKET_ENV_NAME) != null) {
+      if (Environment.GetEnvironmentVariable(UnixAgent.SSH_AUTHSOCKET_ENV_NAME) != null) {
         throw new Exception("ssh-agent is already running");
       }
 
@@ -92,13 +92,13 @@ namespace dlech.SshAgentLib
       }
       this.socket.Listen(SSH_LISTEN_BACKLOG);
 
-      Environment.SetEnvironmentVariable(LinAgent.SSH_AUTHSOCKET_ENV_NAME, socketPath);
-      Environment.SetEnvironmentVariable(LinAgent.SSH_AGENTPID_ENV_NAME, pid);
+      Environment.SetEnvironmentVariable(UnixAgent.SSH_AUTHSOCKET_ENV_NAME, socketPath);
+      Environment.SetEnvironmentVariable(UnixAgent.SSH_AGENTPID_ENV_NAME, pid);
 
       // TODO find a way to export environment variables for entire session
       // not just this process.
 
-      this.numConnections = LinAgent.maxNumConnections;
+      this.numConnections = UnixAgent.maxNumConnections;
       this.bufferManager = new BufferManager(receiveBufferSize * numConnections * 2,
                                              receiveBufferSize);
       this.socketAsyncEventArgsPool = new SocketAsyncEventArgsPool(numConnections);
@@ -250,8 +250,8 @@ namespace dlech.SshAgentLib
     {
       this.isDisposed = true;
 
-      Environment.SetEnvironmentVariable(LinAgent.SSH_AUTHSOCKET_ENV_NAME, null);
-      Environment.SetEnvironmentVariable(LinAgent.SSH_AGENTPID_ENV_NAME, null);
+      Environment.SetEnvironmentVariable(UnixAgent.SSH_AUTHSOCKET_ENV_NAME, null);
+      Environment.SetEnvironmentVariable(UnixAgent.SSH_AGENTPID_ENV_NAME, null);
 
       for (int i = 0; i < socketAsyncEventArgsPool.Count; i++) {
 
@@ -264,7 +264,7 @@ namespace dlech.SshAgentLib
       }
     }
 
-    ~LinAgent()
+    ~UnixAgent()
     {
       Dispose(false);
     }
