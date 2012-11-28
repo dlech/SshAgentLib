@@ -20,6 +20,11 @@ namespace dlech.SshAgentLib
     PublicKeyAlgorithm Algorithm { get; }
 
     /// <summary>
+    /// returns true if key does not have private key parameters
+    /// </summary>
+    bool IsPublicOnly { get; }
+
+    /// <summary>
     /// The bit size of the key
     /// </summary>
     int Size { get; }

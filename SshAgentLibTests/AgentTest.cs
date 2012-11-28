@@ -68,68 +68,23 @@ namespace dlech.SshAgentLibTests
       mStream = new MemoryStream(mBuffer);
       mParser = new BlobParser(mStream);
 
-      SecureRandom secureRandom = new SecureRandom();
-      KeyGenerationParameters keyGenParam =
-        new KeyGenerationParameters(secureRandom, 512);
+      mRsa1Key = KeyGenerator.CreateKey(SshVersion.SSH1,
+        PublicKeyAlgorithm.SSH_RSA, "SSH1 RSA test key");
+      mRsaKey = KeyGenerator.CreateKey(SshVersion.SSH2,
+     PublicKeyAlgorithm.SSH_RSA, "SSH2 RSA test key");
 
-      RsaKeyPairGenerator rsaKeyPairGen = new RsaKeyPairGenerator();
-      rsaKeyPairGen.Init(keyGenParam);
-      AsymmetricCipherKeyPair keyPair = rsaKeyPairGen.GenerateKeyPair();
-      mRsa1Key = new SshKey(SshVersion.SSH1, keyPair);
-      mRsa1Key.Comment = "SSH1 RSA test key";
-      mRsaKey = new SshKey(SshVersion.SSH2, keyPair);
-      mRsaKey.Comment = "SSH2 RSA test key";
+      mDsaKey = KeyGenerator.CreateKey(SshVersion.SSH2,
+      PublicKeyAlgorithm.SSH_DSS, "SSH2 DSA test key");
 
-      DsaParametersGenerator dsaParamGen = new DsaParametersGenerator();
-      dsaParamGen.Init(512, 10, secureRandom);
-      DsaParameters dsaParam = dsaParamGen.GenerateParameters();
-      DsaKeyGenerationParameters dsaKeyGenParam =
-        new DsaKeyGenerationParameters(secureRandom, dsaParam);
-      DsaKeyPairGenerator dsaKeyPairGen = new DsaKeyPairGenerator();
-      dsaKeyPairGen.Init(dsaKeyGenParam);
-      keyPair = dsaKeyPairGen.GenerateKeyPair();
-      mDsaKey = new SshKey(SshVersion.SSH2, keyPair);
-      mDsaKey.Comment = "SSH2 DSA test key";
+      mEcdsa256Key = KeyGenerator.CreateKey(SshVersion.SSH2,
+      PublicKeyAlgorithm.ECDSA_SHA2_NISTP256, "SSH2 ECDSA 256 test key");
 
-      X9ECParameters ecdsa256X9Params =
-        SecNamedCurves.GetByName("secp256r1");
-      ECDomainParameters ecdsa256DomainParams =
-        new ECDomainParameters(ecdsa256X9Params.Curve, ecdsa256X9Params.G,
-          ecdsa256X9Params.N, ecdsa256X9Params.H);
-      ECKeyGenerationParameters ecdsa256GenParams =
-        new ECKeyGenerationParameters(ecdsa256DomainParams, secureRandom);
-      ECKeyPairGenerator ecdsa256Gen = new ECKeyPairGenerator();
-      ecdsa256Gen.Init(ecdsa256GenParams);
-      keyPair = ecdsa256Gen.GenerateKeyPair();
-      mEcdsa256Key = new SshKey(SshVersion.SSH2, keyPair);
-      mEcdsa256Key.Comment = "SSH2 ECDSA 256 test key";
+      mEcdsa384Key = KeyGenerator.CreateKey(SshVersion.SSH2,
+       PublicKeyAlgorithm.ECDSA_SHA2_NISTP384, "SSH2 ECDSA 384 test key");
 
-      X9ECParameters ecdsa384X9Params =
-        SecNamedCurves.GetByName("secp384r1");
-      ECDomainParameters ecdsa384DomainParams =
-        new ECDomainParameters(ecdsa384X9Params.Curve, ecdsa384X9Params.G,
-          ecdsa384X9Params.N, ecdsa384X9Params.H);
-      ECKeyGenerationParameters ecdsa384GenParams =
-        new ECKeyGenerationParameters(ecdsa384DomainParams, secureRandom);
-      ECKeyPairGenerator ecdsa384Gen = new ECKeyPairGenerator();
-      ecdsa384Gen.Init(ecdsa384GenParams);
-      keyPair = ecdsa384Gen.GenerateKeyPair();
-      mEcdsa384Key = new SshKey(SshVersion.SSH2, keyPair);
-      mEcdsa384Key.Comment = "SSH2 ECDSA 384 test key";
+      mEcdsa521Key = KeyGenerator.CreateKey(SshVersion.SSH2,
+       PublicKeyAlgorithm.ECDSA_SHA2_NISTP521, "SSH2 ECDSA 521 test key");
 
-      X9ECParameters ecdsa521X9Params =
-        SecNamedCurves.GetByName("secp521r1");
-      ECDomainParameters ecdsa521DomainParams =
-        new ECDomainParameters(ecdsa521X9Params.Curve, ecdsa521X9Params.G,
-          ecdsa521X9Params.N, ecdsa521X9Params.H);
-      ECKeyGenerationParameters ecdsa521GenParams =
-        new ECKeyGenerationParameters(ecdsa521DomainParams, secureRandom);
-      ECKeyPairGenerator ecdsa521Gen = new ECKeyPairGenerator();
-      ecdsa521Gen.Init(ecdsa521GenParams);
-      keyPair = ecdsa521Gen.GenerateKeyPair();
-      mEcdsa521Key = new SshKey(SshVersion.SSH2, keyPair);
-      mEcdsa521Key.Comment = "SSH2 ECDSA 521 test key";
-           
       List<ISshKey> allKeys = new List<ISshKey>();
       allKeys.Add(mRsa1Key);
       allKeys.Add(mRsaKey);
@@ -562,7 +517,7 @@ namespace dlech.SshAgentLibTests
 
       agent = new TestAgent();
       Agent.KeyConstraint testConstraint = new Agent.KeyConstraint();
-      testConstraint.Type = Agent.KeyConstraintType.SSH_AGENT_CONSTRAIN_CONFIRM;      
+      testConstraint.Type = Agent.KeyConstraintType.SSH_AGENT_CONSTRAIN_CONFIRM;
       SshKey testKey = mDsaKey.Clone();
       testKey.AddConstraint(testConstraint);
       agent.AddKey(testKey);

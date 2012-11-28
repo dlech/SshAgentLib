@@ -301,7 +301,8 @@ namespace dlech.SshAgentLib
         for (i = 0; i < lineCount; i++) {
           privateKeyString += reader.ReadLine();
         }
-        fileData.privateKeyBlob = new PinnedByteArray(PSUtil.FromBase64(privateKeyString));
+        fileData.privateKeyBlob =
+          new PinnedByteArray(PSUtil.FromBase64(privateKeyString));
 
         /* read MAC */
         line = reader.ReadLine();
@@ -442,7 +443,8 @@ namespace dlech.SshAgentLib
         HMAC hmac = HMACSHA1.Create();
         if (fileData.passphrase != null) {
           using (PinnedByteArray hashData =
-                 new PinnedByteArray(cMACKeySalt.Length + fileData.passphrase.Length)) {
+                 new PinnedByteArray(cMACKeySalt.Length +
+                   fileData.passphrase.Length)) {
             Array.Copy(Encoding.UTF8.GetBytes(cMACKeySalt),
                        hashData.Data, cMACKeySalt.Length);
             IntPtr passphrasePtr =
@@ -506,13 +508,14 @@ namespace dlech.SshAgentLib
       PublicKeyAlgorithm aAlgorithm,
       byte[] aPublicKeyBlob, byte[] aPrivateKeyBlob)
     {
-      BigInteger exponent, modulus, d, p, q, inverseQ, dp, dq; // rsa params
-      BigInteger /* p, q, */ g, y, x; // dsa params
+      BigInteger exponent, modulus, d, p, q, inverseQ, dp, dq; // RSA params
+      BigInteger /* p, q, */ g, y, x; // DSA params
 
       BlobParser parser = new BlobParser(aPublicKeyBlob);
       string algorithm = parser.ReadString();
       if (algorithm != aAlgorithm.GetIdentifierString()) {
-        throw new InvalidOperationException("public key is not " + aAlgorithm.GetIdentifierString());
+        throw new InvalidOperationException("public key is not " +
+          aAlgorithm.GetIdentifierString());
       }
 
       switch (aAlgorithm) {
@@ -534,12 +537,14 @@ namespace dlech.SshAgentLib
           dp = d.Remainder(p.Subtract(BigInteger.One));
           dq = d.Remainder(q.Subtract(BigInteger.One));
 
-          RsaKeyParameters rsaPublicKeyParams = new RsaKeyParameters(false, modulus, exponent);
-          RsaPrivateCrtKeyParameters rsaPrivateKeyParams = new RsaPrivateCrtKeyParameters(
-              modulus, exponent, d, p, q, dp, dq, inverseQ
-          );
+          RsaKeyParameters rsaPublicKeyParams =
+            new RsaKeyParameters(false, modulus, exponent);
+          RsaPrivateCrtKeyParameters rsaPrivateKeyParams =
+            new RsaPrivateCrtKeyParameters(modulus, exponent, d, p, q, dp, dq,
+              inverseQ);
                     
-          return new AsymmetricCipherKeyPair(rsaPublicKeyParams, rsaPrivateKeyParams);
+          return new AsymmetricCipherKeyPair(rsaPublicKeyParams,
+            rsaPrivateKeyParams);
 
         case PublicKeyAlgorithm.SSH_DSS:          
 
@@ -560,7 +565,8 @@ namespace dlech.SshAgentLib
           DsaPrivateKeyParameters dsaPrivateKeyParams =
             new DsaPrivateKeyParameters(x, commonParams);
 
-          return new AsymmetricCipherKeyPair(dsaPublicKeyParams, dsaPrivateKeyParams);
+          return new AsymmetricCipherKeyPair(dsaPublicKeyParams,
+            dsaPrivateKeyParams);
         default:
           // unsupported encryption algorithm
           throw new PpkException(PpkException.ErrorType.PublicKeyEncryption);
@@ -573,7 +579,8 @@ namespace dlech.SshAgentLib
 
   internal static class PpkFormatterExt
   {
-    public static string GetIdentifierString(this PpkFormatter.PrivateKeyAlgorithm aAlgorithm)
+    public static string GetIdentifierString(
+      this PpkFormatter.PrivateKeyAlgorithm aAlgorithm)
     {
       switch (aAlgorithm) {
         case PpkFormatter.PrivateKeyAlgorithm.None:
@@ -614,7 +621,8 @@ namespace dlech.SshAgentLib
       }
     }
 
-    public static bool TryParseVersion(this string aString, ref PpkFormatter.Version aVersion)
+    public static bool TryParseVersion(
+      this string aString, ref PpkFormatter.Version aVersion)
     {
       switch (aString) {
         case "1":

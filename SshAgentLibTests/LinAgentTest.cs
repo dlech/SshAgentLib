@@ -11,32 +11,32 @@ namespace dlech.SshAgentLibTests
 {
   [TestFixture()]
   [Platform(Exclude="Win")]
-  public class LinAgentTest
+  public class UnixAgentTest
   {
     /// <summary>
     /// Tests that the temp dir is deleted on Dispose/Finalize.
     /// </summary>
     [Test()]
-    public void TestLinAgent()
+    public void TestUnixAgent()
     {
       string socketDir;
       string socketPathEnv;
       string pidEnv;
-      using (LinAgent agent = new LinAgent()) {
+      using (UnixAgent agent = new UnixAgent()) {
         socketDir = GetField<string>(agent, "socketDir");
         int pid = UnixProcess.GetCurrentProcessId();
         socketPathEnv = Environment
-        .GetEnvironmentVariable(LinAgent.SSH_AUTHSOCKET_ENV_NAME);
+        .GetEnvironmentVariable(UnixAgent.SSH_AUTHSOCKET_ENV_NAME);
         pidEnv = Environment
-        .GetEnvironmentVariable(LinAgent.SSH_AGENTPID_ENV_NAME);
+        .GetEnvironmentVariable(UnixAgent.SSH_AGENTPID_ENV_NAME);
 
         Assert.That(socketPathEnv.Contains(socketDir), Is.True,
           "Failed to set environment variable " +
-          LinAgent.SSH_AUTHSOCKET_ENV_NAME
+          UnixAgent.SSH_AUTHSOCKET_ENV_NAME
         );
         Assert.That(pidEnv, Is.EqualTo(pid.ToString()),
           "Failed to set environment variable " +
-          LinAgent.SSH_AGENTPID_ENV_NAME
+          UnixAgent.SSH_AGENTPID_ENV_NAME
         );
                 
         using (UnixClient client = new UnixClient (socketPathEnv)) {
@@ -57,16 +57,16 @@ namespace dlech.SshAgentLibTests
 
       // check that environment vars are cleared
       socketPathEnv = Environment
-        .GetEnvironmentVariable(LinAgent.SSH_AUTHSOCKET_ENV_NAME);
+        .GetEnvironmentVariable(UnixAgent.SSH_AUTHSOCKET_ENV_NAME);
       pidEnv = Environment
-        .GetEnvironmentVariable(LinAgent.SSH_AGENTPID_ENV_NAME);
+        .GetEnvironmentVariable(UnixAgent.SSH_AGENTPID_ENV_NAME);
       Assert.That(socketPathEnv, Is.Null,
                     "Failed to unset environment variable " +
-        LinAgent.SSH_AUTHSOCKET_ENV_NAME
+        UnixAgent.SSH_AUTHSOCKET_ENV_NAME
       );
       Assert.That(pidEnv, Is.Null,
                     "Failed to unset environment variable " +
-        LinAgent.SSH_AGENTPID_ENV_NAME
+        UnixAgent.SSH_AGENTPID_ENV_NAME
       );
     }
 

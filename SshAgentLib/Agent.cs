@@ -388,8 +388,9 @@ namespace dlech.SshAgentLib
               Message.SSH2_AGENTC_ADD_ID_CONSTRAINED);
 
           try {
-            SshKey key = new SshKey(SshVersion.SSH2,
-              ParseSsh2KeyData(aMessageStream));
+            var publicKeyParams = ParseSsh2PublicKeyData(aMessageStream);
+            var keyPair = ParseSsh2KeyData(publicKeyParams, aMessageStream);
+            SshKey key = new SshKey(SshVersion.SSH2, keyPair);
             key.Comment = messageParser.ReadString();
 
             if (constrained) {
@@ -581,8 +582,7 @@ namespace dlech.SshAgentLib
     public abstract void Dispose();
 
     #endregion
-
-
+    
     #region Private Methods
 
     /// <summary>
@@ -608,59 +608,38 @@ namespace dlech.SshAgentLib
     }
 
     /// <summary>
-    /// reads OpenSSH formatted key blob from stream and creates a key pair
+    /// reads OpenSSH formatted public key blob from stream and creates 
+    /// an AsymmetricKeyParameter object
     /// </summary>
     /// <param name="aSteam">stream to parse</param>
-    /// <returns>key pair</returns>
-    public static AsymmetricCipherKeyPair ParseSsh2KeyData(Stream aSteam)
+    /// <returns>AsymmetricKeyParameter containing the public key</returns>
+    public static AsymmetricKeyParameter ParseSsh2PublicKeyData(Stream aSteam)
     {
       BlobParser parser = new BlobParser(aSteam);
 
-      string algorithm = Encoding.UTF8.GetString(parser.ReadBlob().Data);
+      var algorithm = Encoding.UTF8.GetString(parser.ReadBlob().Data);
 
       switch (algorithm) {
         case PublicKeyAlgorithmExt.ALGORITHM_RSA_KEY:
-          BigInteger rsaN = new BigInteger(1, parser.ReadBlob().Data); // modulus
-          BigInteger rsaE = new BigInteger(1, parser.ReadBlob().Data); // exponent
-          BigInteger rsaD = new BigInteger(1, parser.ReadBlob().Data);
-          BigInteger rsaIQMP = new BigInteger(1, parser.ReadBlob().Data);
-          BigInteger rsaP = new BigInteger(1, parser.ReadBlob().Data);
-          BigInteger rsaQ = new BigInteger(1, parser.ReadBlob().Data);
-
-          /* compute missing parameters */
-          BigInteger rsaDP = rsaD.Remainder(rsaP.Subtract(BigInteger.One));
-          BigInteger rsaDQ = rsaD.Remainder(rsaQ.Subtract(BigInteger.One));
-
-          RsaKeyParameters rsaPublicKeyParams =
-            new RsaKeyParameters(false, rsaN, rsaE);
-          RsaPrivateCrtKeyParameters rsaPrivateKeyParams =
-            new RsaPrivateCrtKeyParameters(rsaN, rsaE, rsaD, rsaP, rsaQ, rsaDP,
-              rsaDQ, rsaIQMP);
-
-          return new AsymmetricCipherKeyPair(rsaPublicKeyParams, rsaPrivateKeyParams);
+          var rsaN = new BigInteger(1, parser.ReadBlob().Data); // modulus
+          var rsaE = new BigInteger(1, parser.ReadBlob().Data); // exponent
+          return new RsaKeyParameters(false, rsaN, rsaE);
 
         case PublicKeyAlgorithmExt.ALGORITHM_DSA_KEY:
-          BigInteger dsaP = new BigInteger(1, parser.ReadBlob().Data);
-          BigInteger dsaQ = new BigInteger(1, parser.ReadBlob().Data);
-          BigInteger dsaG = new BigInteger(1, parser.ReadBlob().Data);
-          BigInteger dsaY = new BigInteger(1, parser.ReadBlob().Data); // public key
-          BigInteger dsaX = new BigInteger(1, parser.ReadBlob().Data); // private key
+          var dsaP = new BigInteger(1, parser.ReadBlob().Data);
+          var dsaQ = new BigInteger(1, parser.ReadBlob().Data);
+          var dsaG = new BigInteger(1, parser.ReadBlob().Data);
+          var dsaY = new BigInteger(1, parser.ReadBlob().Data); // public key
 
-          DsaParameters commonParams = new DsaParameters(dsaP, dsaQ, dsaG);
-          DsaPublicKeyParameters dsaPublicKeyParams =
-            new DsaPublicKeyParameters(dsaY, commonParams);
-          DsaPrivateKeyParameters dsaPrivateKeyParams =
-            new DsaPrivateKeyParameters(dsaX, commonParams);
-
-          return new AsymmetricCipherKeyPair(dsaPublicKeyParams, dsaPrivateKeyParams);
+          var dsaParams = new DsaParameters(dsaP, dsaQ, dsaG);
+          return new DsaPublicKeyParameters(dsaY, dsaParams);
 
         case PublicKeyAlgorithmExt.ALGORITHM_ECDSA_SHA2_NISTP256_KEY:
         case PublicKeyAlgorithmExt.ALGORITHM_ECDSA_SHA2_NISTP384_KEY:
         case PublicKeyAlgorithmExt.ALGORITHM_ECDSA_SHA2_NISTP521_KEY:
 
-          string ecdsaCurveName = parser.ReadString();
-          byte[] ecdsaPublicKey = parser.ReadBlob().Data;
-          BigInteger ecdsaPrivate = new BigInteger(1, parser.ReadBlob().Data);
+          var ecdsaCurveName = parser.ReadString();
+          var ecdsaPublicKey = parser.ReadBlob().Data;
 
           switch (ecdsaCurveName) {
             case PublicKeyAlgorithmExt.EC_ALGORITHM_NISTP256:
@@ -675,19 +654,65 @@ namespace dlech.SshAgentLib
             default:
               throw new Exception("Unsupported EC algorithm: " + ecdsaCurveName);
           }
-          X9ECParameters ecdsaX9Params = SecNamedCurves.GetByName(ecdsaCurveName);
-          ECDomainParameters ecdsaDomainParams =
-            new ECDomainParameters(ecdsaX9Params.Curve, ecdsaX9Params.G,
-              ecdsaX9Params.N, ecdsaX9Params.H);
-          ECPoint ecdsaPoint = ecdsaX9Params.Curve.DecodePoint(ecdsaPublicKey);
-          ECPublicKeyParameters ecPublicKeyParams =
-            new ECPublicKeyParameters(ecdsaPoint, ecdsaDomainParams);
-          ECPrivateKeyParameters ecPrivateKeyParams =
-            new ECPrivateKeyParameters(ecdsaPrivate, ecdsaDomainParams);
-
-          return new AsymmetricCipherKeyPair(ecPublicKeyParams, ecPrivateKeyParams);
+          var ecdsaX9Params = SecNamedCurves.GetByName(ecdsaCurveName);
+          var ecdsaDomainParams = new ECDomainParameters(ecdsaX9Params.Curve,
+            ecdsaX9Params.G, ecdsaX9Params.N, ecdsaX9Params.H);
+          var ecdsaPoint = ecdsaX9Params.Curve.DecodePoint(ecdsaPublicKey);
+         return new ECPublicKeyParameters(ecdsaPoint, ecdsaDomainParams);
 
         default:
+          // unsupported encryption algorithm
+          throw new Exception("Unsupported algorithm");
+      }
+    }
+
+    /// <summary>
+    /// reads private key portion of OpenSSH formatted key blob from stream and
+    /// creates a key pair
+    /// </summary>
+    /// <param name="aSteam">stream to parse</param>
+    /// <returns>key pair</returns>
+    /// <remarks>
+    /// intended to be called immediately after ParseSsh2PublicKeyData
+    /// </remarks>
+    public static AsymmetricCipherKeyPair ParseSsh2KeyData(
+      AsymmetricKeyParameter aPublicKeyParameter, Stream aSteam)
+    {
+      BlobParser parser = new BlobParser(aSteam);
+
+      if (aPublicKeyParameter is RsaKeyParameters) {
+          var rsaD = new BigInteger(1, parser.ReadBlob().Data);
+          var rsaIQMP = new BigInteger(1, parser.ReadBlob().Data);
+          var rsaP = new BigInteger(1, parser.ReadBlob().Data);
+          var rsaQ = new BigInteger(1, parser.ReadBlob().Data);
+
+          /* compute missing parameters */
+          var rsaDP = rsaD.Remainder(rsaP.Subtract(BigInteger.One));
+          var rsaDQ = rsaD.Remainder(rsaQ.Subtract(BigInteger.One));
+
+          var rsaPublicKeyParams = aPublicKeyParameter as RsaKeyParameters;
+          var rsaPrivateKeyParams = new RsaPrivateCrtKeyParameters(
+            rsaPublicKeyParams.Modulus, rsaPublicKeyParams.Exponent,
+            rsaD, rsaP, rsaQ, rsaDP, rsaDQ, rsaIQMP);
+
+          return new AsymmetricCipherKeyPair(rsaPublicKeyParams, rsaPrivateKeyParams);
+      } else if (aPublicKeyParameter is DsaPublicKeyParameters) {
+          var dsaX = new BigInteger(1, parser.ReadBlob().Data); // private key
+                  
+          var dsaPublicKeyParams = aPublicKeyParameter as DsaPublicKeyParameters;
+          DsaPrivateKeyParameters dsaPrivateKeyParams =
+            new DsaPrivateKeyParameters(dsaX, dsaPublicKeyParams.Parameters);
+
+          return new AsymmetricCipherKeyPair(dsaPublicKeyParams, dsaPrivateKeyParams);
+      } else if (aPublicKeyParameter is ECPublicKeyParameters) {
+          var ecdsaPrivate = new BigInteger(1, parser.ReadBlob().Data);
+                  
+          var ecPublicKeyParams = aPublicKeyParameter as ECPublicKeyParameters;
+          ECPrivateKeyParameters ecPrivateKeyParams =
+            new ECPrivateKeyParameters(ecdsaPrivate, ecPublicKeyParams.Parameters);
+
+          return new AsymmetricCipherKeyPair(ecPublicKeyParams, ecPrivateKeyParams);
+      } else {
           // unsupported encryption algorithm
           throw new Exception("Unsupported algorithm");
       }

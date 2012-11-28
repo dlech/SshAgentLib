@@ -17,30 +17,41 @@ namespace dlech.SshAgentLib
   public class SshKey : ISshKey
   {
     private List<Agent.KeyConstraint> mKeyConstraints;
-    private AsymmetricCipherKeyPair mCipherKeyPair;
+    private AsymmetricKeyParameter mPublicKeyParameter;
+    private AsymmetricKeyParameter mPrivateKeyParameter;
 
-    public SshKey(SshVersion aVersion, AsymmetricCipherKeyPair aCipherKeyPair,
-      string aComment = "")
-    {
+    public SshKey(SshVersion aVersion, AsymmetricKeyParameter aPublicKeyParameter,
+      AsymmetricKeyParameter aPrivateKeyParameter = null, string aComment = "")
+    {      
+      if (aPublicKeyParameter == null) {
+        throw new ArgumentNullException("aPublicKeyParameter");
+      }
+      IsPublicOnly = (aPrivateKeyParameter == null);
       Version = aVersion;
-      mCipherKeyPair = aCipherKeyPair;
+      mPublicKeyParameter = aPublicKeyParameter;
+      mPrivateKeyParameter = aPrivateKeyParameter;
       Comment = aComment;
       mKeyConstraints = new List<Agent.KeyConstraint>();
     }
 
-    public SshVersion Version { get; private set; }
+    public SshKey(SshVersion aVersion, AsymmetricCipherKeyPair aCipherKeyPair,
+      string aComment = "")
+      : this(aVersion, aCipherKeyPair.Public, aCipherKeyPair.Private, aComment) { }
     
+
+    public SshVersion Version { get; private set; }
+
     public PublicKeyAlgorithm Algorithm
     {
       get
       {
-        if (mCipherKeyPair.Public is RsaKeyParameters) {
+        if (mPublicKeyParameter is RsaKeyParameters) {
           return PublicKeyAlgorithm.SSH_RSA;
-        } else if (mCipherKeyPair.Public is DsaPublicKeyParameters) {
+        } else if (mPublicKeyParameter is DsaPublicKeyParameters) {
           return PublicKeyAlgorithm.SSH_DSS;
-        } else if (mCipherKeyPair.Public is ECPublicKeyParameters) {
+        } else if (mPublicKeyParameter is ECPublicKeyParameters) {
           ECPublicKeyParameters ecdsaParameters =
-            (ECPublicKeyParameters)mCipherKeyPair.Public;
+            (ECPublicKeyParameters)mPublicKeyParameter;
           switch (ecdsaParameters.Q.Curve.FieldSize) {
             case 256:
               return PublicKeyAlgorithm.ECDSA_SHA2_NISTP256;
@@ -54,21 +65,23 @@ namespace dlech.SshAgentLib
       }
     }
 
+    public bool IsPublicOnly { get; private set; }
+
     public int Size
     {
       get
       {
-        if (mCipherKeyPair.Public is RsaKeyParameters) {
+        if (mPublicKeyParameter is RsaKeyParameters) {
           RsaKeyParameters rsaKeyParameters =
-            (RsaKeyParameters)mCipherKeyPair.Public;
+            (RsaKeyParameters)mPublicKeyParameter;
           return rsaKeyParameters.Modulus.BitLength;
-        } else if (mCipherKeyPair.Public is DsaPublicKeyParameters) {
+        } else if (mPublicKeyParameter is DsaPublicKeyParameters) {
           DsaPublicKeyParameters dsaKeyParameters =
-            (DsaPublicKeyParameters)mCipherKeyPair.Public;
+            (DsaPublicKeyParameters)mPublicKeyParameter;
           return dsaKeyParameters.Parameters.P.BitLength;
-        } else if (mCipherKeyPair.Public is ECPublicKeyParameters) {
+        } else if (mPublicKeyParameter is ECPublicKeyParameters) {
           ECPublicKeyParameters ecdsaParameters =
-            (ECPublicKeyParameters)mCipherKeyPair.Public;
+            (ECPublicKeyParameters)mPublicKeyParameter;
           return ecdsaParameters.Q.Curve.FieldSize;
         }
         // TODO need a better exception here
@@ -109,29 +122,27 @@ namespace dlech.SshAgentLib
 
     public AsymmetricKeyParameter GetPublicKeyParameters()
     {
-      return mCipherKeyPair.Public;
+      return mPublicKeyParameter;
     }
 
     public AsymmetricKeyParameter GetPrivateKeyParameters()
     {
-      return mCipherKeyPair.Private;
+      return mPrivateKeyParameter;
     }
 
     public void AddConstraint(Agent.KeyConstraint aConstraint)
     {
       mKeyConstraints.Add(aConstraint);
     }
-    
+
     ~SshKey()
     {
       this.Dispose();
     }
 
     public void Dispose()
-    {
-      if (this.mCipherKeyPair != null) {
+    {      
         // TODO is there a way to clear parameters from memory?
-      }
     }
 
 
