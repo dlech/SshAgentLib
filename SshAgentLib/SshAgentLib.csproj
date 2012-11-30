@@ -79,7 +79,9 @@
   <ItemGroup>
     <Compile Include="AgentClient.cs" />
     <Compile Include="BlobParser.cs" />
+    <Compile Include="IAgent.cs" />
     <Compile Include="KeyFormatter.cs" />
+    <Compile Include="PageantClient.cs" />
     <Compile Include="Ssh2KeyFormatter.cs" />
     <Compile Include="ISshKey.cs" />
     <Compile Include="PinnedByteArray.cs" />

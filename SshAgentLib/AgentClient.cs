@@ -7,7 +7,7 @@ using Org.BouncyCastle.Crypto.Parameters;
 
 namespace dlech.SshAgentLib
 {
-  public abstract class AgentClient
+  public abstract class AgentClient : IAgent
   {
     private const string cUnsupportedSshVersion = "Unsupported SSH version";
 
@@ -96,14 +96,7 @@ namespace dlech.SshAgentLib
       }      
       return SendMessage(builder);
     }
-
-    public void RemoveAllKeys()
-    {
-      foreach (SshVersion version in Enum.GetValues(typeof(SshVersion))) {
-        RemoveAllKeys(version);
-      }
-    }
-
+       
     public bool RemoveAllKeys(SshVersion aVersion)
     {
       BlobBuilder builder = new BlobBuilder();

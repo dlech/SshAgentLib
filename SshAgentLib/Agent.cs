@@ -26,7 +26,7 @@ namespace dlech.SshAgentLib
   /// Inheriting classes should implement the platform specific communication
   /// to get a message from a client and then call AnswerMessage method
   /// </remarks>
-  public abstract class Agent : IDisposable
+  public abstract class Agent : IAgent, IDisposable
   {
     #region Instance Variables
 
@@ -183,13 +183,7 @@ namespace dlech.SshAgentLib
     /// </summary>
     public bool IsLocked { get; private set; }
 
-    public ReadOnlyCollection<ISshKey> KeyList
-    {
-      get
-      {
-        return mKeyList.AsReadOnly();
-      }
-    }
+    public int KeyCount { get { return mKeyList.Count; } }
 
     public ConfirmUserPermissionDelegate ConfirmUserPermissionCallback { get; set; }
 
@@ -205,6 +199,80 @@ namespace dlech.SshAgentLib
     #endregion
 
     #region Public Methods
+
+    public bool AddKey(ISshKey aKey)
+    {
+      if (IsLocked) {
+        return false;
+      }
+
+      /* first remove matching key if it exists */
+      ISshKey matchingKey = mKeyList.Get(aKey.Version, aKey.GetPublicKeyBlob());
+      RemoveKey(matchingKey);
+
+      mKeyList.Add(aKey);
+
+      /* handle constraints */
+
+      foreach (KeyConstraint lifetimeConstraint in
+            aKey.Constraints.Where(constraint => constraint.Type ==
+            Agent.KeyConstraintType.SSH_AGENT_CONSTRAIN_LIFETIME)) {
+
+        UInt32 lifetime = (UInt32)lifetimeConstraint.Data * 1000;
+        Timer timer = new Timer(lifetime);
+        ElapsedEventHandler onTimerElapsed = null;
+        onTimerElapsed =
+          delegate(object aSender, ElapsedEventArgs aEventArgs)
+          {
+            timer.Elapsed -= onTimerElapsed;
+            RemoveKey(aKey);
+          };
+        timer.Elapsed += onTimerElapsed;
+        timer.Start();
+      }
+      FireKeyListChanged(KeyListChangeEventAction.Add, aKey);
+
+      return true;
+    }
+
+    public bool RemoveKey(ISshKey aKey)
+    {
+      if (IsLocked) {
+        return false;
+      }
+
+      if (mKeyList.Remove(aKey)) {
+        FireKeyListChanged(KeyListChangeEventAction.Remove, aKey);
+        return true;
+      }
+      return false;
+    }
+
+    public bool RemoveAllKeys(SshVersion aVersion)
+    {
+      if (IsLocked) {
+        return false;
+      }
+
+      ICollection<ISshKey> removeKeyList;
+      ListKeys(aVersion, out removeKeyList);
+      foreach (ISshKey key in removeKeyList) {
+        RemoveKey(key);
+      }
+
+      return true;
+    }
+
+    public bool ListKeys(SshVersion aVersion,
+      out ICollection<ISshKey> aKeyCollection)
+    {
+      if (IsLocked) {
+        aKeyCollection = new List<ISshKey>();
+        return true;
+      }
+      aKeyCollection = mKeyList.Where(key => key.Version == aVersion).ToList();
+      return true;
+    }
 
     public bool Lock(byte[] aPassphrase)
     {
@@ -280,20 +348,14 @@ namespace dlech.SshAgentLib
            * Reply with SSH2_AGENT_IDENTITIES_ANSWER.
            */
           try {
-            int keyCount = 0;
-            // when locked, we respond with SSH2_AGENT_IDENTITIES_ANSWER, but with no keys
-            if (!IsLocked) {
-              IEnumerable<ISshKey> v2Keys = from key in KeyList
-                                            where key.Version == SshVersion.SSH2
-                                            select key;
-              foreach (SshKey key in v2Keys) {
-                keyCount++;
-                responseBuilder.AddBlob(key.GetPublicKeyBlob());
-                responseBuilder.AddStringBlob(key.Comment);
-              }
+            ICollection<ISshKey> keyList;
+            ListKeys(SshVersion.SSH2, out keyList);
+            foreach (SshKey key in keyList) {
+              responseBuilder.AddBlob(key.GetPublicKeyBlob());
+              responseBuilder.AddStringBlob(key.Comment);
             }
             responseBuilder.InsertHeader(Message.SSH2_AGENT_IDENTITIES_ANSWER,
-              keyCount);
+              keyList.Count);
             // TODO may want to check that there is enough room in the message stream
             break; // succeeded
           } catch (Exception ex) {
@@ -327,7 +389,7 @@ namespace dlech.SshAgentLib
             } catch { }
 
             ISshKey matchingKey =
-              KeyList.Where(key => key.Version == SshVersion.SSH2 &&
+              mKeyList.Where(key => key.Version == SshVersion.SSH2 &&
               key.GetPublicKeyBlob()
               .SequenceEqual(keyBlob.Data))
               .Single();
@@ -476,12 +538,7 @@ namespace dlech.SshAgentLib
           }
 
           try {
-            List<ISshKey> removeKeyList =
-              KeyList.Where(key => key.Version == removeAllVersion).ToList();
-
-            foreach (ISshKey key in removeKeyList) {
-              RemoveKey(key);
-            }
+            RemoveAllKeys(removeAllVersion);
             responseBuilder.InsertHeader(Message.SSH_AGENT_SUCCESS);
             break; //success!
           } catch (Exception ex) {
@@ -527,62 +584,11 @@ namespace dlech.SshAgentLib
       aMessageStream.Write(responseBuilder.GetBlob(), 0, responseBuilder.Length);
     }
 
-    public void AddKey(ISshKey aKey)
-    {
-      /* first remove matching key if it exists */
-      ISshKey matchingKey = mKeyList.Get(aKey.Version, aKey.GetPublicKeyBlob());
-      RemoveKey(matchingKey);
-
-      mKeyList.Add(aKey);
-
-      /* handle constraints */
-
-      foreach (KeyConstraint lifetimeConstraint in
-            aKey.Constraints.Where(constraint => constraint.Type ==
-            Agent.KeyConstraintType.SSH_AGENT_CONSTRAIN_LIFETIME)) {
-
-        // TODO may want error checking here for data type
-        UInt32 lifetime = (UInt32)lifetimeConstraint.Data * 1000;
-        Timer timer = new Timer(lifetime);
-        ElapsedEventHandler onTimerElapsed = null;
-        onTimerElapsed =
-          delegate(object aSender, ElapsedEventArgs aEventArgs)
-          {
-            timer.Elapsed -= onTimerElapsed;
-            RemoveKey(aKey);
-          };
-        timer.Elapsed += onTimerElapsed;
-        timer.Start();
-      }
-      FireKeyListChanged(KeyListChangeEventAction.Add, aKey);
-    }
-
-    public bool RemoveKey(ISshKey aKey)
-    {
-      if (mKeyList.Remove(aKey)) {
-        FireKeyListChanged(KeyListChangeEventAction.Remove, aKey);
-        return true;
-      }
-      return false;
-    }
-
-    public void AddKeyFromFile(string aFileName,
-      KeyFormatter.GetPassphraseCallback aGetPassPhraseCallback)
-    {
-      string firstLine;
-      using (var fileReader = File.OpenText(aFileName)) {
-        firstLine = fileReader.ReadLine();
-      }
-      var formatter = KeyFormatter.GetFormatter(firstLine);
-      formatter.GetPassphraseCallbackMethod = aGetPassPhraseCallback;
-      var key = formatter.DeserializeFile(aFileName);
-      AddKey(key);
-    }
 
     public abstract void Dispose();
 
     #endregion
-    
+
     #region Private Methods
 
     /// <summary>
@@ -665,7 +671,7 @@ namespace dlech.SshAgentLib
           var ecdsaDomainParams = new ECDomainParameters(ecdsaX9Params.Curve,
             ecdsaX9Params.G, ecdsaX9Params.N, ecdsaX9Params.H);
           var ecdsaPoint = ecdsaX9Params.Curve.DecodePoint(ecdsaPublicKey);
-         return new ECPublicKeyParameters(ecdsaPoint, ecdsaDomainParams);
+          return new ECPublicKeyParameters(ecdsaPoint, ecdsaDomainParams);
 
         default:
           // unsupported encryption algorithm
@@ -688,40 +694,40 @@ namespace dlech.SshAgentLib
       BlobParser parser = new BlobParser(aSteam);
 
       if (aPublicKeyParameter is RsaKeyParameters) {
-          var rsaD = new BigInteger(1, parser.ReadBlob().Data);
-          var rsaIQMP = new BigInteger(1, parser.ReadBlob().Data);
-          var rsaP = new BigInteger(1, parser.ReadBlob().Data);
-          var rsaQ = new BigInteger(1, parser.ReadBlob().Data);
+        var rsaD = new BigInteger(1, parser.ReadBlob().Data);
+        var rsaIQMP = new BigInteger(1, parser.ReadBlob().Data);
+        var rsaP = new BigInteger(1, parser.ReadBlob().Data);
+        var rsaQ = new BigInteger(1, parser.ReadBlob().Data);
 
-          /* compute missing parameters */
-          var rsaDP = rsaD.Remainder(rsaP.Subtract(BigInteger.One));
-          var rsaDQ = rsaD.Remainder(rsaQ.Subtract(BigInteger.One));
+        /* compute missing parameters */
+        var rsaDP = rsaD.Remainder(rsaP.Subtract(BigInteger.One));
+        var rsaDQ = rsaD.Remainder(rsaQ.Subtract(BigInteger.One));
 
-          var rsaPublicKeyParams = aPublicKeyParameter as RsaKeyParameters;
-          var rsaPrivateKeyParams = new RsaPrivateCrtKeyParameters(
-            rsaPublicKeyParams.Modulus, rsaPublicKeyParams.Exponent,
-            rsaD, rsaP, rsaQ, rsaDP, rsaDQ, rsaIQMP);
+        var rsaPublicKeyParams = aPublicKeyParameter as RsaKeyParameters;
+        var rsaPrivateKeyParams = new RsaPrivateCrtKeyParameters(
+          rsaPublicKeyParams.Modulus, rsaPublicKeyParams.Exponent,
+          rsaD, rsaP, rsaQ, rsaDP, rsaDQ, rsaIQMP);
 
-          return new AsymmetricCipherKeyPair(rsaPublicKeyParams, rsaPrivateKeyParams);
+        return new AsymmetricCipherKeyPair(rsaPublicKeyParams, rsaPrivateKeyParams);
       } else if (aPublicKeyParameter is DsaPublicKeyParameters) {
-          var dsaX = new BigInteger(1, parser.ReadBlob().Data); // private key
-                  
-          var dsaPublicKeyParams = aPublicKeyParameter as DsaPublicKeyParameters;
-          DsaPrivateKeyParameters dsaPrivateKeyParams =
-            new DsaPrivateKeyParameters(dsaX, dsaPublicKeyParams.Parameters);
+        var dsaX = new BigInteger(1, parser.ReadBlob().Data); // private key
 
-          return new AsymmetricCipherKeyPair(dsaPublicKeyParams, dsaPrivateKeyParams);
+        var dsaPublicKeyParams = aPublicKeyParameter as DsaPublicKeyParameters;
+        DsaPrivateKeyParameters dsaPrivateKeyParams =
+          new DsaPrivateKeyParameters(dsaX, dsaPublicKeyParams.Parameters);
+
+        return new AsymmetricCipherKeyPair(dsaPublicKeyParams, dsaPrivateKeyParams);
       } else if (aPublicKeyParameter is ECPublicKeyParameters) {
-          var ecdsaPrivate = new BigInteger(1, parser.ReadBlob().Data);
-                  
-          var ecPublicKeyParams = aPublicKeyParameter as ECPublicKeyParameters;
-          ECPrivateKeyParameters ecPrivateKeyParams =
-            new ECPrivateKeyParameters(ecdsaPrivate, ecPublicKeyParams.Parameters);
+        var ecdsaPrivate = new BigInteger(1, parser.ReadBlob().Data);
 
-          return new AsymmetricCipherKeyPair(ecPublicKeyParams, ecPrivateKeyParams);
+        var ecPublicKeyParams = aPublicKeyParameter as ECPublicKeyParameters;
+        ECPrivateKeyParameters ecPrivateKeyParams =
+          new ECPrivateKeyParameters(ecdsaPrivate, ecPublicKeyParams.Parameters);
+
+        return new AsymmetricCipherKeyPair(ecPublicKeyParams, ecPrivateKeyParams);
       } else {
-          // unsupported encryption algorithm
-          throw new Exception("Unsupported algorithm");
+        // unsupported encryption algorithm
+        throw new Exception("Unsupported algorithm");
       }
     }
 
