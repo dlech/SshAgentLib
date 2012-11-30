@@ -70,6 +70,58 @@ namespace dlech.SshAgentLibTests
     }
 
     [Test()]
+    public void TestAddConstrainedKey()
+    {
+      var agentClient = new TestAgentClient();
+      agentClient.Agent.ConfirmUserPermissionCallback =
+        delegate(ISshKey aKey) { return true; };
+      bool result;
+      Agent.KeyConstraint constraint;
+      List<Agent.KeyConstraint> constraints = new List<Agent.KeyConstraint>();
+
+      constraint = new Agent.KeyConstraint();
+      constraint.Type = Agent.KeyConstraintType.SSH_AGENT_CONSTRAIN_CONFIRM;
+      constraints.Add(constraint);
+      result = agentClient.AddConstrainedKey(mRsaKey, constraints);
+      Assert.That(result, Is.True);
+      Assert.That(agentClient.Agent.KeyList.Count, Is.EqualTo(1));
+      Assert.That(agentClient.Agent.KeyList.First().Constraints.Count,
+        Is.EqualTo(1));
+      Assert.That(agentClient.Agent.KeyList.First().Constraints.First().Type,
+        Is.EqualTo(Agent.KeyConstraintType.SSH_AGENT_CONSTRAIN_CONFIRM));
+
+      constraint = new Agent.KeyConstraint();
+      constraint.Type = Agent.KeyConstraintType.SSH_AGENT_CONSTRAIN_LIFETIME;
+      constraint.Data = (uint)10;
+      constraints.Clear();
+      constraints.Add(constraint);
+      result = agentClient.AddConstrainedKey(mRsaKey, constraints);
+      Assert.That(result, Is.True);
+      Assert.That(agentClient.Agent.KeyList.Count, Is.EqualTo(1));
+      Assert.That(agentClient.Agent.KeyList.First().Constraints.Count,
+        Is.EqualTo(1));
+      Assert.That(agentClient.Agent.KeyList.First().Constraints.First().Type,
+        Is.EqualTo(Agent.KeyConstraintType.SSH_AGENT_CONSTRAIN_LIFETIME));
+    }
+
+    [Test()]
+    public void TestAddKey()
+    {
+      var agentClient = new TestAgentClient();
+      bool result;
+      int keyCount = 0;
+
+      foreach (var key in mAllKeys.Where(key => key.Version == SshVersion.SSH2)) {
+        result = agentClient.AddKey(key);
+        Assert.That(result, Is.True);
+        keyCount += 1;
+        Assert.That(agentClient.Agent.KeyList.Count, Is.EqualTo(keyCount));
+        Assert.That(agentClient.Agent.KeyList
+          .Get(key.Version, key.GetPublicKeyBlob()), Is.Not.Null);
+      }
+    }
+
+    [Test()]
     public void TesListKeys()
     {
       var agentClient = new TestAgentClient();
@@ -81,7 +133,9 @@ namespace dlech.SshAgentLibTests
       }
       result = agentClient.ListKeys(SshVersion.SSH2, out keyList);
       Assert.That(result, Is.True);
-      foreach (var key in mAllKeys.Where(key => key.Version == SshVersion.SSH2)) {
+      var expectedKeyList = mAllKeys.Where(key => key.Version == SshVersion.SSH2);
+      Assert.That(keyList.Count, Is.EqualTo(expectedKeyList.Count()));
+      foreach (var key in expectedKeyList) {
         Assert.That(keyList.Get(key.Version, key.GetPublicKeyBlob()), Is.Not.Null);
       }
     }
@@ -118,7 +172,7 @@ namespace dlech.SshAgentLibTests
     {
       var agentClient = new TestAgentClient();
       bool result;
-      
+
       /* test SSH1 */
       //agentClient.Agent.AddKey(mRsa1Key);
       //result = agentClient.RemoveKey(mRsa1Key);

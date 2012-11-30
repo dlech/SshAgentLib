@@ -106,8 +106,8 @@ namespace dlech.SshAgentLib
         RsaKeyParameters rsaPublicKeyParameters = (RsaKeyParameters)parameters;
 
         builder.AddStringBlob(PublicKeyAlgorithm.SSH_RSA.GetIdentifierString());
-        builder.AddBigIntBlob(rsaPublicKeyParameters.Modulus);
         builder.AddBigIntBlob(rsaPublicKeyParameters.Exponent);
+        builder.AddBigIntBlob(rsaPublicKeyParameters.Modulus);
       } else if (parameters is DsaPublicKeyParameters) {
         DsaPublicKeyParameters dsaParameters =
           (DsaPublicKeyParameters)parameters;

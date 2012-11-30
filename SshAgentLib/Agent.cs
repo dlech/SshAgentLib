@@ -388,7 +388,7 @@ namespace dlech.SshAgentLib
               Message.SSH2_AGENTC_ADD_ID_CONSTRAINED);
 
           try {
-            var publicKeyParams = ParseSsh2PublicKeyData(aMessageStream);
+            var publicKeyParams = ParseSsh2PublicKeyData(aMessageStream, true);
             var keyPair = ParseSsh2KeyData(publicKeyParams, aMessageStream);
             SshKey key = new SshKey(SshVersion.SSH2, keyPair);
             key.Comment = messageParser.ReadString();
@@ -612,8 +612,12 @@ namespace dlech.SshAgentLib
     /// an AsymmetricKeyParameter object
     /// </summary>
     /// <param name="aSteam">stream to parse</param>
+    /// <param name="aReverseRsaParameters">
+    /// Set to true to read RSA modulus first. Normally exponent is read first.
+    /// </param>
     /// <returns>AsymmetricKeyParameter containing the public key</returns>
-    public static AsymmetricKeyParameter ParseSsh2PublicKeyData(Stream aSteam)
+    public static AsymmetricKeyParameter ParseSsh2PublicKeyData(Stream aSteam,
+      bool aReverseRsaParameters = false)
     {
       BlobParser parser = new BlobParser(aSteam);
 
@@ -621,8 +625,11 @@ namespace dlech.SshAgentLib
 
       switch (algorithm) {
         case PublicKeyAlgorithmExt.ALGORITHM_RSA_KEY:
-          var rsaN = new BigInteger(1, parser.ReadBlob().Data); // modulus
           var rsaE = new BigInteger(1, parser.ReadBlob().Data); // exponent
+          var rsaN = new BigInteger(1, parser.ReadBlob().Data); // modulus
+          if (aReverseRsaParameters) {
+            return new RsaKeyParameters(false, rsaE, rsaN);
+          }
           return new RsaKeyParameters(false, rsaN, rsaE);
 
         case PublicKeyAlgorithmExt.ALGORITHM_DSA_KEY:

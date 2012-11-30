@@ -22,7 +22,7 @@ namespace dlech.SshAgentLib
 
     public SshKey(SshVersion aVersion, AsymmetricKeyParameter aPublicKeyParameter,
       AsymmetricKeyParameter aPrivateKeyParameter = null, string aComment = "")
-    {      
+    {
       if (aPublicKeyParameter == null) {
         throw new ArgumentNullException("aPublicKeyParameter");
       }
@@ -37,7 +37,7 @@ namespace dlech.SshAgentLib
     public SshKey(SshVersion aVersion, AsymmetricCipherKeyPair aCipherKeyPair,
       string aComment = "")
       : this(aVersion, aCipherKeyPair.Public, aCipherKeyPair.Private, aComment) { }
-    
+
 
     public SshVersion Version { get; private set; }
 
@@ -132,6 +132,11 @@ namespace dlech.SshAgentLib
 
     public void AddConstraint(Agent.KeyConstraint aConstraint)
     {
+      if ((aConstraint.Data == null && aConstraint.Type.GetDataType() != null) ||
+          (aConstraint.Data != null &&
+           aConstraint.Data.GetType() != aConstraint.Type.GetDataType())) {
+        throw new ArgumentException("Malformed constraint", "aConstraint");
+      }
       mKeyConstraints.Add(aConstraint);
     }
 
@@ -141,8 +146,8 @@ namespace dlech.SshAgentLib
     }
 
     public void Dispose()
-    {      
-        // TODO is there a way to clear parameters from memory?
+    {
+      // TODO is there a way to clear parameters from memory?
     }
 
 
