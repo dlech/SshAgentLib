@@ -29,7 +29,8 @@ namespace dlech.SshAgentLib
   public static class IAgentExt
   {
     public static bool AddKeyFromFile(this IAgent aAgent, string aFileName,
-      KeyFormatter.GetPassphraseCallback aGetPassPhraseCallback)
+      KeyFormatter.GetPassphraseCallback aGetPassPhraseCallback,
+      ICollection<Agent.KeyConstraint> aConstraints = null)
     {
       string firstLine;
       using (var fileReader = File.OpenText(aFileName)) {
@@ -38,6 +39,11 @@ namespace dlech.SshAgentLib
       var formatter = KeyFormatter.GetFormatter(firstLine);
       formatter.GetPassphraseCallbackMethod = aGetPassPhraseCallback;
       var key = formatter.DeserializeFile(aFileName);
+      if (aConstraints != null) {
+        foreach (var constraint in aConstraints) {
+          key.AddConstraint(constraint);
+        }
+      }
       return aAgent.AddKey(key);
     }
 
@@ -48,11 +54,15 @@ namespace dlech.SshAgentLib
       }
     }
 
-    public static ICollection<ISshKey> GetAllKeys(this IAgent aAgent) {
+    public static ICollection<ISshKey> GetAllKeys(this IAgent aAgent)
+    {
       List<ISshKey> allKeysList = new List<ISshKey>();
       ICollection<ISshKey> versionList;
       foreach (SshVersion version in Enum.GetValues(typeof(SshVersion))) {
-        aAgent.ListKeys(version, out versionList);
+        var success = aAgent.ListKeys(version, out versionList);
+        if (version == SshVersion.SSH2 && !success) {
+          throw new Exception("GetAllKeys Failed");
+        }
         allKeysList.AddRange(versionList);
       }
       return allKeysList;

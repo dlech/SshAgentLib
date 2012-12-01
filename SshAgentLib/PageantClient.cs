@@ -56,15 +56,15 @@ namespace dlech.SshAgentLib
           var copyDataGCHandle = GCHandle.Alloc(copyData, GCHandleType.Pinned);
           var copyDataPtr = copyDataGCHandle.AddrOfPinnedObject();
           var resultPtr = SendMessage(hwnd, WM_COPYDATA, IntPtr.Zero, copyDataPtr);
-          copyDataGCHandle.Free();
-          var result = Marshal.ReadInt32(resultPtr);
-          if (result == 0) {
+          copyDataGCHandle.Free();          
+          if (resultPtr == IntPtr.Zero) {
             throw new Exception("send message failed");
           }
+          stream.Position = 0;
           var parser = new BlobParser(stream);
           var replyLength = parser.ReadInt();
           stream.Position = 0;
-          aReply = new byte[replyLength];
+          aReply = new byte[replyLength + 4];
           stream.Read(aReply, 0, aReply.Length);
         }
       }
