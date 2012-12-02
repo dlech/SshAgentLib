@@ -8,12 +8,12 @@ namespace dlech.SshAgentLib
   /// <summary>
   /// Identifies errors encountered when reading .ppk files
   /// </summary>
-  public class PpkException : Exception
+  public class PpkFormatterException : KeyFormatterException
   {
     /// <summary>
     /// Possible errors
     /// </summary>
-    public enum ErrorType
+    public enum PpkErrorType
     {
       /// <summary>
       /// File version is not supported
@@ -46,23 +46,24 @@ namespace dlech.SshAgentLib
       FileCorrupt
     }
 
-    public ErrorType Error { get; private set; }
+    public PpkErrorType PpkError { get; private set; }
 
-    public PpkException(ErrorType err)
+    public PpkFormatterException(PpkErrorType err)
     {
-      this.Error = err;
+      this.PpkError = err;
     }
 
-    public PpkException(ErrorType err, string message)
+    public PpkFormatterException(PpkErrorType err, string message)
       : base(message)
     {
-      this.Error = err;
+      this.PpkError = err;
     }
 
-    public PpkException(ErrorType err, string message, Exception innerException)
+    public PpkFormatterException(PpkErrorType err, string message,
+      Exception innerException)
       : base(message, innerException) 
     {
-      this.Error = err;
+      this.PpkError = err;
     }
   }
 }

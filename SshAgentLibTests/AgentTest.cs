@@ -143,7 +143,7 @@ namespace dlech.SshAgentLibTests
       Agent.BlobHeader header = mParser.ReadHeader();
       Assert.That(header.BlobLength, Is.EqualTo(1));
       Assert.That(header.Message, Is.EqualTo(Agent.Message.SSH_AGENT_SUCCESS));
-      ISshKey returnedKey = agent.KeyList.First();
+      ISshKey returnedKey = agent.GetAllKeys().First();
       Assert.That(returnedKey.GetPublicKeyParameters(),
                   Is.InstanceOf<RsaKeyParameters>());
       Assert.That(returnedKey.GetPrivateKeyParameters(),
@@ -174,7 +174,7 @@ namespace dlech.SshAgentLibTests
       header = mParser.ReadHeader();
       Assert.That(header.BlobLength, Is.EqualTo(1));
       Assert.That(header.Message, Is.EqualTo(Agent.Message.SSH_AGENT_SUCCESS));
-      returnedKey = agent.KeyList.First();
+      returnedKey = agent.GetAllKeys().First();
       Assert.That(returnedKey.GetPublicKeyParameters(),
                   Is.InstanceOf<DsaKeyParameters>());
       Assert.That(returnedKey.GetPrivateKeyParameters(),
@@ -212,7 +212,7 @@ namespace dlech.SshAgentLibTests
         header = mParser.ReadHeader();
         Assert.That(header.BlobLength, Is.EqualTo(1));
         Assert.That(header.Message, Is.EqualTo(Agent.Message.SSH_AGENT_SUCCESS));
-        returnedKey = agent.KeyList.First();
+        returnedKey = agent.GetAllKeys().First();
         Assert.That(returnedKey.GetPublicKeyParameters(),
                     Is.InstanceOf<ECPublicKeyParameters>());
         Assert.That(returnedKey.GetPrivateKeyParameters(),
@@ -224,7 +224,7 @@ namespace dlech.SshAgentLibTests
       }
 
       /* test adding key that already is in KeyList does not create duplicate */
-      int startingCount = agent.KeyList.Count();
+      int startingCount = agent.GetAllKeys().Count();
       Assert.That(startingCount, Is.Not.EqualTo(0));
       PrepareMessage(builder);
       agent.AnswerMessage(mStream);
@@ -232,7 +232,7 @@ namespace dlech.SshAgentLibTests
       header = mParser.ReadHeader();
       Assert.That(header.BlobLength, Is.EqualTo(1));
       Assert.That(header.Message, Is.EqualTo(Agent.Message.SSH_AGENT_SUCCESS));
-      Assert.That(agent.KeyList.Count(), Is.EqualTo(startingCount));
+      Assert.That(agent.GetAllKeys().Count(), Is.EqualTo(startingCount));
 
       /* test locked => failure */
       agent = new TestAgent();
@@ -243,7 +243,7 @@ namespace dlech.SshAgentLibTests
       header = mParser.ReadHeader();
       Assert.That(header.BlobLength, Is.EqualTo(1));
       Assert.That(header.Message, Is.EqualTo(Agent.Message.SSH_AGENT_FAILURE));
-      Assert.That(agent.KeyList.Count, Is.EqualTo(0));
+      Assert.That(agent.GetAllKeys().Count, Is.EqualTo(0));
     }
 
     [Test()]
@@ -291,7 +291,7 @@ namespace dlech.SshAgentLibTests
       header = mParser.ReadHeader();
       Assert.That(header.BlobLength, Is.EqualTo(1));
       Assert.That(header.Message, Is.EqualTo(Agent.Message.SSH_AGENT_SUCCESS));
-      ISshKey returnedKey = agent.KeyList.First();
+      ISshKey returnedKey = agent.GetAllKeys().First();
       Assert.That(returnedKey.Constraints.Count(), Is.EqualTo(1));
       Assert.That(returnedKey.Constraints[0].Type,
         Is.EqualTo(Agent.KeyConstraintType.SSH_AGENT_CONSTRAIN_CONFIRM));
@@ -311,7 +311,7 @@ namespace dlech.SshAgentLibTests
       header = mParser.ReadHeader();
       Assert.That(header.BlobLength, Is.EqualTo(1));
       Assert.That(header.Message, Is.EqualTo(Agent.Message.SSH_AGENT_SUCCESS));
-      returnedKey = agent.KeyList.First();
+      returnedKey = agent.GetAllKeys().First();
       Assert.That(returnedKey.Constraints.Count(), Is.EqualTo(1));
       Assert.That(returnedKey.Constraints[0].Type,
         Is.EqualTo(Agent.KeyConstraintType.SSH_AGENT_CONSTRAIN_LIFETIME));
@@ -335,7 +335,7 @@ namespace dlech.SshAgentLibTests
       header = mParser.ReadHeader();
       Assert.That(header.BlobLength, Is.EqualTo(1));
       Assert.That(header.Message, Is.EqualTo(Agent.Message.SSH_AGENT_SUCCESS));
-      returnedKey = agent.KeyList.First();
+      returnedKey = agent.GetAllKeys().First();
       Assert.That(returnedKey.Constraints.Count(), Is.EqualTo(2));
       Assert.That(returnedKey.Constraints[0].Type,
         Is.EqualTo(Agent.KeyConstraintType.SSH_AGENT_CONSTRAIN_CONFIRM));
@@ -360,7 +360,7 @@ namespace dlech.SshAgentLibTests
       header = mParser.ReadHeader();
       Assert.That(header.BlobLength, Is.EqualTo(1));
       Assert.That(header.Message, Is.EqualTo(Agent.Message.SSH_AGENT_SUCCESS));
-      returnedKey = agent.KeyList.First();
+      returnedKey = agent.GetAllKeys().First();
       Assert.That(returnedKey.Constraints.Count(), Is.EqualTo(2));
       Assert.That(returnedKey.Constraints[0].Type,
         Is.EqualTo(Agent.KeyConstraintType.SSH_AGENT_CONSTRAIN_LIFETIME));
@@ -388,7 +388,7 @@ namespace dlech.SshAgentLibTests
       /* check that we received the correct key count */
       UInt32 actualKeyCount = mParser.ReadInt();
       List<ISshKey> ssh2KeyList =
-        agent.KeyList.Where(key => key.Version == SshVersion.SSH2).ToList();
+        agent.GetAllKeys().Where(key => key.Version == SshVersion.SSH2).ToList();
       int expectedSsh2KeyCount = ssh2KeyList.Count;
       Assert.That(actualKeyCount, Is.EqualTo(expectedSsh2KeyCount));
 
@@ -519,13 +519,13 @@ namespace dlech.SshAgentLibTests
       Agent.KeyConstraint testConstraint = new Agent.KeyConstraint();
       testConstraint.Type = Agent.KeyConstraintType.SSH_AGENT_CONSTRAIN_CONFIRM;
       SshKey testKey = mDsaKey.Clone();
-      testKey.AddConstraint(testConstraint);
-      agent.AddKey(testKey);
       bool confirmCallbackReturnValue = false;
       agent.ConfirmUserPermissionCallback = delegate(ISshKey aKey)
       {
         return confirmCallbackReturnValue;
       };
+      testKey.AddConstraint(testConstraint);
+      agent.AddKey(testKey);
       builder.Clear();
       builder.AddBlob(mDsaKey.GetPublicKeyBlob());
       builder.AddStringBlob(signatureData);
@@ -561,23 +561,24 @@ namespace dlech.SshAgentLibTests
       Agent.BlobHeader header = mParser.ReadHeader();
       Assert.That(header.BlobLength, Is.EqualTo(1));
       Assert.That(header.Message, Is.EqualTo(Agent.Message.SSH_AGENT_SUCCESS));
-      Assert.That(agent.KeyList.SequenceEqual(mAllKeys.Where(key => key != mRsaKey)));
+      Assert.That(agent.GetAllKeys()
+        .SequenceEqual(mAllKeys.Where(key => key != mRsaKey)));
 
       /* test remove key returns failure when key does not exist */
 
-      int startCount = agent.KeyList.Count();
+      int startCount = agent.GetAllKeys().Count();
       PrepareMessage(builder);
       agent.AnswerMessage(mStream);
       RewindStream();
       header = mParser.ReadHeader();
       Assert.That(header.BlobLength, Is.EqualTo(1));
       Assert.That(header.Message, Is.EqualTo(Agent.Message.SSH_AGENT_FAILURE));
-      Assert.That(agent.KeyList.Count(), Is.EqualTo(startCount));
+      Assert.That(agent.GetAllKeys().Count(), Is.EqualTo(startCount));
 
       /* test returns failure when locked */
 
       agent.Lock(new byte[0]);
-      startCount = agent.KeyList.Count();
+      startCount = agent.GetAllKeys().Count();
       builder.AddBlob(mDsaKey.GetPublicKeyBlob());
       builder.InsertHeader(Agent.Message.SSH2_AGENTC_REMOVE_IDENTITY);
       PrepareMessage(builder);
@@ -586,7 +587,7 @@ namespace dlech.SshAgentLibTests
       header = mParser.ReadHeader();
       Assert.That(header.BlobLength, Is.EqualTo(1));
       Assert.That(header.Message, Is.EqualTo(Agent.Message.SSH_AGENT_FAILURE));
-      Assert.That(agent.KeyList.Count(), Is.EqualTo(startCount));
+      Assert.That(agent.GetAllKeys().Count(), Is.EqualTo(startCount));
     }
 
     [Test()]
@@ -602,7 +603,8 @@ namespace dlech.SshAgentLibTests
       Agent.BlobHeader header = mParser.ReadHeader();
       Assert.That(header.BlobLength, Is.EqualTo(1));
       Assert.That(header.Message, Is.EqualTo(Agent.Message.SSH_AGENT_SUCCESS));
-      int actualKeyCount = agent.KeyList.Count(key => key.Version != SshVersion.SSH2);
+      int actualKeyCount = agent.GetAllKeys()
+        .Count(key => key.Version != SshVersion.SSH2);
       int expectedKeyCount = mAllKeys.Count(key => key.Version != SshVersion.SSH2);
       Assert.That(actualKeyCount, Is.EqualTo(expectedKeyCount));
 
@@ -739,9 +741,9 @@ namespace dlech.SshAgentLibTests
       key.AddConstraint(constraint);
       agent.AddKey(key);
       Thread.Sleep(500);
-      Assert.That(agent.KeyList.Count, Is.EqualTo(1));
+      Assert.That(agent.GetAllKeys().Count, Is.EqualTo(1));
       Thread.Sleep(1000);
-      Assert.That(agent.KeyList.Count, Is.EqualTo(0));
+      Assert.That(agent.GetAllKeys().Count, Is.EqualTo(0));
     }
 
     #region helper methods

@@ -12,6 +12,8 @@ namespace dlech.SshAgentLib
 {
   public class PageantClient : AgentClient
   {
+    public const string cPageantWindowClass = "Pageant";
+    public const string cMapNamePrefix = "SshAgentPageantClientRequest";
 
     private const int WM_COPYDATA = 0x004A;
     private const long AGENT_COPYDATA_ID = 0x804e50ba;
@@ -33,12 +35,12 @@ namespace dlech.SshAgentLib
 
     public override void SendMessage(byte[] aMessage, out byte[] aReply)
     {
-      var hwnd = FindWindow("Pageant", "Pageant");
+      var hwnd = FindWindow(cPageantWindowClass, cPageantWindowClass);
       if (hwnd == IntPtr.Zero) {
-        throw new Exception("Pageant not found");
+        throw new PageantNotRunningException();
       }
       var threadId = Thread.CurrentThread.ManagedThreadId;
-      var mapName = String.Format("PageantRequest{0:x8}", threadId);
+      var mapName = String.Format("{0}{1:x8}", cMapNamePrefix, threadId);
       using (var mappedFile = MemoryMappedFile.CreateNew(mapName, 4096)) {
         if (mappedFile.SafeMemoryMappedFileHandle.IsInvalid) {
           throw new Exception("Invalid mapped file handle");
@@ -55,7 +57,8 @@ namespace dlech.SshAgentLib
           copyData.lpData = Marshal.StringToCoTaskMemAnsi(mapName);
           var copyDataGCHandle = GCHandle.Alloc(copyData, GCHandleType.Pinned);
           var copyDataPtr = copyDataGCHandle.AddrOfPinnedObject();
-          var resultPtr = SendMessage(hwnd, WM_COPYDATA, IntPtr.Zero, copyDataPtr);
+          var resultPtr =
+            SendMessage(hwnd, WM_COPYDATA, IntPtr.Zero, copyDataPtr);
           copyDataGCHandle.Free();          
           if (resultPtr == IntPtr.Zero) {
             throw new Exception("send message failed");

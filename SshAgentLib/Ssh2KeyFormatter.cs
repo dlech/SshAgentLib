@@ -14,6 +14,7 @@ using Org.BouncyCastle.Crypto.Parameters;
 using Org.BouncyCastle.Math;
 using System.Runtime.Serialization;
 using Org.BouncyCastle.OpenSsl;
+using Org.BouncyCastle.Security;
 
 namespace dlech.SshAgentLib
 {
@@ -22,7 +23,7 @@ namespace dlech.SshAgentLib
   /// </summary>
   public class Ssh2KeyFormatter : KeyFormatter
   {
- 
+
     public override void Serialize(Stream aStream, object aObject)
     {
       /* check for required parameters */
@@ -32,11 +33,16 @@ namespace dlech.SshAgentLib
       if (aObject == null) {
         throw new ArgumentNullException("aObject");
       }
-
-      PasswordFinder pwFinder = new PasswordFinder(GetPassphraseCallbackMethod);
+      PasswordFinder pwFinder = null;
+      if (GetPassphraseCallbackMethod != null) {
+        pwFinder = new PasswordFinder(GetPassphraseCallbackMethod);
+      }
       StreamWriter streamWriter = new StreamWriter(aStream);
       PemWriter writer = new PemWriter(streamWriter);
-      char[] passphrase = pwFinder.GetPassword();
+      char[] passphrase = null;
+      if (pwFinder != null) {
+        passphrase = pwFinder.GetPassword();
+      }
       if (passphrase == null) {
         writer.WriteObject(aObject);
       } else {
@@ -53,16 +59,31 @@ namespace dlech.SshAgentLib
       if (aStream == null) {
         throw new ArgumentNullException("aStream");
       }
-      PasswordFinder pwFinder = new PasswordFinder(GetPassphraseCallbackMethod);
-      StreamReader streamReader = new StreamReader(aStream);
+      PasswordFinder pwFinder = null;
+      if (GetPassphraseCallbackMethod != null) {
+        pwFinder = new PasswordFinder(GetPassphraseCallbackMethod);
+      }
+      try {
+        StreamReader streamReader = new StreamReader(aStream);
         PemReader reader = new PemReader(streamReader, pwFinder);
         object data = reader.ReadObject();
+
         if (data is AsymmetricCipherKeyPair) {
           return new SshKey(SshVersion.SSH2, (AsymmetricCipherKeyPair)data);
         } else {
-          throw new Exception("bad data");
+          throw new KeyFormatterException("bad data");
+        }
+      } catch (PasswordException ex) {
+        if (GetPassphraseCallbackMethod == null) {
+          throw new CallbackNullException();
+        }
+        throw new KeyFormatterException("see inner exception", ex);
+      } catch (KeyFormatterException) {
+        throw;
+      } catch (Exception ex) {
+        throw new KeyFormatterException("see inner exception", ex);
       }
-    }       
+    }
 
     private class PasswordFinder : IPasswordFinder
     {
@@ -75,9 +96,6 @@ namespace dlech.SshAgentLib
 
       public char[] GetPassword()
       {
-        if (mCallback == null) {
-          return null;
-        }
         SecureString passphrase = mCallback.Invoke();
         char[] passwordChars = new char[passphrase.Length];
         IntPtr passphrasePtr = Marshal.SecureStringToGlobalAllocUnicode(passphrase);

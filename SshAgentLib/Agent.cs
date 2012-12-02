@@ -206,32 +206,38 @@ namespace dlech.SshAgentLib
         return false;
       }
 
+      /* handle constraints */
+
+      foreach (KeyConstraint constraint in aKey.Constraints) {
+        if (constraint.Type ==
+                  KeyConstraintType.SSH_AGENT_CONSTRAIN_CONFIRM &&
+                  ConfirmUserPermissionCallback == null) {
+          // can't add key with confirm constraint if we don't have
+          // confirm callback
+          throw new CallbackNullException();
+        }
+        if (constraint.Type ==
+            Agent.KeyConstraintType.SSH_AGENT_CONSTRAIN_LIFETIME) {
+          UInt32 lifetime = (UInt32)constraint.Data * 1000;
+          Timer timer = new Timer(lifetime);
+          ElapsedEventHandler onTimerElapsed = null;
+          onTimerElapsed =
+            delegate(object aSender, ElapsedEventArgs aEventArgs)
+            {
+              timer.Elapsed -= onTimerElapsed;
+              RemoveKey(aKey);
+            };
+          timer.Elapsed += onTimerElapsed;
+          timer.Start();
+        }
+      }
+
       /* first remove matching key if it exists */
       ISshKey matchingKey = mKeyList.Get(aKey.Version, aKey.GetPublicKeyBlob());
       RemoveKey(matchingKey);
 
       mKeyList.Add(aKey);
-
-      /* handle constraints */
-
-      foreach (KeyConstraint lifetimeConstraint in
-            aKey.Constraints.Where(constraint => constraint.Type ==
-            Agent.KeyConstraintType.SSH_AGENT_CONSTRAIN_LIFETIME)) {
-
-        UInt32 lifetime = (UInt32)lifetimeConstraint.Data * 1000;
-        Timer timer = new Timer(lifetime);
-        ElapsedEventHandler onTimerElapsed = null;
-        onTimerElapsed =
-          delegate(object aSender, ElapsedEventArgs aEventArgs)
-          {
-            timer.Elapsed -= onTimerElapsed;
-            RemoveKey(aKey);
-          };
-        timer.Elapsed += onTimerElapsed;
-        timer.Start();
-      }
       FireKeyListChanged(KeyListChangeEventAction.Add, aKey);
-
       return true;
     }
 
@@ -461,13 +467,6 @@ namespace dlech.SshAgentLib
                 constraint.Type =
                   (KeyConstraintType)messageParser.ReadByte();
                 if (constraint.Type ==
-                  KeyConstraintType.SSH_AGENT_CONSTRAIN_CONFIRM &&
-                  ConfirmUserPermissionCallback == null) {
-                  // can't add key with confirm constraint if we don't have
-                  // confirm callback
-                  goto default;
-                }
-                if (constraint.Type ==
                   KeyConstraintType.SSH_AGENT_CONSTRAIN_LIFETIME) {
                   constraint.Data = messageParser.ReadInt();
                 }
@@ -477,6 +476,8 @@ namespace dlech.SshAgentLib
             AddKey(key);
             responseBuilder.InsertHeader(Message.SSH_AGENT_SUCCESS);
             break; // success!            
+          } catch (CallbackNullException) {
+            // this is expected
           } catch (Exception ex) {
             Debug.Fail(ex.ToString());
           }

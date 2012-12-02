@@ -85,8 +85,7 @@ namespace dlech.SshAgentLibTests
             IntPtr copyDataPtr = copyDataGCHandle.AddrOfPinnedObject();
             IntPtr resultPtr = SendMessage(hwnd, WM_COPYDATA, IntPtr.Zero, copyDataPtr);
             copyDataGCHandle.Free();
-            int result = Marshal.ReadInt32(resultPtr);
-            Assert.That(result, Is.Not.EqualTo(0));
+            Assert.That(resultPtr, Is.Not.EqualTo(IntPtr.Zero));
             byte[] reply = new byte[5];
             stream.Position = 0;
             stream.Read(reply, 0, reply.Length);

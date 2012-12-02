@@ -250,8 +250,7 @@ namespace dlech.SshAgentLib
         return DefWindowProcW(hWnd, msg, wParam, lParam);
       }
 
-      IntPtr result = Marshal.AllocHGlobal(sizeof(int));
-      Marshal.WriteInt32(result, 0); // translation: int result = 0;
+      IntPtr result = IntPtr.Zero;
 
       // convert lParam to something usable
       COPYDATASTRUCT copyData = (COPYDATASTRUCT)
@@ -294,7 +293,7 @@ namespace dlech.SshAgentLib
             using (MemoryMappedViewStream stream = fileMap.CreateViewStream()) {
               AnswerMessage(stream);
             }
-            Marshal.WriteInt32(result, 1);
+            result = new IntPtr(1);
             return result; // success
           }
         }

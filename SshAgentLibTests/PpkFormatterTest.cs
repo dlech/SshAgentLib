@@ -148,7 +148,8 @@ namespace dlech.SshAgentLibTests
       withoutPassFileContents = Encoding.UTF8.GetString(fileData);
      
       /* test bad file version */
-      modifiedFileContents = Encoding.UTF8.GetBytes(withoutPassFileContents.Replace("2", "3"));
+      modifiedFileContents =
+        Encoding.UTF8.GetBytes(withoutPassFileContents.Replace("2", "3"));
       modifiedFileContentsStream = new MemoryStream(modifiedFileContents);
       formatter.GetPassphraseCallbackMethod = null;
       formatter.WarnOldFileFormatCallbackMethod = warnOldFileNotExpected;
@@ -156,12 +157,14 @@ namespace dlech.SshAgentLibTests
         target = (ISshKey)formatter.Deserialize(modifiedFileContentsStream);
         Assert.Fail("Exception did not occur");
       } catch (Exception ex) {
-        Assert.IsInstanceOf<PpkException>(ex);
-        Assert.AreEqual(PpkException.ErrorType.FileVersion, ((PpkException)ex).Error);
+        Assert.IsInstanceOf<PpkFormatterException>(ex);
+        Assert.AreEqual(PpkFormatterException.PpkErrorType.FileVersion,
+          ((PpkFormatterException)ex).PpkError);
       }
 
       /* test bad public key encryption algorithm */
-      modifiedFileContents = Encoding.UTF8.GetBytes(withoutPassFileContents.Replace("ssh-rsa", "xyz"));
+      modifiedFileContents =
+        Encoding.UTF8.GetBytes(withoutPassFileContents.Replace("ssh-rsa", "xyz"));
       modifiedFileContentsStream = new MemoryStream(modifiedFileContents);
       formatter.GetPassphraseCallbackMethod = null;
       formatter.WarnOldFileFormatCallbackMethod = warnOldFileNotExpected;
@@ -169,8 +172,9 @@ namespace dlech.SshAgentLibTests
         target = (ISshKey)formatter.Deserialize(modifiedFileContentsStream);
         Assert.Fail("Exception did not occur");
       } catch (Exception ex) {
-        Assert.IsInstanceOf<PpkException>(ex);
-        Assert.AreEqual(PpkException.ErrorType.PublicKeyEncryption, ((PpkException)ex).Error);
+        Assert.IsInstanceOf<PpkFormatterException>(ex);
+        Assert.AreEqual(PpkFormatterException.PpkErrorType.PublicKeyEncryption,
+          ((PpkFormatterException)ex).PpkError);
       }
 
       /* test bad private key encryption algorithm */
@@ -182,12 +186,14 @@ namespace dlech.SshAgentLibTests
         target = (ISshKey)formatter.Deserialize(modifiedFileContentsStream);
         Assert.Fail("Exception did not occur");
       } catch (Exception ex) {
-        Assert.IsInstanceOf<PpkException>(ex);
-        Assert.AreEqual(PpkException.ErrorType.PrivateKeyEncryption, ((PpkException)ex).Error);
+        Assert.IsInstanceOf<PpkFormatterException>(ex);
+        Assert.AreEqual(PpkFormatterException.PpkErrorType.PrivateKeyEncryption,
+          ((PpkFormatterException)ex).PpkError);
       }
 
       /* test bad file integrity */
-      modifiedFileContents = Encoding.UTF8.GetBytes(withoutPassFileContents.Replace("no passphrase", "xyz"));
+      modifiedFileContents =
+        Encoding.UTF8.GetBytes(withoutPassFileContents.Replace("no passphrase", "xyz"));
       modifiedFileContentsStream = new MemoryStream(modifiedFileContents);
       formatter.GetPassphraseCallbackMethod = null;
       formatter.WarnOldFileFormatCallbackMethod = warnOldFileNotExpected;
@@ -195,8 +201,9 @@ namespace dlech.SshAgentLibTests
         target = (ISshKey)formatter.Deserialize(modifiedFileContentsStream);
         Assert.Fail("Exception did not occur");
       } catch (Exception ex) {
-        Assert.IsInstanceOf<PpkException>(ex);
-        Assert.AreEqual(PpkException.ErrorType.FileCorrupt, ((PpkException)ex).Error);
+        Assert.IsInstanceOf<PpkFormatterException>(ex);
+        Assert.AreEqual(PpkFormatterException.PpkErrorType.FileCorrupt,
+          ((PpkFormatterException)ex).PpkError);
       }
 
       /* test bad passphrase */
@@ -208,8 +215,7 @@ namespace dlech.SshAgentLibTests
         target = (ISshKey)formatter.Deserialize(modifiedFileContentsStream);
         Assert.Fail("Exception did not occur");
       } catch (Exception ex) {
-        Assert.IsInstanceOf<PpkException>(ex);
-        Assert.AreEqual(PpkException.ErrorType.BadPassphrase, ((PpkException)ex).Error);
+        Assert.IsInstanceOf<CallbackNullException>(ex);
       }
       fileData = File.ReadAllBytes("../../Resources/ssh2-rsa.ppk");
       modifiedFileContentsStream = new MemoryStream(fileData);
@@ -219,8 +225,9 @@ namespace dlech.SshAgentLibTests
         target = (ISshKey)formatter.Deserialize(modifiedFileContentsStream);
         Assert.Fail("Exception did not occur");
       } catch (Exception ex) {
-        Assert.IsInstanceOf<PpkException>(ex);
-        Assert.AreEqual(PpkException.ErrorType.BadPassphrase, ((PpkException)ex).Error);
+        Assert.IsInstanceOf<PpkFormatterException>(ex);
+        Assert.AreEqual(PpkFormatterException.PpkErrorType.BadPassphrase,
+          ((PpkFormatterException)ex).PpkError);
       }
 
       /* test old file format */
@@ -248,8 +255,9 @@ namespace dlech.SshAgentLibTests
       try {
         target = (ISshKey)formatter.Deserialize(modifiedFileContentsStream);
       } catch (Exception ex) {
-        Assert.IsInstanceOf<PpkException>(ex);
-        Assert.AreEqual(PpkException.ErrorType.FileFormat, ((PpkException)ex).Error);
+        Assert.IsInstanceOf<PpkFormatterException>(ex);
+        Assert.AreEqual(PpkFormatterException.PpkErrorType.FileFormat,
+          ((PpkFormatterException)ex).PpkError);
       }
 
       /* test reading SSH2-DSA files */

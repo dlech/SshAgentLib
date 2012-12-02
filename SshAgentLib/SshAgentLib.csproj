@@ -79,6 +79,9 @@
   <ItemGroup>
     <Compile Include="AgentClient.cs" />
     <Compile Include="BlobParser.cs" />
+    <Compile Include="CallbackNullException.cs" />
+    <Compile Include="KeyFormatterException.cs" />
+    <Compile Include="PageantNotRunningException.cs" />
     <Compile Include="IAgent.cs" />
     <Compile Include="KeyFormatter.cs" />
     <Compile Include="PageantClient.cs" />
@@ -89,10 +92,10 @@
     <Compile Include="SshKey.cs" />
     <Compile Include="BlobBuilder.cs" />
     <Compile Include="PSUtil.cs" />
-    <Compile Include="PageantException.cs" />
+    <Compile Include="PageantRunningException.cs" />
     <Compile Include="SshVersion.cs" />
     <Compile Include="PageantAgent.cs" />
-    <Compile Include="PpkException.cs" />
+    <Compile Include="PpkFormatterException.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="PpkFormatter.cs" />
     <Compile Include="UnixAgent.cs" />

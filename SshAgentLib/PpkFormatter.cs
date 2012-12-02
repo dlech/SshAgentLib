@@ -77,7 +77,7 @@ namespace dlech.SshAgentLib
     private const char cDelimeter = ':';
 
     #endregion -- Constants --
-    
+
 
     #region -- Enums --
 
@@ -101,8 +101,8 @@ namespace dlech.SshAgentLib
 
 
     #endregion -- Enums --
-    
-   
+
+
     #region -- structures --
 
     private struct FileData
@@ -160,7 +160,7 @@ namespace dlech.SshAgentLib
 
 
     #region -- Delegates --
-    
+
     /// <summary>
     /// Implementation of this function should warn the user that they are using
     /// an old file format that has know security issues.
@@ -169,7 +169,8 @@ namespace dlech.SshAgentLib
 
     #endregion -- Delegates --
 
-    #region -- Properties --  
+
+    #region -- Properties --
 
     public WarnOldFileFormatCallback WarnOldFileFormatCallbackMethod { get; set; }
 
@@ -194,19 +195,11 @@ namespace dlech.SshAgentLib
     /// Parses the data from a PuTTY Private Key (.ppk) file.
     /// </summary>
     /// <param name="data">The data to parse.</param>
-    /// <param name="getPassphrase">
-    /// Callback method for getting passphrase if required.
-    /// Can be null if no passphrase.
-    /// </param>
-    /// <param name="warnOldFileFormat">
-    /// Callback method that warns user that they are using an old file format
-    /// with known security problems.
-    /// </param>
-    /// <exception cref="dlech.SshAgentLib.PpkException">
+    /// <exception cref="dlech.SshAgentLib.PpkFormatterException">
     /// there was a problem parsing the file data
     /// </exception>
-    /// <exception cref="System.ArgumentNullException">
-    /// data and warnOldFileFormat cannot be null
+    /// <exception cref="CallBackNullException">
+    /// data is encrypted and passphrase callback is null
     /// </exception>
     public override object Deserialize(Stream aStream)
     {
@@ -216,11 +209,11 @@ namespace dlech.SshAgentLib
       if (aStream == null) {
         throw new ArgumentNullException("aStream");
       }
-      
+
       string line;
       string[] pair = new string[2];
       int lineCount, i;
-            
+
       StreamReader reader = new StreamReader(aStream);
       char[] delimArray = { cDelimeter };
 
@@ -229,12 +222,12 @@ namespace dlech.SshAgentLib
         line = reader.ReadLine();
         pair = line.Split(delimArray, 2);
         if (!pair[0].StartsWith(puttyUserKeyFileKey)) {
-          throw new PpkException(PpkException.ErrorType.FileFormat,
-                                     puttyUserKeyFileKey + " expected");
-        }        
+          throw new PpkFormatterException(PpkFormatterException.PpkErrorType.FileFormat,
+                                          puttyUserKeyFileKey + " expected");
+        }
         string ppkFileVersion = pair[0].Remove(0, puttyUserKeyFileKey.Length);
         if (!ppkFileVersion.TryParseVersion(ref fileData.ppkFileVersion)) {
-          throw new PpkException(PpkException.ErrorType.FileVersion);
+          throw new PpkFormatterException(PpkFormatterException.PpkErrorType.FileVersion);
         }
         if (fileData.ppkFileVersion == Version.V1) {
           if (WarnOldFileFormatCallbackMethod != null) {
@@ -245,27 +238,27 @@ namespace dlech.SshAgentLib
         /* read public key encryption algorithm type */
         string algorithm = pair[1].Trim();
         if (!algorithm.TryParsePublicKeyAlgorithm(ref fileData.publicKeyAlgorithm)) {
-          throw new PpkException(PpkException.ErrorType.PublicKeyEncryption);
+          throw new PpkFormatterException(PpkFormatterException.PpkErrorType.PublicKeyEncryption);
         }
 
         /* read private key encryption algorithm type */
         line = reader.ReadLine();
         pair = line.Split(delimArray, 2);
         if (pair[0] != privateKeyEncryptionKey) {
-          throw new PpkException(PpkException.ErrorType.FileFormat,
-                                     privateKeyEncryptionKey + " expected");
+          throw new PpkFormatterException(PpkFormatterException.PpkErrorType.FileFormat,
+                                          privateKeyEncryptionKey + " expected");
         }
         algorithm = pair[1].Trim();
         if (!algorithm.TryParsePrivateKeyAlgorithm(ref fileData.privateKeyAlgorithm)) {
-          throw new PpkException(PpkException.ErrorType.PrivateKeyEncryption);
+          throw new PpkFormatterException(PpkFormatterException.PpkErrorType.PrivateKeyEncryption);
         }
 
         /* read comment */
         line = reader.ReadLine();
         pair = line.Split(delimArray, 2);
         if (pair[0] != commentKey) {
-          throw new PpkException(PpkException.ErrorType.FileFormat,
-                                     commentKey + " expected");
+          throw new PpkFormatterException(PpkFormatterException.PpkErrorType.FileFormat,
+                                          commentKey + " expected");
         }
         fileData.comment = pair[1].Trim();
 
@@ -273,12 +266,12 @@ namespace dlech.SshAgentLib
         line = reader.ReadLine();
         pair = line.Split(delimArray, 2);
         if (pair[0] != publicKeyLinesKey) {
-          throw new PpkException(PpkException.ErrorType.FileFormat,
-                                     publicKeyLinesKey + " expected");
+          throw new PpkFormatterException(PpkFormatterException.PpkErrorType.FileFormat,
+                                          publicKeyLinesKey + " expected");
         }
         if (!int.TryParse(pair[1], out lineCount)) {
-          throw new PpkException(PpkException.ErrorType.FileFormat,
-                                     "integer expected");
+          throw new PpkFormatterException(PpkFormatterException.PpkErrorType.FileFormat,
+                                          "integer expected");
         }
         string publicKeyString = string.Empty;
         for (i = 0; i < lineCount; i++) {
@@ -290,12 +283,12 @@ namespace dlech.SshAgentLib
         line = reader.ReadLine();
         pair = line.Split(delimArray, 2);
         if (pair[0] != privateKeyLinesKey) {
-          throw new PpkException(PpkException.ErrorType.FileFormat,
-                                     privateKeyLinesKey + " expected");
+          throw new PpkFormatterException(PpkFormatterException.PpkErrorType.FileFormat,
+                                          privateKeyLinesKey + " expected");
         }
         if (!int.TryParse(pair[1], out lineCount)) {
-          throw new PpkException(PpkException.ErrorType.FileFormat,
-                                     "integer expected");
+          throw new PpkFormatterException(PpkFormatterException.PpkErrorType.FileFormat,
+                                          "integer expected");
         }
         string privateKeyString = string.Empty;
         for (i = 0; i < lineCount; i++) {
@@ -310,8 +303,8 @@ namespace dlech.SshAgentLib
         if (pair[0] != privateMACKey) {
           fileData.isHMAC = false;
           if (pair[0] != privateHashKey || fileData.ppkFileVersion != Version.V1) {
-            throw new PpkException(PpkException.ErrorType.FileFormat,
-                                       privateMACKey + " expected");
+            throw new PpkFormatterException(PpkFormatterException.PpkErrorType.FileFormat,
+                                            privateMACKey + " expected");
           }
         } else {
           fileData.isHMAC = true;
@@ -323,7 +316,7 @@ namespace dlech.SshAgentLib
         /* get passphrase and decrypt private key if required */
         if (fileData.privateKeyAlgorithm != PrivateKeyAlgorithm.None) {
           if (GetPassphraseCallbackMethod == null) {
-            throw new PpkException(PpkException.ErrorType.BadPassphrase);
+            throw new CallbackNullException();
           }
           fileData.passphrase = GetPassphraseCallbackMethod.Invoke();
           DecryptPrivateKey(ref fileData);
@@ -337,11 +330,13 @@ namespace dlech.SshAgentLib
         SshKey key = new SshKey(SshVersion.SSH2, cipherKeyPair, fileData.comment);
         return key;
 
-      } catch (PpkException) {
+      } catch (PpkFormatterException) {
+        throw;
+      } catch (CallbackNullException) {
         throw;
       } catch (Exception ex) {
-        throw new PpkException(
-            PpkException.ErrorType.FileFormat,
+        throw new PpkFormatterException(
+            PpkFormatterException.PpkErrorType.FileFormat,
             "See inner exception.", ex);
       } finally {
         if (fileData.publicKeyBlob != null) {
@@ -356,13 +351,11 @@ namespace dlech.SshAgentLib
         reader.Close();
       }
     }
-   
+
     #endregion -- Public Methods --
 
 
     #region -- Private Methods --
-
-
 
     private static void DecryptPrivateKey(ref FileData fileData)
     {
@@ -420,7 +413,7 @@ namespace dlech.SshAgentLib
           break;
 
         default:
-          throw new PpkException(PpkException.ErrorType.PrivateKeyEncryption);
+          throw new PpkFormatterException(PpkFormatterException.PpkErrorType.PrivateKeyEncryption);
       }
     }
 
@@ -490,11 +483,11 @@ namespace dlech.SshAgentLib
               (fileData.privateKeyBlob.Data[2] == 0)) {
             // so if they bytes are there, passphrase decrypted properly and
             // something else is wrong with the file contents
-            throw new PpkException(PpkException.ErrorType.FileCorrupt);
+            throw new PpkFormatterException(PpkFormatterException.PpkErrorType.FileCorrupt);
           } else {
             // if the bytes are not zeros, we assume that the data was not
             // properly decrypted because the passphrase was incorrect.
-            throw new PpkException(PpkException.ErrorType.BadPassphrase);
+            throw new PpkFormatterException(PpkFormatterException.PpkErrorType.BadPassphrase);
           }
         }
       } catch {
@@ -519,7 +512,7 @@ namespace dlech.SshAgentLib
       }
 
       switch (aAlgorithm) {
-        case PublicKeyAlgorithm.SSH_RSA:       
+        case PublicKeyAlgorithm.SSH_RSA:
 
           /* read parameters that were stored in file */
 
@@ -542,11 +535,11 @@ namespace dlech.SshAgentLib
           RsaPrivateCrtKeyParameters rsaPrivateKeyParams =
             new RsaPrivateCrtKeyParameters(modulus, exponent, d, p, q, dp, dq,
               inverseQ);
-                    
+
           return new AsymmetricCipherKeyPair(rsaPublicKeyParams,
             rsaPrivateKeyParams);
 
-        case PublicKeyAlgorithm.SSH_DSS:          
+        case PublicKeyAlgorithm.SSH_DSS:
 
           /* read parameters that were stored in file */
 
@@ -560,7 +553,7 @@ namespace dlech.SshAgentLib
           x = new BigInteger(1, parser.ReadBlob().Data);
 
           DsaParameters commonParams = new DsaParameters(p, q, g);
-          DsaPublicKeyParameters dsaPublicKeyParams = 
+          DsaPublicKeyParameters dsaPublicKeyParams =
             new DsaPublicKeyParameters(y, commonParams);
           DsaPrivateKeyParameters dsaPrivateKeyParams =
             new DsaPrivateKeyParameters(x, commonParams);
@@ -569,12 +562,12 @@ namespace dlech.SshAgentLib
             dsaPrivateKeyParams);
         default:
           // unsupported encryption algorithm
-          throw new PpkException(PpkException.ErrorType.PublicKeyEncryption);
+          throw new PpkFormatterException(PpkFormatterException.PpkErrorType.PublicKeyEncryption);
       }
     }
 
     # endregion -- Private Methods --
-    
+
   }
 
   internal static class PpkFormatterExt

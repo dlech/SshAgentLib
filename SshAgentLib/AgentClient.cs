@@ -18,60 +18,50 @@ namespace dlech.SshAgentLib
     /// </summary>
     /// <param name="aKey">the key to add</param>
     /// <returns>true if operation was successful</returns>
-    /// <remarks>ignores key constraints</remarks>
+    /// <remarks>applies constraints in aKeys.Constraints, if any</remarks>
     public bool AddKey(ISshKey aKey)
     {
-      var builder = CreatePrivateKeyBlob(aKey);
-      switch (aKey.Version) {
-        case SshVersion.SSH1:
-          builder.InsertHeader(Agent.Message.SSH1_AGENTC_ADD_RSA_IDENTITY);
-          break;
-        case SshVersion.SSH2:
-          builder.InsertHeader(Agent.Message.SSH2_AGENTC_ADD_IDENTITY);
-          break;
-        default:
-          throw new Exception(cUnsupportedSshVersion);
-      }
-      return SendMessage(builder);
+      return AddKey(aKey, aKey.Constraints);
     }
 
     /// <summary>
     /// Adds key to SSH agent
     /// </summary>
     /// <param name="aKey">the key to add</param>
+    /// <param name="aConstraints">constraints to apply</param>
     /// <returns>true if operation was successful</returns>
-    /// <remarks>uses key constraints in aKey</remarks>
-    public bool AddConstrainedKey(ISshKey aKey)
-    {
-      return AddConstrainedKey(aKey, aKey.Constraints);
-    }
-
-    /// <summary>
-    /// Adds key to SSH agent
-    /// </summary>
-    /// <param name="aKey">the key to add</param>
-    /// <param name="aConstraints">the constraints to use</param>
-    /// <returns>true if operation was successful</returns>
-    /// <remarks>ignores key constraints in aKey</remarks>
-    public bool AddConstrainedKey(ISshKey aKey,
-      ICollection<Agent.KeyConstraint> aConstraints)
+    /// <remarks>ignores constraints in aKey.Constraints</remarks>
+    public bool AddKey(ISshKey aKey, ICollection<Agent.KeyConstraint> aConstraints)
     {
       var builder = CreatePrivateKeyBlob(aKey);
-      foreach (var constraint in aConstraints) {
-        builder.AddByte((byte)constraint.Type);
-        if (constraint.Type.GetDataType() == typeof(uint)) {
-          builder.AddInt((uint)constraint.Data);
+      if (aConstraints != null && aConstraints.Count > 0) {
+        foreach (var constraint in aConstraints) {
+          builder.AddByte((byte)constraint.Type);
+          if (constraint.Type.GetDataType() == typeof(uint)) {
+            builder.AddInt((uint)constraint.Data);
+          }
         }
-      }
-      switch (aKey.Version) {
-        case SshVersion.SSH1:
-          builder.InsertHeader(Agent.Message.SSH1_AGENTC_ADD_RSA_ID_CONSTRAINED);
-          break;
-        case SshVersion.SSH2:
-          builder.InsertHeader(Agent.Message.SSH2_AGENTC_ADD_ID_CONSTRAINED);
-          break;
-        default:
-          throw new Exception(cUnsupportedSshVersion);
+        switch (aKey.Version) {
+          case SshVersion.SSH1:
+            builder.InsertHeader(Agent.Message.SSH1_AGENTC_ADD_RSA_ID_CONSTRAINED);
+            break;
+          case SshVersion.SSH2:
+            builder.InsertHeader(Agent.Message.SSH2_AGENTC_ADD_ID_CONSTRAINED);
+            break;
+          default:
+            throw new Exception(cUnsupportedSshVersion);
+        }
+      } else {
+        switch (aKey.Version) {
+          case SshVersion.SSH1:
+            builder.InsertHeader(Agent.Message.SSH1_AGENTC_ADD_RSA_IDENTITY);
+            break;
+          case SshVersion.SSH2:
+            builder.InsertHeader(Agent.Message.SSH2_AGENTC_ADD_IDENTITY);
+            break;
+          default:
+            throw new Exception(cUnsupportedSshVersion);
+        }
       }
       return SendMessage(builder);
     }
@@ -93,10 +83,10 @@ namespace dlech.SshAgentLib
           break;
         default:
           throw new Exception(cUnsupportedSshVersion);
-      }      
+      }
       return SendMessage(builder);
     }
-       
+
     public bool RemoveAllKeys(SshVersion aVersion)
     {
       BlobBuilder builder = new BlobBuilder();
