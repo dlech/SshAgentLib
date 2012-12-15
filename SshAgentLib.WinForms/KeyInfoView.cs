@@ -29,6 +29,19 @@ namespace dlech.SshAgentLib.WinForms
     PasswordDialog mPasswordDialog;
     CommonOpenFileDialog mWin7OpenFileDialog;
 
+    public ContextMenuStrip AddButtonSplitMenu
+    {
+      get
+      {
+        return addKeyButton.SplitMenuStrip;
+      }
+      set
+      {
+        addKeyButton.SplitMenuStrip = value;
+        addKeyButton.ShowSplit = (value != null);
+      }
+    }
+
     private PasswordDialog PasswordDialog
     {
       get
@@ -114,6 +127,53 @@ namespace dlech.SshAgentLib.WinForms
         buttonTableLayoutPanel.Controls.Add(refreshButton, 5, 0);
       }
       ReloadKeyListView();
+    }
+
+    public void ShowFileOpenDialog()
+    {
+      string[] fileNames;
+      List<Agent.KeyConstraint> constraints = new List<Agent.KeyConstraint>();
+      if (mWin7OpenFileDialog != null) {
+        var result = mWin7OpenFileDialog.ShowDialog();
+        if (result != CommonFileDialogResult.Ok) {
+          return;
+        }
+        var confirmConstraintCheckBox =
+          mWin7OpenFileDialog.Controls[cConfirmConstraintCheckBox] as
+          CommonFileDialogCheckBox;
+        if (confirmConstraintCheckBox.IsChecked) {
+          var constraint = new Agent.KeyConstraint();
+          constraint.Type = Agent.KeyConstraintType.SSH_AGENT_CONSTRAIN_CONFIRM;
+          constraints.Add(constraint);
+        }
+        var lifetimeConstraintCheckBox =
+          mWin7OpenFileDialog.Controls[cLifetimeConstraintCheckBox] as
+          CommonFileDialogCheckBox;
+        var lifetimeConstraintTextBox =
+          mWin7OpenFileDialog.Controls[cLifetimeConstraintTextBox] as
+          CommonFileDialogTextBox;
+        if (lifetimeConstraintCheckBox.IsChecked) {
+          // error checking for parse done in fileOK event handler
+          uint lifetime = uint.Parse(lifetimeConstraintTextBox.Text);
+          var constraint = new Agent.KeyConstraint();
+          constraint.Type = Agent.KeyConstraintType.SSH_AGENT_CONSTRAIN_LIFETIME;
+          constraint.Data = lifetime;
+          constraints.Add(constraint);
+        }
+        fileNames = mWin7OpenFileDialog.FileNames.ToArray();
+      } else {
+        var result = openFileDialog.ShowDialog();
+        if (result != DialogResult.OK) {
+          return;
+        }
+        fileNames = openFileDialog.FileNames;
+      }
+      UseWaitCursor = true;
+      mAgent.AddKeysFromFiles(fileNames, constraints);
+      if (!(mAgent is Agent)) {
+        ReloadKeyListView();
+      }
+      UseWaitCursor = false;
     }
 
     private void ReloadKeyListView()
@@ -260,49 +320,12 @@ namespace dlech.SshAgentLib.WinForms
 
     private void addKeyButton_Click(object sender, EventArgs e)
     {
-      string[] fileNames;
-      List<Agent.KeyConstraint> constraints = new List<Agent.KeyConstraint>();
-      if (mWin7OpenFileDialog != null) {
-        var result = mWin7OpenFileDialog.ShowDialog();
-        if (result != CommonFileDialogResult.Ok) {
-          return;
-        }
-        var confirmConstraintCheckBox =
-          mWin7OpenFileDialog.Controls[cConfirmConstraintCheckBox] as
-          CommonFileDialogCheckBox;
-        if (confirmConstraintCheckBox.IsChecked) {
-          var constraint = new Agent.KeyConstraint();
-          constraint.Type = Agent.KeyConstraintType.SSH_AGENT_CONSTRAIN_CONFIRM;
-          constraints.Add(constraint);
-        }
-        var lifetimeConstraintCheckBox =
-          mWin7OpenFileDialog.Controls[cLifetimeConstraintCheckBox] as
-          CommonFileDialogCheckBox;
-        var lifetimeConstraintTextBox =
-          mWin7OpenFileDialog.Controls[cLifetimeConstraintTextBox] as
-          CommonFileDialogTextBox;
-        if (lifetimeConstraintCheckBox.IsChecked) {
-          // error checking for parse done in fileOK event handler
-          uint lifetime = uint.Parse(lifetimeConstraintTextBox.Text);
-          var constraint = new Agent.KeyConstraint();
-          constraint.Type = Agent.KeyConstraintType.SSH_AGENT_CONSTRAIN_LIFETIME;
-          constraint.Data = lifetime;
-          constraints.Add(constraint);
-        }
-        fileNames = mWin7OpenFileDialog.FileNames.ToArray();
+      if (AddButtonSplitMenu == null) {
+        ShowFileOpenDialog();
       } else {
-        var result = openFileDialog.ShowDialog();
-        if (result != DialogResult.OK) {
-          return;
-        }
-        fileNames = openFileDialog.FileNames;
+        addKeyButton.ShowContextMenuStrip();
       }
-      UseWaitCursor = true;
-      mAgent.AddKeysFromFiles(fileNames, constraints);
-      if (!(mAgent is Agent)) {
-        ReloadKeyListView();
-      }
-      UseWaitCursor = false;
+      
     }
 
     private void removeButton_Click(object sender, EventArgs e)
