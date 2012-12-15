@@ -118,6 +118,10 @@ namespace dlech.SshAgentLib.WinForms
 
     private void ReloadKeyListView()
     {
+      // workaround for bug where first column (0) is always set 
+      // to Visible = true when data changes
+      var columnZeroVisible = dataGridView.Columns[0].Visible;
+
       mKeyCollection = new BindingList<KeyWrapper>();
       dataGridView.DataSource = mKeyCollection;
       try {
@@ -131,6 +135,7 @@ namespace dlech.SshAgentLib.WinForms
         MessageBox.Show(Strings.errListKeysFailed, Util.AssemblyTitle,
           MessageBoxButtons.OK, MessageBoxIcon.Error);
       }
+      dataGridView.Columns[0].Visible = columnZeroVisible;
       UpdateVisibility();
       UpdateButtonStates();
     }

@@ -30,13 +30,6 @@
       this.components = new System.ComponentModel.Container();
       this.messageLabel = new System.Windows.Forms.Label();
       this.dataGridView = new System.Windows.Forms.DataGridView();
-      this.confirmDataGridViewCheckBoxColumn = new System.Windows.Forms.DataGridViewCheckBoxColumn();
-      this.lifetimeDataGridViewCheckBoxColumn = new System.Windows.Forms.DataGridViewCheckBoxColumn();
-      this.typeDataGridViewTextBoxColumn = new System.Windows.Forms.DataGridViewTextBoxColumn();
-      this.sizeDataGridViewTextBoxColumn = new System.Windows.Forms.DataGridViewTextBoxColumn();
-      this.fingerprintDataGridViewTextBoxColumn = new System.Windows.Forms.DataGridViewTextBoxColumn();
-      this.commentDataGridViewTextBoxColumn = new System.Windows.Forms.DataGridViewTextBoxColumn();
-      this.keyWrapperBindingSource = new System.Windows.Forms.BindingSource(this.components);
       this.mainTableLayoutPanel = new System.Windows.Forms.TableLayoutPanel();
       this.dataGridViewPanel = new System.Windows.Forms.Panel();
       this.buttonTableLayoutPanel = new System.Windows.Forms.TableLayoutPanel();
@@ -47,11 +40,18 @@
       this.removeAllbutton = new System.Windows.Forms.Button();
       this.refreshButton = new System.Windows.Forms.Button();
       this.openFileDialog = new System.Windows.Forms.OpenFileDialog();
+      this.keyWrapperBindingSource = new System.Windows.Forms.BindingSource(this.components);
+      this.confirmDataGridViewCheckBoxColumn = new System.Windows.Forms.DataGridViewCheckBoxColumn();
+      this.lifetimeDataGridViewCheckBoxColumn = new System.Windows.Forms.DataGridViewCheckBoxColumn();
+      this.typeDataGridViewTextBoxColumn = new System.Windows.Forms.DataGridViewTextBoxColumn();
+      this.sizeDataGridViewTextBoxColumn = new System.Windows.Forms.DataGridViewTextBoxColumn();
+      this.fingerprintDataGridViewTextBoxColumn = new System.Windows.Forms.DataGridViewTextBoxColumn();
+      this.commentDataGridViewTextBoxColumn = new System.Windows.Forms.DataGridViewTextBoxColumn();
       ((System.ComponentModel.ISupportInitialize)(this.dataGridView)).BeginInit();
-      ((System.ComponentModel.ISupportInitialize)(this.keyWrapperBindingSource)).BeginInit();
       this.mainTableLayoutPanel.SuspendLayout();
       this.dataGridViewPanel.SuspendLayout();
       this.buttonTableLayoutPanel.SuspendLayout();
+      ((System.ComponentModel.ISupportInitialize)(this.keyWrapperBindingSource)).BeginInit();
       this.SuspendLayout();
       // 
       // messageLabel
@@ -95,66 +95,6 @@
       this.dataGridView.SelectionChanged += new System.EventHandler(this.dataGridView_SelectionChanged);
       this.dataGridView.DragDrop += new System.Windows.Forms.DragEventHandler(this.dataGridView_DragDrop);
       this.dataGridView.DragEnter += new System.Windows.Forms.DragEventHandler(this.dataGridView_DragEnter);
-      // 
-      // confirmDataGridViewCheckBoxColumn
-      // 
-      this.confirmDataGridViewCheckBoxColumn.AutoSizeMode = System.Windows.Forms.DataGridViewAutoSizeColumnMode.AllCells;
-      this.confirmDataGridViewCheckBoxColumn.DataPropertyName = "Confirm";
-      this.confirmDataGridViewCheckBoxColumn.HeaderText = "C";
-      this.confirmDataGridViewCheckBoxColumn.Name = "confirmDataGridViewCheckBoxColumn";
-      this.confirmDataGridViewCheckBoxColumn.ReadOnly = true;
-      this.confirmDataGridViewCheckBoxColumn.ToolTipText = "Confirm Constraint";
-      this.confirmDataGridViewCheckBoxColumn.Width = 20;
-      // 
-      // lifetimeDataGridViewCheckBoxColumn
-      // 
-      this.lifetimeDataGridViewCheckBoxColumn.AutoSizeMode = System.Windows.Forms.DataGridViewAutoSizeColumnMode.AllCells;
-      this.lifetimeDataGridViewCheckBoxColumn.DataPropertyName = "Lifetime";
-      this.lifetimeDataGridViewCheckBoxColumn.HeaderText = "L";
-      this.lifetimeDataGridViewCheckBoxColumn.Name = "lifetimeDataGridViewCheckBoxColumn";
-      this.lifetimeDataGridViewCheckBoxColumn.ReadOnly = true;
-      this.lifetimeDataGridViewCheckBoxColumn.ToolTipText = "Lifetime Constraint";
-      this.lifetimeDataGridViewCheckBoxColumn.Width = 19;
-      // 
-      // typeDataGridViewTextBoxColumn
-      // 
-      this.typeDataGridViewTextBoxColumn.AutoSizeMode = System.Windows.Forms.DataGridViewAutoSizeColumnMode.AllCells;
-      this.typeDataGridViewTextBoxColumn.DataPropertyName = "Type";
-      this.typeDataGridViewTextBoxColumn.HeaderText = "Type";
-      this.typeDataGridViewTextBoxColumn.Name = "typeDataGridViewTextBoxColumn";
-      this.typeDataGridViewTextBoxColumn.ReadOnly = true;
-      this.typeDataGridViewTextBoxColumn.Width = 56;
-      // 
-      // sizeDataGridViewTextBoxColumn
-      // 
-      this.sizeDataGridViewTextBoxColumn.AutoSizeMode = System.Windows.Forms.DataGridViewAutoSizeColumnMode.AllCells;
-      this.sizeDataGridViewTextBoxColumn.DataPropertyName = "Size";
-      this.sizeDataGridViewTextBoxColumn.HeaderText = "Size";
-      this.sizeDataGridViewTextBoxColumn.Name = "sizeDataGridViewTextBoxColumn";
-      this.sizeDataGridViewTextBoxColumn.ReadOnly = true;
-      this.sizeDataGridViewTextBoxColumn.Width = 52;
-      // 
-      // fingerprintDataGridViewTextBoxColumn
-      // 
-      this.fingerprintDataGridViewTextBoxColumn.AutoSizeMode = System.Windows.Forms.DataGridViewAutoSizeColumnMode.AllCells;
-      this.fingerprintDataGridViewTextBoxColumn.DataPropertyName = "Fingerprint";
-      this.fingerprintDataGridViewTextBoxColumn.HeaderText = "Fingerprint";
-      this.fingerprintDataGridViewTextBoxColumn.Name = "fingerprintDataGridViewTextBoxColumn";
-      this.fingerprintDataGridViewTextBoxColumn.ReadOnly = true;
-      this.fingerprintDataGridViewTextBoxColumn.Width = 81;
-      // 
-      // commentDataGridViewTextBoxColumn
-      // 
-      this.commentDataGridViewTextBoxColumn.AutoSizeMode = System.Windows.Forms.DataGridViewAutoSizeColumnMode.AllCells;
-      this.commentDataGridViewTextBoxColumn.DataPropertyName = "Comment";
-      this.commentDataGridViewTextBoxColumn.HeaderText = "Comment";
-      this.commentDataGridViewTextBoxColumn.Name = "commentDataGridViewTextBoxColumn";
-      this.commentDataGridViewTextBoxColumn.ReadOnly = true;
-      this.commentDataGridViewTextBoxColumn.Width = 76;
-      // 
-      // keyWrapperBindingSource
-      // 
-      this.keyWrapperBindingSource.DataSource = typeof(dlech.SshAgentLib.KeyWrapper);
       // 
       // mainTableLayoutPanel
       // 
@@ -287,6 +227,66 @@
       this.openFileDialog.Title = "Open SSH Key File";
       this.openFileDialog.FileOk += new System.ComponentModel.CancelEventHandler(this.openFileDialog_FileOk);
       // 
+      // keyWrapperBindingSource
+      // 
+      this.keyWrapperBindingSource.DataSource = typeof(dlech.SshAgentLib.KeyWrapper);
+      // 
+      // confirmDataGridViewCheckBoxColumn
+      // 
+      this.confirmDataGridViewCheckBoxColumn.AutoSizeMode = System.Windows.Forms.DataGridViewAutoSizeColumnMode.AllCells;
+      this.confirmDataGridViewCheckBoxColumn.DataPropertyName = "Confirm";
+      this.confirmDataGridViewCheckBoxColumn.HeaderText = "C";
+      this.confirmDataGridViewCheckBoxColumn.Name = "confirmDataGridViewCheckBoxColumn";
+      this.confirmDataGridViewCheckBoxColumn.ReadOnly = true;
+      this.confirmDataGridViewCheckBoxColumn.ToolTipText = "Confirm Constraint";
+      this.confirmDataGridViewCheckBoxColumn.Width = 20;
+      // 
+      // lifetimeDataGridViewCheckBoxColumn
+      // 
+      this.lifetimeDataGridViewCheckBoxColumn.AutoSizeMode = System.Windows.Forms.DataGridViewAutoSizeColumnMode.AllCells;
+      this.lifetimeDataGridViewCheckBoxColumn.DataPropertyName = "Lifetime";
+      this.lifetimeDataGridViewCheckBoxColumn.HeaderText = "L";
+      this.lifetimeDataGridViewCheckBoxColumn.Name = "lifetimeDataGridViewCheckBoxColumn";
+      this.lifetimeDataGridViewCheckBoxColumn.ReadOnly = true;
+      this.lifetimeDataGridViewCheckBoxColumn.ToolTipText = "Lifetime Constraint";
+      this.lifetimeDataGridViewCheckBoxColumn.Width = 19;
+      // 
+      // typeDataGridViewTextBoxColumn
+      // 
+      this.typeDataGridViewTextBoxColumn.AutoSizeMode = System.Windows.Forms.DataGridViewAutoSizeColumnMode.AllCells;
+      this.typeDataGridViewTextBoxColumn.DataPropertyName = "Type";
+      this.typeDataGridViewTextBoxColumn.HeaderText = "Type";
+      this.typeDataGridViewTextBoxColumn.Name = "typeDataGridViewTextBoxColumn";
+      this.typeDataGridViewTextBoxColumn.ReadOnly = true;
+      this.typeDataGridViewTextBoxColumn.Width = 56;
+      // 
+      // sizeDataGridViewTextBoxColumn
+      // 
+      this.sizeDataGridViewTextBoxColumn.AutoSizeMode = System.Windows.Forms.DataGridViewAutoSizeColumnMode.AllCells;
+      this.sizeDataGridViewTextBoxColumn.DataPropertyName = "Size";
+      this.sizeDataGridViewTextBoxColumn.HeaderText = "Size";
+      this.sizeDataGridViewTextBoxColumn.Name = "sizeDataGridViewTextBoxColumn";
+      this.sizeDataGridViewTextBoxColumn.ReadOnly = true;
+      this.sizeDataGridViewTextBoxColumn.Width = 52;
+      // 
+      // fingerprintDataGridViewTextBoxColumn
+      // 
+      this.fingerprintDataGridViewTextBoxColumn.AutoSizeMode = System.Windows.Forms.DataGridViewAutoSizeColumnMode.AllCells;
+      this.fingerprintDataGridViewTextBoxColumn.DataPropertyName = "Fingerprint";
+      this.fingerprintDataGridViewTextBoxColumn.HeaderText = "Fingerprint";
+      this.fingerprintDataGridViewTextBoxColumn.Name = "fingerprintDataGridViewTextBoxColumn";
+      this.fingerprintDataGridViewTextBoxColumn.ReadOnly = true;
+      this.fingerprintDataGridViewTextBoxColumn.Width = 81;
+      // 
+      // commentDataGridViewTextBoxColumn
+      // 
+      this.commentDataGridViewTextBoxColumn.AutoSizeMode = System.Windows.Forms.DataGridViewAutoSizeColumnMode.AllCells;
+      this.commentDataGridViewTextBoxColumn.DataPropertyName = "Comment";
+      this.commentDataGridViewTextBoxColumn.HeaderText = "Comment";
+      this.commentDataGridViewTextBoxColumn.Name = "commentDataGridViewTextBoxColumn";
+      this.commentDataGridViewTextBoxColumn.ReadOnly = true;
+      this.commentDataGridViewTextBoxColumn.Width = 76;
+      // 
       // KeyInfoView
       // 
       this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
@@ -295,12 +295,12 @@
       this.Name = "KeyInfoView";
       this.Size = new System.Drawing.Size(553, 257);
       ((System.ComponentModel.ISupportInitialize)(this.dataGridView)).EndInit();
-      ((System.ComponentModel.ISupportInitialize)(this.keyWrapperBindingSource)).EndInit();
       this.mainTableLayoutPanel.ResumeLayout(false);
       this.mainTableLayoutPanel.PerformLayout();
       this.dataGridViewPanel.ResumeLayout(false);
       this.buttonTableLayoutPanel.ResumeLayout(false);
       this.buttonTableLayoutPanel.PerformLayout();
+      ((System.ComponentModel.ISupportInitialize)(this.keyWrapperBindingSource)).EndInit();
       this.ResumeLayout(false);
 
     }
@@ -308,12 +308,6 @@
     #endregion
 
     private System.Windows.Forms.Label messageLabel;
-    private System.Windows.Forms.DataGridViewCheckBoxColumn confirmDataGridViewCheckBoxColumn;
-    private System.Windows.Forms.DataGridViewCheckBoxColumn lifetimeDataGridViewCheckBoxColumn;
-    private System.Windows.Forms.DataGridViewTextBoxColumn typeDataGridViewTextBoxColumn;
-    private System.Windows.Forms.DataGridViewTextBoxColumn sizeDataGridViewTextBoxColumn;
-    private System.Windows.Forms.DataGridViewTextBoxColumn fingerprintDataGridViewTextBoxColumn;
-    private System.Windows.Forms.DataGridViewTextBoxColumn commentDataGridViewTextBoxColumn;
     private System.Windows.Forms.BindingSource keyWrapperBindingSource;
     public System.Windows.Forms.DataGridView dataGridView;
     private System.Windows.Forms.TableLayoutPanel mainTableLayoutPanel;
@@ -326,5 +320,11 @@
     private System.Windows.Forms.Button refreshButton;
     private System.Windows.Forms.OpenFileDialog openFileDialog;
     private System.Windows.Forms.Panel dataGridViewPanel;
+    private System.Windows.Forms.DataGridViewCheckBoxColumn confirmDataGridViewCheckBoxColumn;
+    private System.Windows.Forms.DataGridViewCheckBoxColumn lifetimeDataGridViewCheckBoxColumn;
+    private System.Windows.Forms.DataGridViewTextBoxColumn typeDataGridViewTextBoxColumn;
+    private System.Windows.Forms.DataGridViewTextBoxColumn sizeDataGridViewTextBoxColumn;
+    private System.Windows.Forms.DataGridViewTextBoxColumn fingerprintDataGridViewTextBoxColumn;
+    private System.Windows.Forms.DataGridViewTextBoxColumn commentDataGridViewTextBoxColumn;
   }
 }
