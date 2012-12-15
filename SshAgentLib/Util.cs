@@ -15,14 +15,17 @@ using Org.BouncyCastle.Asn1.Pkcs;
 using Org.BouncyCastle.Asn1;
 using Org.BouncyCastle.Math;
 using System.Collections;
+using System.Reflection;
 
 namespace dlech.SshAgentLib
 {
   /// <summary>
   /// PageantSharp utility class.
   /// </summary>
-  public static class PSUtil
+  public static class Util
   {
+
+    private static string mAssemblyTitle;
 
     public static bool HasConstraint(this ISshKey aKey, 
       Agent.KeyConstraintType aType)
@@ -1882,6 +1885,39 @@ namespace dlech.SshAgentLib
           return 0x7e; //Fullwidth Tilde
         default:
           return 0x3f; //Question Mark
+      }
+    }
+
+    /// <summary>
+    /// Gets the assembly title.
+    /// </summary>
+    /// <value>The assembly title.</value>
+    /// <remarks>
+    /// from http://www.codekeep.net/snippets/170dc91f-1077-4c7f-ab05-8f82b9d1b682.aspx
+    /// </remarks>
+    public static string AssemblyTitle
+    {
+      get
+      {
+        if (mAssemblyTitle == null) {
+          // Get all Title attributes on this assembly
+          object[] attributes = Assembly.GetEntryAssembly()
+            .GetCustomAttributes(typeof(AssemblyTitleAttribute), false);
+          // If there is at least one Title attribute
+          if (attributes.Length > 0) {
+            // Select the first one
+            AssemblyTitleAttribute titleAttribute =
+              (AssemblyTitleAttribute)attributes[0];
+            // If it is not an empty string, return it
+            if (titleAttribute.Title != "")
+              return titleAttribute.Title;
+          }
+          // If there was no Title attribute, or if the Title attribute was the
+          // empty string, return the .exe name
+          mAssemblyTitle = System.IO.Path.GetFileNameWithoutExtension(
+            Assembly.GetExecutingAssembly().CodeBase);
+        }
+        return mAssemblyTitle;
       }
     }
 

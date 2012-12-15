@@ -5,21 +5,12 @@ using System.Runtime.InteropServices;
 // General Information about an assembly is controlled through the following 
 // set of attributes. Change these attribute values to modify the information
 // associated with an assembly.
-
-#if DOT_NET_35
-[assembly: AssemblyTitle("PageantSharp35")]
-[assembly: AssemblyProduct("PageantSharp35")]
-[assembly: AssemblyDescription(".NET 3.5 Library for creating a Putty key agents")]
-#else
-[assembly: AssemblyTitle("SshAgentLib")]
-[assembly: AssemblyProduct("SshAgentLib")]
-[assembly: AssemblyDescription("SSH Agent .NET 4.0 Library")]
-#endif // DOT_NET_35
-
+[assembly: AssemblyTitle("SshAgentLib.WinForm")]
+[assembly: AssemblyDescription("")]
 [assembly: AssemblyConfiguration("")]
-[assembly: AssemblyCompany("David Lechner")]
-
-[assembly: AssemblyCopyright("2012")]
+[assembly: AssemblyCompany("")]
+[assembly: AssemblyProduct("SshAgentLib.WinForm")]
+[assembly: AssemblyCopyright("Copyright ©  2012")]
 [assembly: AssemblyTrademark("")]
 [assembly: AssemblyCulture("")]
 
@@ -29,7 +20,7 @@ using System.Runtime.InteropServices;
 [assembly: ComVisible(false)]
 
 // The following GUID is for the ID of the typelib if this project is exposed to COM
-[assembly: Guid("13353ed2-095d-4c9f-ac74-02e275e6e4ff")]
+[assembly: Guid("cf070226-488c-4f61-83dc-3c5370a5a71a")]
 
 // Version information for an assembly consists of the following four values:
 //
@@ -38,5 +29,8 @@ using System.Runtime.InteropServices;
 //      Build Number
 //      Revision
 //
-[assembly: AssemblyVersion("0.3.0.0")]
-[assembly: AssemblyFileVersion("0.3.0.0")]
+// You can specify all the values or you can default the Build and Revision Numbers 
+// by using the '*' as shown below:
+// [assembly: AssemblyVersion("1.0.*")]
+[assembly: AssemblyVersion("1.0.0.0")]
+[assembly: AssemblyFileVersion("1.0.0.0")]

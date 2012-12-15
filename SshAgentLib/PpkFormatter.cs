@@ -277,7 +277,7 @@ namespace dlech.SshAgentLib
         for (i = 0; i < lineCount; i++) {
           publicKeyString += reader.ReadLine();
         }
-        fileData.publicKeyBlob = PSUtil.FromBase64(publicKeyString);
+        fileData.publicKeyBlob = Util.FromBase64(publicKeyString);
 
         /* read private key */
         line = reader.ReadLine();
@@ -295,7 +295,7 @@ namespace dlech.SshAgentLib
           privateKeyString += reader.ReadLine();
         }
         fileData.privateKeyBlob =
-          new PinnedByteArray(PSUtil.FromBase64(privateKeyString));
+          new PinnedByteArray(Util.FromBase64(privateKeyString));
 
         /* read MAC */
         line = reader.ReadLine();
@@ -310,7 +310,7 @@ namespace dlech.SshAgentLib
           fileData.isHMAC = true;
         }
         string privateMACString = pair[1].Trim();
-        fileData.privateMAC = PSUtil.FromHex(privateMACString);
+        fileData.privateMAC = Util.FromHex(privateMACString);
 
 
         /* get passphrase and decrypt private key if required */
@@ -381,7 +381,7 @@ namespace dlech.SshAgentLib
               Marshal.SecureStringToGlobalAllocUnicode(fileData.passphrase);
             for (int i = 0; i < fileData.passphrase.Length; i++) {
               int unicodeChar = Marshal.ReadInt16(passphrasePtr + i * 2);
-              byte ansiChar = PSUtil.UnicodeToAnsi(unicodeChar);
+              byte ansiChar = Util.UnicodeToAnsi(unicodeChar);
               hashData.Data[cPrivateKeyDecryptSalt1.Length + i] = ansiChar;
               Marshal.WriteByte(passphrasePtr, i, 0);
             }
@@ -403,11 +403,11 @@ namespace dlech.SshAgentLib
           int keySize = aes.KeySize / 8; // convert bits to bytes
           key.RemoveRange(keySize, key.Count - keySize); // remove extra bytes
           aes.Key = key.ToArray();
-          PSUtil.ClearByteList(key);
+          Util.ClearByteList(key);
           aes.IV = new byte[aes.IV.Length];
           ICryptoTransform decryptor = aes.CreateDecryptor();
           fileData.privateKeyBlob.Data =
-            PSUtil.GenericTransform(decryptor, fileData.privateKeyBlob.Data);
+            Util.GenericTransform(decryptor, fileData.privateKeyBlob.Data);
           decryptor.Dispose();
           aes.Clear();
           break;
@@ -444,7 +444,7 @@ namespace dlech.SshAgentLib
               Marshal.SecureStringToGlobalAllocUnicode(fileData.passphrase);
             for (int i = 0; i < fileData.passphrase.Length; i++) {
               int unicodeChar = Marshal.ReadInt16(passphrasePtr + i * 2);
-              byte ansiChar = PSUtil.UnicodeToAnsi(unicodeChar);
+              byte ansiChar = Util.UnicodeToAnsi(unicodeChar);
               hashData.Data[cMACKeySalt.Length + i] = ansiChar;
               Marshal.WriteByte(passphrasePtr, i * 2, 0);
             }

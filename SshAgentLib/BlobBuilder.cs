@@ -137,7 +137,7 @@ namespace dlech.SshAgentLib
     /// </summary>
     public void Clear()
     {
-      PSUtil.ClearByteList(byteList);
+      Util.ClearByteList(byteList);
     }
   }
 }
