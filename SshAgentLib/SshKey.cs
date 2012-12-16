@@ -95,6 +95,20 @@ namespace dlech.SshAgentLib
       {
         try {
           using (MD5 md5 = MD5.Create()) {
+            if (mPublicKeyParameter is RsaKeyParameters && this.Version == SshVersion.SSH1)
+            {
+                RsaKeyParameters rsaKeyParameters = mPublicKeyParameter as RsaKeyParameters;
+
+                int modSize = rsaKeyParameters.Modulus.ToByteArrayUnsigned().Length;
+                int expSize = rsaKeyParameters.Exponent.ToByteArrayUnsigned().Length;
+                byte[] md5Buffer = new byte[modSize + expSize];
+
+                rsaKeyParameters.Modulus.ToByteArrayUnsigned().CopyTo(md5Buffer, 0);
+                rsaKeyParameters.Exponent.ToByteArrayUnsigned().CopyTo(md5Buffer, modSize);
+
+                return md5.ComputeHash(md5Buffer);
+            }
+
             return md5.ComputeHash(this.GetPublicKeyBlob());
           }
         } catch (Exception) {
