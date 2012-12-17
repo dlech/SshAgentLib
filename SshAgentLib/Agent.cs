@@ -16,6 +16,9 @@ using Org.BouncyCastle.Asn1.Sec;
 using System.Collections.Specialized;
 using System.Timers;
 using System.ComponentModel;
+using System.Security.Cryptography;
+using Org.BouncyCastle.Crypto.Encodings;
+using Org.BouncyCastle.Crypto.Engines;
 
 namespace dlech.SshAgentLib
 {
@@ -345,7 +348,19 @@ namespace dlech.SshAgentLib
            * Reply with SSH1_AGENT_RSA_IDENTITIES_ANSWER.
            */
 
-          // TODO implement SSH1_AGENT_RSA_IDENTITIES_ANSWER
+           try {
+            ICollection<ISshKey> keyList;
+            ListKeys(SshVersion.SSH1, out keyList);
+            foreach (SshKey key in keyList) {
+              responseBuilder.AddBytes(key.GetPublicKeyBlob());
+              responseBuilder.AddStringBlob(key.Comment);
+            }
+            responseBuilder.InsertHeader(Message.SSH1_AGENT_RSA_IDENTITIES_ANSWER, keyList.Count);
+            // TODO may want to check that there is enough room in the message stream
+            break; // succeeded
+          } catch (Exception ex) {
+            Debug.Fail(ex.ToString());
+          }
 
           goto default; // failed
 
@@ -376,7 +391,48 @@ namespace dlech.SshAgentLib
            * or not.
            */
 
-          // TODO implement SSH1_AGENTC_RSA_CHALLENGE
+            try
+            {
+                //Reading publicKey information
+                var publicKeyParams = ParseSsh1PublicKeyData(aMessageStream, true);
+
+                //Searching for Key here
+                ISshKey matchingKey = mKeyList.Where(key => key.Version == SshVersion.SSH1 
+                    && (key.GetPublicKeyParameters().Equals(publicKeyParams))).Single();
+
+                //Reading challenge
+                BlobParser ssh1ChallengeParser = new BlobParser(aMessageStream);
+                PinnedByteArray encryptedChallenge = ssh1ChallengeParser.ReadSsh1BigIntBlob();
+                PinnedByteArray sessionId = ssh1ChallengeParser.ReadBytes(16);
+
+                //Checking responseType field
+                if (ssh1ChallengeParser.ReadInt() != 1)
+                {
+                    goto default; //responseType !=1  is not longer supported
+                }
+
+                //Answering to the challenge
+                IAsymmetricBlockCipher engine = new Pkcs1Encoding(new RsaEngine());
+                engine.Init(false, matchingKey.GetPrivateKeyParameters());
+                
+                byte[] decryptedChallenge = engine.ProcessBlock(encryptedChallenge.Data,
+                    0, encryptedChallenge.Data.Length);
+
+                using (MD5 md5 = MD5.Create())
+                {
+                    byte[] md5Buffer = new byte[48];
+                    decryptedChallenge.CopyTo(md5Buffer,0);
+                    sessionId.Data.CopyTo(md5Buffer, 32);
+
+                    responseBuilder.AddBytes(md5.ComputeHash(md5Buffer));
+                    responseBuilder.InsertHeader(Message.SSH1_AGENT_RSA_RESPONSE);
+                    break;
+                }       
+            } catch (InvalidOperationException) {
+                // this is expected if there is not a matching key
+            } catch (Exception ex) {
+                Debug.Fail(ex.ToString());
+            }
 
           goto default; // failed
 
@@ -437,7 +493,48 @@ namespace dlech.SshAgentLib
            * SSH_AGENT_FAILURE if the key was malformed.
            */
 
-          // TODO implement SSH1_AGENTC_ADD_RSA_IDENTITY
+          if (IsLocked)
+          {
+              goto default;
+          }
+
+          bool ssh1constrained = (header.Message == Message.SSH1_AGENTC_ADD_RSA_ID_CONSTRAINED);
+
+          try
+          {
+              var publicKeyParams = ParseSsh1PublicKeyData(aMessageStream,false);
+              var keyPair = ParseSsh1KeyData(publicKeyParams, aMessageStream);
+
+              SshKey key = new SshKey(SshVersion.SSH1, keyPair);
+              key.Comment = messageParser.ReadString();
+
+              if (ssh1constrained)
+              {
+                  while (aMessageStream.Position < header.BlobLength + 4)
+                  {
+                      KeyConstraint constraint = new KeyConstraint();
+                      constraint.Type =(KeyConstraintType)messageParser.ReadByte();
+                      if (constraint.Type ==
+                        KeyConstraintType.SSH_AGENT_CONSTRAIN_LIFETIME)
+                      {
+                          constraint.Data = messageParser.ReadInt();
+                      }
+                      key.AddConstraint(constraint);
+                  }
+              }
+              AddKey(key);
+              responseBuilder.InsertHeader(Message.SSH_AGENT_SUCCESS);
+              break;
+
+          }
+          catch (CallbackNullException)
+          {
+              // this is expected
+          }
+          catch (Exception ex)
+          {
+              Debug.Fail(ex.ToString());
+          }
 
           goto default; // failed
 
@@ -732,6 +829,64 @@ namespace dlech.SshAgentLib
       }
     }
 
+    /// <summary>
+    /// reads ssh1 OpenSSH formatted public key blob from stream and creates 
+    /// an AsymmetricKeyParameter object
+    /// </summary>
+    /// <param name="aSteam">stream to parse</param>
+    /// <param name="aReverseRsaParameters">
+    /// Set to true to read RSA modulus first. Normally exponent is read first.
+    /// </param>
+    /// <returns>AsymmetricKeyParameter containing the public key</returns>
+    public static AsymmetricKeyParameter ParseSsh1PublicKeyData(Stream aSteam, bool aReverseRsaParameters)
+    {
+        BlobParser parser = new BlobParser(aSteam);
+
+        uint keyLength = parser.ReadInt();
+        var rsaN = new BigInteger(1, parser.ReadSsh1BigIntBlob().Data);
+        var rsaE = new BigInteger(1, parser.ReadSsh1BigIntBlob().Data);
+
+        if (aReverseRsaParameters)
+        {
+            return new RsaKeyParameters(false, rsaE, rsaN);
+        }
+        return new RsaKeyParameters(false, rsaN, rsaE);
+    }
+
+
+    /// <summary>
+    /// reads private key portion of OpenSSH ssh1 formatted key blob from stream and
+    /// creates a key pair
+    /// </summary>
+    /// <param name="aSteam">stream to parse</param>
+    /// <returns>key pair</returns>
+    /// <remarks>
+    /// intended to be called immediately after ParseSsh1PublicKeyData
+    /// </remarks>
+    public static AsymmetricCipherKeyPair ParseSsh1KeyData(AsymmetricKeyParameter aPublicKeyParameter, Stream aSteam)
+    {
+        BlobParser parser = new BlobParser(aSteam);
+
+        PinnedByteArray rsa_d = parser.ReadSsh1BigIntBlob();
+        PinnedByteArray rsa_iqmp = parser.ReadSsh1BigIntBlob();
+        PinnedByteArray rsa_q = parser.ReadSsh1BigIntBlob();
+        PinnedByteArray rsa_p = parser.ReadSsh1BigIntBlob();
+
+        var rsaD = new BigInteger(1, rsa_d.Data);
+        var rsaIQMP = new BigInteger(1, rsa_iqmp.Data);
+        var rsaP = new BigInteger(1, rsa_p.Data);
+        var rsaQ = new BigInteger(1, rsa_q.Data);
+
+        var rsaDP = rsaD.Remainder(rsaP.Subtract(BigInteger.One));
+        var rsaDQ = rsaD.Remainder(rsaQ.Subtract(BigInteger.One));
+
+        var rsaPublicKeyParams = aPublicKeyParameter as RsaKeyParameters;
+
+        var rsaPrivateKeyParams = new RsaPrivateCrtKeyParameters(rsaPublicKeyParams.Modulus, rsaPublicKeyParams.Exponent, rsaD, rsaP, rsaQ, rsaDP, rsaDQ, rsaIQMP);
+
+        return new AsymmetricCipherKeyPair(rsaPublicKeyParams, rsaPrivateKeyParams);
+
+    }
     #endregion
 
 
