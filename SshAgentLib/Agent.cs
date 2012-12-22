@@ -37,9 +37,20 @@ namespace dlech.SshAgentLib
 
     #region Events
 
+    /// <summary>
+    /// fired when agent is locked or unlocked
+    /// </summary>
     public event LockEventHandler Locked;
 
+    /// <summary>
+    /// fired when a key is added or removed
+    /// </summary>
     public event KeyListChangeEventHandler KeyListChanged;
+
+    /// <summary>
+    /// fired when a key is used to sign a request
+    /// </summary>
+    public event KeyUsedEventHandler KeyUsed;
 
     #endregion
 
@@ -165,6 +176,18 @@ namespace dlech.SshAgentLib
     public delegate void KeyListChangeEventHandler(object aSender,
       KeyListChangeEventArgs aEventArgs);
 
+    public class KeyUsedEventArgs : EventArgs
+    {
+      public KeyUsedEventArgs(ISshKey aKey)
+      {
+        Key = aKey;
+      }
+      public ISshKey Key { get; private set; }
+    }
+
+    public delegate void KeyUsedEventHandler(object aSender,
+      KeyUsedEventArgs aEventArgs);
+
     /// <summary>
     /// Requests user for permission to use specified key.
     /// </summary>
@@ -173,6 +196,8 @@ namespace dlech.SshAgentLib
     /// true if user grants permission, false if user denies permission
     /// </returns>
     public delegate bool ConfirmUserPermissionDelegate(ISshKey key);
+
+
 
     #endregion
 
@@ -423,6 +448,9 @@ namespace dlech.SshAgentLib
             signatureBuilder.AddBlob(signature);
             responseBuilder.AddBlob(signatureBuilder.GetBlob());
             responseBuilder.InsertHeader(Message.SSH2_AGENT_SIGN_RESPONSE);
+            try {
+              KeyUsed(this, new KeyUsedEventArgs(signKey));
+            } catch { }
             break; // succeeded
           } catch (InvalidOperationException) {
             // this is expected if there is not a matching key
