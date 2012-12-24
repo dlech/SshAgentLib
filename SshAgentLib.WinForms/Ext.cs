@@ -26,18 +26,17 @@ namespace dlech.SshAgentLib.WinForms
             fileName, ex.Message), Util.AssemblyTitle, MessageBoxButtons.OK,
             MessageBoxIcon.Error);
         }
+        // TODO may want to return ICollection<ISshKey> with added keys 
+        // to be more like other Add* methods
       }
     }
 
-    public static void AddKeyFromFile(this IAgent aAgent, string aFileName,
+    public static ISshKey AddKeyFromFile(this IAgent aAgent, string aFileName,
       ICollection<Agent.KeyConstraint> aConstraints)
     {
       var getPassword = PasswordCallbackFactory(
         string.Format(Strings.msgEnterPassphrase, Path.GetFileName(aFileName)));
-      var success = aAgent.AddKeyFromFile(aFileName, getPassword, aConstraints);
-      if (!success) {
-        throw new Exception(Strings.errAddKeyFailed);
-      }
+      return aAgent.AddKeyFromFile(aFileName, getPassword, aConstraints);
     }
 
     public static KeyFormatter.GetPassphraseCallback

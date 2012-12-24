@@ -28,7 +28,28 @@ namespace dlech.SshAgentLib
 
   public static class IAgentExt
   {
-    public static bool AddKeyFromFile(this IAgent aAgent, string aFileName,
+    /// <summary>
+    /// Reads file and loads key into agent
+    /// </summary>
+    /// <param name="aAgent">the agent</param>
+    /// <param name="aFileName">pathname of file to read</param>
+    /// <param name="aGetPassPhraseCallback">method that returns passphrase</param>
+    /// <param name="aConstraints">additional constraints</param>
+    /// <exception cref="AgentFailureException">
+    /// Agent returned SSH_AGENT_FAILURE
+    /// </exception>
+    /// <exception cref="KeyFormatterException">
+    /// File format was not recognized
+    /// </exception>
+    /// <exception cref="UnauthorizedAccessException"></exception>
+    /// <exception cref="ArgumentException"></exception>
+    /// <exception cref="ArgumentNullException"></exception>
+    /// <exception cref="PathTooLongException"></exception>
+    /// <exception cref="DirectoryNotFoundException"></exception>
+    /// <exception cref="FileNotFoundException"></exception>
+    /// <exception cref="NotSupportedException"></exception>
+    /// <returns>The ssh key that was read from the file</returns>
+    public static ISshKey AddKeyFromFile(this IAgent aAgent, string aFileName,
       KeyFormatter.GetPassphraseCallback aGetPassPhraseCallback,
       ICollection<Agent.KeyConstraint> aConstraints = null)
     {
@@ -44,7 +65,10 @@ namespace dlech.SshAgentLib
           key.AddConstraint(constraint);
         }
       }
-      return aAgent.AddKey(key);
+      if (!aAgent.AddKey(key)) {
+        throw new AgentFailureException();
+      }
+      return key;
     }
 
     public static void RemoveAllKeys(this IAgent aAgent)

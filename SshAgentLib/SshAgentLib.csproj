@@ -78,6 +78,7 @@
   </PropertyGroup>
   <ItemGroup>
     <Compile Include="AgentClient.cs" />
+    <Compile Include="AgentFailureException.cs" />
     <Compile Include="AgentMode.cs" />
     <Compile Include="BlobParser.cs" />
     <Compile Include="CallbackNullException.cs" />

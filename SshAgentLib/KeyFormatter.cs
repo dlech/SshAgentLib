@@ -104,7 +104,7 @@ namespace dlech.SshAgentLib
     /// <returns>
     /// KeyFormatter that should be able to deserialize the data
     /// </returns>
-    /// <exception cref="PpkFormatterException">
+    /// <exception cref="KeyFormatterException">
     /// The file format was not recognized
     /// </exception>
     public static KeyFormatter GetFormatter(string aFirstLine)
