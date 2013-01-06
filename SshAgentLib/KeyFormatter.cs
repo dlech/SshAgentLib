@@ -116,6 +116,8 @@ namespace dlech.SshAgentLib
         return new PpkFormatter();
       } else if (pemPrivateKeyRegex.IsMatch(aFirstLine)) {
         return new Ssh2KeyFormatter();
+      } else if (Ssh1KeyFormatter.FILE_HEADER_LINE.Equals(aFirstLine)) {
+        return new Ssh1KeyFormatter();
       } else {
         throw new KeyFormatterException("Unknown file format");
       }
