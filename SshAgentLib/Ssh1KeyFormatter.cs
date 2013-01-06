@@ -36,8 +36,8 @@ namespace dlech.SshAgentLib
       parser.ReadBytes((uint)FILE_HEADER_LINE.Length+2);  //Skipping header line
 
       byte cipherType = parser.ReadByte();
-      if (cipherType != 3) {
-        //ciphertype 3 (TripleDes) is the only one supported
+      if (cipherType != 3 && cipherType!=0) {
+        //ciphertype 3 (TripleDes) is the only encryption supported
         throw new KeyFormatterException("Unsupported cypherType: " + cipherType);
       }
 
@@ -48,34 +48,55 @@ namespace dlech.SshAgentLib
          Agent.ParseSsh1PublicKeyData(aStream, false);
       String keyComment = parser.ReadString();
 
-      /* building 3DES key from passphrase */
-      PasswordFinder pwFinder = null;
-      if (GetPassphraseCallbackMethod != null) {
-        pwFinder = new PasswordFinder(GetPassphraseCallbackMethod);
-      }
+      /* reading private key */
+      byte[] inputBuffer = new byte[aStream.Length];
+      aStream.Read(inputBuffer, 0, inputBuffer.Length);
+      byte[] ouputBuffer;
 
       try
       {
-        byte[] keydata;
-        using (MD5 md5 = MD5.Create())
-        {
-          char[] md5Buffer = pwFinder.GetPassword();
-          keydata = md5.ComputeHash((new ASCIIEncoding()).GetBytes(md5Buffer));
+        MemoryStream dStream = new MemoryStream();
+
+        if (cipherType == 3){
+          /* private key is 3DES encrypted */
+          PasswordFinder pwFinder = null;
+          if (GetPassphraseCallbackMethod != null) {
+            pwFinder = new PasswordFinder(GetPassphraseCallbackMethod);
+          }
+
+          byte[] keydata;
+          try
+          {
+            using (MD5 md5 = MD5.Create())
+            {
+              char[] md5Buffer = pwFinder.GetPassword();
+              keydata = md5.ComputeHash((new ASCIIEncoding()).GetBytes(md5Buffer));
+            }
+          }
+          catch (PasswordException ex)
+          {
+            if (GetPassphraseCallbackMethod == null)
+            {
+              throw new CallbackNullException();
+            }
+            throw new KeyFormatterException("see inner exception", ex);
+          }
+
+          /* decryption */
+          DesSsh1Engine desEngine = new DesSsh1Engine();
+          desEngine.Init(false, new KeyParameter(keydata));
+
+          BufferedBlockCipher bufferedBlockCipher = new BufferedBlockCipher(desEngine);
+          ouputBuffer = bufferedBlockCipher.ProcessBytes(inputBuffer);
+
+        }else{
+          /* private key is stored in plain text */
+          ouputBuffer = inputBuffer;
         }
 
-        /* decryption */
-        DesSsh1Engine desEngine = new DesSsh1Engine();
-        desEngine.Init(false, new KeyParameter(keydata));
-
-        MemoryStream dStream = new MemoryStream();
-        BufferedBlockCipher bufferedBlockCipher = new BufferedBlockCipher(desEngine);
-
-        byte[] inputBuffer = new byte[aStream.Length];
-        aStream.Read(inputBuffer, 0, inputBuffer.Length);
-        byte[] ouputBuffer = bufferedBlockCipher.ProcessBytes(inputBuffer);
-        dStream.Write(ouputBuffer,0,ouputBuffer.Length);
+        /* writing the uncrypted private key in a memory stream */
+        dStream.Write(ouputBuffer, 0, ouputBuffer.Length);
         dStream.Position = 0;
-
 
         /* checking result of decryption */
         byte[] resultCheck = new byte[4];
@@ -89,14 +110,7 @@ namespace dlech.SshAgentLib
         SshKey key = new SshKey(SshVersion.SSH1, keyPair);
         key.Comment = keyComment;
 
-        this.SerializeToFile(key, @"C:\Users\Smexx\Colibri\test.ppk");
-
         return key;
-      } catch (PasswordException ex) {
-        if (GetPassphraseCallbackMethod == null) {
-          throw new CallbackNullException();
-        }
-        throw new KeyFormatterException("see inner exception", ex);
       } catch (KeyFormatterException) {
         throw;
       } catch (Exception ex) {
