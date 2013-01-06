@@ -37,12 +37,9 @@ namespace dlech.SshAgentLibTests
     }
 
     [Test()]
-    [Ignore(cTestNotImplemented)]
     public void TestDeserialize()
     {
-      Assert.Inconclusive(cTestNotImplemented);
-
-      /*Ssh1KeyFormatter formatter;
+      Ssh1KeyFormatter formatter;
       ISshKey key;
       byte[] buffer = new byte[4096];
       MemoryStream memStream = new MemoryStream(buffer);
@@ -51,7 +48,8 @@ namespace dlech.SshAgentLibTests
       formatter = new Ssh1KeyFormatter();
       key = formatter.Deserialize(Resources.ssh1_rsa_no_passphrase_ppk);
       Assert.That(key.Algorithm, Is.EqualTo(PublicKeyAlgorithm.SSH_RSA));
-      formatter.Serialize(memStream, key.GetPrivateKeyParameters());
+      Assert.That(key.Version, Is.EqualTo(SshVersion.SSH1));
+      formatter.Serialize(memStream, key);
       for (i = 0; i < Resources.ssh1_rsa_no_passphrase_ppk.Length; i++)
       {
         // TODO ignore line endings
@@ -61,7 +59,7 @@ namespace dlech.SshAgentLibTests
       formatter.GetPassphraseCallbackMethod = mPassphraseCallback;
       key = formatter.Deserialize(Resources.ssh1_rsa_ppk);
       Assert.That(key.Algorithm, Is.EqualTo(PublicKeyAlgorithm.SSH_RSA));
-      Assert.That(key.Version, Is.EqualTo(SshVersion.SSH1));*/
+      Assert.That(key.Version, Is.EqualTo(SshVersion.SSH1));
     }
   }
 }

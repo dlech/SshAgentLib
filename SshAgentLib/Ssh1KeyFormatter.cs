@@ -20,7 +20,107 @@ namespace dlech.SshAgentLib
 
     public override void Serialize(Stream aStream, object aObject)
     {
-       throw new KeyFormatterException("not implemented");
+      /* check for required parameters */
+      if (aStream == null) {
+        throw new ArgumentNullException("aStream");
+      }
+
+      if (aObject == null) {
+        throw new ArgumentNullException("aObject");
+      }
+
+      PasswordFinder pwFinder = null;
+      if (GetPassphraseCallbackMethod != null)
+      {
+        pwFinder = new PasswordFinder(GetPassphraseCallbackMethod);
+      }
+      StreamWriter streamWriter = new StreamWriter(aStream);
+      char[] passphrase = null;
+      if (pwFinder != null)
+      {
+        passphrase = pwFinder.GetPassword();
+      }
+
+      byte cipherType;
+      if (passphrase == null || passphrase.Length == 0)
+      {
+        cipherType=0;
+      }
+      else
+      {
+        cipherType=3;
+      }
+
+      BlobBuilder builder = new BlobBuilder();
+
+      ISshKey sshKey = aObject as ISshKey;
+      RsaKeyParameters publicKeyParams=sshKey.GetPublicKeyParameters()
+        as RsaKeyParameters;
+      RsaPrivateCrtKeyParameters privateKeyParams=sshKey.GetPrivateKeyParameters()
+        as RsaPrivateCrtKeyParameters;
+
+      /* writing info headers */
+      builder.AddBytes((new ASCIIEncoding()).GetBytes(FILE_HEADER_LINE+"\n"));
+      builder.AddByte(0);          //end of string
+      builder.AddByte(cipherType); //cipher
+      builder.AddInt(0);           //reserved
+
+      /* writing public key */
+      builder.AddInt(sshKey.Size);
+      builder.AddSsh1BigIntBlob(publicKeyParams.Modulus);
+      builder.AddSsh1BigIntBlob(publicKeyParams.Exponent);
+      builder.AddStringBlob(sshKey.Comment);
+
+      /* writing private key */
+      BlobBuilder privateKeyBuilder = new BlobBuilder();
+
+      /* adding some control values */
+      Random random = new Random();
+      byte[] resultCheck=new byte[2];
+      random.NextBytes(resultCheck);
+
+      privateKeyBuilder.AddByte(resultCheck[0]);
+      privateKeyBuilder.AddByte(resultCheck[1]);
+      privateKeyBuilder.AddByte(resultCheck[0]);
+      privateKeyBuilder.AddByte(resultCheck[1]);
+      privateKeyBuilder.AddSsh1BigIntBlob(privateKeyParams.Exponent);
+      privateKeyBuilder.AddSsh1BigIntBlob(privateKeyParams.DQ);
+      privateKeyBuilder.AddSsh1BigIntBlob(privateKeyParams.P);
+      privateKeyBuilder.AddSsh1BigIntBlob(privateKeyParams.Q);
+
+      if (cipherType == 0)
+      {
+        /* plain-text */
+        builder.AddBytes(privateKeyBuilder.GetBlobAsPinnedByteArray().Data);
+      }
+      else
+      {
+        GCHandle ppHandle = GCHandle.Alloc(passphrase, GCHandleType.Pinned);
+
+        byte[] keydata;
+        using (MD5 md5 = MD5.Create())
+        {
+          keydata = md5.ComputeHash((new ASCIIEncoding()).GetBytes(passphrase));
+        }
+
+        /* encryption */
+        DesSsh1Engine desEngine = new DesSsh1Engine();
+        desEngine.Init(true, new KeyParameter(keydata));
+
+        BufferedBlockCipher bufferedBlockCipher = new BufferedBlockCipher(desEngine);
+        byte[] ouputBuffer = bufferedBlockCipher.ProcessBytes(
+          privateKeyBuilder.GetBlobAsPinnedByteArray().Data);
+
+        builder.AddBytes(ouputBuffer);
+
+        Array.Clear(passphrase, 0, passphrase.Length);
+        ppHandle.Free();
+      }
+
+      /* writing result to file */
+      aStream.Write(builder.GetBlobAsPinnedByteArray().Data, 0,
+        builder.GetBlobAsPinnedByteArray().Data.Length);
+      aStream.Close();
     }
 
     public override object Deserialize(Stream aStream)

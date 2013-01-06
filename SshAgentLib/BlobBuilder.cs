@@ -92,7 +92,7 @@ namespace dlech.SshAgentLib
     /// <param name="blob"></param>
     public void AddSsh1BigIntBlob(BigInteger aBigInt)
     {
-        byte[] bytes = aBigInt.ToByteArray();
+        byte[] bytes = aBigInt.ToByteArrayUnsigned();
         ushort size = (ushort)(bytes.Length * 8);
         AddByte((byte)((size >> 8) & 0xFF));
         AddByte((byte)(size & 0xFF));
