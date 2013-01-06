@@ -46,7 +46,7 @@ namespace dlech.SshAgentLib
     {
       get
       {
-        return mKey.MD5Fingerprint.ToHexString();
+        return mKey.GetMD5Fingerprint().ToHexString();
       }
     }
 

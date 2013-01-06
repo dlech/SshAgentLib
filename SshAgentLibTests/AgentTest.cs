@@ -146,7 +146,7 @@ namespace dlech.SshAgentLibTests
                   Is.InstanceOf<RsaKeyParameters>());
       Assert.That(returnedKey.Size, Is.EqualTo(mRsa1Key.Size));
       Assert.That(returnedKey.Comment, Is.EqualTo(mRsa1Key.Comment));
-      Assert.That(returnedKey.MD5Fingerprint, Is.EqualTo(mRsa1Key.MD5Fingerprint));
+      Assert.That(returnedKey.GetMD5Fingerprint(), Is.EqualTo(mRsa1Key.GetMD5Fingerprint()));
     }
 
     [Test()]
@@ -181,7 +181,7 @@ namespace dlech.SshAgentLibTests
                   Is.InstanceOf<RsaKeyParameters>());
       Assert.That(returnedKey.Size, Is.EqualTo(mRsaKey.Size));
       Assert.That(returnedKey.Comment, Is.EqualTo(mRsaKey.Comment));
-      Assert.That(returnedKey.MD5Fingerprint, Is.EqualTo(mRsaKey.MD5Fingerprint));
+      Assert.That(returnedKey.GetMD5Fingerprint(), Is.EqualTo(mRsaKey.GetMD5Fingerprint()));
 
       /* test adding DSA key */
 
@@ -212,7 +212,7 @@ namespace dlech.SshAgentLibTests
                   Is.InstanceOf<DsaKeyParameters>());
       Assert.That(returnedKey.Size, Is.EqualTo(mDsaKey.Size));
       Assert.That(returnedKey.Comment, Is.EqualTo(mDsaKey.Comment));
-      Assert.That(returnedKey.MD5Fingerprint, Is.EqualTo(mDsaKey.MD5Fingerprint));
+      Assert.That(returnedKey.GetMD5Fingerprint(), Is.EqualTo(mDsaKey.GetMD5Fingerprint()));
 
       /* test adding ECDSA keys */
 
@@ -250,7 +250,7 @@ namespace dlech.SshAgentLibTests
                     Is.InstanceOf<ECPrivateKeyParameters>());
         Assert.That(returnedKey.Size, Is.EqualTo(key.Size));
         Assert.That(returnedKey.Comment, Is.EqualTo(key.Comment));
-        Assert.That(returnedKey.MD5Fingerprint, Is.EqualTo(key.MD5Fingerprint));
+        Assert.That(returnedKey.GetMD5Fingerprint(), Is.EqualTo(key.GetMD5Fingerprint()));
         Assert.That(returnedKey.Constraints.Count(), Is.EqualTo(0));
       }
 

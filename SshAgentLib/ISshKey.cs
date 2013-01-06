@@ -10,6 +10,7 @@ using Org.BouncyCastle.Math;
 using Org.BouncyCastle.Security;
 using Org.BouncyCastle.Asn1.X9;
 using Org.BouncyCastle.Asn1.Pkcs;
+using System.Security.Cryptography;
 
 namespace dlech.SshAgentLib
 {
@@ -34,11 +35,6 @@ namespace dlech.SshAgentLib
     /// The bit size of the key
     /// </summary>
     int Size { get; }
-
-    /// <summary>
-    /// The MD5 has of the public key
-    /// </summary>
-    byte[] MD5Fingerprint { get; }
 
     /// <summary>
     /// Comment associated with key
@@ -171,6 +167,30 @@ namespace dlech.SshAgentLib
       byte[] result = builder.GetBlob();
       builder.Clear();
       return result;
+    }
+
+    public static byte[] GetMD5Fingerprint(this ISshKey aKey)
+    {
+      try {
+        using (MD5 md5 = MD5.Create()) {
+          if (aKey.GetPublicKeyParameters() is RsaKeyParameters && aKey.Version == SshVersion.SSH1) {
+            var rsaKeyParameters = aKey.GetPublicKeyParameters() as RsaKeyParameters;
+
+            int modSize = rsaKeyParameters.Modulus.ToByteArrayUnsigned().Length;
+            int expSize = rsaKeyParameters.Exponent.ToByteArrayUnsigned().Length;
+            byte[] md5Buffer = new byte[modSize + expSize];
+
+            rsaKeyParameters.Modulus.ToByteArrayUnsigned().CopyTo(md5Buffer, 0);
+            rsaKeyParameters.Exponent.ToByteArrayUnsigned().CopyTo(md5Buffer, modSize);
+
+            return md5.ComputeHash(md5Buffer);
+          }
+
+          return md5.ComputeHash(aKey.GetPublicKeyBlob());
+        }
+      } catch (Exception) {
+        return null;
+      }
     }
 
     public static bool HasConstraint(this ISshKey aKey,

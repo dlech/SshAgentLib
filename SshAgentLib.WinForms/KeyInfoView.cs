@@ -256,7 +256,7 @@ namespace dlech.SshAgentLib.WinForms
         case Agent.KeyListChangeEventAction.Remove:
           Invoke((MethodInvoker)delegate()
           {
-            var matchFingerprint = aArgs.Key.MD5Fingerprint.ToHexString();
+            var matchFingerprint = aArgs.Key.GetMD5Fingerprint().ToHexString();
             var matches = mKeyCollection.Where(k =>
               k.Fingerprint == matchFingerprint).ToList();
             foreach (var key in matches) {
@@ -272,7 +272,7 @@ namespace dlech.SshAgentLib.WinForms
     private bool ConfirmCallback(ISshKey key)
     {
       var result = MessageBox.Show(
-        string.Format(Strings.askConfirmKey, key.Comment, key.MD5Fingerprint.ToHexString()),
+        string.Format(Strings.askConfirmKey, key.Comment, key.GetMD5Fingerprint().ToHexString()),
         Util.AssemblyTitle, MessageBoxButtons.YesNo, MessageBoxIcon.Question,
         MessageBoxDefaultButton.Button2
       );
@@ -336,7 +336,7 @@ namespace dlech.SshAgentLib.WinForms
         var success = mAgent.RemoveKey(key);
         if (!success) {
           MessageBox.Show(String.Format(Strings.errRemoveFailed,
-            key.MD5Fingerprint.ToHexString()), Util.AssemblyTitle,
+            key.GetMD5Fingerprint().ToHexString()), Util.AssemblyTitle,
             MessageBoxButtons.OK, MessageBoxIcon.Error);
         }
       }

@@ -52,12 +52,12 @@ namespace dlech.SshAgentLibTests
 
       ISshKey rsaTarget = formatter2.DeserializeFile(ssh2_rsa_no_passphrase_ppk);
       string rsaExpectedFingerprint = "57:95:98:7f:c2:4e:98:1d:b9:5b:45:fe:6d:a4:6b:17";
-      string rsaActual = rsaTarget.MD5Fingerprint.ToHexString();
+      string rsaActual = rsaTarget.GetMD5Fingerprint().ToHexString();
       Assert.That(rsaExpectedFingerprint, Is.EqualTo(rsaActual));
 
       ISshKey dsaTarget = formatter2.DeserializeFile(ssh2_dsa_no_passphrase_ppk);
       string dsaExpectedFingerprint = "4e:f1:fc:5d:80:5b:37:b6:13:67:ce:df:4e:83:7b:0b";
-      string dsaActual = dsaTarget.MD5Fingerprint.ToHexString();
+      string dsaActual = dsaTarget.GetMD5Fingerprint().ToHexString();
       Assert.That(dsaExpectedFingerprint, Is.EqualTo(dsaActual));
 
     }
