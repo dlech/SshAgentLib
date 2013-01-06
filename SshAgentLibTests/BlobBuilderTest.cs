@@ -73,6 +73,23 @@ namespace PageantSharpNUnitTest
     }
 
     [Test()]
+    public void TestAddSsh1BigIntBlob()
+    {
+      BlobBuilder builder = new BlobBuilder();
+      BigInteger value = new BigInteger("12398259028592293582039293420948023");
+      builder.AddSsh1BigIntBlob(value);
+      byte[] valueBytes = value.ToByteArrayUnsigned();
+      byte[] expected = new byte[valueBytes.Length + 2];
+
+      ushort size = (ushort)(valueBytes.Length * 8);
+      expected[0] = (byte)((size >> 8) & 0xFF);
+      expected[1] = (byte)(size & 0xFF);
+
+      Array.Copy(valueBytes, 0, expected, 2, valueBytes.Length);
+      Assert.That(builder.GetBlob(), Is.EqualTo(expected));
+    }
+
+    [Test()]
     public void TestInsertHeader()
     {
       BlobBuilder builder = new BlobBuilder();

@@ -17,11 +17,13 @@ namespace dlech.SshAgentLibTests
 
     private const string ssh2_rsa_no_passphrase_ppk = "ssh2-rsa-no-passphrase.ppk" ;
     private const string ssh2_dsa_no_passphrase_ppk = "ssh2-dsa-no-passphrase.ppk";
+    private const string ssh1_rsa_no_passphrase_ppk = "ssh1-rsa-no-passphrase.ppk";
 
     [TestFixtureSetUp()]
     public void Setup()
     {
       string[] fileList = { ssh2_rsa_no_passphrase_ppk ,
+                            ssh2_dsa_no_passphrase_ppk ,
                             ssh2_dsa_no_passphrase_ppk
                           };
       string resourceDir = Path.GetFullPath("../../Resources");
@@ -40,8 +42,8 @@ namespace dlech.SshAgentLibTests
     public void GetFingerprintTest()
     {
       PpkFormatter formatter = new PpkFormatter();
+
       ISshKey rsaTarget = formatter.DeserializeFile(ssh2_rsa_no_passphrase_ppk);
-          
       string rsaExpectedFingerprint = "57:95:98:7f:c2:4e:98:1d:b9:5b:45:fe:6d:a4:6b:17";
       string rsaActual = rsaTarget.MD5Fingerprint.ToHexString();
       Assert.That(rsaExpectedFingerprint, Is.EqualTo(rsaActual));
@@ -50,6 +52,12 @@ namespace dlech.SshAgentLibTests
       string dsaExpectedFingerprint = "4e:f1:fc:5d:80:5b:37:b6:13:67:ce:df:4e:83:7b:0b";
       string dsaActual = dsaTarget.MD5Fingerprint.ToHexString();
       Assert.That(dsaExpectedFingerprint, Is.EqualTo(dsaActual));
+
+      Ssh1KeyFormatter formatter2= new Ssh1KeyFormatter();
+      ISshKey rsaSsh1Target = formatter2.DeserializeFile(ssh1_rsa_no_passphrase_ppk);
+      string rsaSsh1ExpectedFingerprint = "05:cc:56:db:ca:39:1c:1e:5f:cf:3f:84:07:9d:40:74";
+      string rsaSsh1Actual = rsaSsh1Target.MD5Fingerprint.ToHexString();
+      Assert.That(rsaSsh1ExpectedFingerprint, Is.EqualTo(rsaSsh1Actual));
     }
 
     /// <summary>
@@ -64,7 +72,7 @@ namespace dlech.SshAgentLibTests
 
       /* test RSA key */
       target = formatter.DeserializeFile(ssh2_rsa_no_passphrase_ppk);
-      expected = PSUtil.FromBase64(
+      expected = Util.FromBase64(
         "AAAAB3NzaC1yc2EAAAABJQAAAIEAhWqdEs/lz1r4L8ZAAS76rX7hj3rrI/6FNlBw" +
         "6ERba2VFmn2AHxQwZmHHmqM+UtiY57angjD9fTbTzL74C0+f/NrRY+BYXf1cF+u5" +
         "XmjNKygrsIq3yPMZV4q8YcN/ls9COcynOQMIEmJF6Q0LD7Gt9Uv5yjqc2Ay7VVhG" +
@@ -75,7 +83,7 @@ namespace dlech.SshAgentLibTests
 
       /* test DSA key */
       target = formatter.DeserializeFile(ssh2_dsa_no_passphrase_ppk);
-      expected = PSUtil.FromBase64(
+      expected = Util.FromBase64(
           "AAAAB3NzaC1kc3MAAACBAMXDM56ty6fV+qDpMyZxobn5VB4L/E6zvOibUead6HBc" +
           "OHUibA97EKgooUbqJ9qFUOhhw8TaFtN0UtTLZoHjOWN3JdyugK+f2HYIxvhlvW60" +
           "8g0lfDU0G4KIXdZukTYm66C0jVSCIdHQ1Iz219JeaEZK00v6wEW7Pp7T7yE71W65" +

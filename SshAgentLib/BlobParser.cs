@@ -43,6 +43,17 @@ namespace dlech.SshAgentLib
       return dataLegthBytes.ToInt();
     }
 
+    public UInt16 ReadShort()
+    {
+        byte[] dataLegthBytes = new byte[2];
+        if (mStream.Length - mStream.Position < dataLegthBytes.Length)
+        {
+            throw new Exception("Not enough data");
+        }
+        mStream.Read(dataLegthBytes, 0, dataLegthBytes.Length);
+        return (ushort)((dataLegthBytes[0] << 8) + dataLegthBytes[1]); ;
+
+    }
     public Agent.BlobHeader ReadHeader()
     {
       Agent.BlobHeader header = new Agent.BlobHeader();
@@ -62,13 +73,23 @@ namespace dlech.SshAgentLib
 
     public PinnedByteArray ReadBlob()
     {
-      UInt32 blobLength = ReadInt();
-      if (mStream.Length - mStream.Position < blobLength) {
-        throw new Exception("Not enough data");
-      }
-      PinnedByteArray blob = new PinnedByteArray((int)blobLength);
-      mStream.Read(blob.Data, 0, blob.Data.Length);
-      return blob;
+        return ReadBytes(ReadInt());
+    }
+
+    public PinnedByteArray ReadSsh1BigIntBlob()
+    {
+        return ReadBytes((ReadShort() + (uint)7) / 8);
+    }
+
+    public PinnedByteArray ReadBytes(UInt32 blobLength)
+    {
+        if (mStream.Length - mStream.Position < blobLength)
+        {
+            throw new Exception("Not enough data");
+        }
+        PinnedByteArray blob = new PinnedByteArray((int)blobLength);
+        mStream.Read(blob.Data, 0, blob.Data.Length);
+        return blob;
     }
 
   }

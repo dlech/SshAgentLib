@@ -19,6 +19,8 @@ using Org.BouncyCastle.Asn1.X9;
 using Org.BouncyCastle.Asn1.Sec;
 using Org.BouncyCastle.Asn1;
 using System.Threading;
+using Org.BouncyCastle.Crypto.Encodings;
+using Org.BouncyCastle.Crypto.Engines;
 
 namespace dlech.SshAgentLibTests
 {
@@ -112,10 +114,39 @@ namespace dlech.SshAgentLibTests
     }
 
     [Test()]
-    [Ignore(cTestNotImplemented)]
     public void TestAnswerSSH1_AGENTC_ADD_RSA_IDENTITY()
     {
-      Assert.Inconclusive(cTestNotImplemented);
+      Agent agent = new TestAgent();
+
+      /* test adding RSA key */
+
+      BlobBuilder builder = new BlobBuilder();
+      RsaPrivateCrtKeyParameters rsaParameters =
+        (RsaPrivateCrtKeyParameters)mRsa1Key.GetPrivateKeyParameters();
+      builder.AddInt(mRsa1Key.Size);
+      builder.AddSsh1BigIntBlob(rsaParameters.Modulus);
+      builder.AddSsh1BigIntBlob(rsaParameters.PublicExponent);
+
+      builder.AddSsh1BigIntBlob(rsaParameters.Exponent);
+      builder.AddSsh1BigIntBlob(rsaParameters.QInv);
+      builder.AddSsh1BigIntBlob(rsaParameters.P);
+      builder.AddSsh1BigIntBlob(rsaParameters.Q);
+      builder.AddStringBlob(mRsa1Key.Comment);
+      builder.InsertHeader(Agent.Message.SSH1_AGENTC_ADD_RSA_IDENTITY);
+      PrepareMessage(builder);
+      agent.AnswerMessage(mStream);
+      RewindStream();
+      Agent.BlobHeader header = mParser.ReadHeader();
+      Assert.That(header.BlobLength, Is.EqualTo(1));
+      Assert.That(header.Message, Is.EqualTo(Agent.Message.SSH_AGENT_SUCCESS));
+      ISshKey returnedKey = agent.GetAllKeys().First();
+      Assert.That(returnedKey.GetPublicKeyParameters(),
+                  Is.InstanceOf<RsaKeyParameters>());
+      Assert.That(returnedKey.GetPrivateKeyParameters(),
+                  Is.InstanceOf<RsaKeyParameters>());
+      Assert.That(returnedKey.Size, Is.EqualTo(mRsa1Key.Size));
+      Assert.That(returnedKey.Comment, Is.EqualTo(mRsa1Key.Comment));
+      Assert.That(returnedKey.MD5Fingerprint, Is.EqualTo(mRsa1Key.MD5Fingerprint));
     }
 
     [Test()]
@@ -371,6 +402,46 @@ namespace dlech.SshAgentLibTests
     }
 
     [Test()]
+    public void TestAnswerSSH1_AGENTC_REQUEST_RSA_IDENTITIES()
+    {
+      Agent agent = new TestAgent(mAllKeys);
+
+      /* send request for SSH1 identities */
+      PrepareSimpleMessage(Agent.Message.SSH1_AGENTC_REQUEST_RSA_IDENTITIES);
+      agent.AnswerMessage(mStream);
+      RewindStream();
+
+      /* check that we received proper response type */
+      Agent.BlobHeader header = mParser.ReadHeader();
+      Assert.That(header.Message,
+        Is.EqualTo(Agent.Message.SSH1_AGENT_RSA_IDENTITIES_ANSWER));
+
+      /* check that we received the correct key count */
+      UInt32 actualKeyCount = mParser.ReadInt();
+      List<ISshKey> ssh1KeyList =
+        agent.GetAllKeys().Where(key => key.Version == SshVersion.SSH1).ToList();
+      int expectedSsh1KeyCount = ssh1KeyList.Count;
+      Assert.That(actualKeyCount, Is.EqualTo(expectedSsh1KeyCount));
+
+      /* check that we have data for each key */
+      for (int i = 0; i < actualKeyCount; i++) {
+        uint actualKeySizeBlob = mParser.ReadInt();
+        BigInteger actualExponentBlob = new BigInteger(1, mParser.ReadSsh1BigIntBlob().Data);
+        BigInteger actualModulusBlob = new BigInteger(1, mParser.ReadSsh1BigIntBlob().Data);
+
+        Assert.That(actualKeySizeBlob, Is.EqualTo(ssh1KeyList[i].Size));
+        Assert.That(actualModulusBlob, Is.EqualTo((ssh1KeyList[i].GetPublicKeyParameters() as RsaKeyParameters).Modulus));
+        Assert.That(actualExponentBlob, Is.EqualTo((ssh1KeyList[i].GetPublicKeyParameters() as RsaKeyParameters).Exponent));
+
+        string actualComment = mParser.ReadString();
+        string expectedComment = ssh1KeyList[i].Comment;
+        Assert.That(actualComment, Is.EqualTo(expectedComment));
+      }
+      /* verify that the overall response length is correct */
+      Assert.That(header.BlobLength, Is.EqualTo(mStream.Position - 4));
+    }
+
+    [Test()]
     public void TestAnswerSSH2_AGENTC_REQUEST_IDENTITIES()
     {
       Agent agent = new TestAgent(mAllKeys);
@@ -404,6 +475,62 @@ namespace dlech.SshAgentLibTests
       }
       /* verify that the overall response length is correct */
       Assert.That(header.BlobLength, Is.EqualTo(mStream.Position - 4));
+    }
+
+    [Test()]
+    public void TestAnswerSSH1_AGENTC_RSA_CHALLENGE()
+    {
+      Agent agent = new TestAgent(mAllKeys);
+
+      /* test answering to RSA challenge */
+
+      BlobBuilder builder = new BlobBuilder();
+      RsaPrivateCrtKeyParameters rsaParameters =
+        (RsaPrivateCrtKeyParameters)mRsa1Key.GetPrivateKeyParameters();
+      builder.AddInt(mRsa1Key.Size);
+      builder.AddSsh1BigIntBlob(rsaParameters.PublicExponent);
+      builder.AddSsh1BigIntBlob(rsaParameters.Modulus);
+
+      byte[] decryptedChallenge = new byte[8];
+      byte[] sessionId  = new byte[16];
+
+      Random random = new Random();
+      random.NextBytes(decryptedChallenge);
+      random.NextBytes(sessionId);
+
+      IAsymmetricBlockCipher engine = new Pkcs1Encoding(new RsaEngine());
+      engine.Init(true, mRsa1Key.GetPublicKeyParameters());
+
+      byte[] encryptedChallenge = engine.ProcessBlock(decryptedChallenge, 0,
+        decryptedChallenge.Length);
+
+      BigInteger chal = new BigInteger(encryptedChallenge);
+      builder.AddSsh1BigIntBlob(chal);
+      builder.AddBytes(sessionId);
+      builder.AddInt(1);
+
+      builder.InsertHeader(Agent.Message.SSH1_AGENTC_RSA_CHALLENGE);
+      PrepareMessage(builder);
+      agent.AnswerMessage(mStream);
+      RewindStream();
+      Agent.BlobHeader header = mParser.ReadHeader();
+      byte[] md5Received = mParser.ReadBytes(16).Data;
+
+      /* check that proper response type was received */
+      Assert.That(header.Message, Is.EqualTo(Agent.Message.SSH1_AGENT_RSA_RESPONSE));
+
+      using (MD5 md5 = MD5.Create())
+      {
+        byte[] md5Buffer = new byte[48];
+        decryptedChallenge.CopyTo(md5Buffer, 0);
+        sessionId.CopyTo(md5Buffer, 32);
+
+        byte[] md5Expected = md5.ComputeHash(md5Buffer);
+
+        /* check the encrypted challenge was successfully read */
+        Assert.That(md5Received, Is.EqualTo(md5Expected));
+      }
+
     }
 
     [Test()]

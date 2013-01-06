@@ -15,7 +15,6 @@ namespace dlech.SshAgentLibTests
   [TestFixture()]
   public class PSUtilTest
   {
-
     /// <summary>
     ///A test for TrimLeadingZero
     ///</summary>
@@ -23,11 +22,11 @@ namespace dlech.SshAgentLibTests
     public void TrimLeadingZeroTest()
     {
       PinnedByteArray array1 = new PinnedByteArray(new byte[] { 1, 2, 3, 4 });
-      PSUtil.TrimLeadingZero(array1);
+      Util.TrimLeadingZero(array1);
       Assert.That(array1.Data, Is.EqualTo(new byte[]{ 1, 2, 3, 4 }));
 
       PinnedByteArray array2 = new PinnedByteArray(new byte[] { 0, 1, 2, 3, 4 });
-      PSUtil.TrimLeadingZero(array2);
+      Util.TrimLeadingZero(array2);
       Assert.That(array2.Data, Is.EqualTo(new byte[] { 1, 2, 3, 4 }));
     }
 
@@ -46,7 +45,7 @@ namespace dlech.SshAgentLibTests
       byte[] expected = p.DP;
      
       PinnedByteArray actual;
-      actual = PSUtil.ModMinusOne(a, b);
+      actual = Util.ModMinusOne(a, b);
       Assert.That(actual.Data, Is.EqualTo(expected));
     }
   }
