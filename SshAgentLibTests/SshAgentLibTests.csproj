@@ -64,6 +64,7 @@
     <Compile Include="AgentTest.cs" />
     <Compile Include="BlobBuilderTest.cs" />
     <Compile Include="KeyGenerator.cs" />
+    <Compile Include="Ssh1KeyFormatterTest.cs" />
     <Compile Include="Ssh2KeyFormatterTest.cs" />
     <Compile Include="PpkFormatterTest.cs" />
     <Compile Include="Properties\Resources.Designer.cs">

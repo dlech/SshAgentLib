@@ -29,7 +29,7 @@ namespace dlech.SshAgentLibTests
       mPassphraseCallback = delegate()
       {
         SecureString passphrase = new SecureString();
-        foreach (char c in "passphrase") {
+        foreach (char c in "PageantSharp") {
           passphrase.AppendChar(c);
         }
         return passphrase;

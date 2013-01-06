@@ -15,15 +15,15 @@ namespace dlech.SshAgentLibTests
   public class SshKeyTest
   {
 
-    private const string ssh2_rsa_no_passphrase_ppk = "ssh2-rsa-no-passphrase.ppk" ;
-    private const string ssh2_dsa_no_passphrase_ppk = "ssh2-dsa-no-passphrase.ppk";
     private const string ssh1_rsa_no_passphrase_ppk = "ssh1-rsa-no-passphrase.ppk";
+    private const string ssh2_rsa_no_passphrase_ppk = "ssh2-rsa-no-passphrase.ppk";
+    private const string ssh2_dsa_no_passphrase_ppk = "ssh2-dsa-no-passphrase.ppk";
 
     [TestFixtureSetUp()]
     public void Setup()
     {
-      string[] fileList = { ssh2_rsa_no_passphrase_ppk ,
-                            ssh2_dsa_no_passphrase_ppk ,
+      string[] fileList = { ssh1_rsa_no_passphrase_ppk,
+                            ssh2_rsa_no_passphrase_ppk,
                             ssh2_dsa_no_passphrase_ppk
                           };
       string resourceDir = Path.GetFullPath("../../Resources");
@@ -41,23 +41,25 @@ namespace dlech.SshAgentLibTests
     [Test()]
     public void GetFingerprintTest()
     {
-      PpkFormatter formatter = new PpkFormatter();
+      Ssh1KeyFormatter formatter1 = new Ssh1KeyFormatter();
 
-      ISshKey rsaTarget = formatter.DeserializeFile(ssh2_rsa_no_passphrase_ppk);
+      ISshKey rsaSsh1Target = formatter1.DeserializeFile(ssh1_rsa_no_passphrase_ppk);
+      string rsaSsh1ExpectedFingerprint = "05:cc:56:db:ca:39:1c:1e:5f:cf:3f:84:07:9d:40:74";
+      string rsaSsh1Actual = rsaSsh1Target.GetMD5Fingerprint().ToHexString();
+      Assert.That(rsaSsh1ExpectedFingerprint, Is.EqualTo(rsaSsh1Actual));
+
+      PpkFormatter formatter2 = new PpkFormatter();
+
+      ISshKey rsaTarget = formatter2.DeserializeFile(ssh2_rsa_no_passphrase_ppk);
       string rsaExpectedFingerprint = "57:95:98:7f:c2:4e:98:1d:b9:5b:45:fe:6d:a4:6b:17";
       string rsaActual = rsaTarget.MD5Fingerprint.ToHexString();
       Assert.That(rsaExpectedFingerprint, Is.EqualTo(rsaActual));
 
-      ISshKey dsaTarget = formatter.DeserializeFile(ssh2_dsa_no_passphrase_ppk);
+      ISshKey dsaTarget = formatter2.DeserializeFile(ssh2_dsa_no_passphrase_ppk);
       string dsaExpectedFingerprint = "4e:f1:fc:5d:80:5b:37:b6:13:67:ce:df:4e:83:7b:0b";
       string dsaActual = dsaTarget.MD5Fingerprint.ToHexString();
       Assert.That(dsaExpectedFingerprint, Is.EqualTo(dsaActual));
 
-      Ssh1KeyFormatter formatter2= new Ssh1KeyFormatter();
-      ISshKey rsaSsh1Target = formatter2.DeserializeFile(ssh1_rsa_no_passphrase_ppk);
-      string rsaSsh1ExpectedFingerprint = "05:cc:56:db:ca:39:1c:1e:5f:cf:3f:84:07:9d:40:74";
-      string rsaSsh1Actual = rsaSsh1Target.MD5Fingerprint.ToHexString();
-      Assert.That(rsaSsh1ExpectedFingerprint, Is.EqualTo(rsaSsh1Actual));
     }
 
     /// <summary>

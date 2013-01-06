@@ -82,12 +82,14 @@
     <Compile Include="AgentMode.cs" />
     <Compile Include="BlobParser.cs" />
     <Compile Include="CallbackNullException.cs" />
+    <Compile Include="DesSsh1Engine.cs" />
     <Compile Include="KeyFormatterException.cs" />
     <Compile Include="KeyWrapper.cs" />
     <Compile Include="PageantNotRunningException.cs" />
     <Compile Include="IAgent.cs" />
     <Compile Include="KeyFormatter.cs" />
     <Compile Include="PageantClient.cs" />
+    <Compile Include="Ssh1KeyFormatter.cs" />
     <Compile Include="Ssh2KeyFormatter.cs" />
     <Compile Include="ISshKey.cs" />
     <Compile Include="PinnedByteArray.cs" />
