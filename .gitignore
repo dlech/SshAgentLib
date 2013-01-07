@@ -32,3 +32,5 @@ _ReSharper*/
 *.userprefs
 *~
 test-results*/
+
+SshAgentLibTests/SshAgentLibTests.csproj.VisualState.xml
