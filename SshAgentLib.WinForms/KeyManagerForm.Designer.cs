@@ -64,7 +64,7 @@
       this.ClientSize = new System.Drawing.Size(604, 211);
       this.Controls.Add(this.mainTableLayoutPanel);
       this.Name = "KeyManagerForm";
-      this.Text = "Agent With Rice";
+      this.Text = "SSH Agent";
       this.FormClosing += new System.Windows.Forms.FormClosingEventHandler(this.MainForm_FormClosing);
       this.Load += new System.EventHandler(this.MainForm_Load);
       this.mainTableLayoutPanel.ResumeLayout(false);
