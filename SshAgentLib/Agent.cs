@@ -499,6 +499,7 @@ namespace dlech.SshAgentLib
           goto default; // failure
 
         case Message.SSH1_AGENTC_ADD_RSA_IDENTITY:
+        case Message.SSH1_AGENTC_ADD_RSA_ID_CONSTRAINED:
           /*
            * Add to the list and return SSH_AGENT_SUCCESS, or
            * SSH_AGENT_FAILURE if the key was malformed.
@@ -595,18 +596,19 @@ namespace dlech.SshAgentLib
           }
 
           SshVersion removeVersion;
+          PinnedByteArray rKeyBlob;
           if (header.Message == Message.SSH1_AGENTC_REMOVE_RSA_IDENTITY) {
             removeVersion = SshVersion.SSH1;
+            rKeyBlob = messageParser.ReadBytes(header.BlobLength - 1);
           } else if (header.Message == Message.SSH2_AGENTC_REMOVE_IDENTITY) {
             removeVersion = SshVersion.SSH2;
+            rKeyBlob = messageParser.ReadBlob();
           } else {
             Debug.Fail("Should not get here.");
             goto default;
           }
 
           try {
-            PinnedByteArray rKeyBlob = messageParser.ReadBlob();
-
             ISshKey matchingKey = mKeyList.Get(removeVersion, rKeyBlob.Data);
             var startKeyListLength = mKeyList.Count;
             RemoveKey(matchingKey);

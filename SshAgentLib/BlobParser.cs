@@ -82,7 +82,13 @@ namespace dlech.SshAgentLib
 
     public PinnedByteArray ReadSsh1BigIntBlob()
     {
-        return ReadBytes((ReadShort() + (uint)7) / 8);
+      var bitCount = ReadShort();
+      return ReadBits(bitCount);
+    }
+
+    public PinnedByteArray ReadBits(UInt32 aBitCount)
+    {
+      return ReadBytes((aBitCount + (uint)7) / 8);
     }
 
     public PinnedByteArray ReadBytes(UInt32 blobLength)
