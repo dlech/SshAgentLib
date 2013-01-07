@@ -73,6 +73,7 @@
       <DependentUpon>Resources.resx</DependentUpon>
     </Compile>
     <Compile Include="PSUtilTest.cs" />
+    <Compile Include="SshAgentLibTestsSetup.cs" />
     <Compile Include="SshKeyTest.cs" />
     <Compile Include="LinAgentTest.cs" />
     <Compile Include="PageantAgentTest.cs" />

@@ -38,7 +38,12 @@ namespace dlech.SshAgentLib
       }
     }
 
-    public abstract void SendMessage(byte[] aMessage, out byte[] aReply);
+    /// <summary>
+    /// Implementer should send the message to an SSH agent and return the reply
+    /// </summary>
+    /// <param name="aMessage">The message to send</param>
+    /// <returns>The reply from the SSH agent</returns>
+    public abstract byte[] SendMessage(byte[] aMessage);
 
     /// <summary>
     /// Adds key to SSH agent
@@ -46,9 +51,9 @@ namespace dlech.SshAgentLib
     /// <param name="aKey">the key to add</param>
     /// <returns>true if operation was successful</returns>
     /// <remarks>applies constraints in aKeys.Constraints, if any</remarks>
-    public bool AddKey(ISshKey aKey)
+    public void AddKey(ISshKey aKey)
     {
-      return AddKey(aKey, aKey.Constraints);
+      AddKey(aKey, aKey.Constraints);
     }
 
     /// <summary>
@@ -58,7 +63,7 @@ namespace dlech.SshAgentLib
     /// <param name="aConstraints">constraints to apply</param>
     /// <returns>true if operation was successful</returns>
     /// <remarks>ignores constraints in aKey.Constraints</remarks>
-    public bool AddKey(ISshKey aKey, ICollection<Agent.KeyConstraint> aConstraints)
+    public void AddKey(ISshKey aKey, ICollection<Agent.KeyConstraint> aConstraints)
     {
       var builder = CreatePrivateKeyBlob(aKey);
       if (aConstraints != null && aConstraints.Count > 0) {
@@ -90,7 +95,7 @@ namespace dlech.SshAgentLib
             throw new Exception(cUnsupportedSshVersion);
         }
       }
-      return SendMessage(builder);
+      SendMessageAndCheckSuccess(builder);
     }
 
     /// <summary>
@@ -98,7 +103,7 @@ namespace dlech.SshAgentLib
     /// </summary>
     /// <param name="aKey">The key to remove</param>
     /// <returns>true if removal succeeded</returns>
-    public bool RemoveKey(ISshKey aKey)
+    public void RemoveKey(ISshKey aKey)
     {
       var builder = CreatePublicKeyBlob(aKey);
       switch (aKey.Version) {
@@ -111,10 +116,10 @@ namespace dlech.SshAgentLib
         default:
           throw new Exception(cUnsupportedSshVersion);
       }
-      return SendMessage(builder);
+      SendMessageAndCheckSuccess(builder);
     }
 
-    public bool RemoveAllKeys(SshVersion aVersion)
+    public void RemoveAllKeys(SshVersion aVersion)
     {
       BlobBuilder builder = new BlobBuilder();
       switch (aVersion) {
@@ -127,11 +132,10 @@ namespace dlech.SshAgentLib
         default:
           throw new Exception(cUnsupportedSshVersion);
       }
-      return SendMessage(builder);
+      SendMessageAndCheckSuccess(builder);
     }
 
-    public bool ListKeys(SshVersion aVersion,
-      out ICollection<ISshKey> aKeyCollection)
+    public ICollection<ISshKey> ListKeys(SshVersion aVersion)
     {
       BlobBuilder builder = new BlobBuilder();
       switch (aVersion) {
@@ -144,48 +148,43 @@ namespace dlech.SshAgentLib
         default:
           throw new Exception(cUnsupportedSshVersion);
       }
-      BlobParser replyParser;
-      SendMessage(builder, out replyParser);
-      aKeyCollection = new List<ISshKey>();
-      try {
-        var header = replyParser.ReadHeader();
-        switch (aVersion) {
-          case SshVersion.SSH1:
-            if (header.Message != Agent.Message.SSH1_AGENT_RSA_IDENTITIES_ANSWER) {
-              return false;
-            }
-            var ssh1KeyCount = replyParser.ReadInt();
-            for (var i = 0; i < ssh1KeyCount; i++) {
-              var publicKeyParams = replyParser.ReadSsh1PublicKeyData(true);
-              var comment = replyParser.ReadString();
-              aKeyCollection.Add(
-                new SshKey(SshVersion.SSH1, publicKeyParams, null, comment));
-            }
-            break;
-          case SshVersion.SSH2:
-            if (header.Message != Agent.Message.SSH2_AGENT_IDENTITIES_ANSWER) {
-              return false;
-            }
-            var ssh2KeyCount = replyParser.ReadInt();
-            for (var i = 0; i < ssh2KeyCount; i++) {
-              var publicKeyBlob = replyParser.ReadBlob();
-              var publicKeyParser = new BlobParser(publicKeyBlob.Data);
-              var publicKeyParams = publicKeyParser.ReadSsh2PublicKeyData();
-              var comment = replyParser.ReadString();
-              aKeyCollection.Add(
-                new SshKey(SshVersion.SSH2, publicKeyParams, null, comment));
-            }
-            break;
-          default:
-            throw new Exception(cUnsupportedSshVersion);
-        }
-      } catch (Exception) {
-        return false;
+      BlobParser replyParser = SendMessage(builder);
+      var keyCollection = new List<ISshKey>();
+      var header = replyParser.ReadHeader();
+      switch (aVersion) {
+        case SshVersion.SSH1:
+          if (header.Message != Agent.Message.SSH1_AGENT_RSA_IDENTITIES_ANSWER) {
+            throw new AgentFailureException();
+          }
+          var ssh1KeyCount = replyParser.ReadInt();
+          for (var i = 0; i < ssh1KeyCount; i++) {
+            var publicKeyParams = replyParser.ReadSsh1PublicKeyData(true);
+            var comment = replyParser.ReadString();
+            keyCollection.Add(
+              new SshKey(SshVersion.SSH1, publicKeyParams, null, comment));
+          }
+          break;
+        case SshVersion.SSH2:
+          if (header.Message != Agent.Message.SSH2_AGENT_IDENTITIES_ANSWER) {
+            throw new AgentFailureException();
+          }
+          var ssh2KeyCount = replyParser.ReadInt();
+          for (var i = 0; i < ssh2KeyCount; i++) {
+            var publicKeyBlob = replyParser.ReadBlob();
+            var publicKeyParser = new BlobParser(publicKeyBlob.Data);
+            var publicKeyParams = publicKeyParser.ReadSsh2PublicKeyData();
+            var comment = replyParser.ReadString();
+            keyCollection.Add(
+              new SshKey(SshVersion.SSH2, publicKeyParams, null, comment));
+          }
+          break;
+        default:
+          throw new Exception(cUnsupportedSshVersion);
       }
-      return true;
+      return keyCollection;
     }
 
-    public bool SignRequest(ISshKey aKey, byte[] aSignData, out byte[] aSignature)
+    public byte[] SignRequest(ISshKey aKey, byte[] aSignData)
     {
       BlobBuilder builder = new BlobBuilder();
       switch (aKey.Version) {
@@ -208,55 +207,47 @@ namespace dlech.SshAgentLib
         default:
           throw new Exception(cUnsupportedSshVersion);
       }
-      BlobParser replyParser;
-      SendMessage(builder, out replyParser);
-      aSignature = null;
-      try {
-        var header = replyParser.ReadHeader();
-        switch (aKey.Version) {
-          case SshVersion.SSH1:
-            if (header.Message != Agent.Message.SSH1_AGENT_RSA_RESPONSE) {
-              return false;
-            }
-            byte[] response = new byte[16];
-            for (int i = 0; i < 16; i++) {
-              response[i] = replyParser.ReadByte();
-            }
-            aSignature = response;
-            break;
-          case SshVersion.SSH2:
-            if (header.Message != Agent.Message.SSH2_AGENT_SIGN_RESPONSE) {
-              return false;
-            }
-            aSignature = replyParser.ReadBlob().Data;
-            break;
-          default:
-            throw new Exception(cUnsupportedSshVersion);
-        }
-      } catch (Exception) {
-        return false;
+      BlobParser replyParser = SendMessage(builder);
+      var header = replyParser.ReadHeader();
+      switch (aKey.Version) {
+        case SshVersion.SSH1:
+          if (header.Message != Agent.Message.SSH1_AGENT_RSA_RESPONSE) {
+            throw new AgentFailureException();
+          }
+          byte[] response = new byte[16];
+          for (int i = 0; i < 16; i++) {
+            response[i] = replyParser.ReadByte();
+          }
+          return response;
+        case SshVersion.SSH2:
+          if (header.Message != Agent.Message.SSH2_AGENT_SIGN_RESPONSE) {
+            throw new AgentFailureException();
+          }
+          return replyParser.ReadBlob().Data;
+        default:
+          throw new Exception(cUnsupportedSshVersion);
       }
-      return true;
     }
 
-    public bool Lock(byte[] aPassphrase)
+
+    public void Lock(byte[] aPassphrase)
     {
       BlobBuilder builder = new BlobBuilder();
       if (aPassphrase != null) {
         builder.AddBlob(aPassphrase);
       }
       builder.InsertHeader(Agent.Message.SSH_AGENTC_LOCK);
-      return SendMessage(builder);
+      SendMessageAndCheckSuccess(builder);
     }
 
-    public bool Unlock(byte[] aPassphrase)
+    public void Unlock(byte[] aPassphrase)
     {
       BlobBuilder builder = new BlobBuilder();
       if (aPassphrase != null) {
         builder.AddBlob(aPassphrase);
       }
       builder.InsertHeader(Agent.Message.SSH_AGENTC_UNLOCK);
-      return SendMessage(builder);
+      SendMessageAndCheckSuccess(builder);
     }
 
     private BlobBuilder CreatePublicKeyBlob(ISshKey aKey)
@@ -266,32 +257,33 @@ namespace dlech.SshAgentLib
       return builder;
     }
 
-    private void SendMessage(BlobBuilder aBuilder, out BlobParser aReplyParser)
+    private BlobParser SendMessage(BlobBuilder aBuilder)
     {
       byte[] reply;
       using (var message = aBuilder.GetBlobAsPinnedByteArray()) {
-        SendMessage(message.Data, out reply);
+        reply = SendMessage(message.Data);
       }
       try {
-        aReplyParser = new BlobParser(reply);
+        return new BlobParser(reply);
       } catch (Exception) {
-        aReplyParser = null;
+        return null;
       }
     }
 
-    private bool SendMessage(BlobBuilder aBuilder)
+    /// <summary>
+    /// Sends message to remote agent and checks that it returned SSH_AGENT_SUCCESS
+    /// </summary>
+    /// <param name="aBuilder">The message to send</param>
+    /// <exception cref="AgentFailureException">
+    /// Thrown if agent did not return SSH_AGENT_SUCCESS
+    /// </exception>
+    private void SendMessageAndCheckSuccess(BlobBuilder aBuilder)
     {
-      BlobParser replyParser;
-      SendMessage(aBuilder, out replyParser);
-      try {
-        var header = replyParser.ReadHeader();
-        if (header.Message != Agent.Message.SSH_AGENT_SUCCESS) {
-          return false;
-        }
-      } catch (Exception) {
-        return false;
+      var replyParser = SendMessage(aBuilder);
+      var header = replyParser.ReadHeader();
+      if (header.Message != Agent.Message.SSH_AGENT_SUCCESS) {
+        throw new AgentFailureException();
       }
-      return true;
     }
 
     private BlobBuilder CreatePrivateKeyBlob(ISshKey aKey)
@@ -299,7 +291,7 @@ namespace dlech.SshAgentLib
       var builder = new BlobBuilder();
       switch (aKey.Version) {
         case SshVersion.SSH1:
-          var privateKeyParams = 
+          var privateKeyParams =
             aKey.GetPrivateKeyParameters() as RsaPrivateCrtKeyParameters;
           builder.AddInt(aKey.Size);
           builder.AddSsh1BigIntBlob(privateKeyParams.Modulus);

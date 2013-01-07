@@ -82,6 +82,8 @@
     <Compile Include="AgentMode.cs" />
     <Compile Include="BlobParser.cs" />
     <Compile Include="CallbackNullException.cs" />
+    <Compile Include="AgentLockedException.cs" />
+    <Compile Include="PassphraseException.cs" />
     <Compile Include="DesSsh1Engine.cs" />
     <Compile Include="KeyFormatterException.cs" />
     <Compile Include="KeyWrapper.cs" />

@@ -325,7 +325,7 @@ namespace dlech.SshAgentLib.WinForms
       } else {
         addKeyButton.ShowContextMenuStrip();
       }
-      
+
     }
 
     private void removeButton_Click(object sender, EventArgs e)
@@ -333,8 +333,9 @@ namespace dlech.SshAgentLib.WinForms
       foreach (DataGridViewRow row in dataGridView.SelectedRows) {
         var keyWrapper = row.DataBoundItem as KeyWrapper;
         var key = keyWrapper.GetKey();
-        var success = mAgent.RemoveKey(key);
-        if (!success) {
+        try {
+          mAgent.RemoveKey(key);
+        } catch (Exception) {
           MessageBox.Show(String.Format(Strings.errRemoveFailed,
             key.GetMD5Fingerprint().ToHexString()), Util.AssemblyTitle,
             MessageBoxButtons.OK, MessageBoxIcon.Error);
@@ -359,8 +360,9 @@ namespace dlech.SshAgentLib.WinForms
           return;
         }
       }
-      var success = mAgent.Lock(PasswordDialog.SecureEdit.ToUtf8());
-      if (!success) {
+      try {
+        mAgent.Lock(PasswordDialog.SecureEdit.ToUtf8());
+      } catch (Exception) {
         MessageBox.Show(Strings.errLockFailed, Util.AssemblyTitle,
           MessageBoxButtons.OK, MessageBoxIcon.Error);
       }
@@ -375,8 +377,9 @@ namespace dlech.SshAgentLib.WinForms
       if (result != DialogResult.OK) {
         return;
       }
-      var success = mAgent.Unlock(PasswordDialog.SecureEdit.ToUtf8());
-      if (!success) {
+      try {
+        mAgent.Unlock(PasswordDialog.SecureEdit.ToUtf8());
+      } catch (Exception) {
         MessageBox.Show(Strings.errUnlockFailed, Util.AssemblyTitle,
           MessageBoxButtons.OK, MessageBoxIcon.Error);
       }

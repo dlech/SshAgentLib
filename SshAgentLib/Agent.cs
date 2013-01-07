@@ -19,6 +19,7 @@ using System.ComponentModel;
 using System.Security.Cryptography;
 using Org.BouncyCastle.Crypto.Encodings;
 using Org.BouncyCastle.Crypto.Engines;
+using Org.BouncyCastle.Security;
 
 namespace dlech.SshAgentLib
 {
@@ -228,10 +229,10 @@ namespace dlech.SshAgentLib
 
     #region Public Methods
 
-    public bool AddKey(ISshKey aKey)
+    public void AddKey(ISshKey aKey)
     {
       if (IsLocked) {
-        return false;
+        throw new AgentLockedException();
       }
 
       /* handle constraints */
@@ -266,53 +267,44 @@ namespace dlech.SshAgentLib
 
       mKeyList.Add(aKey);
       FireKeyListChanged(KeyListChangeEventAction.Add, aKey);
-      return true;
     }
 
-    public bool RemoveKey(ISshKey aKey)
+    public void RemoveKey(ISshKey aKey)
     {
       if (IsLocked) {
-        return false;
+        throw new AgentLockedException();
       }
 
       if (mKeyList.Remove(aKey)) {
         FireKeyListChanged(KeyListChangeEventAction.Remove, aKey);
-        return true;
       }
-      return false;
     }
 
-    public bool RemoveAllKeys(SshVersion aVersion)
+    public void RemoveAllKeys(SshVersion aVersion)
     {
       if (IsLocked) {
-        return false;
+        throw new AgentLockedException();
       }
 
-      ICollection<ISshKey> removeKeyList;
-      ListKeys(aVersion, out removeKeyList);
+      var removeKeyList = ListKeys(aVersion);
       foreach (ISshKey key in removeKeyList) {
         RemoveKey(key);
       }
-
-      return true;
     }
 
-    public bool ListKeys(SshVersion aVersion,
-      out ICollection<ISshKey> aKeyCollection)
+    public ICollection<ISshKey> ListKeys(SshVersion aVersion)
     {
       if (IsLocked) {
-        aKeyCollection = new List<ISshKey>();
-        return true;
+        return new List<ISshKey>();
       }
-      aKeyCollection = mKeyList.Where(key => key.Version == aVersion).ToList();
-      return true;
+      return mKeyList.Where(key => key.Version == aVersion).ToList();
     }
 
-    public bool Lock(byte[] aPassphrase)
+    public void Lock(byte[] aPassphrase)
     {
       if (IsLocked) {
         // can't lock if already locked
-        return false;
+        throw new AgentLockedException();
       }
       mLockedPassphrase = new SecureString();
       if (aPassphrase != null) {
@@ -322,21 +314,20 @@ namespace dlech.SshAgentLib
       }
       IsLocked = true;
       FireLocked();
-      return true;
     }
 
-    public bool Unlock(byte[] aPassphrase)
+    public void Unlock(byte[] aPassphrase)
     {
       if (!IsLocked) {
         // can't unlock if not locked
-        return false;
+        throw new AgentLockedException();
       }
       if (aPassphrase == null) {
         aPassphrase = new byte[0];
       }
       if (mLockedPassphrase.Length != aPassphrase.Length) {
         // passwords definitely do not match
-        return false;
+        throw new PassphraseException();
       }
       IntPtr lockedPassPtr =
           Marshal.SecureStringToGlobalAllocUnicode(mLockedPassphrase);
@@ -344,14 +335,13 @@ namespace dlech.SshAgentLib
         Int16 lockedPassChar = Marshal.ReadInt16(lockedPassPtr, i * 2);
         if (lockedPassChar != aPassphrase[i]) {
           Marshal.ZeroFreeGlobalAllocUnicode(lockedPassPtr);
-          return false;
+          throw new PassphraseException();
         }
       }
       Marshal.ZeroFreeGlobalAllocUnicode(lockedPassPtr);
       mLockedPassphrase.Clear();
       IsLocked = false;
       FireLocked();
-      return true;
     }
 
     /// <summary>
@@ -372,21 +362,19 @@ namespace dlech.SshAgentLib
           /*
            * Reply with SSH1_AGENT_RSA_IDENTITIES_ANSWER.
            */
-
           try {
-            ICollection<ISshKey> keyList;
-            ListKeys(SshVersion.SSH1, out keyList);
+            var keyList = ListKeys(SshVersion.SSH1);
             foreach (SshKey key in keyList) {
               responseBuilder.AddBytes(key.GetPublicKeyBlob());
               responseBuilder.AddStringBlob(key.Comment);
             }
-            responseBuilder.InsertHeader(Message.SSH1_AGENT_RSA_IDENTITIES_ANSWER, keyList.Count);
+            responseBuilder.InsertHeader(Message.SSH1_AGENT_RSA_IDENTITIES_ANSWER,
+              keyList.Count);
             // TODO may want to check that there is enough room in the message stream
             break; // succeeded
           } catch (Exception ex) {
             Debug.Fail(ex.ToString());
           }
-
           goto default; // failed
 
         case Message.SSH2_AGENTC_REQUEST_IDENTITIES:
@@ -394,8 +382,7 @@ namespace dlech.SshAgentLib
            * Reply with SSH2_AGENT_IDENTITIES_ANSWER.
            */
           try {
-            ICollection<ISshKey> keyList;
-            ListKeys(SshVersion.SSH2, out keyList);
+            var keyList = ListKeys(SshVersion.SSH2);
             foreach (SshKey key in keyList) {
               responseBuilder.AddBlob(key.GetPublicKeyBlob());
               responseBuilder.AddStringBlob(key.Comment);
@@ -621,7 +608,10 @@ namespace dlech.SshAgentLib
             PinnedByteArray rKeyBlob = messageParser.ReadBlob();
 
             ISshKey matchingKey = mKeyList.Get(removeVersion, rKeyBlob.Data);
-            if (RemoveKey(matchingKey)) {
+            var startKeyListLength = mKeyList.Count;
+            RemoveKey(matchingKey);
+            // only succeed if key was removed
+            if (mKeyList.Count == startKeyListLength - 1) {
               responseBuilder.InsertHeader(Message.SSH_AGENT_SUCCESS);
               break; //success!
             }
@@ -662,12 +652,17 @@ namespace dlech.SshAgentLib
         case Message.SSH_AGENTC_LOCK:
           try {
             PinnedByteArray passphrase = messageParser.ReadBlob();
-            bool lockSucceeded = Lock(passphrase.Data);
-            passphrase.Clear();
-            if (lockSucceeded) {
+            try {
+              Lock(passphrase.Data);
+            } finally {
+              passphrase.Clear();
+            }
+            if (IsLocked) {
               responseBuilder.InsertHeader(Message.SSH_AGENT_SUCCESS);
               break;
             }
+          } catch (AgentLockedException) {
+            // This is expected
           } catch (Exception ex) {
             Debug.Fail(ex.ToString());
           }
@@ -676,12 +671,19 @@ namespace dlech.SshAgentLib
         case Message.SSH_AGENTC_UNLOCK:
           try {
             PinnedByteArray passphrase = messageParser.ReadBlob();
-            bool unlockSucceeded = Unlock(passphrase.Data);
-            passphrase.Clear();
-            if (unlockSucceeded) {
+            try {
+              Unlock(passphrase.Data);
+            } finally {
+              passphrase.Clear();
+            }
+            if (!IsLocked) {
               responseBuilder.InsertHeader(Message.SSH_AGENT_SUCCESS);
               break;
             }
+          } catch (AgentLockedException) {
+            // This is expected
+          } catch (PassphraseException) {
+            // This is expected
           } catch (Exception ex) {
             Debug.Fail(ex.ToString());
           }
@@ -696,7 +698,6 @@ namespace dlech.SshAgentLib
       aMessageStream.Position = 0;
       aMessageStream.Write(responseBuilder.GetBlob(), 0, responseBuilder.Length);
     }
-
 
     public abstract void Dispose();
 

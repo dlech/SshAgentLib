@@ -29,14 +29,15 @@ namespace dlech.SshAgentLibTests
         Agent = new TestAgent();
       }
 
-      public override void SendMessage(byte[] aMessage, out byte[] aReply)
+      public override byte[] SendMessage(byte[] aMessage)
       {
         var buffer = new byte[4096];
         Array.Copy(aMessage, buffer, aMessage.Length);
         var messageStream = new MemoryStream(buffer);
         Agent.AnswerMessage(messageStream);
-        aReply = new byte[messageStream.Position];
-        Array.Copy(buffer, aReply, aReply.Length);
+        var reply = new byte[messageStream.Position];
+        Array.Copy(buffer, reply, reply.Length);
+        return reply;
       }
     }
 
@@ -76,15 +77,13 @@ namespace dlech.SshAgentLibTests
       var agentClient = new TestAgentClient();
       agentClient.Agent.ConfirmUserPermissionCallback =
         delegate(ISshKey aKey) { return true; };
-      bool result;
       Agent.KeyConstraint constraint;
       List<Agent.KeyConstraint> constraints = new List<Agent.KeyConstraint>();
 
       constraint = new Agent.KeyConstraint();
       constraint.Type = Agent.KeyConstraintType.SSH_AGENT_CONSTRAIN_CONFIRM;
       constraints.Add(constraint);
-      result = agentClient.AddKey(mRsaKey, constraints);
-      Assert.That(result, Is.True);
+      agentClient.AddKey(mRsaKey, constraints);
       Assert.That(agentClient.Agent.KeyCount, Is.EqualTo(1));
       Assert.That(agentClient.Agent.GetAllKeys().First().Constraints.Count,
         Is.EqualTo(1));
@@ -96,8 +95,7 @@ namespace dlech.SshAgentLibTests
       constraint.Data = (uint)10;
       constraints.Clear();
       constraints.Add(constraint);
-      result = agentClient.AddKey(mRsaKey, constraints);
-      Assert.That(result, Is.True);
+      agentClient.AddKey(mRsaKey, constraints);
       Assert.That(agentClient.Agent.KeyCount, Is.EqualTo(1));
       Assert.That(agentClient.Agent.GetAllKeys().First().Constraints.Count,
         Is.EqualTo(1));
@@ -109,12 +107,10 @@ namespace dlech.SshAgentLibTests
     public void TestAddKey()
     {
       var agentClient = new TestAgentClient();
-      bool result;
       int keyCount = 0;
 
       foreach (var key in mAllKeys) {
-        result = agentClient.AddKey(key);
-        Assert.That(result, Is.True);
+        agentClient.AddKey(key);
         keyCount += 1;
         Assert.That(agentClient.Agent.KeyCount, Is.EqualTo(keyCount));
         Assert.That(agentClient.Agent.GetAllKeys()
@@ -127,15 +123,13 @@ namespace dlech.SshAgentLibTests
     {
       var agentClient = new TestAgentClient();
       ICollection<ISshKey> keyList;
-      bool result;
 
       foreach (var key in mAllKeys) {
         agentClient.Agent.AddKey(key);
       }
 
       // check that SS1 keys worked
-      result = agentClient.ListKeys(SshVersion.SSH1, out keyList);
-      Assert.That(result, Is.True);
+      keyList = agentClient.ListKeys(SshVersion.SSH1);
       var expectedKeyList = mAllKeys.Where(key => key.Version == SshVersion.SSH1);
       Assert.That(keyList.Count, Is.EqualTo(expectedKeyList.Count()));
       foreach (var key in expectedKeyList) {
@@ -143,8 +137,7 @@ namespace dlech.SshAgentLibTests
       }
 
       // check that ssh2 keys worked
-      result = agentClient.ListKeys(SshVersion.SSH2, out keyList);
-      Assert.That(result, Is.True);
+      keyList = agentClient.ListKeys(SshVersion.SSH2);
       expectedKeyList = mAllKeys.Where(key => key.Version == SshVersion.SSH2);
       Assert.That(keyList.Count, Is.EqualTo(expectedKeyList.Count()));
       foreach (var key in expectedKeyList) {
@@ -156,20 +149,17 @@ namespace dlech.SshAgentLibTests
     public void TestRemoveAllKeys()
     {
       var agentClient = new TestAgentClient();
-      bool result;
 
       /* test SSH1 */
       agentClient.Agent.AddKey(mRsa1Key);
       agentClient.Agent.AddKey(mRsaKey);
-      result = agentClient.RemoveAllKeys(SshVersion.SSH1);
-      Assert.That(result, Is.True);
+      agentClient.RemoveAllKeys(SshVersion.SSH1);
       Assert.That(agentClient.Agent.KeyCount, Is.EqualTo(1));
 
       /* test SSH2 */
       agentClient.Agent.AddKey(mRsa1Key);
       agentClient.Agent.AddKey(mRsaKey);
-      result = agentClient.RemoveAllKeys(SshVersion.SSH2);
-      Assert.That(result, Is.True);
+      agentClient.RemoveAllKeys(SshVersion.SSH2);
       Assert.That(agentClient.Agent.KeyCount, Is.EqualTo(1));
 
       /* test remove *all* keys */
@@ -183,24 +173,21 @@ namespace dlech.SshAgentLibTests
     public void TestRemoveKey()
     {
       var agentClient = new TestAgentClient();
-      bool result;
 
       /* test SSH1 */
       agentClient.Agent.AddKey(mRsa1Key);
-      result = agentClient.RemoveKey(mRsa1Key);
-      Assert.That(result, Is.True);
+      agentClient.RemoveKey(mRsa1Key);
       Assert.That(agentClient.Agent.KeyCount, Is.EqualTo(0));
 
       /* test SSH2 */
       agentClient.Agent.AddKey(mRsaKey);
-      result = agentClient.RemoveKey(mRsaKey);
-      Assert.That(result, Is.True);
+      agentClient.RemoveKey(mRsaKey);
       Assert.That(agentClient.Agent.KeyCount, Is.EqualTo(0));
 
       /* test key not found */
       agentClient.Agent.AddKey(mRsaKey);
-      result = agentClient.RemoveKey(mDsaKey);
-      Assert.That(result, Is.False);
+      Assert.That(() => agentClient.RemoveKey(mDsaKey),
+        Throws.TypeOf<AgentFailureException>());
       Assert.That(agentClient.Agent.KeyCount, Is.EqualTo(1));
     }
 
@@ -210,13 +197,10 @@ namespace dlech.SshAgentLibTests
       var passphrase = Encoding.UTF8.GetBytes("passphrase");
       var agentClient = new TestAgentClient();
       var data = Encoding.UTF8.GetBytes("Data to be signed");
-      byte[] signature;
-      bool result;
 
       foreach (var key in mAllKeys) {
         agentClient.Agent.AddKey(key);
-        result = agentClient.SignRequest(key, data, out signature);
-        Assert.That(result, Is.True);        
+        var signature = agentClient.SignRequest(key, data);
         switch (key.Version) {
           case SshVersion.SSH1:
             using (MD5 md5 = MD5.Create()) {
@@ -254,8 +238,8 @@ namespace dlech.SshAgentLibTests
             var signer = key.GetSigner();
             signer.Init(false, key.GetPublicKeyParameters());
             signer.BlockUpdate(data, 0, data.Length);
-            result = signer.VerifySignature(signature);
-            Assert.That(result, Is.True);
+            var valid = signer.VerifySignature(signature);
+            Assert.That(valid, Is.True);
             break;
           default:
             Assert.Fail("Unexpected Ssh Version");
@@ -269,35 +253,34 @@ namespace dlech.SshAgentLibTests
     {
       var passphrase = Encoding.UTF8.GetBytes("passphrase");
       var agentClient = new TestAgentClient();
-      bool result;
 
       /* verify that locking works */
-      result = agentClient.Lock(passphrase);
-      Assert.That(result, Is.True);
+      Assert.That(() => agentClient.Lock(passphrase),
+        Throws.Nothing);
 
       /* verify that locking already locked agent fails */
-      result = agentClient.Lock(passphrase);
-      Assert.That(result, Is.False);
+      Assert.That(() => agentClient.Lock(passphrase),
+        Throws.Exception.TypeOf<AgentFailureException>());
 
       /* verify that unlocking works */
-      result = agentClient.Unlock(passphrase);
-      Assert.That(result, Is.True);
+      Assert.That(() => agentClient.Unlock(passphrase),
+        Throws.Nothing);
 
       /* verify that unlocking already unlocked agent fails */
-      result = agentClient.Unlock(passphrase);
-      Assert.That(result, Is.False);
+      Assert.That(() => agentClient.Unlock(passphrase),
+        Throws.Exception.TypeOf<AgentFailureException>());
 
       /* try with null passphrase */
-      result = agentClient.Lock(null);
-      Assert.That(result, Is.True);
-      result = agentClient.Unlock(null);
-      Assert.That(result, Is.True);
+      Assert.That(() => agentClient.Lock(null),
+        Throws.Nothing);
+      Assert.That(() => agentClient.Unlock(null),
+        Throws.Nothing);
 
       /* verify that bad passphrase fails */
-      result = agentClient.Lock(passphrase);
-      Assert.That(result, Is.True);
-      result = agentClient.Unlock(null);
-      Assert.That(result, Is.False);
+      Assert.That(() => agentClient.Lock(passphrase),
+        Throws.Nothing);
+      Assert.That(() => agentClient.Unlock(null),
+        Throws.Exception.TypeOf<AgentFailureException>());
     }
 
   }

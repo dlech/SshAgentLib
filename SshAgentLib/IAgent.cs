@@ -12,17 +12,17 @@ namespace dlech.SshAgentLib
   public interface IAgent
   {
 
-    bool AddKey(ISshKey aKey);
+    void AddKey(ISshKey aKey);
 
-    bool RemoveKey(ISshKey aKey);
+    void RemoveKey(ISshKey aKey);
 
-    bool RemoveAllKeys(SshVersion aVersion);
+    void RemoveAllKeys(SshVersion aVersion);
 
-    bool ListKeys(SshVersion aVersion, out ICollection<ISshKey> aKeyCollection);
+     ICollection<ISshKey> ListKeys(SshVersion aVersion);
 
-    bool Lock(byte[] aPassphrase);
+    void Lock(byte[] aPassphrase);
 
-    bool Unlock(byte[] aPassphrase);
+    void Unlock(byte[] aPassphrase);
 
   }
 
@@ -65,9 +65,7 @@ namespace dlech.SshAgentLib
           key.AddConstraint(constraint);
         }
       }
-      if (!aAgent.AddKey(key)) {
-        throw new AgentFailureException();
-      }
+      aAgent.AddKey(key);
       return key;
     }
 
@@ -81,12 +79,8 @@ namespace dlech.SshAgentLib
     public static ICollection<ISshKey> GetAllKeys(this IAgent aAgent)
     {
       List<ISshKey> allKeysList = new List<ISshKey>();
-      ICollection<ISshKey> versionList;
       foreach (SshVersion version in Enum.GetValues(typeof(SshVersion))) {
-        var success = aAgent.ListKeys(version, out versionList);
-        if (version == SshVersion.SSH2 && !success) {
-          throw new Exception("GetAllKeys Failed");
-        }
+        var versionList = aAgent.ListKeys(version);
         allKeysList.AddRange(versionList);
       }
       return allKeysList;

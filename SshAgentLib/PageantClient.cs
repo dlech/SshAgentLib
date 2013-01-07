@@ -33,7 +33,7 @@ namespace dlech.SshAgentLib
       public IntPtr lpData;
     }
 
-    public override void SendMessage(byte[] aMessage, out byte[] aReply)
+    public override byte[] SendMessage(byte[] aMessage)
     {
       var hwnd = FindWindow(cPageantWindowClass, cPageantWindowClass);
       if (hwnd == IntPtr.Zero) {
@@ -67,8 +67,9 @@ namespace dlech.SshAgentLib
           var parser = new BlobParser(stream);
           var replyLength = parser.ReadInt();
           stream.Position = 0;
-          aReply = new byte[replyLength + 4];
-          stream.Read(aReply, 0, aReply.Length);
+          var reply = new byte[replyLength + 4];
+          stream.Read(reply, 0, reply.Length);
+          return reply;
         }
       }
     }
