@@ -13,7 +13,7 @@ namespace dlech.SshAgentLib
   /// </summary>
   public class BlobParser
   {
-    private Stream mStream;
+    public Stream Stream { get; private set; }
 
     public BlobParser(byte[] aBlob) : this(new MemoryStream(aBlob)) { }
 
@@ -22,35 +22,35 @@ namespace dlech.SshAgentLib
       if (aStream == null) {
         throw new ArgumentNullException("aStream");
       }
-      mStream = aStream;
+      Stream = aStream;
     }
 
     public byte ReadByte()
     {
-      if (mStream.Length - mStream.Position < 1) {
+      if (Stream.Length - Stream.Position < 1) {
         throw new Exception("Not enough data");
       }
-      return (byte)mStream.ReadByte();
+      return (byte)Stream.ReadByte();
     }
 
     public UInt32 ReadInt()
     {
       byte[] dataLegthBytes = new byte[4];
-      if (mStream.Length - mStream.Position < dataLegthBytes.Length) {
+      if (Stream.Length - Stream.Position < dataLegthBytes.Length) {
         throw new Exception("Not enough data");
       }
-      mStream.Read(dataLegthBytes, 0, dataLegthBytes.Length);
+      Stream.Read(dataLegthBytes, 0, dataLegthBytes.Length);
       return dataLegthBytes.ToInt();
     }
 
     public UInt16 ReadShort()
     {
         byte[] dataLegthBytes = new byte[2];
-        if (mStream.Length - mStream.Position < dataLegthBytes.Length)
+        if (Stream.Length - Stream.Position < dataLegthBytes.Length)
         {
             throw new Exception("Not enough data");
         }
-        mStream.Read(dataLegthBytes, 0, dataLegthBytes.Length);
+        Stream.Read(dataLegthBytes, 0, dataLegthBytes.Length);
         return (ushort)((dataLegthBytes[0] << 8) + dataLegthBytes[1]); ;
 
     }
@@ -59,7 +59,7 @@ namespace dlech.SshAgentLib
       Agent.BlobHeader header = new Agent.BlobHeader();
 
       header.BlobLength = ReadInt();
-      if (mStream.Length - mStream.Position < header.BlobLength) {
+      if (Stream.Length - Stream.Position < header.BlobLength) {
         throw new Exception("Not enough data");
       }
       header.Message = (Agent.Message)ReadByte();
@@ -83,12 +83,12 @@ namespace dlech.SshAgentLib
 
     public PinnedByteArray ReadBytes(UInt32 blobLength)
     {
-        if (mStream.Length - mStream.Position < blobLength)
+        if (Stream.Length - Stream.Position < blobLength)
         {
             throw new Exception("Not enough data");
         }
         PinnedByteArray blob = new PinnedByteArray((int)blobLength);
-        mStream.Read(blob.Data, 0, blob.Data.Length);
+        Stream.Read(blob.Data, 0, blob.Data.Length);
         return blob;
     }
 

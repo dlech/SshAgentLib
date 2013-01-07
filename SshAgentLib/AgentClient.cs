@@ -4,12 +4,39 @@ using System.Linq;
 using System.Text;
 using System.IO;
 using Org.BouncyCastle.Crypto.Parameters;
+using Org.BouncyCastle.Crypto.Encodings;
+using Org.BouncyCastle.Crypto.Engines;
+using Org.BouncyCastle.Math;
+using System.Security.Cryptography;
+using System.Diagnostics;
+using System.Threading;
 
 namespace dlech.SshAgentLib
 {
   public abstract class AgentClient : IAgent
   {
     private const string cUnsupportedSshVersion = "Unsupported SSH version";
+    private byte[] mSessionId;
+
+    /// <summary>
+    /// Session ID used by SSH keys
+    /// </summary>
+    public byte[] SessionId
+    {
+      get
+      {
+        if (mSessionId == null) {
+          using (var md5 = MD5.Create()) {
+            md5.Initialize();
+            var currentProc = Process.GetCurrentProcess();
+            var sessionData =
+              Encoding.UTF8.GetBytes(currentProc.MachineName + currentProc.Id);
+            mSessionId = md5.ComputeHash(sessionData);
+          }
+        }
+        return mSessionId;
+      }
+    }
 
     public abstract void SendMessage(byte[] aMessage, out byte[] aReply);
 
@@ -129,7 +156,10 @@ namespace dlech.SshAgentLib
             }
             var ssh1KeyCount = replyParser.ReadInt();
             for (var i = 0; i < ssh1KeyCount; i++) {
-              // TODO implement SSH1
+              var publicKeyParams = Agent.ParseSsh1PublicKeyData(replyParser.Stream, true);
+              var comment = replyParser.ReadString();
+              aKeyCollection.Add(
+                new SshKey(SshVersion.SSH1, publicKeyParams, null, comment));
             }
             break;
           case SshVersion.SSH2:
@@ -160,8 +190,14 @@ namespace dlech.SshAgentLib
       BlobBuilder builder = new BlobBuilder();
       switch (aKey.Version) {
         case SshVersion.SSH1:
-          // TODO implement SSH1
-          throw new NotImplementedException();
+          builder.AddBytes(aKey.GetPublicKeyBlob());
+          var engine = new Pkcs1Encoding(new RsaEngine());
+          engine.Init(true /* encrypt */, aKey.GetPublicKeyParameters());
+          var encryptedData = engine.ProcessBlock(aSignData, 0, aSignData.Length);
+          var challenge = new BigInteger(encryptedData);
+          builder.AddSsh1BigIntBlob(challenge);
+          builder.AddBytes(SessionId);
+          builder.AddInt(1); // response type - must be 1
           builder.InsertHeader(Agent.Message.SSH1_AGENTC_RSA_CHALLENGE);
           break;
         case SshVersion.SSH2:
@@ -262,6 +298,17 @@ namespace dlech.SshAgentLib
     {
       var builder = new BlobBuilder();
       switch (aKey.Version) {
+        case SshVersion.SSH1:
+          var privateKeyParams = 
+            aKey.GetPrivateKeyParameters() as RsaPrivateCrtKeyParameters;
+          builder.AddInt(aKey.Size);
+          builder.AddSsh1BigIntBlob(privateKeyParams.Modulus);
+          builder.AddSsh1BigIntBlob(privateKeyParams.PublicExponent);
+          builder.AddSsh1BigIntBlob(privateKeyParams.Exponent);
+          builder.AddSsh1BigIntBlob(privateKeyParams.QInv);
+          builder.AddSsh1BigIntBlob(privateKeyParams.Q);
+          builder.AddSsh1BigIntBlob(privateKeyParams.P);
+          break;
         case SshVersion.SSH2:
           builder.AddStringBlob(aKey.Algorithm.GetIdentifierString());
           switch (aKey.Algorithm) {

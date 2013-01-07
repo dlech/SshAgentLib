@@ -8,6 +8,7 @@ using System.IO;
 using System.Collections.ObjectModel;
 using Org.BouncyCastle.Math;
 using Org.BouncyCastle.Asn1;
+using System.Security.Cryptography;
 
 namespace dlech.SshAgentLibTests
 {
@@ -111,13 +112,13 @@ namespace dlech.SshAgentLibTests
       bool result;
       int keyCount = 0;
 
-      foreach (var key in mAllKeys.Where(key => key.Version == SshVersion.SSH2)) {
+      foreach (var key in mAllKeys) {
         result = agentClient.AddKey(key);
         Assert.That(result, Is.True);
         keyCount += 1;
         Assert.That(agentClient.Agent.KeyCount, Is.EqualTo(keyCount));
-       Assert.That(agentClient.Agent.GetAllKeys()
-          .Get(key.Version, key.GetPublicKeyBlob()), Is.Not.Null);
+        Assert.That(agentClient.Agent.GetAllKeys()
+           .Get(key.Version, key.GetPublicKeyBlob()), Is.Not.Null);
       }
     }
 
@@ -131,9 +132,20 @@ namespace dlech.SshAgentLibTests
       foreach (var key in mAllKeys) {
         agentClient.Agent.AddKey(key);
       }
+
+      // check that SS1 keys worked
+      result = agentClient.ListKeys(SshVersion.SSH1, out keyList);
+      Assert.That(result, Is.True);
+      var expectedKeyList = mAllKeys.Where(key => key.Version == SshVersion.SSH1);
+      Assert.That(keyList.Count, Is.EqualTo(expectedKeyList.Count()));
+      foreach (var key in expectedKeyList) {
+        Assert.That(keyList.Get(key.Version, key.GetPublicKeyBlob()), Is.Not.Null);
+      }
+
+      // check that ssh2 keys worked
       result = agentClient.ListKeys(SshVersion.SSH2, out keyList);
       Assert.That(result, Is.True);
-      var expectedKeyList = mAllKeys.Where(key => key.Version == SshVersion.SSH2);
+      expectedKeyList = mAllKeys.Where(key => key.Version == SshVersion.SSH2);
       Assert.That(keyList.Count, Is.EqualTo(expectedKeyList.Count()));
       foreach (var key in expectedKeyList) {
         Assert.That(keyList.Get(key.Version, key.GetPublicKeyBlob()), Is.Not.Null);
@@ -174,10 +186,10 @@ namespace dlech.SshAgentLibTests
       bool result;
 
       /* test SSH1 */
-      //agentClient.Agent.AddKey(mRsa1Key);
-      //result = agentClient.RemoveKey(mRsa1Key);
-      //Assert.That(result, Is.True);
-      //Assert.That(agentClient.Agent.KeyList.Count, Is.EqualTo(0));
+      agentClient.Agent.AddKey(mRsa1Key);
+      result = agentClient.RemoveKey(mRsa1Key);
+      Assert.That(result, Is.True);
+      Assert.That(agentClient.Agent.KeyCount, Is.EqualTo(0));
 
       /* test SSH2 */
       agentClient.Agent.AddKey(mRsaKey);
@@ -201,38 +213,54 @@ namespace dlech.SshAgentLibTests
       byte[] signature;
       bool result;
 
-      foreach (var key in mAllKeys.Where(key => key.Version == SshVersion.SSH2)) {
+      foreach (var key in mAllKeys) {
         agentClient.Agent.AddKey(key);
         result = agentClient.SignRequest(key, data, out signature);
-        Assert.That(result, Is.True);
-        BlobParser signatureParser = new BlobParser(signature);
-        var algorithm = signatureParser.ReadString();
-        Assert.That(algorithm, Is.EqualTo(key.Algorithm.GetIdentifierString()));
-        signature = signatureParser.ReadBlob().Data;
-        if (key.Algorithm == PublicKeyAlgorithm.SSH_RSA) {
-          Assert.That(signature.Length == key.Size / 8);
-        } else if (key.Algorithm == PublicKeyAlgorithm.SSH_DSS) {
-          Assert.That(signature.Length, Is.EqualTo(40));
-          var r = new BigInteger(1, signature, 0, 20);
-          var s = new BigInteger(1, signature, 20, 20);
-          var seq = new DerSequence(new DerInteger(r), new DerInteger(s));
-          signature = seq.GetDerEncoded();
-        } else if (key.Algorithm == PublicKeyAlgorithm.ECDSA_SHA2_NISTP256 ||
-          key.Algorithm == PublicKeyAlgorithm.ECDSA_SHA2_NISTP384 ||
-          key.Algorithm == PublicKeyAlgorithm.ECDSA_SHA2_NISTP521) {
-          Assert.That(signature.Length, Is.AtLeast(key.Size / 4 + 8));
-          Assert.That(signature.Length, Is.AtMost(key.Size / 4 + 10));
-          BlobParser parser = new BlobParser(signature);
-          var r = new BigInteger(parser.ReadBlob().Data);
-          var s = new BigInteger(parser.ReadBlob().Data);
-          var seq = new DerSequence(new DerInteger(r), new DerInteger(s));
-          signature = seq.GetDerEncoded();
+        Assert.That(result, Is.True);        
+        switch (key.Version) {
+          case SshVersion.SSH1:
+            using (MD5 md5 = MD5.Create()) {
+              var md5Buffer = new byte[48];
+              data.CopyTo(md5Buffer, 0);
+              agentClient.SessionId.CopyTo(md5Buffer, 32);
+              var expctedSignature = md5.ComputeHash(md5Buffer);
+              Assert.That(signature, Is.EqualTo(expctedSignature));
+            }
+            break;
+          case SshVersion.SSH2:
+            BlobParser signatureParser = new BlobParser(signature);
+            var algorithm = signatureParser.ReadString();
+            Assert.That(algorithm, Is.EqualTo(key.Algorithm.GetIdentifierString()));
+            signature = signatureParser.ReadBlob().Data;
+            if (key.Algorithm == PublicKeyAlgorithm.SSH_RSA) {
+              Assert.That(signature.Length == key.Size / 8);
+            } else if (key.Algorithm == PublicKeyAlgorithm.SSH_DSS) {
+              Assert.That(signature.Length, Is.EqualTo(40));
+              var r = new BigInteger(1, signature, 0, 20);
+              var s = new BigInteger(1, signature, 20, 20);
+              var seq = new DerSequence(new DerInteger(r), new DerInteger(s));
+              signature = seq.GetDerEncoded();
+            } else if (key.Algorithm == PublicKeyAlgorithm.ECDSA_SHA2_NISTP256 ||
+              key.Algorithm == PublicKeyAlgorithm.ECDSA_SHA2_NISTP384 ||
+              key.Algorithm == PublicKeyAlgorithm.ECDSA_SHA2_NISTP521) {
+              Assert.That(signature.Length, Is.AtLeast(key.Size / 4 + 8));
+              Assert.That(signature.Length, Is.AtMost(key.Size / 4 + 10));
+              BlobParser parser = new BlobParser(signature);
+              var r = new BigInteger(parser.ReadBlob().Data);
+              var s = new BigInteger(parser.ReadBlob().Data);
+              var seq = new DerSequence(new DerInteger(r), new DerInteger(s));
+              signature = seq.GetDerEncoded();
+            }
+            var signer = key.GetSigner();
+            signer.Init(false, key.GetPublicKeyParameters());
+            signer.BlockUpdate(data, 0, data.Length);
+            result = signer.VerifySignature(signature);
+            Assert.That(result, Is.True);
+            break;
+          default:
+            Assert.Fail("Unexpected Ssh Version");
+            break;
         }
-        var signer = key.GetSigner();
-        signer.Init(false, key.GetPublicKeyParameters());
-        signer.BlockUpdate(data, 0, data.Length);
-        result = signer.VerifySignature(signature);
-        Assert.That(result, Is.True);
       }
     }
 

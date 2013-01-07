@@ -426,19 +426,18 @@ namespace dlech.SshAgentLib
                     && (key.GetPublicKeyParameters().Equals(publicKeyParams))).Single();
 
                 //Reading challenge
-                BlobParser ssh1ChallengeParser = new BlobParser(aMessageStream);
-                PinnedByteArray encryptedChallenge = ssh1ChallengeParser.ReadSsh1BigIntBlob();
-                PinnedByteArray sessionId = ssh1ChallengeParser.ReadBytes(16);
+                PinnedByteArray encryptedChallenge = messageParser.ReadSsh1BigIntBlob();
+                PinnedByteArray sessionId = messageParser.ReadBytes(16);
 
                 //Checking responseType field
-                if (ssh1ChallengeParser.ReadInt() != 1)
+                if (messageParser.ReadInt() != 1)
                 {
                     goto default; //responseType !=1  is not longer supported
                 }
 
                 //Answering to the challenge
                 IAsymmetricBlockCipher engine = new Pkcs1Encoding(new RsaEngine());
-                engine.Init(false, matchingKey.GetPrivateKeyParameters());
+                engine.Init(false /* decrypt */, matchingKey.GetPrivateKeyParameters());
                 
                 byte[] decryptedChallenge = engine.ProcessBlock(encryptedChallenge.Data,
                     0, encryptedChallenge.Data.Length);
@@ -452,7 +451,7 @@ namespace dlech.SshAgentLib
                     responseBuilder.AddBytes(md5.ComputeHash(md5Buffer));
                     responseBuilder.InsertHeader(Message.SSH1_AGENT_RSA_RESPONSE);
                     break;
-                }       
+                }
             } catch (InvalidOperationException) {
                 // this is expected if there is not a matching key
             } catch (Exception ex) {
@@ -866,7 +865,8 @@ namespace dlech.SshAgentLib
     /// Set to true to read RSA modulus first. Normally exponent is read first.
     /// </param>
     /// <returns>AsymmetricKeyParameter containing the public key</returns>
-    public static AsymmetricKeyParameter ParseSsh1PublicKeyData(Stream aSteam, bool aReverseRsaParameters)
+    public static AsymmetricKeyParameter ParseSsh1PublicKeyData(Stream aSteam,
+      bool aReverseRsaParameters = false)
     {
         BlobParser parser = new BlobParser(aSteam);
 
