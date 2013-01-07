@@ -30,37 +30,32 @@ namespace dlech.SshAgentLib
       }
 
       PasswordFinder pwFinder = null;
-      if (GetPassphraseCallbackMethod != null)
-      {
+      if (GetPassphraseCallbackMethod != null) {
         pwFinder = new PasswordFinder(GetPassphraseCallbackMethod);
       }
       StreamWriter streamWriter = new StreamWriter(aStream);
       char[] passphrase = null;
-      if (pwFinder != null)
-      {
+      if (pwFinder != null) {
         passphrase = pwFinder.GetPassword();
       }
 
       byte cipherType;
-      if (passphrase == null || passphrase.Length == 0)
-      {
-        cipherType=0;
-      }
-      else
-      {
-        cipherType=3;
+      if (passphrase == null || passphrase.Length == 0) {
+        cipherType = 0;
+      } else {
+        cipherType = 3;
       }
 
       BlobBuilder builder = new BlobBuilder();
 
       ISshKey sshKey = aObject as ISshKey;
-      RsaKeyParameters publicKeyParams=sshKey.GetPublicKeyParameters()
+      RsaKeyParameters publicKeyParams = sshKey.GetPublicKeyParameters()
         as RsaKeyParameters;
-      RsaPrivateCrtKeyParameters privateKeyParams=sshKey.GetPrivateKeyParameters()
+      RsaPrivateCrtKeyParameters privateKeyParams = sshKey.GetPrivateKeyParameters()
         as RsaPrivateCrtKeyParameters;
 
       /* writing info headers */
-      builder.AddBytes((new ASCIIEncoding()).GetBytes(FILE_HEADER_LINE+"\n"));
+      builder.AddBytes((new ASCIIEncoding()).GetBytes(FILE_HEADER_LINE + "\n"));
       builder.AddByte(0);          //end of string
       builder.AddByte(cipherType); //cipher
       builder.AddInt(0);           //reserved
@@ -76,7 +71,7 @@ namespace dlech.SshAgentLib
 
       /* adding some control values */
       Random random = new Random();
-      byte[] resultCheck=new byte[2];
+      byte[] resultCheck = new byte[2];
       random.NextBytes(resultCheck);
 
       privateKeyBuilder.AddByte(resultCheck[0]);
@@ -88,18 +83,14 @@ namespace dlech.SshAgentLib
       privateKeyBuilder.AddSsh1BigIntBlob(privateKeyParams.P);
       privateKeyBuilder.AddSsh1BigIntBlob(privateKeyParams.Q);
 
-      if (cipherType == 0)
-      {
+      if (cipherType == 0) {
         /* plain-text */
         builder.AddBytes(privateKeyBuilder.GetBlobAsPinnedByteArray().Data);
-      }
-      else
-      {
+      } else {
         GCHandle ppHandle = GCHandle.Alloc(passphrase, GCHandleType.Pinned);
 
         byte[] keydata;
-        using (MD5 md5 = MD5.Create())
-        {
+        using (MD5 md5 = MD5.Create()) {
           keydata = md5.ComputeHash((new ASCIIEncoding()).GetBytes(passphrase));
         }
 
@@ -133,10 +124,10 @@ namespace dlech.SshAgentLib
       /* reading unencrypted part */
       BlobParser parser = new BlobParser(aStream);
 
-      parser.ReadBytes((uint)FILE_HEADER_LINE.Length+2);  //Skipping header line
+      parser.ReadBytes((uint)FILE_HEADER_LINE.Length + 2);  //Skipping header line
 
       byte cipherType = parser.ReadByte();
-      if (cipherType != 3 && cipherType!=0) {
+      if (cipherType != 3 && cipherType != 0) {
         //ciphertype 3 (TripleDes) is the only encryption supported
         throw new KeyFormatterException("Unsupported cypherType: " + cipherType);
       }
@@ -145,7 +136,7 @@ namespace dlech.SshAgentLib
 
       /* reading public key */
       AsymmetricKeyParameter aPublicKeyParameter =
-         Agent.ParseSsh1PublicKeyData(aStream, false);
+         parser.ReadSsh1PublicKeyData(false);
       String keyComment = parser.ReadString();
 
       /* reading private key */
@@ -153,11 +144,10 @@ namespace dlech.SshAgentLib
       aStream.Read(inputBuffer, 0, inputBuffer.Length);
       byte[] ouputBuffer;
 
-      try
-      {
-        MemoryStream dStream = new MemoryStream();
+      try {
 
-        if (cipherType == 3){
+
+        if (cipherType == 3) {
           /* private key is 3DES encrypted */
           PasswordFinder pwFinder = null;
           if (GetPassphraseCallbackMethod != null) {
@@ -165,18 +155,13 @@ namespace dlech.SshAgentLib
           }
 
           byte[] keydata;
-          try
-          {
-            using (MD5 md5 = MD5.Create())
-            {
+          try {
+            using (MD5 md5 = MD5.Create()) {
               char[] md5Buffer = pwFinder.GetPassword();
               keydata = md5.ComputeHash((new ASCIIEncoding()).GetBytes(md5Buffer));
             }
-          }
-          catch (PasswordException ex)
-          {
-            if (GetPassphraseCallbackMethod == null)
-            {
+          } catch (PasswordException ex) {
+            if (GetPassphraseCallbackMethod == null) {
               throw new CallbackNullException();
             }
             throw new KeyFormatterException("see inner exception", ex);
@@ -189,27 +174,23 @@ namespace dlech.SshAgentLib
           BufferedBlockCipher bufferedBlockCipher = new BufferedBlockCipher(desEngine);
           ouputBuffer = bufferedBlockCipher.ProcessBytes(inputBuffer);
 
-        }else{
+        } else {
           /* private key is stored in plain text */
           ouputBuffer = inputBuffer;
         }
 
-        /* writing the uncrypted private key in a memory stream */
-        dStream.Write(ouputBuffer, 0, ouputBuffer.Length);
-        dStream.Position = 0;
+        var privateKeyParser = new BlobParser(ouputBuffer);
 
         /* checking result of decryption */
-        byte[] resultCheck = new byte[4];
-        dStream.Read(resultCheck, 0, 4);
-        if (resultCheck[0] != resultCheck[2] || resultCheck[1] != resultCheck[3]){
+        byte[] resultCheck = privateKeyParser.ReadBytes(4).Data;
+        if (resultCheck[0] != resultCheck[2] || resultCheck[1] != resultCheck[3]) {
           throw new KeyFormatterException("bad passphrase");
         }
 
         /* reading private key */
-        var keyPair = Agent.ParseSsh1KeyData(aPublicKeyParameter, dStream);
+        var keyPair = privateKeyParser.ReadSsh1KeyData(aPublicKeyParameter);
         SshKey key = new SshKey(SshVersion.SSH1, keyPair);
         key.Comment = keyComment;
-
         return key;
       } catch (KeyFormatterException) {
         throw;

@@ -6,7 +6,7 @@ using NUnit.Framework;
 using dlech.SshAgentLib;
 using Org.BouncyCastle.Math;
 
-namespace PageantSharpNUnitTest
+namespace dlech.SshAgentLibTests
 {
   /// <summary>
   /// Test for BlobBuilder class

@@ -156,7 +156,7 @@ namespace dlech.SshAgentLib
             }
             var ssh1KeyCount = replyParser.ReadInt();
             for (var i = 0; i < ssh1KeyCount; i++) {
-              var publicKeyParams = Agent.ParseSsh1PublicKeyData(replyParser.Stream, true);
+              var publicKeyParams = replyParser.ReadSsh1PublicKeyData(true);
               var comment = replyParser.ReadString();
               aKeyCollection.Add(
                 new SshKey(SshVersion.SSH1, publicKeyParams, null, comment));
@@ -169,8 +169,8 @@ namespace dlech.SshAgentLib
             var ssh2KeyCount = replyParser.ReadInt();
             for (var i = 0; i < ssh2KeyCount; i++) {
               var publicKeyBlob = replyParser.ReadBlob();
-              var publicKeyParams = Agent.ParseSsh2PublicKeyData(
-                new MemoryStream(publicKeyBlob.Data));
+              var publicKeyParser = new BlobParser(publicKeyBlob.Data);
+              var publicKeyParams = publicKeyParser.ReadSsh2PublicKeyData();
               var comment = replyParser.ReadString();
               aKeyCollection.Add(
                 new SshKey(SshVersion.SSH2, publicKeyParams, null, comment));
