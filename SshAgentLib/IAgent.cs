@@ -80,8 +80,10 @@ namespace dlech.SshAgentLib
     {
       List<ISshKey> allKeysList = new List<ISshKey>();
       foreach (SshVersion version in Enum.GetValues(typeof(SshVersion))) {
-        var versionList = aAgent.ListKeys(version);
-        allKeysList.AddRange(versionList);
+        try {
+          var versionList = aAgent.ListKeys(version);
+          allKeysList.AddRange(versionList);
+        } catch (AgentFailureException) { }
       }
       return allKeysList;
     }

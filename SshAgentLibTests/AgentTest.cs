@@ -126,7 +126,6 @@ namespace dlech.SshAgentLibTests
       builder.AddInt(mRsa1Key.Size);
       builder.AddSsh1BigIntBlob(rsaParameters.Modulus);
       builder.AddSsh1BigIntBlob(rsaParameters.PublicExponent);
-
       builder.AddSsh1BigIntBlob(rsaParameters.Exponent);
       builder.AddSsh1BigIntBlob(rsaParameters.QInv);
       builder.AddSsh1BigIntBlob(rsaParameters.P);
@@ -275,6 +274,130 @@ namespace dlech.SshAgentLibTests
       Assert.That(header.BlobLength, Is.EqualTo(1));
       Assert.That(header.Message, Is.EqualTo(Agent.Message.SSH_AGENT_FAILURE));
       Assert.That(agent.GetAllKeys().Count, Is.EqualTo(0));
+    }
+    
+    [Test()]
+    public void TestAnswerSSH1_AGENTC_ADD_RSA_ID_CONSTRAINED()
+    {
+      /* most code is shared with SSH1_AGENTC_ADD_RSA_IDENTITY, so we just
+       * need to test the differences */
+
+      Agent.ConfirmUserPermissionDelegate confirmCallback =
+        delegate(ISshKey key) { return true; };
+
+      Agent agent = new TestAgent();
+
+      /* test that no confirmation callback returns failure */
+
+      BlobBuilder builder = new BlobBuilder();
+      RsaPrivateCrtKeyParameters rsaParameters =
+        (RsaPrivateCrtKeyParameters)mRsa1Key.GetPrivateKeyParameters();
+      builder.AddInt(mRsa1Key.Size);
+      builder.AddSsh1BigIntBlob(rsaParameters.Modulus);
+      builder.AddSsh1BigIntBlob(rsaParameters.PublicExponent);
+      builder.AddSsh1BigIntBlob(rsaParameters.Exponent);
+      builder.AddSsh1BigIntBlob(rsaParameters.QInv);
+      builder.AddSsh1BigIntBlob(rsaParameters.P);
+      builder.AddSsh1BigIntBlob(rsaParameters.Q);
+      builder.AddStringBlob(mRsa1Key.Comment);
+      //save blob so far so we don't have to repeat later.
+      byte[] commonBlob = builder.GetBlob();
+      builder.AddByte((byte)Agent.KeyConstraintType.SSH_AGENT_CONSTRAIN_CONFIRM);
+      builder.InsertHeader(Agent.Message.SSH1_AGENTC_ADD_RSA_ID_CONSTRAINED);
+      PrepareMessage(builder);
+      agent.AnswerMessage(mStream);
+      RewindStream();
+      Agent.BlobHeader header = mParser.ReadHeader();
+      Assert.That(header.BlobLength, Is.EqualTo(1));
+      Assert.That(header.Message, Is.EqualTo(Agent.Message.SSH_AGENT_FAILURE));
+
+      /* test adding key with confirm constraint */
+
+      agent = new TestAgent();
+      agent.ConfirmUserPermissionCallback = confirmCallback;
+      PrepareMessage(builder);
+      agent.AnswerMessage(mStream);
+      RewindStream();
+      header = mParser.ReadHeader();
+      Assert.That(header.BlobLength, Is.EqualTo(1));
+      Assert.That(header.Message, Is.EqualTo(Agent.Message.SSH_AGENT_SUCCESS));
+      ISshKey returnedKey = agent.GetAllKeys().First();
+      Assert.That(returnedKey.Constraints.Count(), Is.EqualTo(1));
+      Assert.That(returnedKey.Constraints[0].Type,
+        Is.EqualTo(Agent.KeyConstraintType.SSH_AGENT_CONSTRAIN_CONFIRM));
+      Assert.That(returnedKey.Constraints[0].Data, Is.Null);
+
+      /* test adding key with lifetime constraint */
+
+      agent = new TestAgent();
+      builder.Clear();
+      builder.AddBytes(commonBlob);
+      builder.AddByte((byte)Agent.KeyConstraintType.SSH_AGENT_CONSTRAIN_LIFETIME);
+      builder.AddInt(10);
+      builder.InsertHeader(Agent.Message.SSH1_AGENTC_ADD_RSA_ID_CONSTRAINED);
+      PrepareMessage(builder);
+      agent.AnswerMessage(mStream);
+      RewindStream();
+      header = mParser.ReadHeader();
+      Assert.That(header.BlobLength, Is.EqualTo(1));
+      Assert.That(header.Message, Is.EqualTo(Agent.Message.SSH_AGENT_SUCCESS));
+      returnedKey = agent.GetAllKeys().First();
+      Assert.That(returnedKey.Constraints.Count(), Is.EqualTo(1));
+      Assert.That(returnedKey.Constraints[0].Type,
+        Is.EqualTo(Agent.KeyConstraintType.SSH_AGENT_CONSTRAIN_LIFETIME));
+      Assert.That(returnedKey.Constraints[0].Data.GetType(),
+        Is.EqualTo(Agent.KeyConstraintType.SSH_AGENT_CONSTRAIN_LIFETIME.GetDataType()));
+      Assert.That(returnedKey.Constraints[0].Data, Is.EqualTo(10));
+
+      /* test adding key with multiple constraints */
+
+      agent = new TestAgent();
+      agent.ConfirmUserPermissionCallback = confirmCallback;
+      builder.Clear();
+      builder.AddBytes(commonBlob);
+      builder.AddByte((byte)Agent.KeyConstraintType.SSH_AGENT_CONSTRAIN_CONFIRM);
+      builder.AddByte((byte)Agent.KeyConstraintType.SSH_AGENT_CONSTRAIN_LIFETIME);
+      builder.AddInt(10);
+      builder.InsertHeader(Agent.Message.SSH1_AGENTC_ADD_RSA_ID_CONSTRAINED);
+      PrepareMessage(builder);
+      agent.AnswerMessage(mStream);
+      RewindStream();
+      header = mParser.ReadHeader();
+      Assert.That(header.BlobLength, Is.EqualTo(1));
+      Assert.That(header.Message, Is.EqualTo(Agent.Message.SSH_AGENT_SUCCESS));
+      returnedKey = agent.GetAllKeys().First();
+      Assert.That(returnedKey.Constraints.Count(), Is.EqualTo(2));
+      Assert.That(returnedKey.Constraints[0].Type,
+        Is.EqualTo(Agent.KeyConstraintType.SSH_AGENT_CONSTRAIN_CONFIRM));
+      Assert.That(returnedKey.Constraints[0].Data, Is.Null);
+      Assert.That(returnedKey.Constraints[1].Type,
+        Is.EqualTo(Agent.KeyConstraintType.SSH_AGENT_CONSTRAIN_LIFETIME));
+      Assert.That(returnedKey.Constraints[1].Data, Is.EqualTo(10));
+
+      /* test adding key with multiple constraints in different order */
+
+      agent = new TestAgent();
+      agent.ConfirmUserPermissionCallback = confirmCallback;
+      builder.Clear();
+      builder.AddBytes(commonBlob);
+      builder.AddByte((byte)Agent.KeyConstraintType.SSH_AGENT_CONSTRAIN_LIFETIME);
+      builder.AddInt(10);
+      builder.AddByte((byte)Agent.KeyConstraintType.SSH_AGENT_CONSTRAIN_CONFIRM);
+      builder.InsertHeader(Agent.Message.SSH1_AGENTC_ADD_RSA_ID_CONSTRAINED);
+      PrepareMessage(builder);
+      agent.AnswerMessage(mStream);
+      RewindStream();
+      header = mParser.ReadHeader();
+      Assert.That(header.BlobLength, Is.EqualTo(1));
+      Assert.That(header.Message, Is.EqualTo(Agent.Message.SSH_AGENT_SUCCESS));
+      returnedKey = agent.GetAllKeys().First();
+      Assert.That(returnedKey.Constraints.Count(), Is.EqualTo(2));
+      Assert.That(returnedKey.Constraints[0].Type,
+        Is.EqualTo(Agent.KeyConstraintType.SSH_AGENT_CONSTRAIN_LIFETIME));
+      Assert.That(returnedKey.Constraints[0].Data, Is.EqualTo(10));
+      Assert.That(returnedKey.Constraints[1].Type,
+        Is.EqualTo(Agent.KeyConstraintType.SSH_AGENT_CONSTRAIN_CONFIRM));
+      Assert.That(returnedKey.Constraints[1].Data, Is.Null);
     }
 
     [Test()]
@@ -670,6 +793,51 @@ namespace dlech.SshAgentLibTests
       header2 = mParser.ReadHeader();
       Assert.That(header2.BlobLength, Is.Not.EqualTo(1));
       Assert.That(header2.Message, Is.EqualTo(Agent.Message.SSH2_AGENT_SIGN_RESPONSE));
+    }
+
+    [Test()]
+    public void TestAnswerSSH1_AGENTC_REMOVE_RSA_IDENTITY()
+    {
+      Agent agent = new TestAgent(mAllKeys);
+      BlobBuilder builder = new BlobBuilder();
+
+      /* test remove key returns success when key is removed */
+
+      builder.AddBytes(mRsa1Key.GetPublicKeyBlob());
+      builder.InsertHeader(Agent.Message.SSH1_AGENTC_REMOVE_RSA_IDENTITY);
+      PrepareMessage(builder);
+      agent.AnswerMessage(mStream);
+      RewindStream();
+      Agent.BlobHeader header = mParser.ReadHeader();
+      Assert.That(header.BlobLength, Is.EqualTo(1));
+      Assert.That(header.Message, Is.EqualTo(Agent.Message.SSH_AGENT_SUCCESS));
+      Assert.That(agent.GetAllKeys()
+        .SequenceEqual(mAllKeys.Where(key => key != mRsa1Key)));
+
+      /* test remove key returns failure when key does not exist */
+
+      int startCount = agent.GetAllKeys().Count();
+      PrepareMessage(builder);
+      agent.AnswerMessage(mStream);
+      RewindStream();
+      header = mParser.ReadHeader();
+      Assert.That(header.BlobLength, Is.EqualTo(1));
+      Assert.That(header.Message, Is.EqualTo(Agent.Message.SSH_AGENT_FAILURE));
+      Assert.That(agent.GetAllKeys().Count(), Is.EqualTo(startCount));
+
+      /* test returns failure when locked */
+
+      agent.Lock(new byte[0]);
+      startCount = agent.GetAllKeys().Count();
+      builder.AddBlob(mDsaKey.GetPublicKeyBlob());
+      builder.InsertHeader(Agent.Message.SSH2_AGENTC_REMOVE_IDENTITY);
+      PrepareMessage(builder);
+      agent.AnswerMessage(mStream);
+      RewindStream();
+      header = mParser.ReadHeader();
+      Assert.That(header.BlobLength, Is.EqualTo(1));
+      Assert.That(header.Message, Is.EqualTo(Agent.Message.SSH_AGENT_FAILURE));
+      Assert.That(agent.GetAllKeys().Count(), Is.EqualTo(startCount));
     }
 
     [Test()]

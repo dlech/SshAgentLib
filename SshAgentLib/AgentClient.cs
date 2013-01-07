@@ -253,7 +253,15 @@ namespace dlech.SshAgentLib
     private BlobBuilder CreatePublicKeyBlob(ISshKey aKey)
     {
       var builder = new BlobBuilder();
-      builder.AddBlob(aKey.GetPublicKeyBlob());
+      switch (aKey.Version) {
+        case SshVersion.SSH1:
+          builder.AddBytes(aKey.GetPublicKeyBlob());
+          break;
+        case SshVersion.SSH2:
+          builder.AddBlob(aKey.GetPublicKeyBlob());
+          break;
+      }
+
       return builder;
     }
 
