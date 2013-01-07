@@ -109,7 +109,9 @@ namespace dlech.SshAgentLib
     /// </exception>
     public static KeyFormatter GetFormatter(string aFirstLine)
     {
+      // PuTTY Private key format
       var ppkRegex = new Regex("PuTTY-User-Key-File-[12]");
+      // OpenSSH private key format
       var pemPrivateKeyRegex = new Regex("-----BEGIN .* PRIVATE KEY-----");
 
       if (ppkRegex.IsMatch(aFirstLine)) {
@@ -120,6 +122,37 @@ namespace dlech.SshAgentLib
         return new Ssh1KeyFormatter();
       } else {
         throw new KeyFormatterException("Unknown file format");
+      }
+    }
+  }
+
+  public static class KeyFormatterExt
+  {
+    /// <summary>
+    /// Auto-detect data format, read data and create key object
+    /// </summary>
+    /// <param name="aStream"></param>
+    /// <returns></returns>
+    public static ISshKey ReadSshKey(this Stream aStream, KeyFormatter.GetPassphraseCallback aGetPassphraseCallback = null)
+    {
+      using (var reader = new StreamReader(aStream)) {
+        var firstLine = reader.ReadLine();
+        var formatter = KeyFormatter.GetFormatter(firstLine);
+        formatter.GetPassphraseCallbackMethod = aGetPassphraseCallback;
+        aStream.Position = 0;
+        return formatter.Deserialize(aStream) as ISshKey;
+      }
+    }
+
+    /// <summary>
+    /// Auto-detect data format, read data and create key object
+    /// </summary>
+    /// <param name="aStream"></param>
+    /// <returns></returns>
+    public static ISshKey ReadSshKey(this byte[] aData, KeyFormatter.GetPassphraseCallback aGetPassphraseCallback = null)
+    {
+      using (var stream = new MemoryStream(aData)) {
+        return stream.ReadSshKey(aGetPassphraseCallback);
       }
     }
   }
