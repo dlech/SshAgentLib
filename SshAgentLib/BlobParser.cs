@@ -55,9 +55,9 @@ namespace dlech.SshAgentLib
             throw new Exception("Not enough data");
         }
         Stream.Read(dataLegthBytes, 0, dataLegthBytes.Length);
-        return (ushort)((dataLegthBytes[0] << 8) + dataLegthBytes[1]); ;
-
+        return (ushort)((dataLegthBytes[0] << 8) + dataLegthBytes[1]);
     }
+
     public Agent.BlobHeader ReadHeader()
     {
       Agent.BlobHeader header = new Agent.BlobHeader();

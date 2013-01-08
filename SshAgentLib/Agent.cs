@@ -52,6 +52,11 @@ namespace dlech.SshAgentLib
     public event KeyListChangeEventHandler KeyListChanged;
 
     /// <summary>
+    /// fired when a message is received by the agent
+    /// </summary>
+    public event MessageReceivedEventHandler MessageReceived;
+
+    /// <summary>
     /// fired when a key is used to sign a request
     /// </summary>
     public event KeyUsedEventHandler KeyUsed;
@@ -179,6 +184,29 @@ namespace dlech.SshAgentLib
 
     public delegate void KeyListChangeEventHandler(object aSender,
       KeyListChangeEventArgs aEventArgs);
+
+    public class MessageReceivedEventArgs : EventArgs
+    {
+      public MessageReceivedEventArgs(BlobHeader aMessageHeader)
+      {
+        MessageHeader = aMessageHeader;
+        Fail = false;
+      }
+
+      /// <summary>
+      /// The message header of the message
+      /// </summary>
+      public BlobHeader MessageHeader { get; private set; }
+
+      /// <summary>
+      /// Setting to true causes the message to not be processed.
+      /// The agent will return SSH_AGENT_FAILURE
+      /// </summary>
+      public bool Fail { get; set; }
+    }
+
+    public delegate void MessageReceivedEventHandler(object aSender,
+     MessageReceivedEventArgs aEventArgs);
 
     public class KeyUsedEventArgs : EventArgs
     {
@@ -356,6 +384,14 @@ namespace dlech.SshAgentLib
       BlobParser messageParser = new BlobParser(aMessageStream);
       BlobBuilder responseBuilder = new BlobBuilder();
       BlobHeader header = messageParser.ReadHeader();
+
+      if (MessageReceived != null) {
+        var eventArgs = new MessageReceivedEventArgs(header);
+        MessageReceived(this, eventArgs);
+        if (eventArgs.Fail) {
+          header.Message = unchecked((Message)(-1));
+        }
+      }
 
       switch (header.Message) {
         case Message.SSH1_AGENTC_REQUEST_RSA_IDENTITIES:
