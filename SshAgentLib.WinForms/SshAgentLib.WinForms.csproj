@@ -8,8 +8,8 @@
     <ProjectGuid>{3BEB6FAE-B14D-4281-8168-DB2A4A0C5FC4}</ProjectGuid>
     <OutputType>Library</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>SshAgentLib.WinForm</RootNamespace>
-    <AssemblyName>SshAgentLib.WinForm</AssemblyName>
+    <RootNamespace>dlech.SshAgentLib.WinForms</RootNamespace>
+    <AssemblyName>SshAgentLib.WinForms</AssemblyName>
     <TargetFrameworkVersion>v4.0</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
   </PropertyGroup>
@@ -48,6 +48,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Default.cs" />
     <Compile Include="Ext.cs" />
     <Compile Include="KeyInfoView.cs">
       <SubType>UserControl</SubType>

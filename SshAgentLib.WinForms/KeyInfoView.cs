@@ -7,12 +7,10 @@ using System.Linq;
 using System.Text;
 using System.Windows.Forms;
 using dlech.SshAgentLib;
-using dlech.SshAgentLib.WinForms;
 using System.Security;
 using System.IO;
 using Microsoft.WindowsAPICodePack.Dialogs;
 using Microsoft.WindowsAPICodePack.Dialogs.Controls;
-using SshAgentLib.WinForm;
 
 namespace dlech.SshAgentLib.WinForms
 {
@@ -119,7 +117,6 @@ namespace dlech.SshAgentLib.WinForms
         agent.Locked += AgentLockHandler;
         buttonTableLayoutPanel.Controls.Remove(refreshButton);
         buttonTableLayoutPanel.ColumnCount = 5;
-        agent.ConfirmUserPermissionCallback = ConfirmCallback;
       } else {
         confirmDataGridViewCheckBoxColumn.Visible = false;
         lifetimeDataGridViewCheckBoxColumn.Visible = false;
@@ -268,20 +265,7 @@ namespace dlech.SshAgentLib.WinForms
       }
       UpdateButtonStates();
     }
-
-    private bool ConfirmCallback(ISshKey key)
-    {
-      var result = MessageBox.Show(
-        string.Format(Strings.askConfirmKey, key.Comment, key.GetMD5Fingerprint().ToHexString()),
-        Util.AssemblyTitle, MessageBoxButtons.YesNo, MessageBoxIcon.Question,
-        MessageBoxDefaultButton.Button2
-      );
-      if (result == DialogResult.Yes) {
-        return true;
-      }
-      return false;
-    }
-
+    
     private void dataGridView_SelectionChanged(object sender, EventArgs e)
     {
       UpdateButtonStates();

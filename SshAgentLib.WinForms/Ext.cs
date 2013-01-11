@@ -4,9 +4,7 @@ using System.Linq;
 using System.Text;
 using dlech.SshAgentLib;
 using System.Windows.Forms;
-using dlech.SshAgentLib.WinForms;
 using System.IO;
-using SshAgentLib.WinForm;
 
 namespace dlech.SshAgentLib.WinForms
 {
