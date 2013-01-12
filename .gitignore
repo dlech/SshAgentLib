@@ -32,5 +32,7 @@ _ReSharper*/
 *.userprefs
 *~
 test-results*/
+*.resources
 
+SshAgentLibTests/SshAgentLibTests.VisualState.xml
 SshAgentLibTests/SshAgentLibTests.csproj.VisualState.xml

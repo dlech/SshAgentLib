@@ -38,8 +38,9 @@ namespace dlech.SshAgentLibTests
           "Failed to set environment variable " +
           UnixAgent.SSH_AGENTPID_ENV_NAME
         );
-                
-        using (UnixClient client = new UnixClient (socketPathEnv)) {
+
+        using (Mono.Unix.UnixClient client =
+               new Mono.Unix.UnixClient (socketPathEnv)) {
           using (NetworkStream stream = client.GetStream ()) {
             stream.Write(new byte[] { 0 }, 0, 1); // send garbage
             byte[] reply = new byte[5];
@@ -90,7 +91,7 @@ namespace dlech.SshAgentLibTests
       Type[] paramTypes;
       if (paramList != null) {
         paramTypes = new Type[paramList.Length];
-  
+
         for (int i = 0; i < paramList.Length; i++)
           paramTypes[i] = paramList[i].GetType();
       } else {
@@ -99,7 +100,7 @@ namespace dlech.SshAgentLibTests
       MethodInfo m = t.GetMethod(name, BindingFlags.Instance |
         BindingFlags.NonPublic | BindingFlags.Public,
         null, paramTypes, null);
-     
+
       return (T)m.Invoke(instance, paramList);
     }
   }
