@@ -146,7 +146,9 @@ namespace dlech.SshAgentLib
       UInt16 class_atom = RegisterClassW(ref wind_class);
 
       int last_error = Marshal.GetLastWin32Error();
-
+      if (class_atom == 0 && last_error == ERROR_CLASS_ALREADY_EXISTS) {
+        Debug.Fail("Pageant window class already exists");
+      }
       if (class_atom == 0 && last_error != ERROR_CLASS_ALREADY_EXISTS) {
         throw new Exception("Could not register window class");
       }
