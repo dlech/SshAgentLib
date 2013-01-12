@@ -39,7 +39,7 @@ namespace dlech.SshAgentLib
     public override byte[] SendMessage(byte[] aMessage)
     {
       var socketPath =
-        Environment.ExpandEnvironmentVariables(SSH_AUTHSOCKET_ENV_NAME);
+        Environment.GetEnvironmentVariable(SSH_AUTHSOCKET_ENV_NAME);
       if (!File.Exists(socketPath)) {
         // TODO should be AgentNotRunningException
         throw new PageantNotRunningException();
