@@ -1,0 +1,6 @@
+[Desktop Entry]
+Encoding=UTF-8
+Type=Application
+Name=SshAgentLib.GTK
+Exec=sshagentlib.gtk
+Terminal=false
