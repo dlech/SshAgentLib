@@ -31,6 +31,23 @@
         <property name="RowSpacing">6</property>
         <property name="ColumnSpacing">6</property>
         <child>
+          <widget class="Gtk.Label" id="label1">
+            <property name="MemberName">mMessageLabel</property>
+            <property name="LabelProp" translatable="yes">Message</property>
+          </widget>
+          <packing>
+            <property name="AutoSize">True</property>
+            <property name="XOptions">Fill</property>
+            <property name="YOptions">Fill</property>
+            <property name="XExpand">False</property>
+            <property name="XFill">True</property>
+            <property name="XShrink">False</property>
+            <property name="YExpand">False</property>
+            <property name="YFill">True</property>
+            <property name="YShrink">False</property>
+          </packing>
+        </child>
+        <child>
           <widget class="Gtk.HButtonBox" id="mButtonBox">
             <property name="MemberName" />
             <property name="Size">6</property>
@@ -42,6 +59,7 @@
                 <property name="Type">TextOnly</property>
                 <property name="Label" translatable="yes">Lock</property>
                 <property name="UseUnderline">True</property>
+                <signal name="Clicked" handler="OnMLockButtonClicked" />
               </widget>
               <packing>
                 <property name="Expand">False</property>
@@ -55,6 +73,7 @@
                 <property name="Type">TextOnly</property>
                 <property name="Label" translatable="yes">Unlock</property>
                 <property name="UseUnderline">True</property>
+                <signal name="Clicked" handler="OnMUnlockButtonClicked" />
               </widget>
               <packing>
                 <property name="Position">1</property>
@@ -69,6 +88,7 @@
                 <property name="Type">TextOnly</property>
                 <property name="Label" translatable="yes">Add...</property>
                 <property name="UseUnderline">True</property>
+                <signal name="Clicked" handler="OnMAddButtonClicked" />
               </widget>
               <packing>
                 <property name="Position">2</property>
@@ -83,6 +103,7 @@
                 <property name="Type">TextOnly</property>
                 <property name="Label" translatable="yes">Remove</property>
                 <property name="UseUnderline">True</property>
+                <signal name="Clicked" handler="OnMRemoveButtonClicked" />
               </widget>
               <packing>
                 <property name="Position">3</property>
@@ -97,6 +118,7 @@
                 <property name="Type">TextOnly</property>
                 <property name="Label" translatable="yes">Remove All</property>
                 <property name="UseUnderline">True</property>
+                <signal name="Clicked" handler="OnMRemoveAllButtonClicked" />
               </widget>
               <packing>
                 <property name="Position">4</property>
@@ -111,6 +133,7 @@
                 <property name="Type">TextOnly</property>
                 <property name="Label" translatable="yes">Refresh</property>
                 <property name="UseUnderline">True</property>
+                <signal name="Clicked" handler="OnMRefreshButtonClicked" />
               </widget>
               <packing>
                 <property name="Position">5</property>

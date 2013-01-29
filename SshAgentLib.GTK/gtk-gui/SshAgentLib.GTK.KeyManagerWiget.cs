@@ -5,6 +5,7 @@ namespace SshAgentLib.GTK
 	public partial class KeyManagerWiget
 	{
 		private global::Gtk.Table mMainLayoutTable;
+		private global::Gtk.Label label1;
 		private global::Gtk.HButtonBox mButtonBox;
 		private global::Gtk.Button mLockButton;
 		private global::Gtk.Button mUnlockButton;
@@ -27,6 +28,14 @@ namespace SshAgentLib.GTK
 			this.mMainLayoutTable.RowSpacing = ((uint)(6));
 			this.mMainLayoutTable.ColumnSpacing = ((uint)(6));
 			// Container child mMainLayoutTable.Gtk.Table+TableChild
+			this.label1 = new global::Gtk.Label ();
+			this.label1.Name = "label1";
+			this.label1.LabelProp = global::Mono.Unix.Catalog.GetString ("Message");
+			this.mMainLayoutTable.Add (this.label1);
+			global::Gtk.Table.TableChild w1 = ((global::Gtk.Table.TableChild)(this.mMainLayoutTable [this.label1]));
+			w1.XOptions = ((global::Gtk.AttachOptions)(4));
+			w1.YOptions = ((global::Gtk.AttachOptions)(4));
+			// Container child mMainLayoutTable.Gtk.Table+TableChild
 			this.mButtonBox = new global::Gtk.HButtonBox ();
 			this.mButtonBox.Name = "mButtonBox";
 			this.mButtonBox.LayoutStyle = ((global::Gtk.ButtonBoxStyle)(1));
@@ -37,9 +46,9 @@ namespace SshAgentLib.GTK
 			this.mLockButton.UseUnderline = true;
 			this.mLockButton.Label = global::Mono.Unix.Catalog.GetString ("Lock");
 			this.mButtonBox.Add (this.mLockButton);
-			global::Gtk.ButtonBox.ButtonBoxChild w1 = ((global::Gtk.ButtonBox.ButtonBoxChild)(this.mButtonBox [this.mLockButton]));
-			w1.Expand = false;
-			w1.Fill = false;
+			global::Gtk.ButtonBox.ButtonBoxChild w2 = ((global::Gtk.ButtonBox.ButtonBoxChild)(this.mButtonBox [this.mLockButton]));
+			w2.Expand = false;
+			w2.Fill = false;
 			// Container child mButtonBox.Gtk.ButtonBox+ButtonBoxChild
 			this.mUnlockButton = new global::Gtk.Button ();
 			this.mUnlockButton.CanFocus = true;
@@ -47,10 +56,10 @@ namespace SshAgentLib.GTK
 			this.mUnlockButton.UseUnderline = true;
 			this.mUnlockButton.Label = global::Mono.Unix.Catalog.GetString ("Unlock");
 			this.mButtonBox.Add (this.mUnlockButton);
-			global::Gtk.ButtonBox.ButtonBoxChild w2 = ((global::Gtk.ButtonBox.ButtonBoxChild)(this.mButtonBox [this.mUnlockButton]));
-			w2.Position = 1;
-			w2.Expand = false;
-			w2.Fill = false;
+			global::Gtk.ButtonBox.ButtonBoxChild w3 = ((global::Gtk.ButtonBox.ButtonBoxChild)(this.mButtonBox [this.mUnlockButton]));
+			w3.Position = 1;
+			w3.Expand = false;
+			w3.Fill = false;
 			// Container child mButtonBox.Gtk.ButtonBox+ButtonBoxChild
 			this.mAddButton = new global::Gtk.Button ();
 			this.mAddButton.CanFocus = true;
@@ -58,10 +67,10 @@ namespace SshAgentLib.GTK
 			this.mAddButton.UseUnderline = true;
 			this.mAddButton.Label = global::Mono.Unix.Catalog.GetString ("Add...");
 			this.mButtonBox.Add (this.mAddButton);
-			global::Gtk.ButtonBox.ButtonBoxChild w3 = ((global::Gtk.ButtonBox.ButtonBoxChild)(this.mButtonBox [this.mAddButton]));
-			w3.Position = 2;
-			w3.Expand = false;
-			w3.Fill = false;
+			global::Gtk.ButtonBox.ButtonBoxChild w4 = ((global::Gtk.ButtonBox.ButtonBoxChild)(this.mButtonBox [this.mAddButton]));
+			w4.Position = 2;
+			w4.Expand = false;
+			w4.Fill = false;
 			// Container child mButtonBox.Gtk.ButtonBox+ButtonBoxChild
 			this.mRemoveButton = new global::Gtk.Button ();
 			this.mRemoveButton.CanFocus = true;
@@ -69,10 +78,10 @@ namespace SshAgentLib.GTK
 			this.mRemoveButton.UseUnderline = true;
 			this.mRemoveButton.Label = global::Mono.Unix.Catalog.GetString ("Remove");
 			this.mButtonBox.Add (this.mRemoveButton);
-			global::Gtk.ButtonBox.ButtonBoxChild w4 = ((global::Gtk.ButtonBox.ButtonBoxChild)(this.mButtonBox [this.mRemoveButton]));
-			w4.Position = 3;
-			w4.Expand = false;
-			w4.Fill = false;
+			global::Gtk.ButtonBox.ButtonBoxChild w5 = ((global::Gtk.ButtonBox.ButtonBoxChild)(this.mButtonBox [this.mRemoveButton]));
+			w5.Position = 3;
+			w5.Expand = false;
+			w5.Fill = false;
 			// Container child mButtonBox.Gtk.ButtonBox+ButtonBoxChild
 			this.mRemoveAllButton = new global::Gtk.Button ();
 			this.mRemoveAllButton.CanFocus = true;
@@ -80,10 +89,10 @@ namespace SshAgentLib.GTK
 			this.mRemoveAllButton.UseUnderline = true;
 			this.mRemoveAllButton.Label = global::Mono.Unix.Catalog.GetString ("Remove All");
 			this.mButtonBox.Add (this.mRemoveAllButton);
-			global::Gtk.ButtonBox.ButtonBoxChild w5 = ((global::Gtk.ButtonBox.ButtonBoxChild)(this.mButtonBox [this.mRemoveAllButton]));
-			w5.Position = 4;
-			w5.Expand = false;
-			w5.Fill = false;
+			global::Gtk.ButtonBox.ButtonBoxChild w6 = ((global::Gtk.ButtonBox.ButtonBoxChild)(this.mButtonBox [this.mRemoveAllButton]));
+			w6.Position = 4;
+			w6.Expand = false;
+			w6.Fill = false;
 			// Container child mButtonBox.Gtk.ButtonBox+ButtonBoxChild
 			this.mRefreshButton = new global::Gtk.Button ();
 			this.mRefreshButton.CanFocus = true;
@@ -91,15 +100,15 @@ namespace SshAgentLib.GTK
 			this.mRefreshButton.UseUnderline = true;
 			this.mRefreshButton.Label = global::Mono.Unix.Catalog.GetString ("Refresh");
 			this.mButtonBox.Add (this.mRefreshButton);
-			global::Gtk.ButtonBox.ButtonBoxChild w6 = ((global::Gtk.ButtonBox.ButtonBoxChild)(this.mButtonBox [this.mRefreshButton]));
-			w6.Position = 5;
-			w6.Expand = false;
-			w6.Fill = false;
+			global::Gtk.ButtonBox.ButtonBoxChild w7 = ((global::Gtk.ButtonBox.ButtonBoxChild)(this.mButtonBox [this.mRefreshButton]));
+			w7.Position = 5;
+			w7.Expand = false;
+			w7.Fill = false;
 			this.mMainLayoutTable.Add (this.mButtonBox);
-			global::Gtk.Table.TableChild w7 = ((global::Gtk.Table.TableChild)(this.mMainLayoutTable [this.mButtonBox]));
-			w7.TopAttach = ((uint)(1));
-			w7.BottomAttach = ((uint)(2));
-			w7.YOptions = ((global::Gtk.AttachOptions)(4));
+			global::Gtk.Table.TableChild w8 = ((global::Gtk.Table.TableChild)(this.mMainLayoutTable [this.mButtonBox]));
+			w8.TopAttach = ((uint)(1));
+			w8.BottomAttach = ((uint)(2));
+			w8.YOptions = ((global::Gtk.AttachOptions)(4));
 			// Container child mMainLayoutTable.Gtk.Table+TableChild
 			this.mGtkScrolledWindow = new global::Gtk.ScrolledWindow ();
 			this.mGtkScrolledWindow.Name = "mGtkScrolledWindow";
@@ -110,13 +119,19 @@ namespace SshAgentLib.GTK
 			this.mKeyNodeView.Name = "mKeyNodeView";
 			this.mGtkScrolledWindow.Add (this.mKeyNodeView);
 			this.mMainLayoutTable.Add (this.mGtkScrolledWindow);
-			global::Gtk.Table.TableChild w9 = ((global::Gtk.Table.TableChild)(this.mMainLayoutTable [this.mGtkScrolledWindow]));
-			w9.XOptions = ((global::Gtk.AttachOptions)(4));
+			global::Gtk.Table.TableChild w10 = ((global::Gtk.Table.TableChild)(this.mMainLayoutTable [this.mGtkScrolledWindow]));
+			w10.XOptions = ((global::Gtk.AttachOptions)(4));
 			this.Add (this.mMainLayoutTable);
 			if ((this.Child != null)) {
 				this.Child.ShowAll ();
 			}
 			this.Hide ();
+			this.mLockButton.Clicked += new global::System.EventHandler (this.OnMLockButtonClicked);
+			this.mUnlockButton.Clicked += new global::System.EventHandler (this.OnMUnlockButtonClicked);
+			this.mAddButton.Clicked += new global::System.EventHandler (this.OnMAddButtonClicked);
+			this.mRemoveButton.Clicked += new global::System.EventHandler (this.OnMRemoveButtonClicked);
+			this.mRemoveAllButton.Clicked += new global::System.EventHandler (this.OnMRemoveAllButtonClicked);
+			this.mRefreshButton.Clicked += new global::System.EventHandler (this.OnMRefreshButtonClicked);
 		}
 	}
 }
