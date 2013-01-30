@@ -2,28 +2,26 @@ using System;
 using QtGui;
 using QtCore;
 using QtUiTools;
+using dlech.SshAgentLib;
+using System.Diagnostics;
 
-namespace SshAgentLib.Qt
+namespace dlech.SshAgentLib.QtAgent
 {
   public class Test : QWidget
   {
    
+    IAgent mAgent;
+
     public Test ()
     {
-      var loader = new QUiLoader (this);   
-      QWidget keyManager;
-
-      using (var file = new QFile("../../qt/KeyManagerFrame.ui")) {
-        file.Open (QIODevice.OpenModeFlag.ReadOnly);
-        keyManager = loader.Load (file);
-        file.Close ();
-      }
       WindowTitle = "SSH Key Manager";
+      var keyManager = new KeyManagerFrame ();
+      keyManager.SetAgent (new UnixClient ());
       var layout = new QVBoxLayout ();
       layout.AddWidget (keyManager);
-      layout.ContentsMargins  = new QMargins(0,0,0,0);
+      layout.ContentsMargins = new QMargins (0, 0, 0, 0);
       Layout = layout;
-        
+
       Show ();
     }
 

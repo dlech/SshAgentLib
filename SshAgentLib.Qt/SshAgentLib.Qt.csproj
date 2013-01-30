@@ -7,7 +7,7 @@
     <SchemaVersion>2.0</SchemaVersion>
     <ProjectGuid>{71DDF18D-2CA7-46E3-866C-6CC7294E0B69}</ProjectGuid>
     <OutputType>Exe</OutputType>
-    <RootNamespace>SshAgentLib.Qt</RootNamespace>
+    <RootNamespace>dlech.SshAgentLib.QtAgent</RootNamespace>
     <AssemblyName>SshAgentLib.Qt</AssemblyName>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
@@ -19,6 +19,11 @@
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
     <ConsolePause>false</ConsolePause>
+    <CustomCommands>
+      <CustomCommands>
+        <Command type="BeforeBuild" command="for uiFile in $(ls qt/*.ui); do uics $uiFile -o $(echo $uiFile | sed s/.ui/.designer.cs/) -n dlech.SshAgentLib.QtAgent; done&#xA;" workingdir="${ProjectDir}" externalConsole="true" />
+      </CustomCommands>
+    </CustomCommands>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
     <DebugType>none</DebugType>
@@ -45,5 +50,16 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Test.cs" />
+    <Compile Include="qt\KeyManagerFrame.designer.cs" />
+    <Compile Include="qt\KeyManagerFrame.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\SshAgentLib\SshAgentLib.csproj">
+      <Project>{9163B6B6-0603-4C6E-BC67-7111ED8CDDE1}</Project>
+      <Name>SshAgentLib</Name>
+    </ProjectReference>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="qt\KeyManagerFrame.ui" />
   </ItemGroup>
 </Project>
