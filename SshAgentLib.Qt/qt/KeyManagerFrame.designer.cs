@@ -1,7 +1,7 @@
 /********************************************************************************
 ** Form generated from reading ui file 'KeyManagerFrame.ui'
 **
-** Created: Tue Jan 29 23:43:09 2013
+** Created: Thu Jan 31 00:37:59 2013
 **      by: Qt User Interface Compiler for C# version 4.8.3
 **
 ** WARNING! All changes made in this file will be lost when recompiling ui file!
@@ -22,7 +22,7 @@ public partial class KeyManagerFrame
     public QLabel mMessageLabel;
     public QWidget mTablePage;
     public QHBoxLayout horizontalLayout_2;
-    public QTableView mTableView;
+    public QTableWidget mTableWidget;
     public QHBoxLayout mButtonLayout;
     public QPushButton mLockButton;
     public QPushButton mUnlockButton;
@@ -62,12 +62,16 @@ public partial class KeyManagerFrame
         horizontalLayout_2 = new QHBoxLayout(mTablePage);
     horizontalLayout_2.Margin = 0;
         horizontalLayout_2.ObjectName = "horizontalLayout_2";
-        mTableView = new QTableView(mTablePage);
-        mTableView.ObjectName = "mTableView";
-        mTableView.selectionBehavior = QAbstractItemView.SelectionBehavior.SelectRows;
-        mTableView.VerticalHeader.Visible = false;
+        mTableWidget = new QTableWidget(mTablePage);
+        mTableWidget.ObjectName = "mTableWidget";
+        mTableWidget.EditTriggers = QAbstractItemView.EditTrigger.NoEditTriggers;
+        mTableWidget.selectionBehavior = QAbstractItemView.SelectionBehavior.SelectRows;
+        mTableWidget.WordWrap = false;
+        mTableWidget.RowCount = 0;
+        mTableWidget.ColumnCount = 6;
+        mTableWidget.VerticalHeader.Visible = false;
 
-        horizontalLayout_2.AddWidget(mTableView);
+        horizontalLayout_2.AddWidget(mTableWidget);
 
         mStackedWidget.AddWidget(mTablePage);
 
@@ -122,6 +126,32 @@ public partial class KeyManagerFrame
     {
         KeyManagerFrame.WindowTitle = QApplication.Translate("KeyManagerFrame", "Dialog", null, QApplication.Encoding.UnicodeUTF8);
         mMessageLabel.Text = QApplication.Translate("KeyManagerFrame", "Message", null, QApplication.Encoding.UnicodeUTF8);
+        if (mTableWidget.ColumnCount < 6)
+                mTableWidget.ColumnCount = 6;
+
+        QTableWidgetItem __colItem = new QTableWidgetItem();
+        __colItem.Text = QApplication.Translate("KeyManagerFrame", "C", null, QApplication.Encoding.UnicodeUTF8);
+        mTableWidget.SetHorizontalHeaderItem(0, __colItem);
+
+        QTableWidgetItem __colItem1 = new QTableWidgetItem();
+        __colItem1.Text = QApplication.Translate("KeyManagerFrame", "L", null, QApplication.Encoding.UnicodeUTF8);
+        mTableWidget.SetHorizontalHeaderItem(1, __colItem1);
+
+        QTableWidgetItem __colItem2 = new QTableWidgetItem();
+        __colItem2.Text = QApplication.Translate("KeyManagerFrame", "Type", null, QApplication.Encoding.UnicodeUTF8);
+        mTableWidget.SetHorizontalHeaderItem(2, __colItem2);
+
+        QTableWidgetItem __colItem3 = new QTableWidgetItem();
+        __colItem3.Text = QApplication.Translate("KeyManagerFrame", "Size", null, QApplication.Encoding.UnicodeUTF8);
+        mTableWidget.SetHorizontalHeaderItem(3, __colItem3);
+
+        QTableWidgetItem __colItem4 = new QTableWidgetItem();
+        __colItem4.Text = QApplication.Translate("KeyManagerFrame", "Fingerprint", null, QApplication.Encoding.UnicodeUTF8);
+        mTableWidget.SetHorizontalHeaderItem(4, __colItem4);
+
+        QTableWidgetItem __colItem5 = new QTableWidgetItem();
+        __colItem5.Text = QApplication.Translate("KeyManagerFrame", "Comment", null, QApplication.Encoding.UnicodeUTF8);
+        mTableWidget.SetHorizontalHeaderItem(5, __colItem5);
         mLockButton.Text = QApplication.Translate("KeyManagerFrame", "Lock", null, QApplication.Encoding.UnicodeUTF8);
         mUnlockButton.Text = QApplication.Translate("KeyManagerFrame", "Unlock", null, QApplication.Encoding.UnicodeUTF8);
         mAddButton.Text = QApplication.Translate("KeyManagerFrame", "Add...", null, QApplication.Encoding.UnicodeUTF8);

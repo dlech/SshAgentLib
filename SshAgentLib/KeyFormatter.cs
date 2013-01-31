@@ -52,7 +52,7 @@ namespace dlech.SshAgentLib
     }
 
     /// <summary>
-    /// Parse stream containing SSH key data 
+    /// Parse stream containing SSH key data
     /// </summary>
     /// <param name="aStream">stream containing SSH key data</param>
     /// <returns>ISshKey key created from stream data</returns>
@@ -62,10 +62,10 @@ namespace dlech.SshAgentLib
     public abstract object Deserialize(Stream aStream);
 
     /// <summary>
-    /// Read file containing SSH key data 
+    /// Read file containing SSH key data
     /// </summary>
     /// <param name="aFileName">file containing SSH key data</param>
-    /// <returns>key created from file data</returns> 
+    /// <returns>key created from file data</returns>
     /// <exception cref="CallbackNullException">
     /// GetPassphraseCallbackMethod is null and aStream constrains encrypted key
     /// </exception>
@@ -82,10 +82,10 @@ namespace dlech.SshAgentLib
     }
 
     /// <summary>
-    /// Parse byte[] containing SSH key data 
+    /// Parse byte[] containing SSH key data
     /// </summary>
     /// <param name="aBytes">byte[] containing SSH key data</param>
-    /// <returns>key created from file data</returns> 
+    /// <returns>key created from file data</returns>
     /// <exception cref="CallbackNullException">
     /// GetPassphraseCallbackMethod is null and aStream constrains encrypted key
     /// </exception>
@@ -107,22 +107,23 @@ namespace dlech.SshAgentLib
     /// <exception cref="KeyFormatterException">
     /// The file format was not recognized
     /// </exception>
-    public static KeyFormatter GetFormatter(string aFirstLine)
+    public static KeyFormatter GetFormatter (string aFirstLine)
     {
       // PuTTY Private key format
-      var ppkRegex = new Regex("PuTTY-User-Key-File-[12]");
+      var ppkRegex = new Regex ("PuTTY-User-Key-File-[12]");
       // OpenSSH private key format
-      var pemPrivateKeyRegex = new Regex("-----BEGIN .* PRIVATE KEY-----");
+      var pemPrivateKeyRegex = new Regex ("-----BEGIN .* PRIVATE KEY-----");
 
-      if (ppkRegex.IsMatch(aFirstLine)) {
-        return new PpkFormatter();
-      } else if (pemPrivateKeyRegex.IsMatch(aFirstLine)) {
-        return new Ssh2KeyFormatter();
-      } else if (Ssh1KeyFormatter.FILE_HEADER_LINE.Equals(aFirstLine)) {
-        return new Ssh1KeyFormatter();
-      } else {
-        throw new KeyFormatterException("Unknown file format");
+      if (!string.IsNullOrWhiteSpace (aFirstLine)) {
+        if (ppkRegex.IsMatch (aFirstLine)) {
+          return new PpkFormatter ();
+        } else if (pemPrivateKeyRegex.IsMatch (aFirstLine)) {
+          return new Ssh2KeyFormatter ();
+        } else if (Ssh1KeyFormatter.FILE_HEADER_LINE.Equals (aFirstLine)) {
+          return new Ssh1KeyFormatter ();
+        }
       }
+      throw new KeyFormatterException ("Unknown file format");
     }
   }
 

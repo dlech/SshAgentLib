@@ -24,6 +24,11 @@
         <Command type="BeforeBuild" command="for uiFile in $(ls qt/*.ui); do uics $uiFile -o $(echo $uiFile | sed s/.ui/.designer.cs/) -n dlech.SshAgentLib.QtAgent; done&#xA;" workingdir="${ProjectDir}" externalConsole="true" />
       </CustomCommands>
     </CustomCommands>
+    <EnvironmentVariables>
+      <EnvironmentVariables>
+        <Variable name="MONO_TRACE_LISTENER" value="Console.Error" />
+      </EnvironmentVariables>
+    </EnvironmentVariables>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
     <DebugType>none</DebugType>
@@ -52,6 +57,13 @@
     <Compile Include="Test.cs" />
     <Compile Include="qt\KeyManagerFrame.designer.cs" />
     <Compile Include="qt\KeyManagerFrame.cs" />
+    <Compile Include="qt\PassphraseDialog.designer.cs" />
+    <Compile Include="qt\PassphraseDialog.cs" />
+    <Compile Include="qt\KeyFileDialog.cs" />
+    <Compile Include="qt\ConfirmConstraintWidget.designer.cs" />
+    <Compile Include="qt\LifetimeConstraintWidget.designer.cs" />
+    <Compile Include="qt\ConfirmConstraintWidget.cs" />
+    <Compile Include="qt\LifetimeConstraintWidget.cs" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\SshAgentLib\SshAgentLib.csproj">
@@ -61,5 +73,9 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="qt\KeyManagerFrame.ui" />
+    <None Include="app.config" />
+    <None Include="qt\PassphraseDialog.ui" />
+    <None Include="qt\ConfirmConstraintWidget.ui" />
+    <None Include="qt\LifetimeConstraintWidget.ui" />
   </ItemGroup>
 </Project>

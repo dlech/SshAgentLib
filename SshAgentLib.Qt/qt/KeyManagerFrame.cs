@@ -11,128 +11,11 @@ namespace dlech.SshAgentLib.QtAgent
   public partial class KeyManagerFrame : QWidget
   {
     private IAgent mAgent;
-    private KeyTableModel mTableModel;
-
-    private class KeyTableModel : QAbstractTableModel
-    {
-
-      private List<KeyWrapper> mKeyList = new List<KeyWrapper> ();
-
-//      public override bool InsertRows (int row, int count, QModelIndex parent)
-//      {
-//        BeginInsertRows (new QModelIndex(), row, row + count - 1);
-//
-//        EndInsertRows ();
-//      }
-
-      public void AddKey (ISshKey aKey)
-      {
-        var position = mKeyList.Count;
-        BeginInsertRows (new QModelIndex (), position, position);
-        mKeyList.Add (new KeyWrapper (aKey));
-        EndInsertRows ();
-      }
-
-      public override int ColumnCount (QModelIndex aParent)
-      {
-        return 6;
-      }
-
-      public override int RowCount (QModelIndex aParent)
-      {
-        return mKeyList.Count;
-      }
-
-      public override object HeaderData (int aSection,
-                                         Orientation aOrientation,
-                                         int aRole)
-      {
-        if (aOrientation == Orientation.Horizontal) {
-          var role = (ItemDataRole)aRole;
-          switch (role) {
-            case ItemDataRole.DisplayRole:
-              switch (aSection) {
-                case 0:
-                  return Tr ("C");
-                case 1:
-                  return Tr ("L");
-                case 2: 
-                  return Tr ("Type");
-                case 3:
-                  return Tr ("Size");
-                case 4:
-                  return Tr ("Fingerprint");
-                case 5:
-                  return Tr ("Comment");
-              }
-              break;
-            case ItemDataRole.ToolTipRole:
-              switch (aSection) {
-                case 0:
-                  return Tr ("Confirm Constraint");
-                case 1:
-                  return Tr ("Lifetime Constraint");
-              }
-              break;
-          } 
-        }
-        return base.HeaderData (aSection, aOrientation, aRole);
-      }
-
-      public override object Data (QModelIndex aIndex,
-                                   int aRole = (int)ItemDataRole.DisplayRole)
-      {
-        if (!aIndex.IsValid) {
-          return new QVariant ();
-        }
-        if (aIndex.Row >= mKeyList.Count || aIndex.Row < 0) {
-          return new QVariant ();
-        }
-        var role = (ItemDataRole)aRole;
-        var key = mKeyList [aIndex.Row];
-        if (role == ItemDataRole.DisplayRole) {
-          switch (aIndex.Column) {
-            case 0:
-              return key.Confirm;
-            case 1:
-              return key.Lifetime;
-            case 2: 
-              return key.Type;
-            case 3:
-              return key.Size;
-            case 4:
-              return key.Fingerprint;
-            case 5:
-              return key.Comment;
-            default:
-              return new QVariant ();
-          } 
-        } else if (role == ItemDataRole.CheckStateRole) {
-          switch (aIndex.Column) {
-            case 0:
-              return key.Confirm ? CheckState.Checked : CheckState.Unchecked;
-            case 1:
-              return key.Lifetime ? CheckState.Checked : CheckState.Unchecked;
-            default :
-              return new QVariant();
-          }
-        }
-        return new QVariant ();
-      }
-
-      public override QModelIndex Parent (QModelIndex aParent)
-      {
-        return new QModelIndex ();
-      }
-    }
 
     public KeyManagerFrame ()
     {
       SetupUi (this);
-
-      mTableModel = new KeyTableModel ();
-
-      //mTableWidget .Model = mTableModel;
+      mTableWidget.HorizontalHeader.SetResizeMode (QHeaderView.ResizeMode.ResizeToContents);
       mTableWidget.SelectionModel.SelectionChanged +=
         mTableWidget_SelectionModel_SelectionChanged;
 
@@ -162,37 +45,45 @@ namespace dlech.SshAgentLib.QtAgent
     private void mTableWidget_SelectionModel_SelectionChanged (
       QItemSelection aSelected, QItemSelection aDeselected)
     {
-      UpdateButtons ();
+      UpdateUIState ();
     }
 
     private void ReloadData ()
     {
+      mTableWidget.RowCount = 0;
       foreach (var key in mAgent.GetAllKeys ()) {
-        var newRowIndex = mTableWidget.RowCount; 
+        var newRowIndex = mTableWidget.RowCount;
         mTableWidget.Model.InsertRow (newRowIndex);
+        // TODO - make checkboxes
         mTableWidget.SetItem (newRowIndex, 0, new QTableWidgetItem(key.HasConstraint (Agent.KeyConstraintType.SSH_AGENT_CONSTRAIN_CONFIRM).ToString ()));
         mTableWidget.SetItem (newRowIndex, 1, new QTableWidgetItem(key.HasConstraint (Agent.KeyConstraintType.SSH_AGENT_CONSTRAIN_LIFETIME).ToString ()));
         mTableWidget.SetItem (newRowIndex, 2, new QTableWidgetItem(key.Algorithm.GetIdentifierString ()));
         mTableWidget.SetItem (newRowIndex, 3, new QTableWidgetItem(key.Size.ToString ()));
         mTableWidget.SetItem (newRowIndex, 4, new QTableWidgetItem(key.GetMD5Fingerprint ().ToHexString ()));
         mTableWidget.SetItem (newRowIndex, 5, new QTableWidgetItem(key.Comment));
-
-        //mTableModel.AddKey (key);
+        // attach actual key object to arbitrary column for later retreval
+        mTableWidget.Item (newRowIndex, 0).SetData ((int)Qt.ItemDataRole.UserRole , key);
       }
-      UpdateButtons ();
+      UpdateUIState ();
     }
 
-    private void UpdateButtons ()
+    private void UpdateUIState ()
     {
-      // TODO - remove buttons
       var agent = mAgent as Agent;
       if (agent == null) {
         mLockButton.Enabled = true;
         mUnlockButton.Enabled = true;
+        mRefreshButton.Visible = true;
+        mMessageLabel.Text = Tr ("No keys loaded");
       } else {
         mLockButton.Enabled = agent.IsLocked;
         mUnlockButton.Enabled = !agent.IsLocked;
+        mRefreshButton.Visible = false;
+        mMessageLabel.Text = agent.IsLocked ? Tr ("Locked") : Tr ("No keys loaded");
       }
+      mStackedWidget.CurrentIndex = mTableWidget.RowCount > 0 ? 1 : 0;
+      mRemoveButton.Enabled = mTableWidget.SelectedIndexes.Count > 0;
+      mRemoveAllButton.Enabled = mTableWidget.RowCount > 0;
     }
 
     [Q_SLOT]
@@ -203,26 +94,28 @@ namespace dlech.SshAgentLib.QtAgent
         if (dialog.Result == (int)QDialog.DialogCode.Rejected) {
           return;
         }
+        // TODO - add "are you sure" for empty passphrase
         var passphrase = Encoding.UTF8.GetBytes (dialog.mPassphraseLineEdit.Text);
         try {
           mAgent.Lock (passphrase);
         } catch (AgentLockedException) {
-          QMessageBox.Critical (this, "Error", "Agent is already locked");
+          QMessageBox.Critical (this, Tr("Error"), Tr("Agent is already locked"));
+          Debug.Fail ("Lock button should have been disabled");
         } catch (AgentFailureException) {
-          QMessageBox.Critical (this, "Agent Failure",
-                              "Possible causes:" +
-            "<ul>" +
-            "<li>Agent is already locked</li>" +
-            "<li>Agent does not support locking.</li>" +
-            "</ul>"
+          QMessageBox.Critical (this, Tr("Agent Failure"),
+                                Tr("Possible causes:") +
+                                "<ul>" +
+                                "<li>" + Tr("Agent is already locked") + "</li>" +
+                                "<li>" + Tr("Agent does not support locking") + "</li>" +
+                                "</ul>"
           );
         } catch (Exception ex) {
           Debug.Fail (ex.ToString ());
         }
       }
       if (mAgent is Agent) {
-        UpdateButtons ();
-      } else {      
+        UpdateUIState ();
+      } else {
         ReloadData ();
       }
     }
@@ -239,23 +132,24 @@ namespace dlech.SshAgentLib.QtAgent
         try {
           mAgent.Unlock (passphrase);
         } catch (AgentLockedException) {
-          QMessageBox.Critical (this, "Error", "Agent is already locked");
+          QMessageBox.Critical (this, Tr("Error"), Tr("Agent is already locked"));
+          Debug.Fail ("Unlock button should have been disabled");
         } catch (AgentFailureException) {
-          QMessageBox.Critical (this, "Agent Failure",
-                              "Possible causes:" +
-            "<ul>" +
-            "<li>Passphrase was incorrect</li>" +
-            "<li>Agent is already unlocked</li>" +
-            "<li>Agent does not support locking</li>" +
-            "</ul>"
+          QMessageBox.Critical (this, Tr("Agent Failure"),
+                                Tr("Possible causes:") +
+                                "<ul>" +
+                                "<li>" + Tr("Passphrase was incorrect") + "</li>" +
+                                "<li>" + Tr("Agent is already unlocked") + "</li>" +
+                                "<li>" + Tr("Agent does not support locking") + "</li>" +
+                                "</ul>"
           );
         } catch (Exception ex) {
           Debug.Fail (ex.ToString ());
         }
       }
       if (mAgent is Agent) {
-        UpdateButtons ();
-      } else {      
+        UpdateUIState ();
+      } else {
         ReloadData ();
       }
     }
@@ -263,9 +157,40 @@ namespace dlech.SshAgentLib.QtAgent
     [Q_SLOT]
     private void mAddButton_Clicked ()
     {
+      // TODO - persist start directory (and possibly viewMode)
+      using (var dialog = new KeyFileDialog()) {
+        dialog.SetDirectory (Environment.GetFolderPath(
+                             Environment.SpecialFolder.Personal));
+        dialog.Exec ();
+        if (dialog.Result  == (int)QDialog.DialogCode.Accepted) {
+          var constraints = dialog.GetConstraints ();
+          foreach (var file in dialog.SelectedFiles) {
+            try {
+              // TODO - add passphrase callback
+              mAgent.AddKeyFromFile (file, null, constraints);
+            } catch (AgentFailureException) {
+              QMessageBox.Critical (this,
+                                    Tr("Agent Failure"),
+                                    Tr("Possible causes:") +
+                                    "<ul>" + "</li>" +
+                                    "<li>" + Tr("Agent is locked") + "</li>" +
+                                    "<li>" + Tr("Agent does not support this key type") +
+                                    "</ul>");
+            } catch (KeyFormatterException kfex) {
+              QMessageBox.Critical (this,
+                                    Tr("File format error"),
+                                    Tr("This file not a recognized private key file") +
+                                    "<br><br>" +
+                                    file);
+            } catch (Exception ex) {
+              Debug.Fail (ex.ToString ());
+            }
+          }
+        }
+      }
       if (mAgent is Agent) {
-        UpdateButtons ();
-      } else {      
+        UpdateUIState ();
+      } else {
         ReloadData ();
       }
     }
@@ -273,9 +198,26 @@ namespace dlech.SshAgentLib.QtAgent
     [Q_SLOT]
     private void mRemoveButton_Clicked ()
     {
+      foreach (var index in mTableWidget.SelectionModel.SelectedRows ()) {
+        try {
+          var key = mTableWidget.Item (index.Row, 0)
+            .Data ((int)Qt.ItemDataRole.UserRole) as ISshKey;
+          mAgent.RemoveKey (key);
+        } catch (AgentFailureException) {
+          QMessageBox.Critical (this, Tr ("Agent Failure"),
+                                Tr ("Possible causes:") +
+                                "<ul>" +
+                                "<li>" + Tr ("Agent is locked") + "</li>" +
+                                "<li>" + Tr ("Key may have already been removed") + "</li>" +
+                                "</ul>"
+          );
+        } catch (Exception ex) {
+          Debug.Fail (ex.ToString ());
+        }
+    }
       if (mAgent is Agent) {
-        UpdateButtons ();
-      } else {      
+        UpdateUIState ();
+      } else {
         ReloadData ();
       }
     }
@@ -283,9 +225,22 @@ namespace dlech.SshAgentLib.QtAgent
     [Q_SLOT]
     private void mRemoveAllButton_Clicked ()
     {
+      try {
+        mAgent.RemoveAllKeys ();
+      } catch (AgentFailureException) {
+        QMessageBox.Critical (this, Tr ("Agent Failure"),
+                              Tr ("Possible causes:") +
+                              "<ul>" +
+                              "<li>" + Tr ("Agent is locked") + "</li>" +
+                              "<li>" + Tr ("Agent does not support removing all keys") + "</li>" +
+                              "</ul>"
+        );
+      } catch (Exception ex) {
+        Debug.Fail (ex.ToString ());
+      }
       if (mAgent is Agent) {
-        UpdateButtons ();
-      } else {      
+        UpdateUIState ();
+      } else {
         ReloadData ();
       }
     }
@@ -293,9 +248,9 @@ namespace dlech.SshAgentLib.QtAgent
     [Q_SLOT]
     private void mRefreshButton_Clicked ()
     {
+      Debug.Assert (mAgent is AgentClient);
       ReloadData ();
     }
 
   }
-
 }

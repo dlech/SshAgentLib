@@ -7,14 +7,16 @@ using System.Diagnostics;
 
 namespace dlech.SshAgentLib.QtAgent
 {
-  public class Test : QWidget
+  public class Test : QDialog
   {
-   
+
     IAgent mAgent;
 
     public Test ()
     {
-      WindowTitle = "SSH Key Manager";
+      WindowTitle = Tr("SSH Key Manager");
+      SizeGripEnabled = true;
+
       var keyManager = new KeyManagerFrame ();
       keyManager.SetAgent (new UnixClient ());
       var layout = new QVBoxLayout ();
