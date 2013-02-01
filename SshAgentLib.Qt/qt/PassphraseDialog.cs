@@ -36,16 +36,16 @@ namespace dlech.SshAgentLib.QtAgent
       return mSecureEdit.ToUtf8();
     }
 
-    public SecureString GetSecurePassphrase()
-    {
-      return mSecureEdit.SecureString;
-    }
+//    public SecureString GetSecurePassphrase()
+//    {
+//      return mSecureEdit.SecureString;
+//    }
 
     [Q_SLOT]
     private void PassphraseDialog_ShowEvent(object aSender,
                                             QEventArgs<QShowEvent> aEventArgs)
     {
-      mSecureEdit.Attach(mPassphraseLineEdit, null, true);
+      mSecureEdit.Attach(mPassphraseLineEdit, true);
       mPassphraseLineEdit.FocusWidget();
     }
 

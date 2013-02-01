@@ -7,15 +7,13 @@ using System.Threading;
 using QtCore;
 using QtGui;
 
-//using KeePassLib.Utility;
-
 // Code from KeePass <http://keepass.info>
 
 namespace dlech.SshAgentLib.QtAgent
 {
   /// <summary>
   /// Secure edit control class. Supports storing passwords in an encrypted
-  /// form in the process memory.
+  /// form in the process memory (Windows only).
   /// </summary>
   public sealed class SecureEdit : QObject
   {
@@ -38,15 +36,10 @@ namespace dlech.SshAgentLib.QtAgent
 
     public uint TextLength {
       get {
-        if (mSecureString != null)
+        if (mSecureString != null) {
           return (uint)mSecureString.Length;
-        return (uint)mAltSecureString.Data.Length / 2;
-      }
-    }
-
-    public SecureString SecureString {
-      get {
-        return mSecureString;
+        }
+        return (uint)mAltSecureString.Data.Length;
       }
     }
 
@@ -84,19 +77,18 @@ namespace dlech.SshAgentLib.QtAgent
     /// <summary>
     /// Associate the current secure edit object with a text box.
     /// </summary>
-    /// <param name="tbPasswordBox">Text box to link to.</param>
-    /// <param name="bHidePassword">Initial protection flag.</param>
-    public void Attach(QLineEdit tbPasswordBox, EventHandler evTextChanged,
-      bool bHidePassword)
+    /// <param name="aLineEdit">Text box to link to.</param>
+    /// <param name="aHidePassword">Initial protection flag.</param>
+    public void Attach(QLineEdit aLineEdit, bool aHidePassword)
     {
-      Debug.Assert(tbPasswordBox != null);
-      if (tbPasswordBox == null)
-        throw new ArgumentNullException("tbPasswordBox");
+      Debug.Assert(aLineEdit != null);
+      if (aLineEdit == null) {
+        throw new ArgumentNullException("aLineEdit");
+      }
 
       this.Detach();
 
-      mPasswordLineEdit = tbPasswordBox;
-      mTextChangedEventHandler = evTextChanged;
+      mPasswordLineEdit = aLineEdit;
 
       // Initialize to zero-length string
       mPasswordLineEdit.Text = string.Empty;
@@ -108,21 +100,22 @@ namespace dlech.SshAgentLib.QtAgent
         mAltSecureString.Data = new char[0];
       }
 
-      EnableProtection(bHidePassword);
+      EnableProtection(aHidePassword);
 
-      if (mTextChangedEventHandler != null)
+      if (mTextChangedEventHandler != null) {
         mTextChangedEventHandler(mPasswordLineEdit, EventArgs.Empty);
+      }
 
-      if (!mSecureDesktop)
+      if (!mSecureDesktop) {
         mPasswordLineEdit.AcceptDrops = true;
+      }
 
       // Register event handler
-      mPasswordLineEdit.TextChanged += OnPasswordTextChanged;
-      mPasswordLineEdit.FocusInEvent += OnGotFocus;
+      mPasswordLineEdit.TextChanged += mPasswordLineEdit_TextChanged;
+      mPasswordLineEdit.FocusInEvent += mPasswordLineEdit_FocusInEvent;
       if (!mSecureDesktop) {
-        mPasswordLineEdit.DragEnterEvent += OnDragCheck;
-        //m_tbPassword.DragMoveEvent += this.OnDragCheck;
-        mPasswordLineEdit.DropEvent += OnDragDrop;
+        mPasswordLineEdit.DragEnterEvent += mPasswordLineEdit_DragEnterEvent;
+        mPasswordLineEdit.DropEvent += mPasswordLineEdit_DropEvent;
       }
     }
 
@@ -133,29 +126,28 @@ namespace dlech.SshAgentLib.QtAgent
     public void Detach()
     {
       if (mPasswordLineEdit != null) {
-        mPasswordLineEdit.TextChanged -= OnPasswordTextChanged;
-        mPasswordLineEdit.FocusInEvent -= OnGotFocus;
+        mPasswordLineEdit.TextChanged -= mPasswordLineEdit_TextChanged;
+        mPasswordLineEdit.FocusInEvent -= mPasswordLineEdit_FocusInEvent;
         if (!mSecureDesktop) {
-          mPasswordLineEdit.DragEnterEvent -= this.OnDragCheck;
-          //m_tbPassword.DragMoveEvent -= this.OnDragCheck;
-          mPasswordLineEdit.DropEvent -= OnDragDrop;
+          mPasswordLineEdit.DragEnterEvent -= mPasswordLineEdit_DragEnterEvent;
+          mPasswordLineEdit.DropEvent -= mPasswordLineEdit_DropEvent;
         }
-
         mPasswordLineEdit = null;
       }
     }
 
-    public void EnableProtection(bool bEnable)
+    public void EnableProtection(bool aEnable)
     {
       if (mPasswordLineEdit == null) {
-        Debug.Assert(false);
+        Debug.Fail("mPasswordLineEdit is null");
         return;
       }
 
-      var echoMode = bEnable ? QLineEdit.EchoMode.Password :
+      var echoMode = aEnable ? QLineEdit.EchoMode.Password :
         QLineEdit.EchoMode.Normal;
-      if (mPasswordLineEdit.echoMode == echoMode)
+      if (mPasswordLineEdit.echoMode == echoMode) {
         return;
+      }
       mPasswordLineEdit.echoMode = echoMode;
 
       ShowCurrentPassword(mPasswordLineEdit.HasSelectedText ?
@@ -167,15 +159,16 @@ namespace dlech.SshAgentLib.QtAgent
     }
 
     [Q_SLOT]
-    private void OnPasswordTextChanged(string aText)
+    private void mPasswordLineEdit_TextChanged(string aText)
     {
       if (mPasswordLineEdit == null) {
-        Debug.Assert(false);
+        Debug.Fail("mPasswordLineEdit is null");
         return;
       }
 
-      if (mBlockTextChanged)
+      if (mBlockTextChanged) {
         return;
+      }
 
       int nSelPos = mPasswordLineEdit.HasSelectedText ?
         mPasswordLineEdit.SelectionStart : mPasswordLineEdit.CursorPosition;
@@ -190,33 +183,27 @@ namespace dlech.SshAgentLib.QtAgent
 
       string strText = mPasswordLineEdit.Text;
 
-      int inxLeft = -1, inxRight = 0;
-      StringBuilder sbNewPart = new StringBuilder();
+      int leftIndex = -1, rightIndex = 0;
+      StringBuilder newStringPart = new StringBuilder();
 
       for (int i = 0; i < strText.Length; ++i) {
         if (strText[i] != cPasswordChar) {
-          if (inxLeft == -1)
-            inxLeft = i;
-          inxRight = i;
-
-          sbNewPart.Append(strText[i]);
+          if (leftIndex == -1) {
+            leftIndex = i;
+          }
+          rightIndex = i;
+          newStringPart.Append(strText[i]);
         }
       }
 
-      if (inxLeft < 0)
+      if (leftIndex < 0) {
         RemoveInsert(nSelPos, strText.Length - nSelPos, string.Empty);
-      else
-        RemoveInsert(inxLeft, strText.Length - inxRight - 1,
-          sbNewPart.ToString());
+      } else {
+        RemoveInsert(leftIndex, strText.Length - rightIndex - 1,
+          newStringPart.ToString());
+      }
 
       ShowCurrentPassword(nSelPos, nSelLen);
-
-      // Check for m_tbPassword being null from on now; the
-      // control might be disposed already (by the user handler
-      // triggered by the ShowCurrentPassword call)
-//      if (m_tbPassword != null)
-      // TODO - override undo?
-//        m_tbPassword.ClearUndo() // Would need special undo buffer
     }
 
     private void ShowCurrentPassword(int nSelStart, int nSelLength)
@@ -240,7 +227,8 @@ namespace dlech.SshAgentLib.QtAgent
       if (mSecureString != null) {
         mPasswordLineEdit.Text = new string(cPasswordChar, mSecureString.Length);
       } else {
-        mPasswordLineEdit.Text = new string(cPasswordChar, mAltSecureString.Data.Length);
+        mPasswordLineEdit.Text = new string(cPasswordChar,
+                                            mAltSecureString.Data.Length);
       }
       mBlockTextChanged = false;
 
@@ -258,8 +246,9 @@ namespace dlech.SshAgentLib.QtAgent
       if (mSecureString != null) {
         char[] vChars = new char[mSecureString.Length];
         IntPtr p = Marshal.SecureStringToGlobalAllocUnicode(mSecureString);
-        for (int i = 0; i < mSecureString.Length; ++i)
+        for (int i = 0; i < mSecureString.Length; ++i) {
           vChars[i] = (char)Marshal.ReadInt16(p, i * 2);
+        }
         Marshal.ZeroFreeGlobalAllocUnicode(p);
 
         byte[] pb = Encoding.UTF8.GetBytes(vChars);
@@ -270,7 +259,6 @@ namespace dlech.SshAgentLib.QtAgent
         return Encoding.UTF8.GetBytes(mAltSecureString.Data);
     }
 
-    // temporary for debugging
     private string GetAsString()
     {
       if (mSecureString != null) {
@@ -279,123 +267,128 @@ namespace dlech.SshAgentLib.QtAgent
         Marshal.ZeroFreeGlobalAllocUnicode(p);
 
         return str;
-      } else
-        return Encoding.Unicode.GetString(Encoding.Unicode.GetBytes(mAltSecureString.Data));
+      } else {
+        using (var bytes = new PinnedArray<byte>(
+          Encoding.Unicode.GetBytes(mAltSecureString.Data)))
+        {
+          return Encoding.Unicode.GetString(bytes);
+        }
+      }
     }
 
-    private void RemoveInsert(int nLeftRem, int nRightRem, string strInsert)
+    private void RemoveInsert(int aLeftRemainingCount,
+                              int aRigthRemainingCount,
+                              string aStringToInsert)
     {
-      Debug.Assert(nLeftRem >= 0);
+      Debug.Assert(aLeftRemainingCount >= 0);
 
       if (mSecureString != null) {
-        while (mSecureString.Length > (nLeftRem + nRightRem))
-          mSecureString.RemoveAt(nLeftRem);
-
-        for (int i = 0; i < strInsert.Length; ++i) {
-          mSecureString.InsertAt(nLeftRem + i, strInsert[i]);
+        while (mSecureString.Length > (aLeftRemainingCount +
+                                       aRigthRemainingCount))
+        {
+          mSecureString.RemoveAt(aLeftRemainingCount);
+        }
+        for (int i = 0; i < aStringToInsert.Length; ++i) {
+          mSecureString.InsertAt(aLeftRemainingCount + i, aStringToInsert[i]);
         }
       } else {
         using (var newString =
-          new PinnedArray<char>(nLeftRem + nRightRem + strInsert.Length)) {
-          Array.Copy(mAltSecureString.Data, newString.Data, nLeftRem);
+          new PinnedArray<char>(aLeftRemainingCount + aRigthRemainingCount + 
+                                aStringToInsert.Length)) {
+          Array.Copy(mAltSecureString.Data, newString.Data, aLeftRemainingCount);
           using (var insertString =
                  new PinnedArray<char>(Encoding.Unicode.GetChars(
-                   Encoding.Unicode.GetBytes(strInsert)))) {
-            Array.Copy(insertString.Data, 0, newString.Data, nLeftRem,
+                   Encoding.Unicode.GetBytes(aStringToInsert)))) {
+            Array.Copy(insertString.Data, 0, newString.Data, aLeftRemainingCount,
                        insertString.Data.Length);
             Array.Copy(mAltSecureString.Data,
-                       mAltSecureString.Data.Length - nRightRem,
-                       newString.Data, nLeftRem + insertString.Data.Length,
-                       nRightRem);
+                       mAltSecureString.Data.Length - aRigthRemainingCount,
+                       newString.Data, aLeftRemainingCount +
+                       insertString.Data.Length,
+                       aRigthRemainingCount);
           }
           mAltSecureString.Clear();
           mAltSecureString = newString.Clone() as PinnedArray<char>;
         }
-        var pw = GetAsString();
-        Console.Error.WriteLine(string.Format("{0}:{1}:{2}:{3}:{4}:{5}:{6}:{7}",
-                                                nLeftRem,
-                                                nRightRem,
-                                                strInsert,
-                                                strInsert.Length,
-                                                pw,
-                                                pw.Length,
-                                              mPasswordLineEdit.Text,
-                                              mPasswordLineEdit.Text.Length)
-        );
       }
     }
 
-    public bool ContentsEqualTo(SecureEdit secOther)
+    public bool ContentsEqualTo(SecureEdit aSecureEdit)
     {
-      Debug.Assert(secOther != null);
-      if (secOther == null)
+      Debug.Assert(aSecureEdit != null);
+      if (aSecureEdit == null) {
         return false;
+      }
 
-      byte[] pbThis = this.ToUtf8();
-      byte[] pbOther = secOther.ToUtf8();
+      using (var thisString = new PinnedArray<byte>(this.ToUtf8())) {
+        using (var otherString = new PinnedArray<byte>(aSecureEdit.ToUtf8())) {
 
-      bool bEqual = true;
-
-      if (pbThis.Length != pbOther.Length)
-        bEqual = false;
-      else {
-        for (int i = 0; i < pbThis.Length; ++i) {
-          if (pbThis[i] != pbOther[i]) {
-            bEqual = false;
-            break;
+          if (thisString.Data.Length != otherString.Data.Length) {
+            return false;
+          } else {
+            for (int i = 0; i < thisString.Data.Length; ++i) {
+              if (thisString[i] != otherString[i]) {
+                return false;
+              }
+            }
           }
+          return true;
         }
       }
-
-      Array.Clear(pbThis, 0, pbThis.Length);
-      Array.Clear(pbOther, 0, pbOther.Length);
-      return bEqual;
     }
 
-    public void SetPassword(byte[] pbUtf8)
+    /// <summary>
+    /// Sets the password.
+    /// </summary>
+    /// <param name='aNewPassword'>
+    /// A new password (UTF8).
+    /// </param>
+    public void SetPassword(byte[] aNewPassword)
     {
-      Debug.Assert(pbUtf8 != null);
-      if (pbUtf8 == null)
-        throw new ArgumentNullException("pbUtf8");
+      Debug.Assert(aNewPassword != null);
+      if (aNewPassword == null) {
+        throw new ArgumentNullException("aNewPassword");
+      }
 
       if (mSecureString != null) {
         mSecureString.Clear();
 
-        char[] vChars = Encoding.UTF8.GetChars(pbUtf8);
+        char[] vChars = Encoding.UTF8.GetChars(aNewPassword);
 
         for (int i = 0; i < vChars.Length; ++i) {
           mSecureString.AppendChar(vChars[i]);
           vChars[i] = char.MinValue;
         }
       } else
-        mAltSecureString.Data = Encoding.UTF8.GetChars(pbUtf8);
+        mAltSecureString.Data = Encoding.UTF8.GetChars(aNewPassword);
 
       ShowCurrentPassword(0, 0);
     }
 
     [Q_SLOT]
-    private void OnGotFocus(object sender, EventArgs e)
+    private void mPasswordLineEdit_FocusInEvent(object sender, EventArgs e)
     {
       if (mPasswordLineEdit == null) {
         Debug.Assert(false);
         return;
       }
 
-      if (mFirstGotFocus && (mPasswordLineEdit != null))
+      if (mFirstGotFocus && (mPasswordLineEdit != null)) {
         mPasswordLineEdit.SelectAll();
+      }
 
       mFirstGotFocus = false;
     }
 
     [Q_SLOT]
-    private void OnDragCheck(object sender, QEventArgs<QDragEnterEvent> e)
+    private void mPasswordLineEdit_DragEnterEvent(object sender, QEventArgs<QDragEnterEvent> e)
     {
       if (e.Event.MimeData.HasFormat("text/plain")) {
         e.Event.AcceptProposedAction();
       }
     }
 
-    private void OnDragDrop(object sender, QEventArgs<QDropEvent>  e)
+    private void mPasswordLineEdit_DropEvent(object sender, QEventArgs<QDropEvent>  e)
     {
       if (e.Event.MimeData.HasFormat("text/plain")) {
         string strData = e.Event.MimeData.Text;
@@ -403,8 +396,9 @@ namespace dlech.SshAgentLib.QtAgent
           Debug.Assert(false);
           return;
         }
-        if (mPasswordLineEdit != null)
+        if (mPasswordLineEdit != null) {
           mPasswordLineEdit.Text = strData;
+        }
         e.Event.AcceptProposedAction();
       }
     }
