@@ -1,7 +1,7 @@
 /********************************************************************************
 ** Form generated from reading ui file 'KeyManagerFrame.ui'
 **
-** Created: Thu Jan 31 00:37:59 2013
+** Created: Thu Jan 31 23:52:16 2013
 **      by: Qt User Interface Compiler for C# version 4.8.3
 **
 ** WARNING! All changes made in this file will be lost when recompiling ui file!
@@ -15,21 +15,21 @@ namespace dlech.SshAgentLib.QtAgent {
 
 public partial class KeyManagerFrame
 {
-    public QVBoxLayout verticalLayout;
-    public QStackedWidget mStackedWidget;
-    public QWidget mMessagePage;
-    public QHBoxLayout horizontalLayout_3;
-    public QLabel mMessageLabel;
-    public QWidget mTablePage;
-    public QHBoxLayout horizontalLayout_2;
-    public QTableWidget mTableWidget;
-    public QHBoxLayout mButtonLayout;
-    public QPushButton mLockButton;
-    public QPushButton mUnlockButton;
-    public QPushButton mAddButton;
-    public QPushButton mRemoveButton;
-    public QPushButton mRemoveAllButton;
-    public QPushButton mRefreshButton;
+    private QVBoxLayout verticalLayout;
+    private QStackedWidget mStackedWidget;
+    private QWidget mMessagePage;
+    private QHBoxLayout horizontalLayout_3;
+    private QLabel mMessageLabel;
+    private QWidget mTablePage;
+    private QHBoxLayout horizontalLayout_2;
+    private QTableWidget mTableWidget;
+    private QHBoxLayout mButtonLayout;
+    private QPushButton mLockButton;
+    private QPushButton mUnlockButton;
+    private QPushButton mAddButton;
+    private QPushButton mRemoveButton;
+    private QPushButton mRemoveAllButton;
+    private QPushButton mRefreshButton;
 
     public void SetupUi(QWidget KeyManagerFrame)
     {

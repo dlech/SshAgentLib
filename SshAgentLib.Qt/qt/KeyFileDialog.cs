@@ -45,12 +45,11 @@ namespace dlech.SshAgentLib.QtAgent
     public List<Agent.KeyConstraint > GetConstraints ()
     {
       var list = new List<Agent.KeyConstraint > ();
-      if (mConfirmWidget.mCheckBox.Checked) {
+      if (mConfirmWidget.Checked) {
         list.addConfirmConstraint ();
       }
-      if (mLifetimeWidget.mCheckBox.Checked) {
-        var lifetime = uint.Parse (mLifetimeWidget.mLineEdit.Text);
-        list.addLifetimeConstraint (lifetime);
+      if (mLifetimeWidget.Checked) {
+        list.addLifetimeConstraint (mLifetimeWidget.Lifetime);
       }
       return list;
     }

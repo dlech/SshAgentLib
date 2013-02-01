@@ -92,7 +92,6 @@
     <Compile Include="Ssh1KeyFormatter.cs" />
     <Compile Include="Ssh2KeyFormatter.cs" />
     <Compile Include="ISshKey.cs" />
-    <Compile Include="PinnedByteArray.cs" />
     <Compile Include="PublicKeyAlgorithm.cs" />
     <Compile Include="SshKey.cs" />
     <Compile Include="BlobBuilder.cs" />
@@ -110,6 +109,7 @@
     <Compile Include="Microsoft\SocketAsyncEventArgPool.cs" />
     <Compile Include="UnixClient.cs" />
     <Compile Include="UnixAgent.cs" />
+    <Compile Include="PinnedArray.cs" />
   </ItemGroup>
   <ItemGroup>
     <Reference Include="BouncyCastle.Crypto, Version=1.7.4114.6375, Culture=neutral, PublicKeyToken=0e99375e54769942">

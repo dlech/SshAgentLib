@@ -21,7 +21,7 @@
     <ConsolePause>false</ConsolePause>
     <CustomCommands>
       <CustomCommands>
-        <Command type="BeforeBuild" command="for uiFile in $(ls qt/*.ui); do uics $uiFile -o $(echo $uiFile | sed s/.ui/.designer.cs/) -n dlech.SshAgentLib.QtAgent; done&#xA;" workingdir="${ProjectDir}" externalConsole="true" />
+        <Command type="BeforeBuild" command="for uiFile in $(ls qt/*.ui); do uics $uiFile -o $(echo $uiFile | sed s/.ui/.designer.cs/) -n dlech.SshAgentLib.QtAgent -ma private; done&#xA;" workingdir="${ProjectDir}" externalConsole="true" />
       </CustomCommands>
     </CustomCommands>
     <EnvironmentVariables>
@@ -41,13 +41,10 @@
   <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
   <ItemGroup>
     <Reference Include="qyoto-qtcore">
-      <HintPath>..\..\..\..\..\..\usr\lib\mono\qyoto\qyoto-qtcore.dll</HintPath>
+      <HintPath>..\lib\Qyoto\qyoto-qtcore.dll</HintPath>
     </Reference>
     <Reference Include="qyoto-qtgui">
-      <HintPath>..\..\..\..\..\..\usr\lib\mono\qyoto\qyoto-qtgui.dll</HintPath>
-    </Reference>
-    <Reference Include="qyoto-qtuitools">
-      <HintPath>..\..\..\..\..\..\usr\lib\mono\qyoto\qyoto-qtuitools.dll</HintPath>
+      <HintPath>..\lib\Qyoto\qyoto-qtgui.dll</HintPath>
     </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core" />
@@ -64,6 +61,7 @@
     <Compile Include="qt\LifetimeConstraintWidget.designer.cs" />
     <Compile Include="qt\ConfirmConstraintWidget.cs" />
     <Compile Include="qt\LifetimeConstraintWidget.cs" />
+    <Compile Include="SecureEdit.cs" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\SshAgentLib\SshAgentLib.csproj">

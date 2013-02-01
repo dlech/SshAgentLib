@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -278,11 +278,11 @@ namespace dlech.SshAgentLib
     /// removes leading element from array if the value of that element is 0
     /// </summary>
     /// <param name="array"></param>
-    public static void TrimLeadingZero(PinnedByteArray array)
+    public static void TrimLeadingZero(PinnedArray<byte> array)
     {
       if (array != null && array.Data != null && array.Data.Length > 0) {
         if (array.Data[0] == 0) {
-          PinnedByteArray arrayCopy = (PinnedByteArray)array.Clone();
+          PinnedArray<byte> arrayCopy = (PinnedArray<byte>)array.Clone();
           array.Data = new byte[array.Data.Length - 1];
           Array.Copy(arrayCopy.Data, 1, array.Data, 0, array.Data.Length);
           arrayCopy.Dispose();
@@ -297,12 +297,12 @@ namespace dlech.SshAgentLib
     /// <param name="a">variable a</param>
     /// <param name="b">variable b</param>
     /// <returns></returns>
-    public static PinnedByteArray ModMinusOne(PinnedByteArray a,
-                                              PinnedByteArray b)
+    public static PinnedArray<byte> ModMinusOne(PinnedArray<byte> a,
+                                              PinnedArray<byte> b)
     {
-      using (PinnedByteArray bMinusOne = (PinnedByteArray)b.Clone()) {
+      using (PinnedArray<byte> bMinusOne = (PinnedArray<byte>)b.Clone()) {
 
-        PinnedByteArray result = (PinnedByteArray)a.Clone();
+        PinnedArray<byte> result = (PinnedArray<byte>)a.Clone();
         // shouldn't have to worry about borrowing because b should be prime and
         // therefore not end in zero
         bMinusOne.Data[bMinusOne.Data.Length - 1]--;

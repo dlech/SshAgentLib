@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -75,29 +75,29 @@ namespace dlech.SshAgentLib
       return Encoding.UTF8.GetString(ReadBlob().Data);
     }
 
-    public PinnedByteArray ReadBlob()
+    public PinnedArray<byte> ReadBlob()
     {
         return ReadBytes(ReadInt());
     }
 
-    public PinnedByteArray ReadSsh1BigIntBlob()
+    public PinnedArray<byte> ReadSsh1BigIntBlob()
     {
       var bitCount = ReadShort();
       return ReadBits(bitCount);
     }
 
-    public PinnedByteArray ReadBits(UInt32 aBitCount)
+    public PinnedArray<byte> ReadBits(UInt32 aBitCount)
     {
       return ReadBytes((aBitCount + (uint)7) / 8);
     }
 
-    public PinnedByteArray ReadBytes(UInt32 blobLength)
+    public PinnedArray<byte> ReadBytes(UInt32 blobLength)
     {
         if (Stream.Length - Stream.Position < blobLength)
         {
             throw new Exception("Not enough data");
         }
-        PinnedByteArray blob = new PinnedByteArray((int)blobLength);
+        PinnedArray<byte> blob = new PinnedArray<byte>((int)blobLength);
         Stream.Read(blob.Data, 0, blob.Data.Length);
         return blob;
     }
@@ -250,10 +250,10 @@ namespace dlech.SshAgentLib
     public AsymmetricCipherKeyPair ReadSsh1KeyData(
       AsymmetricKeyParameter aPublicKeyParameter)
     {
-      PinnedByteArray rsa_d = ReadSsh1BigIntBlob();
-      PinnedByteArray rsa_iqmp = ReadSsh1BigIntBlob();
-      PinnedByteArray rsa_q = ReadSsh1BigIntBlob();
-      PinnedByteArray rsa_p = ReadSsh1BigIntBlob();
+      PinnedArray<byte> rsa_d = ReadSsh1BigIntBlob();
+      PinnedArray<byte> rsa_iqmp = ReadSsh1BigIntBlob();
+      PinnedArray<byte> rsa_q = ReadSsh1BigIntBlob();
+      PinnedArray<byte> rsa_p = ReadSsh1BigIntBlob();
 
       var rsaD = new BigInteger(1, rsa_d.Data);
       var rsaIQMP = new BigInteger(1, rsa_iqmp.Data);

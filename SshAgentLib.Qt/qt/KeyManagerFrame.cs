@@ -95,7 +95,7 @@ namespace dlech.SshAgentLib.QtAgent
           return;
         }
         // TODO - add "are you sure" for empty passphrase
-        var passphrase = Encoding.UTF8.GetBytes (dialog.mPassphraseLineEdit.Text);
+        var passphrase = dialog.GetPassphrase();
         try {
           mAgent.Lock (passphrase);
         } catch (AgentLockedException) {
@@ -128,7 +128,7 @@ namespace dlech.SshAgentLib.QtAgent
         if (dialog.Result == (int)QDialog.DialogCode.Rejected) {
           return;
         }
-        var passphrase = Encoding.UTF8.GetBytes (dialog.mPassphraseLineEdit.Text);
+        var passphrase = dialog.GetPassphrase();
         try {
           mAgent.Unlock (passphrase);
         } catch (AgentLockedException) {

@@ -1,15 +1,24 @@
 using System;
 using System.Security;
 using QtGui;
+using System.Text;
+using QtCore;
 
 namespace dlech.SshAgentLib.QtAgent
 {
   public partial class PassphraseDialog : QDialog
   {
-    public PassphraseDialog ()
+    private SecureEdit mSecureEdit;
+
+    public PassphraseDialog()
     {
-      SetupUi (this);
+      SetupUi(this);
       Message = string.Empty;
+
+      mSecureEdit = new SecureEdit();
+
+      ShowEvent += PassphraseDialog_ShowEvent;
+      HideEvent += PassphraseDialog_HideEvent;
     }
 
     public string Message {
@@ -18,18 +27,33 @@ namespace dlech.SshAgentLib.QtAgent
       }
       set {
         mMessageLabel.Text = value;
-        mMessageLabel.Visible = !string.IsNullOrWhiteSpace (value);
+        mMessageLabel.Visible = !string.IsNullOrWhiteSpace(value);
       }
     }
 
-    public SecureString Passphrase {
-      get {
-        var securePassphrase = new SecureString ();
-        foreach (char c in mPassphraseLineEdit.Text) {
-          securePassphrase.AppendChar (c);
-        }
-        return securePassphrase;
-      }
+    public byte[] GetPassphrase()
+    {
+      return mSecureEdit.ToUtf8();
+    }
+
+    public SecureString GetSecurePassphrase()
+    {
+      return mSecureEdit.SecureString;
+    }
+
+    [Q_SLOT]
+    private void PassphraseDialog_ShowEvent(object aSender,
+                                            QEventArgs<QShowEvent> aEventArgs)
+    {
+      mSecureEdit.Attach(mPassphraseLineEdit, null, true);
+      mPassphraseLineEdit.FocusWidget();
+    }
+
+    [Q_SLOT]
+    private void PassphraseDialog_HideEvent(object aSender,
+                                            QEventArgs<QHideEvent> aEventArgs)
+    {
+      mSecureEdit.Detach();
     }
   }
 }

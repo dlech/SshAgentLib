@@ -1,7 +1,6 @@
 using System;
 using QtGui;
 using QtCore;
-using QtUiTools;
 using dlech.SshAgentLib;
 using System.Diagnostics;
 

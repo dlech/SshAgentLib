@@ -1,7 +1,7 @@
 /********************************************************************************
 ** Form generated from reading ui file 'ConfirmConstraintWidget.ui'
 **
-** Created: Thu Jan 31 00:37:59 2013
+** Created: Thu Jan 31 23:52:16 2013
 **      by: Qt User Interface Compiler for C# version 4.8.3
 **
 ** WARNING! All changes made in this file will be lost when recompiling ui file!
@@ -15,9 +15,9 @@ namespace dlech.SshAgentLib.QtAgent {
 
 public partial class ConfirmConstraintWidget
 {
-    public QHBoxLayout horizontalLayout;
-    public QCheckBox mCheckBox;
-    public QSpacerItem spacerItem;
+    private QHBoxLayout horizontalLayout;
+    private QCheckBox mCheckBox;
+    private QSpacerItem spacerItem;
 
     public void SetupUi(QWidget ConfirmConstraintWidget)
     {

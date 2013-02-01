@@ -1,0 +1,183 @@
+<?xml version="1.0"?>
+<doc>
+    <assembly>
+        <name>qyoto-qtuitools</name>
+    </assembly>
+    <members>
+        <member name="T:QtUiTools.QUiLoader">
+            <summary>
+            The QUiLoader class enables standalone applications to dynamically create user interfaces at run-time using the information stored in UI files or specified in plugin paths.
+            </summary>
+            <remarks>
+                <para>
+                </para>
+                <para>In addition, you can customize or create your own user interface by deriving your own loader class.</para>
+                <para>If you have a custom component or an application that embeds Qt Designer, you can also use the QFormBuilder class provided by the QtDesigner module to create user interfaces from UI files.</para>
+                <para>The QUiLoader class provides a collection of functions allowing you to create widgets based on the information stored in UI files (created with Qt Designer) or available in the specified plugin paths. The specified plugin paths can be retrieved using the pluginPaths() function. Similarly, the contents of a UI file can be retrieved using the load() function. For example:</para>
+                <para> MyWidget::MyWidget(QWidget *parent)</para>
+                <para>     : QWidget(parent)</para>
+                <para> {</para>
+                <para>     QUiLoader loader;</para>
+                <para>     QFile file(":/forms/myform.ui");</para>
+                <para>     file.open(QFile::ReadOnly);</para>
+                <para>     QWidget *myWidget = loader.load(&amp;file, this);</para>
+                <para>     file.close();</para>
+                <para>
+                </para>
+                <para>     QVBoxLayout *layout = new QVBoxLayout;</para>
+                <para>     layout-&gt;addWidget(myWidget);</para>
+                <para>     setLayout(layout);</para>
+                <para> }</para>
+                <para>By including the user interface in the form's resources (myform.qrc), we ensure that it will be present at run-time:</para>
+                <para> &lt;!DOCTYPE RCC&gt;&lt;RCC version="1.0"&gt;</para>
+                <para> &lt;qresource prefix="/forms"&gt;</para>
+                <para> &lt;file&gt;myform.ui&lt;/file&gt;</para>
+                <para> &lt;/qresource&gt;</para>
+                <para> &lt;/RCC&gt;</para>
+                <para>The availableWidgets() function returns a QStringList with the class names of the widgets available in the specified plugin paths. To create these widgets, simply use the createWidget() function. For example:</para>
+                <para> QWidget *loadCustomWidget(QWidget *parent)</para>
+                <para> {</para>
+                <para>     QUiLoader loader;</para>
+                <para>     QWidget *myWidget;</para>
+                <para>
+                </para>
+                <para>     QStringList availableWidgets = loader.availableWidgets();</para>
+                <para>
+                </para>
+                <para>     if (availableWidgets.contains("AnalogClock"))</para>
+                <para>         myWidget = loader.createWidget("AnalogClock", parent);</para>
+                <para>
+                </para>
+                <para>     return myWidget;</para>
+                <para> }</para>
+                <para>To make a custom widget available to the loader, you can use the addPluginPath() function; to remove all available widgets, you can call the clearPluginPaths() function.</para>
+                <para>The createAction(), createActionGroup(), createLayout(), and createWidget() functions are used internally by the QUiLoader class whenever it has to create an action, action group, layout, or widget respectively. For that reason, you can subclass the QUiLoader class and reimplement these functions to intervene the process of constructing a user interface. For example, you might want to have a list of the actions created when loading a form or creating a custom widget.</para>
+                <para>For a complete example using the QUiLoader class, see the Calculator Builder Example.</para>
+                <para>
+                </para>
+                <para>See also QtUiTools and QFormBuilder.</para>
+            </remarks>
+        </member>
+        <member name="M:QtUiTools.QUiLoader.#ctor(QtCore.QObject)">
+            <summary>
+                <para>Creates a form loader with the given parent.</para>
+            </summary>
+        </member>
+        <member name="P:QtUiTools.QUiLoader.WorkingDirectory">
+            <summary>
+                <para>Returns the working directory of the loader.</para>
+                <para>Sets the working directory of the loader to dir. The loader will look for other resources, such as icons and resource files, in paths relative to this directory.</para>
+            </summary>
+        </member>
+        <member name="P:QtUiTools.QUiLoader.AvailableLayouts">
+            <summary>
+                <para>Returns a list naming all available layouts that can be built using the createLayout() function</para>
+                <para>This function was introduced in Qt 4.5.</para>
+                <para>See also createLayout().</para>
+            </summary>
+        </member>
+        <member name="P:QtUiTools.QUiLoader.AvailableWidgets">
+            <summary>
+                <para>Returns a list naming all available widgets that can be built using the createWidget() function, i.e all the widgets specified within the given plugin paths.</para>
+                <para>See also pluginPaths() and createWidget().</para>
+            </summary>
+        </member>
+        <member name="P:QtUiTools.QUiLoader.IsLanguageChangeEnabled">
+            <summary>
+                <para>Returns true if dynamic retranslation on language change is enabled; returns false otherwise.</para>
+                <para>This function was introduced in Qt 4.5.</para>
+                <para>See also setLanguageChangeEnabled().</para>
+            </summary>
+        </member>
+        <member name="P:QtUiTools.QUiLoader.PluginPaths">
+            <summary>
+                <para>Returns a list naming the paths in which the loader will search when locating custom widget plugins.</para>
+                <para>See also addPluginPath() and clearPluginPaths().</para>
+            </summary>
+        </member>
+        <member name="M:QtUiTools.QUiLoader.AddPluginPath(System.String)">
+            <summary>
+                <para>Adds the given path to the list of paths in which the loader will search when locating plugins.</para>
+                <para>See also pluginPaths() and clearPluginPaths().</para>
+            </summary>
+        </member>
+        <member name="M:QtUiTools.QUiLoader.ClearPluginPaths">
+            <summary>
+                <para>Clears the list of paths in which the loader will search when locating plugins.</para>
+                <para>See also addPluginPath() and pluginPaths().</para>
+            </summary>
+        </member>
+        <member name="M:QtUiTools.QUiLoader.CreateAction(QtCore.QObject,System.String)">
+            <summary>
+                <para>Creates a new action with the given parent and name.</para>
+                <para>The function is also used internally by the QUiLoader class whenever it creates a widget. Hence, you can subclass QUiLoader and reimplement this function to intervene process of constructing a user interface or widget. However, in your implementation, ensure that you call QUiLoader's version first.</para>
+                <para>See also createActionGroup(), createWidget(), and load().</para>
+            </summary>
+        </member>
+        <member name="M:QtUiTools.QUiLoader.CreateActionGroup(QtCore.QObject,System.String)">
+            <summary>
+                <para>Creates a new action group with the given parent and name.</para>
+                <para>The function is also used internally by the QUiLoader class whenever it creates a widget. Hence, you can subclass QUiLoader and reimplement this function to intervene process of constructing a user interface or widget. However, in your implementation, ensure that you call QUiLoader's version first.</para>
+                <para>See also createAction(), createWidget(), and load().</para>
+            </summary>
+        </member>
+        <member name="M:QtUiTools.QUiLoader.CreateLayout(System.String,QtCore.QObject,System.String)">
+            <summary>
+                <para>Creates a new layout with the given parent and name using the class specified by className.</para>
+                <para>The function is also used internally by the QUiLoader class whenever it creates a widget. Hence, you can subclass QUiLoader and reimplement this function to intervene process of constructing a user interface or widget. However, in your implementation, ensure that you call QUiLoader's version first.</para>
+                <para>See also createWidget() and load().</para>
+            </summary>
+        </member>
+        <member name="M:QtUiTools.QUiLoader.CreateWidget(System.String,QtGui.QWidget,System.String)">
+            <summary>
+                <para>Creates a new widget with the given parent and name using the class specified by className. You can use this function to create any of the widgets returned by the availableWidgets() function.</para>
+                <para>The function is also used internally by the QUiLoader class whenever it creates a widget. Hence, you can subclass QUiLoader and reimplement this function to intervene process of constructing a user interface or widget. However, in your implementation, ensure that you call QUiLoader's version first.</para>
+                <para>See also availableWidgets() and load().</para>
+            </summary>
+        </member>
+        <member name="M:QtUiTools.QUiLoader.Load(QtCore.QIODevice,QtGui.QWidget)">
+            <summary>
+                <para>Loads a form from the given device and creates a new widget with the given parentWidget to hold its contents.</para>
+                <para>See also createWidget().</para>
+            </summary>
+        </member>
+        <member name="M:QtUiTools.QUiLoader.SetLanguageChangeEnabled(System.Boolean)">
+            <summary>
+                <para>If enabled is true, user interfaces loaded by this loader will automatically retranslate themselves upon receiving a language change event. Otherwise, the user interfaces will not be retranslated.</para>
+                <para>This function was introduced in Qt 4.5.</para>
+                <para>See also isLanguageChangeEnabled().</para>
+            </summary>
+        </member>
+        <member name="M:QtUiTools.QUiLoader.Finalize">
+            <summary>
+                <para>Destroys the loader.</para>
+            </summary>
+        </member>
+        <member name="T:QtUiTools.QtMsgType">
+            <summary>
+                <para>This enum describes the messages that can be sent to a message handler (QtMsgHandler). You can use the enum to identify and associate the various message types with the appropriate actions.</para>
+                <para>See also QtMsgHandler and qInstallMsgHandler().</para>
+            </summary>
+        </member>
+        <member name="F:QtUiTools.QtMsgType.QtCriticalMsg">
+            <summary>
+                <para>A message generated by the qCritical() function.</para>
+            </summary>
+        </member>
+        <member name="F:QtUiTools.QtMsgType.QtDebugMsg">
+            <summary>
+                <para>A message generated by the qDebug() function.</para>
+            </summary>
+        </member>
+        <member name="F:QtUiTools.QtMsgType.QtFatalMsg">
+            <summary>
+                <para>A message generated by the qFatal() function.</para>
+            </summary>
+        </member>
+        <member name="F:QtUiTools.QtMsgType.QtWarningMsg">
+            <summary>
+                <para>A message generated by the qWarning() function.</para>
+            </summary>
+        </member>
+    </members>
+</doc>
