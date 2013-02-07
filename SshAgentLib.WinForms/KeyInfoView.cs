@@ -173,7 +173,7 @@ namespace dlech.SshAgentLib.WinForms
       UseWaitCursor = false;
     }
 
-    private void ReloadKeyListView()
+    public void ReloadKeyListView()
     {
       // workaround for bug where first column (0) is always set 
       // to Visible = true when data changes
