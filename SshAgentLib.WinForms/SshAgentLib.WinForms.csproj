@@ -48,6 +48,12 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="ConfirmConstraintControl.cs">
+      <SubType>UserControl</SubType>
+    </Compile>
+    <Compile Include="ConfirmConstraintControl.Designer.cs">
+      <DependentUpon>ConfirmConstraintControl.cs</DependentUpon>
+    </Compile>
     <Compile Include="Default.cs" />
     <Compile Include="Ext.cs" />
     <Compile Include="KeyInfoView.cs">
@@ -61,6 +67,12 @@
     </Compile>
     <Compile Include="KeyManagerForm.Designer.cs">
       <DependentUpon>KeyManagerForm.cs</DependentUpon>
+    </Compile>
+    <Compile Include="LifetimeConstraintControl.cs">
+      <SubType>UserControl</SubType>
+    </Compile>
+    <Compile Include="LifetimeConstraintControl.Designer.cs">
+      <DependentUpon>LifetimeConstraintControl.cs</DependentUpon>
     </Compile>
     <Compile Include="PasswordDialog.cs">
       <SubType>Form</SubType>
@@ -86,11 +98,17 @@
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>
+    <EmbeddedResource Include="ConfirmConstraintControl.resx">
+      <DependentUpon>ConfirmConstraintControl.cs</DependentUpon>
+    </EmbeddedResource>
     <EmbeddedResource Include="KeyInfoView.resx">
       <DependentUpon>KeyInfoView.cs</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="KeyManagerForm.resx">
       <DependentUpon>KeyManagerForm.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="LifetimeConstraintControl.resx">
+      <DependentUpon>LifetimeConstraintControl.cs</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="PasswordDialog.resx">
       <DependentUpon>PasswordDialog.cs</DependentUpon>
