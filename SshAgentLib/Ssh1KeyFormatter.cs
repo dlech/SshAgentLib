@@ -17,6 +17,8 @@ namespace dlech.SshAgentLib
   public class Ssh1KeyFormatter : KeyFormatter
   {
     public const string FILE_HEADER_LINE = "SSH PRIVATE KEY FILE FORMAT 1.1";
+    public const int SSH_CIPHER_NONE = 0;
+    public const int SSH_CIPHER_3DES = 3;
 
     public override void Serialize(Stream aStream, object aObject)
     {
@@ -34,16 +36,17 @@ namespace dlech.SshAgentLib
         pwFinder = new PasswordFinder(GetPassphraseCallbackMethod);
       }
       StreamWriter streamWriter = new StreamWriter(aStream);
-      char[] passphrase = null;
+      PinnedArray<char> passphrase = null;
       if (pwFinder != null) {
-        passphrase = pwFinder.GetPassword();
+        passphrase = new PinnedArray<char>(0);
+        passphrase.Data = pwFinder.GetPassword();
       }
 
       byte cipherType;
-      if (passphrase == null || passphrase.Length == 0) {
-        cipherType = 0;
+      if (passphrase == null || passphrase.Data.Length == 0) {
+        cipherType = SSH_CIPHER_NONE;
       } else {
-        cipherType = 3;
+        cipherType = SSH_CIPHER_3DES;
       }
 
       BlobBuilder builder = new BlobBuilder();
@@ -55,7 +58,7 @@ namespace dlech.SshAgentLib
         as RsaPrivateCrtKeyParameters;
 
       /* writing info headers */
-      builder.AddBytes((new ASCIIEncoding()).GetBytes(FILE_HEADER_LINE + "\n"));
+      builder.AddBytes(Encoding.ASCII.GetBytes(FILE_HEADER_LINE + "\n"));
       builder.AddByte(0);          //end of string
       builder.AddByte(cipherType); //cipher
       builder.AddInt(0);           //reserved
@@ -83,15 +86,13 @@ namespace dlech.SshAgentLib
       privateKeyBuilder.AddSsh1BigIntBlob(privateKeyParams.P);
       privateKeyBuilder.AddSsh1BigIntBlob(privateKeyParams.Q);
 
-      if (cipherType == 0) {
+      if (cipherType == SSH_CIPHER_NONE) {
         /* plain-text */
         builder.AddBytes(privateKeyBuilder.GetBlobAsPinnedByteArray().Data);
       } else {
-        GCHandle ppHandle = GCHandle.Alloc(passphrase, GCHandleType.Pinned);
-
         byte[] keydata;
         using (MD5 md5 = MD5.Create()) {
-          keydata = md5.ComputeHash((new ASCIIEncoding()).GetBytes(passphrase));
+          keydata = md5.ComputeHash(Encoding.ASCII.GetBytes(passphrase.Data));
         }
 
         /* encryption */
@@ -104,13 +105,12 @@ namespace dlech.SshAgentLib
 
         builder.AddBytes(ouputBuffer);
 
-        Array.Clear(passphrase, 0, passphrase.Length);
-        ppHandle.Free();
+        passphrase.Dispose();
       }
 
       /* writing result to file */
-      aStream.Write(builder.GetBlobAsPinnedByteArray().Data, 0,
-        builder.GetBlobAsPinnedByteArray().Data.Length);
+      var builderOutput = builder.GetBlobAsPinnedByteArray();
+      aStream.Write(builderOutput.Data, 0, builderOutput.Data.Length);
       aStream.Close();
     }
 
@@ -127,8 +127,8 @@ namespace dlech.SshAgentLib
       parser.ReadBytes((uint)FILE_HEADER_LINE.Length + 2);  //Skipping header line
 
       byte cipherType = parser.ReadByte();
-      if (cipherType != 3 && cipherType != 0) {
-        //ciphertype 3 (TripleDes) is the only encryption supported
+      if (cipherType != SSH_CIPHER_3DES && cipherType != SSH_CIPHER_NONE) {
+        //TripleDes is the only encryption supported
         throw new KeyFormatterException("Unsupported cypherType: " + cipherType);
       }
 
@@ -145,8 +145,6 @@ namespace dlech.SshAgentLib
       byte[] ouputBuffer;
 
       try {
-
-
         if (cipherType == 3) {
           /* private key is 3DES encrypted */
           PasswordFinder pwFinder = null;
@@ -158,7 +156,7 @@ namespace dlech.SshAgentLib
           try {
             using (MD5 md5 = MD5.Create()) {
               char[] md5Buffer = pwFinder.GetPassword();
-              keydata = md5.ComputeHash((new ASCIIEncoding()).GetBytes(md5Buffer));
+              keydata = md5.ComputeHash(Encoding.ASCII.GetBytes(md5Buffer));
             }
           } catch (PasswordException ex) {
             if (GetPassphraseCallbackMethod == null) {

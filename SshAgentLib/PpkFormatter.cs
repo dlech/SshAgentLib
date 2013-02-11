@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -141,7 +141,7 @@ namespace dlech.SshAgentLib
       /// <summary>
       /// The private key.
       /// </summary>
-      public PinnedByteArray privateKeyBlob;
+      public PinnedArray<byte> privateKeyBlob;
 
       /// <summary>
       /// The private key hash.
@@ -295,7 +295,7 @@ namespace dlech.SshAgentLib
           privateKeyString += reader.ReadLine();
         }
         fileData.privateKeyBlob =
-          new PinnedByteArray(Util.FromBase64(privateKeyString));
+          new PinnedArray<byte>(Util.FromBase64(privateKeyString));
 
         /* read MAC */
         line = reader.ReadLine();
@@ -372,8 +372,8 @@ namespace dlech.SshAgentLib
           sha.Initialize();
           List<byte> key = new List<byte>();
 
-          using (PinnedByteArray hashData =
-                 new PinnedByteArray(cPrivateKeyDecryptSalt1.Length +
+          using (PinnedArray<byte> hashData =
+                 new PinnedArray<byte>(cPrivateKeyDecryptSalt1.Length +
                                      fileData.passphrase.Length)) {
             Array.Copy(Encoding.UTF8.GetBytes(cPrivateKeyDecryptSalt1),
                        hashData.Data, cPrivateKeyDecryptSalt1.Length);
@@ -435,8 +435,8 @@ namespace dlech.SshAgentLib
       if (fileData.isHMAC) {
         HMAC hmac = HMACSHA1.Create();
         if (fileData.passphrase != null) {
-          using (PinnedByteArray hashData =
-                 new PinnedByteArray(cMACKeySalt.Length +
+          using (PinnedArray<byte> hashData =
+                 new PinnedArray<byte>(cMACKeySalt.Length +
                    fileData.passphrase.Length)) {
             Array.Copy(Encoding.UTF8.GetBytes(cMACKeySalt),
                        hashData.Data, cMACKeySalt.Length);

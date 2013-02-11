@@ -39,17 +39,16 @@ namespace dlech.SshAgentLib
       }
       StreamWriter streamWriter = new StreamWriter(aStream);
       PemWriter writer = new PemWriter(streamWriter);
-      char[] passphrase = null;
+      PinnedArray<char> passphrase = null;
       if (pwFinder != null) {
-        passphrase = pwFinder.GetPassword();
+        passphrase = new PinnedArray<char>(0);
+        passphrase.Data = pwFinder.GetPassword();
       }
       if (passphrase == null) {
         writer.WriteObject(aObject);
       } else {
-        GCHandle ppHandle = GCHandle.Alloc(passphrase, GCHandleType.Pinned);
-        writer.WriteObject(aObject, null, passphrase, null);
-        Array.Clear(passphrase, 0, passphrase.Length);
-        ppHandle.Free();
+        writer.WriteObject(aObject, null, passphrase.Data, null);
+        passphrase.Dispose();
       }
     }
 

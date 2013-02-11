@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -140,9 +140,9 @@ namespace dlech.SshAgentLib
       return byteList.ToArray();
     }
 
-    public PinnedByteArray GetBlobAsPinnedByteArray()
+    public PinnedArray<byte> GetBlobAsPinnedByteArray()
     {
-      return new PinnedByteArray(GetBlob());      
+      return new PinnedArray<byte>(GetBlob());      
     }
 
     /// <summary>

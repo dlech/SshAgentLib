@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Text;
 using System.Runtime.InteropServices;
 
@@ -14,16 +13,16 @@ namespace dlech.SshAgentLib
   /// 
   /// Data is cleared (values set to 0) when object is disposed.
   /// </summary>
-  public class PinnedByteArray : IDisposable, ICloneable
+  public class PinnedArray<T> : IDisposable, ICloneable
   {
-    private byte[] mData;
+    private T[] mData;
     private GCHandle mGCHandle;
     private bool mDisposed;
 
     /// <summary>
     /// The array that is wrapped.
     /// </summary>
-    public byte[] Data {
+    public T[] Data {
       get {
         if (mDisposed) {
           throw new ObjectDisposedException(GetType().Name);
@@ -41,22 +40,22 @@ namespace dlech.SshAgentLib
     /// <summary>
     /// wraps byte[] in new PinnedByteArray instance
     /// </summary>
-    /// <param name="array">the byte[] to wrap</param>
-    public PinnedByteArray(byte[] mArray)
+    /// <param name="array">the T[] to wrap</param>
+    public PinnedArray(T[] mArray)
     {
       Data = mArray;
     }
 
     /// <summary>
-    /// creates new instance of PinnedByteArray with a new byte[] of the specified length
+    /// creates new instance of PinnedByteArray with a new T[] of the specified length
     /// </summary>
-    /// <param name="length">length of new byte[]</param>
-    public PinnedByteArray(int mLength)
+    /// <param name="length">length of new T[]</param>
+    public PinnedArray(int mLength)
     {
-      Data = new byte[mLength];
+      Data = new T[mLength];
     }
         
-    ~PinnedByteArray()
+    ~PinnedArray()
     {     
       Dispose();
     }
@@ -85,7 +84,7 @@ namespace dlech.SshAgentLib
 
     public object Clone()
     {
-      return new PinnedByteArray((byte[])Data.Clone());
+      return new PinnedArray<T>((T[])Data.Clone());
     }
   }
 }

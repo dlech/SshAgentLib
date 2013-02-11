@@ -448,8 +448,8 @@ namespace dlech.SshAgentLib
                 && (key.GetPublicKeyParameters().Equals(publicKeyParams))).Single();
 
             //Reading challenge
-            PinnedByteArray encryptedChallenge = messageParser.ReadSsh1BigIntBlob();
-            PinnedByteArray sessionId = messageParser.ReadBytes(16);
+            PinnedArray<byte> encryptedChallenge = messageParser.ReadSsh1BigIntBlob();
+            PinnedArray<byte> sessionId = messageParser.ReadBytes(16);
 
             //Checking responseType field
             if (messageParser.ReadInt() != 1) {
@@ -486,8 +486,8 @@ namespace dlech.SshAgentLib
            * depending on whether we have that key or not.
            */
           try {
-            PinnedByteArray keyBlob = messageParser.ReadBlob();
-            PinnedByteArray reqData = messageParser.ReadBlob();
+            PinnedArray<byte> keyBlob = messageParser.ReadBlob();
+            PinnedArray<byte> reqData = messageParser.ReadBlob();
             SignRequestFlags flags = new SignRequestFlags();
             try {
               // usually, there are no flags, so parser will throw
@@ -632,7 +632,7 @@ namespace dlech.SshAgentLib
           }
 
           SshVersion removeVersion;
-          PinnedByteArray rKeyBlob;
+          PinnedArray<byte> rKeyBlob;
           if (header.Message == Message.SSH1_AGENTC_REMOVE_RSA_IDENTITY) {
             removeVersion = SshVersion.SSH1;
             rKeyBlob = messageParser.ReadBytes(header.BlobLength - 1);
@@ -689,7 +689,7 @@ namespace dlech.SshAgentLib
 
         case Message.SSH_AGENTC_LOCK:
           try {
-            PinnedByteArray passphrase = messageParser.ReadBlob();
+            PinnedArray<byte> passphrase = messageParser.ReadBlob();
             try {
               Lock(passphrase.Data);
             } finally {
@@ -708,7 +708,7 @@ namespace dlech.SshAgentLib
 
         case Message.SSH_AGENTC_UNLOCK:
           try {
-            PinnedByteArray passphrase = messageParser.ReadBlob();
+            PinnedArray<byte> passphrase = messageParser.ReadBlob();
             try {
               Unlock(passphrase.Data);
             } finally {
