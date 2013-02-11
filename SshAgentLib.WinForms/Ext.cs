@@ -19,6 +19,15 @@ namespace dlech.SshAgentLib.WinForms
       foreach (var fileName in aFileNames) {
         try {
           aAgent.AddKeyFromFile(fileName, aConstraints);
+        } catch (PpkFormatterException) {
+          MessageBox.Show(string.Format(
+            "Error opening file '{0}'\n" + 
+            "Possible causes:\n" +
+            "\n" +
+            "- Passphrase was entered incorrectly\n" +
+            "- File is corrupt",
+            fileName), Util.AssemblyTitle, MessageBoxButtons.OK,
+            MessageBoxIcon.Error);
         } catch (Exception ex) {
           MessageBox.Show(string.Format(Strings.errFileOpenFailed,
             fileName, ex.Message), Util.AssemblyTitle, MessageBoxButtons.OK,
