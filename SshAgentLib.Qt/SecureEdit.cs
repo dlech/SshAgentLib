@@ -115,6 +115,7 @@ namespace dlech.SshAgentLib.QtAgent
       mPasswordLineEdit.FocusInEvent += mPasswordLineEdit_FocusInEvent;
       if (!mSecureDesktop) {
         mPasswordLineEdit.DragEnterEvent += mPasswordLineEdit_DragEnterEvent;
+        mPasswordLineEdit.DragMoveEvent += mPasswordLineEdit_DragMoveEvent;
         mPasswordLineEdit.DropEvent += mPasswordLineEdit_DropEvent;
       }
     }
@@ -130,6 +131,7 @@ namespace dlech.SshAgentLib.QtAgent
         mPasswordLineEdit.FocusInEvent -= mPasswordLineEdit_FocusInEvent;
         if (!mSecureDesktop) {
           mPasswordLineEdit.DragEnterEvent -= mPasswordLineEdit_DragEnterEvent;
+          mPasswordLineEdit.DragMoveEvent -= mPasswordLineEdit_DragMoveEvent;
           mPasswordLineEdit.DropEvent -= mPasswordLineEdit_DropEvent;
         }
         mPasswordLineEdit = null;
@@ -271,7 +273,7 @@ namespace dlech.SshAgentLib.QtAgent
         using (var bytes = new PinnedArray<byte>(
           Encoding.Unicode.GetBytes(mAltSecureString.Data)))
         {
-          return Encoding.Unicode.GetString(bytes);
+          return Encoding.Unicode.GetString(bytes.Data);
         }
       }
     }
@@ -327,7 +329,7 @@ namespace dlech.SshAgentLib.QtAgent
             return false;
           } else {
             for (int i = 0; i < thisString.Data.Length; ++i) {
-              if (thisString[i] != otherString[i]) {
+              if (thisString.Data[i] != otherString.Data [i]) {
                 return false;
               }
             }
@@ -388,6 +390,15 @@ namespace dlech.SshAgentLib.QtAgent
       }
     }
 
+    [Q_SLOT]
+    private void mPasswordLineEdit_DragMoveEvent(object sender, QEventArgs<QDragMoveEvent> e)
+    {
+      if (e.Event.MimeData.HasFormat("text/plain")) {
+        e.Event.AcceptProposedAction();
+      }
+    }
+
+    [Q_SLOT]
     private void mPasswordLineEdit_DropEvent(object sender, QEventArgs<QDropEvent>  e)
     {
       if (e.Event.MimeData.HasFormat("text/plain")) {

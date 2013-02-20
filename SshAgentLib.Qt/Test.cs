@@ -9,8 +9,6 @@ namespace dlech.SshAgentLib.QtAgent
   public class Test : QDialog
   {
 
-    IAgent mAgent;
-
     public Test ()
     {
       WindowTitle = Tr("SSH Key Manager");
@@ -27,8 +25,14 @@ namespace dlech.SshAgentLib.QtAgent
     }
 
     [STAThread]
-    public static int Main (String[] args)
+    public static int Main(String[] args)
     {
+      if (Environment.OSVersion.Platform == PlatformID.Unix ||
+          Environment.OSVersion.Platform == PlatformID.MacOSX)
+      {
+        Environment.SetEnvironmentVariable("LD_LIBRARY_PATH",
+                                           Environment.CurrentDirectory);
+      }
       new QApplication (args);
       new Test ();
       return QApplication.Exec ();

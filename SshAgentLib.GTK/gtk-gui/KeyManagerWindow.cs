@@ -14,9 +14,7 @@ public partial class KeyManagerWindow
 		this.WindowPosition = ((global::Gtk.WindowPosition)(1));
 		this.Gravity = ((global::Gdk.Gravity)(5));
 		// Container child KeyManagerWindow.Gtk.Container+ContainerChild
-		this.keymanagerwiget1 = new global::SshAgentLib.GTK.KeyManagerWiget ();
-		this.keymanagerwiget1.Events = ((global::Gdk.EventMask)(256));
-		this.keymanagerwiget1.Name = "keymanagerwiget1";
+		this.keymanagerwiget1 = null;
 		this.Add (this.keymanagerwiget1);
 		if ((this.Child != null)) {
 			this.Child.ShowAll ();

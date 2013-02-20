@@ -33,7 +33,6 @@ namespace dlech.SshAgentLib
       if (GetPassphraseCallbackMethod != null) {
         pwFinder = new PasswordFinder(GetPassphraseCallbackMethod);
       }
-      StreamWriter streamWriter = new StreamWriter(aStream);
       char[] passphrase = null;
       if (pwFinder != null) {
         passphrase = pwFinder.GetPassword();

@@ -5,6 +5,7 @@ using System;
 using System.Diagnostics;
 using System.Collections.Generic;
 using System.Text;
+using System.IO;
 
 namespace dlech.SshAgentLib.QtAgent
 {
@@ -25,6 +26,65 @@ namespace dlech.SshAgentLib.QtAgent
       mRemoveButton.Clicked += mRemoveButton_Clicked;
       mRemoveAllButton.Clicked += mRemoveAllButton_Clicked;
       mRefreshButton.Clicked += mRefreshButton_Clicked;
+
+      mTableWidget.DragEnterEvent += mTableWidget_DragEnterEvent;
+      mTableWidget.DragMoveEvent += mTableWidget_DragMoveEvent;
+      mTableWidget.DropEvent += mTableWidget_DropEvent;
+
+      mMessageLabel.DragEnterEvent += mTableWidget_DragEnterEvent;
+      mMessageLabel.DragMoveEvent += mTableWidget_DragMoveEvent;
+      mMessageLabel.DropEvent += mTableWidget_DropEvent;
+    }
+
+    [Q_SLOT]
+    private void mTableWidget_DragEnterEvent(object aSender,
+                                             QEventArgs<QDragEnterEvent> aEventArgs)
+    {
+      if (aEventArgs.Event.MimeData.HasUrls)
+      {
+        aEventArgs.Event.DropAction = DropAction.CopyAction;
+        aEventArgs.Event.Accept();
+        aEventArgs.Event.AcceptProposedAction();
+        aEventArgs.Handled = true;
+      }
+    }
+
+    [Q_SLOT]
+    private void mTableWidget_DragMoveEvent(object aSender,
+                                            QEventArgs<QDragMoveEvent> aEventArgs)
+    {
+      if (aEventArgs.Event.MimeData.HasUrls)
+      {
+        aEventArgs.Event.DropAction = DropAction.CopyAction;
+        aEventArgs.Event.Accept();
+        aEventArgs.Event.AcceptProposedAction();
+        aEventArgs.Handled = true;
+      }
+    }
+
+    [Q_SLOT]
+    private void mTableWidget_DropEvent(object aSender,
+                                        QEventArgs<QDropEvent> aEventArgs)
+    {
+      if (aEventArgs.Event.MimeData.HasUrls) {
+        foreach (var url in aEventArgs.Event.MimeData.Urls) {
+          if (url.IsLocalFile) {
+            var localFile = url.ToLocalFile();
+            if (File.Exists(localFile)) {
+              try {
+                mAgent.AddKeyFromFile(localFile, null, null);
+              } catch (Exception ex) {
+                Debug.Fail(ex.ToString());
+              }
+            }
+          }
+        }
+        aEventArgs.Event.AcceptProposedAction();
+        aEventArgs.Handled = true;
+        if (mAgent is AgentClient) {
+          ReloadData();
+        }
+      }
     }
 
     public void SetAgent (IAgent aAgent)

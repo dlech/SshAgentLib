@@ -1,7 +1,7 @@
 /********************************************************************************
 ** Form generated from reading ui file 'KeyManagerFrame.ui'
 **
-** Created: Fri Feb 1 00:34:22 2013
+** Created: Sat Feb 16 20:46:46 2013
 **      by: Qt User Interface Compiler for C# version 4.8.3
 **
 ** WARNING! All changes made in this file will be lost when recompiling ui file!
@@ -52,6 +52,7 @@ public partial class KeyManagerFrame
         QFont font = new QFont();
         font.PointSize = 12;
         mMessageLabel.Font = font;
+        mMessageLabel.AcceptDrops = true;
         mMessageLabel.Alignment = Qt.AlignmentFlag.AlignCenter;
 
         horizontalLayout_3.AddWidget(mMessageLabel);
@@ -64,7 +65,9 @@ public partial class KeyManagerFrame
         horizontalLayout_2.ObjectName = "horizontalLayout_2";
         mTableWidget = new QTableWidget(mTablePage);
         mTableWidget.ObjectName = "mTableWidget";
+        mTableWidget.AcceptDrops = true;
         mTableWidget.EditTriggers = QAbstractItemView.EditTrigger.NoEditTriggers;
+        mTableWidget.dragDropMode = QAbstractItemView.DragDropMode.DropOnly;
         mTableWidget.selectionBehavior = QAbstractItemView.SelectionBehavior.SelectRows;
         mTableWidget.WordWrap = false;
         mTableWidget.RowCount = 0;

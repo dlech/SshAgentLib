@@ -39,13 +39,23 @@
     <ConsolePause>false</ConsolePause>
   </PropertyGroup>
   <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
-  <ItemGroup>
+  <ItemGroup Condition=" '$(Configuration)' == 'Debug' ">
     <Reference Include="qyoto-qtcore">
-      <HintPath>..\lib\Qyoto\qyoto-qtcore.dll</HintPath>
+      <HintPath>../lib/Qyoto/Debug/qyoto-qtcore.dll</HintPath>
     </Reference>
     <Reference Include="qyoto-qtgui">
-      <HintPath>..\lib\Qyoto\qyoto-qtgui.dll</HintPath>
+      <HintPath>../lib/Qyoto/Debug/qyoto-qtgui.dll</HintPath>
     </Reference>
+  </ItemGroup>
+  <ItemGroup Condition=" '$(Configuration)' != 'Debug' ">
+    <Reference Include="qyoto-qtcore">
+      <HintPath>..\lib\Qyoto\Release\qyoto-qtcore.dll</HintPath>
+    </Reference>
+    <Reference Include="qyoto-qtgui">
+      <HintPath>..\lib\Qyoto\Release\qyoto-qtgui.dll</HintPath>
+    </Reference>
+  </ItemGroup>
+  <ItemGroup>
     <Reference Include="System" />
     <Reference Include="System.Core" />
     <Reference Include="System.Data" />
@@ -64,16 +74,22 @@
     <Compile Include="SecureEdit.cs" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\SshAgentLib\SshAgentLib.csproj">
-      <Project>{9163B6B6-0603-4C6E-BC67-7111ED8CDDE1}</Project>
-      <Name>SshAgentLib</Name>
-    </ProjectReference>
-  </ItemGroup>
-  <ItemGroup>
     <None Include="qt\KeyManagerFrame.ui" />
     <None Include="app.config" />
     <None Include="qt\PassphraseDialog.ui" />
     <None Include="qt\ConfirmConstraintWidget.ui" />
     <None Include="qt\LifetimeConstraintWidget.ui" />
   </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\SshAgentLib\SshAgentLib.csproj">
+      <Project>{9163B6B6-0603-4C6E-BC67-7111ED8CDDE1}</Project>
+      <Name>SshAgentLib</Name>
+    </ProjectReference>
+  </ItemGroup>
+  <Target Name="AfterBuild">
+    <CreateItem Include="../lib/Qyoto/Debug/*.so">
+      <Output TaskParameter="Include" ItemName="CopyFiles" />
+    </CreateItem>
+    <Copy SourceFiles="@(CopyFiles)" DestinationFolder="$(TargetDir)" SkipUnchangedFiles="true" />
+  </Target>
 </Project>
