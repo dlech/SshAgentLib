@@ -181,7 +181,7 @@ namespace dlech.SshAgentLib
         var privateKeyParser = new BlobParser(ouputBuffer);
 
         /* checking result of decryption */
-        byte[] resultCheck = privateKeyParser.ReadBytes(4).Data;
+        byte[] resultCheck = privateKeyParser.ReadBytes(4);
         if (resultCheck[0] != resultCheck[2] || resultCheck[1] != resultCheck[3]) {
           throw new KeyFormatterException("bad passphrase");
         }

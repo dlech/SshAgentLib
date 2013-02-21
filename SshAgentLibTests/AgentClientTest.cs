@@ -194,7 +194,6 @@ namespace dlech.SshAgentLibTests
     [Test()]
     public void TestSignRequest()
     {
-      var passphrase = Encoding.UTF8.GetBytes("passphrase");
       var agentClient = new TestAgentClient();
       var data = Encoding.UTF8.GetBytes("Data to be signed");
 
@@ -215,7 +214,7 @@ namespace dlech.SshAgentLibTests
             BlobParser signatureParser = new BlobParser(signature);
             var algorithm = signatureParser.ReadString();
             Assert.That(algorithm, Is.EqualTo(key.Algorithm.GetIdentifierString()));
-            signature = signatureParser.ReadBlob().Data;
+            signature = signatureParser.ReadBlob();
             if (key.Algorithm == PublicKeyAlgorithm.SSH_RSA) {
               Assert.That(signature.Length == key.Size / 8);
             } else if (key.Algorithm == PublicKeyAlgorithm.SSH_DSS) {
@@ -230,8 +229,8 @@ namespace dlech.SshAgentLibTests
               Assert.That(signature.Length, Is.AtLeast(key.Size / 4 + 8));
               Assert.That(signature.Length, Is.AtMost(key.Size / 4 + 10));
               BlobParser parser = new BlobParser(signature);
-              var r = new BigInteger(parser.ReadBlob().Data);
-              var s = new BigInteger(parser.ReadBlob().Data);
+              var r = new BigInteger(parser.ReadBlob());
+              var s = new BigInteger(parser.ReadBlob());
               var seq = new DerSequence(new DerInteger(r), new DerInteger(s));
               signature = seq.GetDerEncoded();
             }

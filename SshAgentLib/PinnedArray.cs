@@ -80,7 +80,7 @@ namespace dlech.SshAgentLib
     public void Dispose()
     {
       Clear();
-      if (mGCHandle != null && mGCHandle.IsAllocated) {
+      if (mGCHandle.IsAllocated) {
         mGCHandle.Free();
       }
       mDisposed = true;
