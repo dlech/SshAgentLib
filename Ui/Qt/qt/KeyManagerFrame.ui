@@ -7,8 +7,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>656</width>
-    <height>334</height>
+    <width>787</width>
+    <height>318</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -21,7 +21,7 @@
       <number>1</number>
      </property>
      <widget class="QWidget" name="mMessagePage">
-      <layout class="QHBoxLayout" name="horizontalLayout_3">
+      <layout class="QHBoxLayout" name="mMessagePaneLayout_3">
        <property name="margin">
         <number>0</number>
        </property>
@@ -52,6 +52,14 @@
        </property>
        <item>
         <widget class="QTableWidget" name="mTableWidget">
+         <property name="font">
+          <font>
+           <pointsize>8</pointsize>
+          </font>
+         </property>
+         <property name="focusPolicy">
+          <enum>Qt::NoFocus</enum>
+         </property>
          <property name="acceptDrops">
           <bool>true</bool>
          </property>
@@ -61,8 +69,20 @@
          <property name="dragDropMode">
           <enum>QAbstractItemView::DropOnly</enum>
          </property>
+         <property name="defaultDropAction">
+          <enum>Qt::CopyAction</enum>
+         </property>
+         <property name="alternatingRowColors">
+          <bool>true</bool>
+         </property>
+         <property name="selectionMode">
+          <enum>QAbstractItemView::MultiSelection</enum>
+         </property>
          <property name="selectionBehavior">
           <enum>QAbstractItemView::SelectRows</enum>
+         </property>
+         <property name="showGrid">
+          <bool>false</bool>
          </property>
          <property name="wordWrap">
           <bool>false</bool>
@@ -73,6 +93,9 @@
          <property name="columnCount">
           <number>6</number>
          </property>
+         <attribute name="horizontalHeaderStretchLastSection">
+          <bool>true</bool>
+         </attribute>
          <attribute name="verticalHeaderVisible">
           <bool>false</bool>
          </attribute>

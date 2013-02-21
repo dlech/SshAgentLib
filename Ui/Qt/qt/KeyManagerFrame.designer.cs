@@ -1,7 +1,7 @@
 /********************************************************************************
 ** Form generated from reading ui file 'KeyManagerFrame.ui'
 **
-** Created: Wed Feb 20 23:29:13 2013
+** Created: Thu Feb 21 00:12:00 2013
 **      by: Qt User Interface Compiler for C# version 4.8.3
 **
 ** WARNING! All changes made in this file will be lost when recompiling ui file!
@@ -18,7 +18,7 @@ public partial class KeyManagerFrame
     private QVBoxLayout verticalLayout;
     private QStackedWidget mStackedWidget;
     private QWidget mMessagePage;
-    private QHBoxLayout horizontalLayout_3;
+    private QHBoxLayout mMessagePaneLayout_3;
     private QLabel mMessageLabel;
     private QWidget mTablePage;
     private QHBoxLayout horizontalLayout_2;
@@ -35,7 +35,7 @@ public partial class KeyManagerFrame
     {
         if (KeyManagerFrame.ObjectName == "")
             KeyManagerFrame.ObjectName = "KeyManagerFrame";
-        QSize Size = new QSize(656, 334);
+        QSize Size = new QSize(787, 318);
         Size = Size.ExpandedTo(KeyManagerFrame.MinimumSizeHint);
         KeyManagerFrame.Size = Size;
         verticalLayout = new QVBoxLayout(KeyManagerFrame);
@@ -44,9 +44,9 @@ public partial class KeyManagerFrame
         mStackedWidget.ObjectName = "mStackedWidget";
         mMessagePage = new QWidget();
         mMessagePage.ObjectName = "mMessagePage";
-        horizontalLayout_3 = new QHBoxLayout(mMessagePage);
-        horizontalLayout_3.SetContentsMargins(0, 0, 0, 0);
-        horizontalLayout_3.ObjectName = "horizontalLayout_3";
+        mMessagePaneLayout_3 = new QHBoxLayout(mMessagePage);
+        mMessagePaneLayout_3.SetContentsMargins(0, 0, 0, 0);
+        mMessagePaneLayout_3.ObjectName = "mMessagePaneLayout_3";
         mMessageLabel = new QLabel(mMessagePage);
         mMessageLabel.ObjectName = "mMessageLabel";
         QFont font = new QFont();
@@ -55,7 +55,7 @@ public partial class KeyManagerFrame
         mMessageLabel.AcceptDrops = true;
         mMessageLabel.Alignment = Qt.AlignmentFlag.AlignCenter;
 
-        horizontalLayout_3.AddWidget(mMessageLabel);
+        mMessagePaneLayout_3.AddWidget(mMessageLabel);
 
         mStackedWidget.AddWidget(mMessagePage);
         mTablePage = new QWidget();
@@ -65,13 +65,22 @@ public partial class KeyManagerFrame
         horizontalLayout_2.ObjectName = "horizontalLayout_2";
         mTableWidget = new QTableWidget(mTablePage);
         mTableWidget.ObjectName = "mTableWidget";
+        QFont font1 = new QFont();
+        font1.PointSize = 8;
+        mTableWidget.Font = font1;
+        mTableWidget.FocusPolicy = Qt.FocusPolicy.NoFocus;
         mTableWidget.AcceptDrops = true;
         mTableWidget.EditTriggers = QAbstractItemView.EditTrigger.NoEditTriggers;
         mTableWidget.dragDropMode = QAbstractItemView.DragDropMode.DropOnly;
+        mTableWidget.DefaultDropAction = Qt.DropAction.CopyAction;
+        mTableWidget.AlternatingRowColors = true;
+        mTableWidget.selectionMode = QAbstractItemView.SelectionMode.MultiSelection;
         mTableWidget.selectionBehavior = QAbstractItemView.SelectionBehavior.SelectRows;
+        mTableWidget.ShowGrid = false;
         mTableWidget.WordWrap = false;
         mTableWidget.RowCount = 0;
         mTableWidget.ColumnCount = 6;
+        mTableWidget.HorizontalHeader.StretchLastSection = true;
         mTableWidget.VerticalHeader.Visible = false;
 
         horizontalLayout_2.AddWidget(mTableWidget);

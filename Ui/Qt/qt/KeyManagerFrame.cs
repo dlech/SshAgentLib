@@ -16,7 +16,8 @@ namespace dlech.SshAgentLib.Ui.QtAgent
     public KeyManagerFrame ()
     {
       SetupUi (this);
-      mTableWidget.HorizontalHeader.SetResizeMode (QHeaderView.ResizeMode.ResizeToContents);
+      mTableWidget.HorizontalHeader
+        .SetResizeMode(QHeaderView.ResizeMode.ResizeToContents);
       mTableWidget.SelectionModel.SelectionChanged +=
         mTableWidget_SelectionModel_SelectionChanged;
 
@@ -115,12 +116,18 @@ namespace dlech.SshAgentLib.Ui.QtAgent
         var newRowIndex = mTableWidget.RowCount;
         mTableWidget.Model.InsertRow (newRowIndex);
         // TODO - make checkboxes
-        mTableWidget.SetItem (newRowIndex, 0, new QTableWidgetItem(key.HasConstraint (Agent.KeyConstraintType.SSH_AGENT_CONSTRAIN_CONFIRM).ToString ()));
-        mTableWidget.SetItem (newRowIndex, 1, new QTableWidgetItem(key.HasConstraint (Agent.KeyConstraintType.SSH_AGENT_CONSTRAIN_LIFETIME).ToString ()));
-        mTableWidget.SetItem (newRowIndex, 2, new QTableWidgetItem(key.Algorithm.GetIdentifierString ()));
-        mTableWidget.SetItem (newRowIndex, 3, new QTableWidgetItem(key.Size.ToString ()));
-        mTableWidget.SetItem (newRowIndex, 4, new QTableWidgetItem(key.GetMD5Fingerprint ().ToHexString ()));
-        mTableWidget.SetItem (newRowIndex, 5, new QTableWidgetItem(key.Comment));
+        mTableWidget.SetItem (newRowIndex, 0, new QTableWidgetItem(
+          key.HasConstraint (Agent.KeyConstraintType.SSH_AGENT_CONSTRAIN_CONFIRM).ToString ()));
+        mTableWidget.SetItem (newRowIndex, 1, new QTableWidgetItem(
+          key.HasConstraint (Agent.KeyConstraintType.SSH_AGENT_CONSTRAIN_LIFETIME).ToString ()));
+        mTableWidget.SetItem (newRowIndex, 2, new QTableWidgetItem(
+          key.Algorithm.GetIdentifierString ()));
+        mTableWidget.SetItem (newRowIndex, 3, new QTableWidgetItem(
+          key.Size.ToString ()));
+        mTableWidget.SetItem (newRowIndex, 4, new QTableWidgetItem(
+          key.GetMD5Fingerprint ().ToHexString ()));
+        mTableWidget.SetItem (newRowIndex, 5, new QTableWidgetItem(
+          key.Comment));
         // attach actual key object to arbitrary column for later retreval
         mTableWidget.Item (newRowIndex, 0).SetData ((int)Qt.ItemDataRole.UserRole , key);
       }
