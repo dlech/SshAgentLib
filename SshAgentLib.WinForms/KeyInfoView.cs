@@ -11,6 +11,7 @@ using System.Security;
 using System.IO;
 using Microsoft.WindowsAPICodePack.Dialogs;
 using Microsoft.WindowsAPICodePack.Dialogs.Controls;
+using System.Diagnostics;
 
 namespace dlech.SshAgentLib.WinForms
 {
@@ -44,7 +45,8 @@ namespace dlech.SshAgentLib.WinForms
     {
       get
       {
-        if (mPasswordDialog == null) {
+        if (mPasswordDialog == null)
+        {
           mPasswordDialog = new PasswordDialog();
         }
         return mPasswordDialog;
@@ -54,7 +56,8 @@ namespace dlech.SshAgentLib.WinForms
     public KeyInfoView()
     {
       InitializeComponent();
-      if (CommonOpenFileDialog.IsPlatformSupported) {
+      if (CommonOpenFileDialog.IsPlatformSupported)
+      {
         mWin7OpenFileDialog = new CommonOpenFileDialog();
         mWin7OpenFileDialog.Multiselect = true;
         mWin7OpenFileDialog.EnsureFileExists = true;
@@ -99,8 +102,10 @@ namespace dlech.SshAgentLib.WinForms
     public void SetAgent(IAgent aAgent)
     {
       // detach existing agent
-      if (mAgent != null) {
-        if (mAgent is Agent) {
+      if (mAgent != null)
+      {
+        if (mAgent is Agent)
+        {
           var agent = mAgent as Agent;
           agent.KeyListChanged -= AgentKeyListChangeHandler;
           agent.Locked -= AgentLockHandler;
@@ -109,7 +114,8 @@ namespace dlech.SshAgentLib.WinForms
 
       mAgent = aAgent;
 
-      if (mAgent is Agent) {
+      if (mAgent is Agent)
+      {
         var agent = mAgent as Agent;
         confirmDataGridViewCheckBoxColumn.Visible = true;
         lifetimeDataGridViewCheckBoxColumn.Visible = true;
@@ -117,7 +123,9 @@ namespace dlech.SshAgentLib.WinForms
         agent.Locked += AgentLockHandler;
         buttonTableLayoutPanel.Controls.Remove(refreshButton);
         buttonTableLayoutPanel.ColumnCount = 5;
-      } else {
+      }
+      else
+      {
         confirmDataGridViewCheckBoxColumn.Visible = false;
         lifetimeDataGridViewCheckBoxColumn.Visible = false;
         buttonTableLayoutPanel.ColumnCount = 6;
@@ -130,15 +138,18 @@ namespace dlech.SshAgentLib.WinForms
     {
       string[] fileNames;
       List<Agent.KeyConstraint> constraints = new List<Agent.KeyConstraint>();
-      if (mWin7OpenFileDialog != null) {
+      if (mWin7OpenFileDialog != null)
+      {
         var result = mWin7OpenFileDialog.ShowDialog();
-        if (result != CommonFileDialogResult.Ok) {
+        if (result != CommonFileDialogResult.Ok)
+        {
           return;
         }
         var confirmConstraintCheckBox =
           mWin7OpenFileDialog.Controls[cConfirmConstraintCheckBox] as
           CommonFileDialogCheckBox;
-        if (confirmConstraintCheckBox.IsChecked) {
+        if (confirmConstraintCheckBox.IsChecked)
+        {
           var constraint = new Agent.KeyConstraint();
           constraint.Type = Agent.KeyConstraintType.SSH_AGENT_CONSTRAIN_CONFIRM;
           constraints.Add(constraint);
@@ -149,7 +160,8 @@ namespace dlech.SshAgentLib.WinForms
         var lifetimeConstraintTextBox =
           mWin7OpenFileDialog.Controls[cLifetimeConstraintTextBox] as
           CommonFileDialogTextBox;
-        if (lifetimeConstraintCheckBox.IsChecked) {
+        if (lifetimeConstraintCheckBox.IsChecked)
+        {
           // error checking for parse done in fileOK event handler
           uint lifetime = uint.Parse(lifetimeConstraintTextBox.Text);
           var constraint = new Agent.KeyConstraint();
@@ -158,16 +170,20 @@ namespace dlech.SshAgentLib.WinForms
           constraints.Add(constraint);
         }
         fileNames = mWin7OpenFileDialog.FileNames.ToArray();
-      } else {
+      }
+      else
+      {
         var result = openFileDialog.ShowDialog();
-        if (result != DialogResult.OK) {
+        if (result != DialogResult.OK)
+        {
           return;
         }
         fileNames = openFileDialog.FileNames;
       }
       UseWaitCursor = true;
       mAgent.AddKeysFromFiles(fileNames, constraints);
-      if (!(mAgent is Agent)) {
+      if (!(mAgent is Agent))
+      {
         ReloadKeyListView();
       }
       UseWaitCursor = false;
@@ -181,14 +197,17 @@ namespace dlech.SshAgentLib.WinForms
 
       mKeyCollection = new BindingList<KeyWrapper>();
       dataGridView.DataSource = mKeyCollection;
-      try {
-        foreach (var key in mAgent.GetAllKeys()) {
+      try
+      {
+        foreach (var key in mAgent.GetAllKeys())
+        {
           mKeyCollection.Add(new KeyWrapper(key));
         }
         // TODO show different error messages for specific exceptions
         // should also do something besides MessageBox so that this control
         // can be integrated into other applications
-      } catch (Exception) {
+      } catch (Exception)
+      {
         MessageBox.Show(Strings.errListKeysFailed, Util.AssemblyTitle,
           MessageBoxButtons.OK, MessageBoxIcon.Error);
       }
@@ -202,11 +221,16 @@ namespace dlech.SshAgentLib.WinForms
       var agent = mAgent as Agent;
       dataGridView.Visible = dataGridView.RowCount > 0 &&
         (agent == null || !agent.IsLocked);
-      if (agent != null && agent.IsLocked) {
+      if (agent != null && agent.IsLocked)
+      {
         messageLabel.Text = Strings.keyInfoViewLocked;
-      } else if (agent != null) {
+      }
+      else if (agent != null)
+      {
         messageLabel.Text = Strings.keyInfoViewNoKeys;
-      } else {
+      }
+      else
+      {
         messageLabel.Text = Strings.keyInfoViewClickRefresh;
       }
     }
@@ -215,7 +239,8 @@ namespace dlech.SshAgentLib.WinForms
     {
       var isLocked = false;
       var agent = mAgent as Agent;
-      if (agent != null) {
+      if (agent != null)
+      {
         isLocked = agent.IsLocked;
       }
       lockButton.Enabled = !isLocked;
@@ -229,43 +254,54 @@ namespace dlech.SshAgentLib.WinForms
 
     private void AgentLockHandler(object aSender, Agent.LockEventArgs aArgs)
     {
-      Invoke((MethodInvoker)delegate()
+      if (InvokeRequired)
       {
-        UpdateVisibility();
-        UpdateButtonStates();
-      });
+        Invoke((MethodInvoker)delegate()
+        {
+          AgentLockHandler(aSender, aArgs);
+        });
+        return;
+      }
+
+      UpdateVisibility();
+      UpdateButtonStates();
     }
 
     private void AgentKeyListChangeHandler(object aSender,
       Agent.KeyListChangeEventArgs aArgs)
     {
-      if (IsDisposed) {
+      if (IsDisposed)
+      {
         return;
       }
-      switch (aArgs.Action) {
-        case Agent.KeyListChangeEventAction.Add:
-          Invoke((MethodInvoker)delegate()
+      if (InvokeRequired)
+      {
+        Invoke((MethodInvoker)delegate()
           {
-            mKeyCollection.Add(new KeyWrapper(aArgs.Key));
-            UpdateVisibility();
+            AgentKeyListChangeHandler(aSender, aArgs);
           });
+        return;
+      }
+      switch (aArgs.Action)
+      {
+        case Agent.KeyListChangeEventAction.Add:
+          mKeyCollection.Add(new KeyWrapper(aArgs.Key));
+          UpdateVisibility();
           break;
         case Agent.KeyListChangeEventAction.Remove:
-          Invoke((MethodInvoker)delegate()
+          var matchFingerprint = aArgs.Key.GetMD5Fingerprint().ToHexString();
+          var matches = mKeyCollection.Where(k =>
+            k.Fingerprint == matchFingerprint).ToList();
+          foreach (var key in matches)
           {
-            var matchFingerprint = aArgs.Key.GetMD5Fingerprint().ToHexString();
-            var matches = mKeyCollection.Where(k =>
-              k.Fingerprint == matchFingerprint).ToList();
-            foreach (var key in matches) {
-              mKeyCollection.Remove(key);
-            }
-            UpdateVisibility();
-          });
+            mKeyCollection.Remove(key);
+          }
+          UpdateVisibility();
           break;
       }
       UpdateButtonStates();
     }
-    
+
     private void dataGridView_SelectionChanged(object sender, EventArgs e)
     {
       UpdateButtonStates();
@@ -273,27 +309,34 @@ namespace dlech.SshAgentLib.WinForms
 
     private void dataGridView_DragEnter(object sender, DragEventArgs e)
     {
-      if ((mAgent != null) && e.Data.GetDataPresent(DataFormats.FileDrop)) {
+      if ((mAgent != null) && e.Data.GetDataPresent(DataFormats.FileDrop))
+      {
         e.Effect = DragDropEffects.Move;
-      } else {
+      }
+      else
+      {
         e.Effect = DragDropEffects.None;
       }
     }
 
     private void dataGridView_DragDrop(object sender, DragEventArgs e)
     {
-      if (e.Data.GetDataPresent(DataFormats.FileDrop)) {
+      if (e.Data.GetDataPresent(DataFormats.FileDrop))
+      {
         var fileNames = e.Data.GetData(DataFormats.FileDrop) as string[];
-        if (mAgent != null) {
+        if (mAgent != null)
+        {
           UseWaitCursor = true;
           var constraints = new List<Agent.KeyConstraint>();
-          if ((e.KeyState & cDragDropKeyStateCtrl) == cDragDropKeyStateCtrl) {
+          if ((e.KeyState & cDragDropKeyStateCtrl) == cDragDropKeyStateCtrl)
+          {
             var constraint = new Agent.KeyConstraint();
             constraint.Type = Agent.KeyConstraintType.SSH_AGENT_CONSTRAIN_CONFIRM;
             constraints.Add(constraint);
           }
           mAgent.AddKeysFromFiles(fileNames, constraints);
-          if (!(mAgent is Agent)) {
+          if (!(mAgent is Agent))
+          {
             // if this is client, then reload key list from remote agent
             SetAgent(mAgent);
           }
@@ -304,9 +347,12 @@ namespace dlech.SshAgentLib.WinForms
 
     private void addKeyButton_Click(object sender, EventArgs e)
     {
-      if (AddButtonSplitMenu == null) {
+      if (AddButtonSplitMenu == null)
+      {
         ShowFileOpenDialog();
-      } else {
+      }
+      else
+      {
         addKeyButton.ShowContextMenuStrip();
       }
 
@@ -314,18 +360,22 @@ namespace dlech.SshAgentLib.WinForms
 
     private void removeButton_Click(object sender, EventArgs e)
     {
-      foreach (DataGridViewRow row in dataGridView.SelectedRows) {
+      foreach (DataGridViewRow row in dataGridView.SelectedRows)
+      {
         var keyWrapper = row.DataBoundItem as KeyWrapper;
         var key = keyWrapper.GetKey();
-        try {
+        try
+        {
           mAgent.RemoveKey(key);
-        } catch (Exception) {
+        } catch (Exception)
+        {
           MessageBox.Show(String.Format(Strings.errRemoveFailed,
             key.GetMD5Fingerprint().ToHexString()), Util.AssemblyTitle,
             MessageBoxButtons.OK, MessageBoxIcon.Error);
         }
       }
-      if (!(mAgent is Agent)) {
+      if (!(mAgent is Agent))
+      {
         ReloadKeyListView();
       }
     }
@@ -333,24 +383,44 @@ namespace dlech.SshAgentLib.WinForms
     private void lockButton_Click(object sender, EventArgs e)
     {
       var result = PasswordDialog.ShowDialog();
-      if (result != DialogResult.OK) {
+      if (result != DialogResult.OK)
+      {
         return;
       }
-      if (PasswordDialog.SecureEdit.TextLength == 0) {
+      if (PasswordDialog.SecureEdit.TextLength == 0)
+      {
         result = MessageBox.Show(Strings.keyManagerAreYouSureLockPassphraseEmpty,
           Util.AssemblyTitle, MessageBoxButtons.YesNo, MessageBoxIcon.Question,
           MessageBoxDefaultButton.Button2);
-        if (result != DialogResult.Yes) {
+        if (result != DialogResult.Yes)
+        {
           return;
         }
       }
-      try {
+      try
+      {
         mAgent.Lock(PasswordDialog.SecureEdit.ToUtf8());
-      } catch (Exception) {
+      } catch (AgentLockedException)
+      {
+        Debug.Fail("Button state should prevent this");
+        MessageBox.Show("Agent is already locked", Util.AssemblyTitle,
+          MessageBoxButtons.OK, MessageBoxIcon.Error);
+        UpdateButtonStates();
+      } catch (AgentFailureException)
+      {
+        MessageBox.Show("Locking Failed.\n" +
+            "Possible Causes:\n" +
+            "- Agent is already locked.\n" +
+            "- Agent does not support locking.",
+            Util.AssemblyTitle,
+            MessageBoxButtons.OK, MessageBoxIcon.Error);
+      } catch (Exception)
+      {
         MessageBox.Show(Strings.errLockFailed, Util.AssemblyTitle,
           MessageBoxButtons.OK, MessageBoxIcon.Error);
       }
-      if (!(mAgent is Agent)) {
+      if (!(mAgent is Agent))
+      {
         ReloadKeyListView();
       }
     }
@@ -358,24 +428,45 @@ namespace dlech.SshAgentLib.WinForms
     private void unlockButton_Click(object sender, EventArgs e)
     {
       var result = PasswordDialog.ShowDialog();
-      if (result != DialogResult.OK) {
+      if (result != DialogResult.OK)
+      {
         return;
       }
-      try {
+      try
+      {
         mAgent.Unlock(PasswordDialog.SecureEdit.ToUtf8());
-      } catch (Exception) {
+      } catch (PassphraseException)
+      {
+        MessageBox.Show("Incorrect Passphrase", Util.AssemblyTitle,
+            MessageBoxButtons.OK, MessageBoxIcon.Error);
+      } catch (AgentLockedException)
+      {
+        Debug.Fail("Button state should prevent this");
+        MessageBox.Show("Agent is already unlocked", Util.AssemblyTitle,
+            MessageBoxButtons.OK, MessageBoxIcon.Error);
+        UpdateButtonStates();
+      } catch (AgentFailureException)
+      {
+        MessageBox.Show("Unlocking Failed.\n" +
+            "Possible Causes:\n" +
+            "- Passphrase was incorrect.\n" +
+            "- Agent is already unlocked.\n" +
+            "- Agent does not support locking.",
+            Util.AssemblyTitle,
+            MessageBoxButtons.OK, MessageBoxIcon.Error);
+      } catch (Exception)
+      {
         MessageBox.Show(Strings.errUnlockFailed, Util.AssemblyTitle,
           MessageBoxButtons.OK, MessageBoxIcon.Error);
       }
-      if (!(mAgent is Agent)) {
-        ReloadKeyListView();
-      }
+      ReloadKeyListView();
     }
 
     private void removeAllButton_Click(object sender, EventArgs e)
     {
       mAgent.RemoveAllKeys();
-      if (!(mAgent is Agent)) {
+      if (!(mAgent is Agent))
+      {
         ReloadKeyListView();
       }
     }
@@ -387,17 +478,20 @@ namespace dlech.SshAgentLib.WinForms
 
     private void openFileDialog_FileOk(object sender, CancelEventArgs e)
     {
-      if (mWin7OpenFileDialog != null) {
+      if (mWin7OpenFileDialog != null)
+      {
         var lifetimeConstraintCheckBox =
           mWin7OpenFileDialog.Controls[cLifetimeConstraintCheckBox] as
           CommonFileDialogCheckBox;
         var lifetimeConstraintTextBox =
           mWin7OpenFileDialog.Controls[cLifetimeConstraintTextBox] as
           CommonFileDialogTextBox;
-        if (lifetimeConstraintCheckBox.IsChecked) {
+        if (lifetimeConstraintCheckBox.IsChecked)
+        {
           uint lifetime;
           var success = uint.TryParse(lifetimeConstraintTextBox.Text, out lifetime);
-          if (!success) {
+          if (!success)
+          {
             MessageBox.Show("Invalid lifetime", Util.AssemblyTitle,
               MessageBoxButtons.OK, MessageBoxIcon.Exclamation);
             e.Cancel = true;
@@ -409,8 +503,10 @@ namespace dlech.SshAgentLib.WinForms
 
     private void KeyManagerForm_KeyUp(object sender, KeyEventArgs e)
     {
-      if (e.Modifiers == Keys.None && e.KeyData == Keys.F5) {
-        if (!(mAgent is Agent)) {
+      if (e.Modifiers == Keys.None && e.KeyData == Keys.F5)
+      {
+        if (!(mAgent is Agent))
+        {
           ReloadKeyListView();
         }
       }
