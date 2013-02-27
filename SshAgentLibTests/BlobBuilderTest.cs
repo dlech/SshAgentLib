@@ -81,7 +81,7 @@ namespace dlech.SshAgentLibTests
       byte[] valueBytes = value.ToByteArrayUnsigned();
       byte[] expected = new byte[valueBytes.Length + 2];
 
-      ushort size = (ushort)(valueBytes.Length * 8);
+      ushort size = (ushort)(value.BitLength);
       expected[0] = (byte)((size >> 8) & 0xFF);
       expected[1] = (byte)(size & 0xFF);
 

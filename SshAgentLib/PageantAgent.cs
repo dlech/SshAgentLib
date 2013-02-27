@@ -129,8 +129,10 @@ namespace dlech.SshAgentLib
     /// Thrown when another instance of Pageant is running.
     /// </exception>
     /// <remarks>This window is not meant to be used for UI.</remarks>
-    public PageantAgent()
+    public PageantAgent ()
     {
+      DoOSCheck();
+
       if (CheckPageantRunning()) {
         throw new PageantRunningException();
       }
@@ -175,6 +177,7 @@ namespace dlech.SshAgentLib
     /// <returns>true if Pageant is running</returns>
     public static bool CheckPageantRunning()
     {
+      DoOSCheck();
       IntPtr hwnd = FindWindow(cClassName, cClassName);
       return (hwnd != IntPtr.Zero);
     }
@@ -303,6 +306,13 @@ namespace dlech.SshAgentLib
         Debug.Fail(ex.ToString());
       }
       return result; // failure
+    }
+
+    private static void DoOSCheck ()
+    {
+      if (Environment.OSVersion.Platform != PlatformID.Win32NT) {
+        throw new NotSupportedException ("Pageant requires Windows");
+      }
     }
 
     #endregion

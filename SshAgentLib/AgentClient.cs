@@ -171,7 +171,7 @@ namespace dlech.SshAgentLib
           var ssh2KeyCount = replyParser.ReadInt();
           for (var i = 0; i < ssh2KeyCount; i++) {
             var publicKeyBlob = replyParser.ReadBlob();
-            var publicKeyParser = new BlobParser(publicKeyBlob.Data);
+            var publicKeyParser = new BlobParser(publicKeyBlob);
             var publicKeyParams = publicKeyParser.ReadSsh2PublicKeyData();
             var comment = replyParser.ReadString();
             keyCollection.Add(
@@ -223,7 +223,7 @@ namespace dlech.SshAgentLib
           if (header.Message != Agent.Message.SSH2_AGENT_SIGN_RESPONSE) {
             throw new AgentFailureException();
           }
-          return replyParser.ReadBlob().Data;
+          return replyParser.ReadBlob();
         default:
           throw new Exception(cUnsupportedSshVersion);
       }

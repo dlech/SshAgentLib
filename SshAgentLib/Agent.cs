@@ -444,12 +444,12 @@ namespace dlech.SshAgentLib
             var publicKeyParams = messageParser.ReadSsh1PublicKeyData(true);
 
             //Searching for Key here
-            ISshKey matchingKey = mKeyList.Where(key => key.Version == SshVersion.SSH1
+            var matchingKey = mKeyList.Where(key => key.Version == SshVersion.SSH1
                 && (key.GetPublicKeyParameters().Equals(publicKeyParams))).Single();
 
             //Reading challenge
-            PinnedArray<byte> encryptedChallenge = messageParser.ReadSsh1BigIntBlob();
-            PinnedArray<byte> sessionId = messageParser.ReadBytes(16);
+            var encryptedChallenge = messageParser.ReadSsh1BigIntBlob();
+            var sessionId = messageParser.ReadBytes(16);
 
             //Checking responseType field
             if (messageParser.ReadInt() != 1) {
@@ -457,16 +457,16 @@ namespace dlech.SshAgentLib
             }
 
             //Answering to the challenge
-            IAsymmetricBlockCipher engine = new Pkcs1Encoding(new RsaEngine());
+            var engine = new Pkcs1Encoding(new RsaEngine());
             engine.Init(false /* decrypt */, matchingKey.GetPrivateKeyParameters());
 
-            byte[] decryptedChallenge = engine.ProcessBlock(encryptedChallenge.Data,
-                0, encryptedChallenge.Data.Length);
+            var decryptedChallenge = engine.ProcessBlock(encryptedChallenge,
+                0, encryptedChallenge.Length);
 
             using (MD5 md5 = MD5.Create()) {
-              byte[] md5Buffer = new byte[48];
+              var md5Buffer = new byte[48];
               decryptedChallenge.CopyTo(md5Buffer, 0);
-              sessionId.Data.CopyTo(md5Buffer, 32);
+              sessionId.CopyTo(md5Buffer, 32);
 
               responseBuilder.AddBytes(md5.ComputeHash(md5Buffer));
               responseBuilder.InsertHeader(Message.SSH1_AGENT_RSA_RESPONSE);
@@ -486,18 +486,18 @@ namespace dlech.SshAgentLib
            * depending on whether we have that key or not.
            */
           try {
-            PinnedArray<byte> keyBlob = messageParser.ReadBlob();
-            PinnedArray<byte> reqData = messageParser.ReadBlob();
-            SignRequestFlags flags = new SignRequestFlags();
+            var keyBlob = messageParser.ReadBlob();
+            var reqData = messageParser.ReadBlob();
+            var flags = new SignRequestFlags();
             try {
               // usually, there are no flags, so parser will throw
               flags = (SignRequestFlags)messageParser.ReadInt();
             } catch { }
 
-            ISshKey matchingKey =
+            var matchingKey =
               mKeyList.Where(key => key.Version == SshVersion.SSH2 &&
               key.GetPublicKeyBlob()
-              .SequenceEqual(keyBlob.Data))
+              .SequenceEqual(keyBlob))
               .Single();
             var confirmConstraints = matchingKey.Constraints
               .Where(constraint => constraint.Type ==
@@ -509,11 +509,11 @@ namespace dlech.SshAgentLib
             }
 
             /* create signature */
-            ISshKey signKey = matchingKey;
-            ISigner signer = signKey.GetSigner();
-            string algName = signKey.Algorithm.GetIdentifierString();
+            var signKey = matchingKey;
+            var signer = signKey.GetSigner();
+            var algName = signKey.Algorithm.GetIdentifierString();
             signer.Init(true, signKey.GetPrivateKeyParameters());
-            signer.BlockUpdate(reqData.Data, 0, reqData.Data.Length);
+            signer.BlockUpdate(reqData, 0, reqData.Length);
             byte[] signature = signer.GenerateSignature();
             signature = signKey.FormatSignature(signature);
             BlobBuilder signatureBuilder = new BlobBuilder();
@@ -632,7 +632,7 @@ namespace dlech.SshAgentLib
           }
 
           SshVersion removeVersion;
-          PinnedArray<byte> rKeyBlob;
+          byte[] rKeyBlob;
           if (header.Message == Message.SSH1_AGENTC_REMOVE_RSA_IDENTITY) {
             removeVersion = SshVersion.SSH1;
             rKeyBlob = messageParser.ReadBytes(header.BlobLength - 1);
@@ -645,7 +645,7 @@ namespace dlech.SshAgentLib
           }
 
           try {
-            ISshKey matchingKey = mKeyList.Get(removeVersion, rKeyBlob.Data);
+            var matchingKey = mKeyList.Get(removeVersion, rKeyBlob);
             var startKeyListLength = mKeyList.Count;
             RemoveKey(matchingKey);
             // only succeed if key was removed
@@ -689,7 +689,7 @@ namespace dlech.SshAgentLib
 
         case Message.SSH_AGENTC_LOCK:
           try {
-            PinnedArray<byte> passphrase = messageParser.ReadBlob();
+            var passphrase = new PinnedArray<byte>(messageParser.ReadBlob());
             try {
               Lock(passphrase.Data);
             } finally {
@@ -708,7 +708,7 @@ namespace dlech.SshAgentLib
 
         case Message.SSH_AGENTC_UNLOCK:
           try {
-            PinnedArray<byte> passphrase = messageParser.ReadBlob();
+            var passphrase = new PinnedArray<byte>(messageParser.ReadBlob());
             try {
               Unlock(passphrase.Data);
             } finally {

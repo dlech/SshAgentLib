@@ -21,11 +21,11 @@ namespace dlech.SshAgentLibTests
     [Test()]
     public void TrimLeadingZeroTest()
     {
-      PinnedByteArray array1 = new PinnedByteArray(new byte[] { 1, 2, 3, 4 });
+      PinnedArray<byte> array1 = new PinnedArray<byte>(new byte[] { 1, 2, 3, 4 });
       Util.TrimLeadingZero(array1);
       Assert.That(array1.Data, Is.EqualTo(new byte[]{ 1, 2, 3, 4 }));
 
-      PinnedByteArray array2 = new PinnedByteArray(new byte[] { 0, 1, 2, 3, 4 });
+      PinnedArray<byte> array2 = new PinnedArray<byte>(new byte[] { 0, 1, 2, 3, 4 });
       Util.TrimLeadingZero(array2);
       Assert.That(array2.Data, Is.EqualTo(new byte[] { 1, 2, 3, 4 }));
     }
@@ -40,11 +40,11 @@ namespace dlech.SshAgentLibTests
       using (RSA rsa = RSA.Create()) {
         p = rsa.ExportParameters(true);
       }
-      PinnedByteArray a = new PinnedByteArray(p.D);
-      PinnedByteArray b = new PinnedByteArray(p.P);
+      PinnedArray<byte> a = new PinnedArray<byte>(p.D);
+      PinnedArray<byte> b = new PinnedArray<byte>(p.P);
       byte[] expected = p.DP;
      
-      PinnedByteArray actual;
+      PinnedArray<byte> actual;
       actual = Util.ModMinusOne(a, b);
       Assert.That(actual.Data, Is.EqualTo(expected));
     }

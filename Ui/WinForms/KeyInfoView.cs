@@ -9,25 +9,29 @@ using System.Windows.Forms;
 using dlech.SshAgentLib;
 using System.Security;
 using System.IO;
+using System.Diagnostics;
+#if !__MonoCS__
 using Microsoft.WindowsAPICodePack.Dialogs;
 using Microsoft.WindowsAPICodePack.Dialogs.Controls;
-using System.Diagnostics;
+#endif
 
 namespace dlech.SshAgentLib.WinForms
 {
   public partial class KeyInfoView : UserControl
   {
-    private string cConfirmConstraintCheckBox = "ConfirmConstraintCheckBox";
-    private string cLifetimeConstraintCheckBox = "LifetimeConstraintCheckBox";
-    private string cLifetimeConstraintTextBox = "LifetimeConstraintTextBox";
-
-    private int cDragDropKeyStateCtrl = 8;
+#if !__MonoCS__
+    private const string cConfirmConstraintCheckBox = "ConfirmConstraintCheckBox";
+    private const string cLifetimeConstraintCheckBox = "LifetimeConstraintCheckBox";
+    private const string cLifetimeConstraintTextBox = "LifetimeConstraintTextBox";
+#endif
+    private const int cDragDropKeyStateCtrl = 8;
 
     private IAgent mAgent;
     private BindingList<KeyWrapper> mKeyCollection;
-    PasswordDialog mPasswordDialog;
-    CommonOpenFileDialog mWin7OpenFileDialog;
-
+    private PasswordDialog mPasswordDialog;
+#if !__MonoCS__
+    private CommonOpenFileDialog mWin7OpenFileDialog;
+#endif
     public ContextMenuStrip AddButtonSplitMenu
     {
       get
@@ -56,6 +60,7 @@ namespace dlech.SshAgentLib.WinForms
     public KeyInfoView()
     {
       InitializeComponent();
+#if !__MonoCS__
       if (CommonOpenFileDialog.IsPlatformSupported)
       {
         mWin7OpenFileDialog = new CommonOpenFileDialog();
@@ -97,6 +102,7 @@ namespace dlech.SshAgentLib.WinForms
         mWin7OpenFileDialog.FileOk += openFileDialog_FileOk;
       }
       //mWin7OpenFileDialog = null;
+#endif
     }
 
     public void SetAgent(IAgent aAgent)
@@ -138,6 +144,7 @@ namespace dlech.SshAgentLib.WinForms
     {
       string[] fileNames;
       List<Agent.KeyConstraint> constraints = new List<Agent.KeyConstraint>();
+#if !__MonoCS__
       if (mWin7OpenFileDialog != null)
       {
         var result = mWin7OpenFileDialog.ShowDialog();
@@ -173,13 +180,16 @@ namespace dlech.SshAgentLib.WinForms
       }
       else
       {
+#endif
         var result = openFileDialog.ShowDialog();
         if (result != DialogResult.OK)
         {
           return;
         }
         fileNames = openFileDialog.FileNames;
+#if !__MonoCS__
       }
+#endif
       UseWaitCursor = true;
       mAgent.AddKeysFromFiles(fileNames, constraints);
       if (!(mAgent is Agent))
@@ -191,7 +201,7 @@ namespace dlech.SshAgentLib.WinForms
 
     public void ReloadKeyListView()
     {
-      // workaround for bug where first column (0) is always set 
+      // workaround for bug where first column (0) is always set
       // to Visible = true when data changes
       var columnZeroVisible = dataGridView.Columns[0].Visible;
 
@@ -478,6 +488,7 @@ namespace dlech.SshAgentLib.WinForms
 
     private void openFileDialog_FileOk(object sender, CancelEventArgs e)
     {
+#if !__MonoCS__
       if (mWin7OpenFileDialog != null)
       {
         var lifetimeConstraintCheckBox =
@@ -499,6 +510,7 @@ namespace dlech.SshAgentLib.WinForms
           }
         }
       }
+#endif
     }
 
     private void KeyManagerForm_KeyUp(object sender, KeyEventArgs e)

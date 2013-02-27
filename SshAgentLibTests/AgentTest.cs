@@ -549,8 +549,8 @@ namespace dlech.SshAgentLibTests
       /* check that we have data for each key */
       for (int i = 0; i < actualKeyCount; i++) {
         uint actualKeySizeBlob = mParser.ReadInt();
-        BigInteger actualExponentBlob = new BigInteger(1, mParser.ReadSsh1BigIntBlob().Data);
-        BigInteger actualModulusBlob = new BigInteger(1, mParser.ReadSsh1BigIntBlob().Data);
+        BigInteger actualExponentBlob = new BigInteger(1, mParser.ReadSsh1BigIntBlob());
+        BigInteger actualModulusBlob = new BigInteger(1, mParser.ReadSsh1BigIntBlob());
 
         Assert.That(actualKeySizeBlob, Is.EqualTo(ssh1KeyList[i].Size));
         Assert.That(actualModulusBlob, Is.EqualTo((ssh1KeyList[i].GetPublicKeyParameters() as RsaKeyParameters).Modulus));
@@ -588,7 +588,7 @@ namespace dlech.SshAgentLibTests
 
       /* check that we have data for each key */
       for (int i = 0; i < actualKeyCount; i++) {
-        byte[] actualPublicKeyBlob = mParser.ReadBlob().Data;
+        byte[] actualPublicKeyBlob = mParser.ReadBlob();
         byte[] expectedPublicKeyBlob =
           ssh2KeyList[i].GetPublicKeyBlob();
         Assert.That(actualPublicKeyBlob, Is.EqualTo(expectedPublicKeyBlob));
@@ -637,7 +637,7 @@ namespace dlech.SshAgentLibTests
       agent.AnswerMessage(mStream);
       RewindStream();
       Agent.BlobHeader header = mParser.ReadHeader();
-      byte[] md5Received = mParser.ReadBytes(16).Data;
+      byte[] md5Received = mParser.ReadBytes(16);
 
       /* check that proper response type was received */
       Assert.That(header.Message, Is.EqualTo(Agent.Message.SSH1_AGENT_RSA_RESPONSE));
@@ -689,11 +689,11 @@ namespace dlech.SshAgentLibTests
         header = mParser.ReadHeader();
         Assert.That(header.Message,
                     Is.EqualTo(Agent.Message.SSH2_AGENT_SIGN_RESPONSE));
-        signatureBlob = mParser.ReadBlob().Data;
+        signatureBlob = mParser.ReadBlob();
         signatureParser = new BlobParser(signatureBlob);
         algorithm = signatureParser.ReadString();
         Assert.That(algorithm, Is.EqualTo(key.Algorithm.GetIdentifierString()));
-        signature = signatureParser.ReadBlob().Data;
+        signature = signatureParser.ReadBlob();
         if (key.Algorithm == PublicKeyAlgorithm.SSH_RSA) {
           Assert.That(signature.Length == key.Size / 8);
         } else if (key.Algorithm == PublicKeyAlgorithm.SSH_DSS) {
@@ -708,8 +708,8 @@ namespace dlech.SshAgentLibTests
           Assert.That(signature.Length, Is.AtLeast(key.Size / 4 + 8));
           Assert.That(signature.Length, Is.AtMost(key.Size / 4 + 10));
           BlobParser parser = new BlobParser(signature);
-          r = new BigInteger(parser.ReadBlob().Data);
-          s = new BigInteger(parser.ReadBlob().Data);
+          r = new BigInteger(parser.ReadBlob());
+          s = new BigInteger(parser.ReadBlob());
           seq = new DerSequence(new DerInteger(r), new DerInteger(s));
           signature = seq.GetDerEncoded();
         }
@@ -734,9 +734,9 @@ namespace dlech.SshAgentLibTests
       header = mParser.ReadHeader();
       Assert.That(header.Message,
                   Is.EqualTo(Agent.Message.SSH2_AGENT_SIGN_RESPONSE));
-      signatureBlob = mParser.ReadBlob().Data;
+      signatureBlob = mParser.ReadBlob();
       signatureParser = new BlobParser(signatureBlob);
-      signature = signatureParser.ReadBlob().Data;
+      signature = signatureParser.ReadBlob();
       Assert.That(signature.Length == 40);
       r = new BigInteger(1, signature, 0, 20);
       s = new BigInteger(1, signature, 20, 20);

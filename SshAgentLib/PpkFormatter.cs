@@ -516,14 +516,14 @@ namespace dlech.SshAgentLib
 
           /* read parameters that were stored in file */
 
-          exponent = new BigInteger(1, parser.ReadBlob().Data);
-          modulus = new BigInteger(1, parser.ReadBlob().Data);
+          exponent = new BigInteger(1, parser.ReadBlob());
+          modulus = new BigInteger(1, parser.ReadBlob());
 
           parser = new BlobParser(aPrivateKeyBlob);
-          d = new BigInteger(1, parser.ReadBlob().Data);
-          p = new BigInteger(1, parser.ReadBlob().Data);
-          q = new BigInteger(1, parser.ReadBlob().Data);
-          inverseQ = new BigInteger(1, parser.ReadBlob().Data);
+          d = new BigInteger(1, parser.ReadBlob());
+          p = new BigInteger(1, parser.ReadBlob());
+          q = new BigInteger(1, parser.ReadBlob());
+          inverseQ = new BigInteger(1, parser.ReadBlob());
           //parser.MoveNext();
 
           /* compute missing parameters */
@@ -543,14 +543,14 @@ namespace dlech.SshAgentLib
 
           /* read parameters that were stored in file */
 
-          p = new BigInteger(1, parser.ReadBlob().Data);
-          q = new BigInteger(1, parser.ReadBlob().Data);
-          g = new BigInteger(1, parser.ReadBlob().Data);
-          y = new BigInteger(1, parser.ReadBlob().Data);
+          p = new BigInteger(1, parser.ReadBlob());
+          q = new BigInteger(1, parser.ReadBlob());
+          g = new BigInteger(1, parser.ReadBlob());
+          y = new BigInteger(1, parser.ReadBlob());
           //parser.MoveNext();
 
           parser = new BlobParser(aPrivateKeyBlob);
-          x = new BigInteger(1, parser.ReadBlob().Data);
+          x = new BigInteger(1, parser.ReadBlob());
 
           DsaParameters commonParams = new DsaParameters(p, q, g);
           DsaPublicKeyParameters dsaPublicKeyParams =

@@ -40,11 +40,11 @@ namespace AsyncSocketSample
             m_receiveBufferSize = receiveBufferSize;
             // allocate buffers such that the maximum number of sockets can have one outstanding read and 
             //write posted to the socket simultaneously  
-            m_bufferManager = new BufferManager(receiveBufferSize * numConnections * opsToPreAlloc,
-                receiveBufferSize);
+            m_bufferManager = new BufferManager(m_receiveBufferSize * m_numConnections * opsToPreAlloc,
+                m_receiveBufferSize);
       
-            m_readWritePool = new SocketAsyncEventArgsPool(numConnections);
-            m_maxNumberAcceptedClients = new Semaphore(numConnections, numConnections); 
+            m_readWritePool = new SocketAsyncEventArgsPool(m_numConnections);
+            m_maxNumberAcceptedClients = new Semaphore(m_numConnections, m_numConnections); 
         }
 
         /// <summary>

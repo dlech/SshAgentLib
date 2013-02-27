@@ -72,33 +72,33 @@ namespace dlech.SshAgentLib
 
     public string ReadString()
     {
-      return Encoding.UTF8.GetString(ReadBlob().Data);
+      return Encoding.UTF8.GetString(ReadBlob());
     }
 
-    public PinnedArray<byte> ReadBlob()
+    public byte[] ReadBlob()
     {
         return ReadBytes(ReadInt());
     }
 
-    public PinnedArray<byte> ReadSsh1BigIntBlob()
+    public byte[] ReadSsh1BigIntBlob()
     {
       var bitCount = ReadShort();
       return ReadBits(bitCount);
     }
 
-    public PinnedArray<byte> ReadBits(UInt32 aBitCount)
+    public byte[] ReadBits(UInt32 aBitCount)
     {
       return ReadBytes((aBitCount + (uint)7) / 8);
     }
 
-    public PinnedArray<byte> ReadBytes(UInt32 blobLength)
+    public byte[] ReadBytes(UInt32 blobLength)
     {
         if (Stream.Length - Stream.Position < blobLength)
         {
             throw new Exception("Not enough data");
         }
-        PinnedArray<byte> blob = new PinnedArray<byte>((int)blobLength);
-        Stream.Read(blob.Data, 0, blob.Data.Length);
+        var blob = new byte[(int)blobLength];
+        Stream.Read(blob, 0, blob.Length);
         return blob;
     }
 
@@ -115,22 +115,22 @@ namespace dlech.SshAgentLib
     public AsymmetricKeyParameter ReadSsh2PublicKeyData(
       bool aReverseRsaParameters = false)
     {
-      var algorithm = Encoding.UTF8.GetString(ReadBlob().Data);
+      var algorithm = Encoding.UTF8.GetString(ReadBlob());
 
       switch (algorithm) {
         case PublicKeyAlgorithmExt.ALGORITHM_RSA_KEY:
-          var rsaE = new BigInteger(1, ReadBlob().Data); // exponent
-          var rsaN = new BigInteger(1, ReadBlob().Data); // modulus
+          var rsaE = new BigInteger(1, ReadBlob()); // exponent
+          var rsaN = new BigInteger(1, ReadBlob()); // modulus
           if (aReverseRsaParameters) {
             return new RsaKeyParameters(false, rsaE, rsaN);
           }
           return new RsaKeyParameters(false, rsaN, rsaE);
 
         case PublicKeyAlgorithmExt.ALGORITHM_DSA_KEY:
-          var dsaP = new BigInteger(1, ReadBlob().Data);
-          var dsaQ = new BigInteger(1, ReadBlob().Data);
-          var dsaG = new BigInteger(1, ReadBlob().Data);
-          var dsaY = new BigInteger(1, ReadBlob().Data); // public key
+          var dsaP = new BigInteger(1, ReadBlob());
+          var dsaQ = new BigInteger(1, ReadBlob());
+          var dsaG = new BigInteger(1, ReadBlob());
+          var dsaY = new BigInteger(1, ReadBlob()); // public key
 
           var dsaParams = new DsaParameters(dsaP, dsaQ, dsaG);
           return new DsaPublicKeyParameters(dsaY, dsaParams);
@@ -140,7 +140,7 @@ namespace dlech.SshAgentLib
         case PublicKeyAlgorithmExt.ALGORITHM_ECDSA_SHA2_NISTP521_KEY:
 
           var ecdsaCurveName = ReadString();
-          var ecdsaPublicKey = ReadBlob().Data;
+          var ecdsaPublicKey = ReadBlob();
 
           switch (ecdsaCurveName) {
             case PublicKeyAlgorithmExt.EC_ALGORITHM_NISTP256:
@@ -179,10 +179,10 @@ namespace dlech.SshAgentLib
       AsymmetricKeyParameter aPublicKeyParameter)
     {
       if (aPublicKeyParameter is RsaKeyParameters) {
-        var rsaD = new BigInteger(1, ReadBlob().Data);
-        var rsaIQMP = new BigInteger(1, ReadBlob().Data);
-        var rsaP = new BigInteger(1, ReadBlob().Data);
-        var rsaQ = new BigInteger(1, ReadBlob().Data);
+        var rsaD = new BigInteger(1, ReadBlob());
+        var rsaIQMP = new BigInteger(1, ReadBlob());
+        var rsaP = new BigInteger(1, ReadBlob());
+        var rsaQ = new BigInteger(1, ReadBlob());
 
         /* compute missing parameters */
         var rsaDP = rsaD.Remainder(rsaP.Subtract(BigInteger.One));
@@ -195,7 +195,7 @@ namespace dlech.SshAgentLib
 
         return new AsymmetricCipherKeyPair(rsaPublicKeyParams, rsaPrivateKeyParams);
       } else if (aPublicKeyParameter is DsaPublicKeyParameters) {
-        var dsaX = new BigInteger(1, ReadBlob().Data); // private key
+        var dsaX = new BigInteger(1, ReadBlob()); // private key
 
         var dsaPublicKeyParams = aPublicKeyParameter as DsaPublicKeyParameters;
         DsaPrivateKeyParameters dsaPrivateKeyParams =
@@ -203,7 +203,7 @@ namespace dlech.SshAgentLib
 
         return new AsymmetricCipherKeyPair(dsaPublicKeyParams, dsaPrivateKeyParams);
       } else if (aPublicKeyParameter is ECPublicKeyParameters) {
-        var ecdsaPrivate = new BigInteger(1, ReadBlob().Data);
+        var ecdsaPrivate = new BigInteger(1, ReadBlob());
 
         var ecPublicKeyParams = aPublicKeyParameter as ECPublicKeyParameters;
         ECPrivateKeyParameters ecPrivateKeyParams =
@@ -228,9 +228,12 @@ namespace dlech.SshAgentLib
     public AsymmetricKeyParameter ReadSsh1PublicKeyData(
       bool aReverseRsaParameters = false)
     {
+      // ignore not used warning
+      #pragma warning disable 0219
       uint keyLength = ReadInt();
-      var rsaN = new BigInteger(1, ReadSsh1BigIntBlob().Data);
-      var rsaE = new BigInteger(1, ReadSsh1BigIntBlob().Data);
+      #pragma warning restore 0219
+      var rsaN = new BigInteger(1, ReadSsh1BigIntBlob());
+      var rsaE = new BigInteger(1, ReadSsh1BigIntBlob());
 
       if (aReverseRsaParameters) {
         return new RsaKeyParameters(false, rsaE, rsaN);
@@ -250,15 +253,15 @@ namespace dlech.SshAgentLib
     public AsymmetricCipherKeyPair ReadSsh1KeyData(
       AsymmetricKeyParameter aPublicKeyParameter)
     {
-      PinnedArray<byte> rsa_d = ReadSsh1BigIntBlob();
-      PinnedArray<byte> rsa_iqmp = ReadSsh1BigIntBlob();
-      PinnedArray<byte> rsa_q = ReadSsh1BigIntBlob();
-      PinnedArray<byte> rsa_p = ReadSsh1BigIntBlob();
+      var rsa_d = ReadSsh1BigIntBlob();
+      var rsa_iqmp = ReadSsh1BigIntBlob();
+      var rsa_q = ReadSsh1BigIntBlob();
+      var rsa_p = ReadSsh1BigIntBlob();
 
-      var rsaD = new BigInteger(1, rsa_d.Data);
-      var rsaIQMP = new BigInteger(1, rsa_iqmp.Data);
-      var rsaP = new BigInteger(1, rsa_p.Data);
-      var rsaQ = new BigInteger(1, rsa_q.Data);
+      var rsaD = new BigInteger(1, rsa_d);
+      var rsaIQMP = new BigInteger(1, rsa_iqmp);
+      var rsaP = new BigInteger(1, rsa_p);
+      var rsaQ = new BigInteger(1, rsa_q);
 
       var rsaDP = rsaD.Remainder(rsaP.Subtract(BigInteger.One));
       var rsaDQ = rsaD.Remainder(rsaQ.Subtract(BigInteger.One));

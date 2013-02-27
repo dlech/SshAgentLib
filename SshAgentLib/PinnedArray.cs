@@ -6,11 +6,11 @@ using System.Runtime.InteropServices;
 namespace dlech.SshAgentLib
 {
   /// <summary>
-  /// Wrapper for byte[] when it used for sensitive data. 
-  /// 
+  /// Wrapper for byte[] when it used for sensitive data.
+  ///
   /// Data is pinned in memory so that extra copies are not made
   /// by the garbage collector.
-  /// 
+  ///
   /// Data is cleared (values set to 0) when object is disposed.
   /// </summary>
   public class PinnedArray<T> : IDisposable, ICloneable
@@ -31,8 +31,12 @@ namespace dlech.SshAgentLib
       }
       set {
         Dispose();
-        mData = value;
-        mGCHandle = GCHandle.Alloc(mData, GCHandleType.Pinned);        
+        if (value == null) {
+          mData = new T[0];
+        } else {
+          mData = value;
+        }
+        mGCHandle = GCHandle.Alloc(mData, GCHandleType.Pinned);
         mDisposed = false;
       }
     }
@@ -54,9 +58,9 @@ namespace dlech.SshAgentLib
     {
       Data = new T[mLength];
     }
-        
+
     ~PinnedArray()
-    {     
+    {
       Dispose();
     }
 
@@ -69,14 +73,14 @@ namespace dlech.SshAgentLib
         Array.Clear(mData, 0, mData.Length);
       }
     }
-    
+
     /// <summary>
     /// Calls Clear() and unpins memory
     /// </summary>
     public void Dispose()
     {
       Clear();
-      if (mGCHandle != null && mGCHandle.IsAllocated) {
+      if (mGCHandle.IsAllocated) {
         mGCHandle.Free();
       }
       mDisposed = true;
