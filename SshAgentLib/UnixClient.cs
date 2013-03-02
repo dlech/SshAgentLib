@@ -41,8 +41,7 @@ namespace dlech.SshAgentLib
       var socketPath =
         Environment.GetEnvironmentVariable(SSH_AUTHSOCKET_ENV_NAME);
       if (!File.Exists(socketPath)) {
-        // TODO should be AgentNotRunningException
-        throw new PageantNotRunningException();
+        throw new AgentNotRunningException();
       }
       using (var client = new Mono.Unix.UnixClient (socketPath)) {
         using (var stream = client.GetStream()) {

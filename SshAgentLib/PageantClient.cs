@@ -37,7 +37,7 @@ namespace dlech.SshAgentLib
     {
       var hwnd = FindWindow(cPageantWindowClass, cPageantWindowClass);
       if (hwnd == IntPtr.Zero) {
-        throw new PageantNotRunningException();
+        throw new AgentNotRunningException();
       }
       var threadId = Thread.CurrentThread.ManagedThreadId;
       var mapName = String.Format("{0}{1:x8}", cMapNamePrefix, threadId);

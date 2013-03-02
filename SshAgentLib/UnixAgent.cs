@@ -54,8 +54,6 @@ namespace dlech.SshAgentLib
 
     public UnixAgent()
     {
-      // TODO load Mono.Unix assembly so that we can run on windows.
-
       if (Environment.GetEnvironmentVariable(UnixAgent.SSH_AUTHSOCKET_ENV_NAME) != null) {
         throw new Exception("ssh-agent is already running");
       }

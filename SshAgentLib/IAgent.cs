@@ -83,7 +83,8 @@ namespace dlech.SshAgentLib
         try {
           var versionList = aAgent.ListKeys(version);
           allKeysList.AddRange(versionList);
-        } catch (AgentFailureException) { }
+        } catch (Exception) { }
+        // TODO something better with exceptions
       }
       return allKeysList;
     }

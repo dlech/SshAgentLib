@@ -6,9 +6,9 @@ using System.Text;
 namespace dlech.SshAgentLib
 {
   /// <summary>
-  /// Indicates that a Pageant window could not be found
+  /// Indicates that a running agent could not be found
   /// </summary>
-  public class PageantNotRunningException : Exception
+  public class AgentNotRunningException : Exception
   {
 
   }
