@@ -51,23 +51,39 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="qt\KeyManagerFrame.designer.cs" />
-    <Compile Include="qt\KeyManagerFrame.cs" />
-    <Compile Include="qt\PassphraseDialog.designer.cs" />
-    <Compile Include="qt\PassphraseDialog.cs" />
-    <Compile Include="qt\KeyFileDialog.cs" />
-    <Compile Include="qt\ConfirmConstraintWidget.designer.cs" />
-    <Compile Include="qt\LifetimeConstraintWidget.designer.cs" />
-    <Compile Include="qt\ConfirmConstraintWidget.cs" />
-    <Compile Include="qt\LifetimeConstraintWidget.cs" />
+    <Compile Include="KeyManagerFrame.designer.cs">
+      <DependentUpon>KeyManagerFrame.cs</DependentUpon>
+    </Compile>
+    <Compile Include="KeyManagerFrame.cs" />
+    <Compile Include="PassphraseDialog.designer.cs">
+      <DependentUpon>PassphraseDialog.cs</DependentUpon>
+    </Compile>
+    <Compile Include="PassphraseDialog.cs" />
+    <Compile Include="KeyFileDialog.cs" />
+    <Compile Include="ConfirmConstraintWidget.designer.cs">
+      <DependentUpon>ConfirmConstraintWidget.cs</DependentUpon>
+    </Compile>
+    <Compile Include="LifetimeConstraintWidget.designer.cs">
+      <DependentUpon>LifetimeConstraintWidget.cs</DependentUpon>
+    </Compile>
+    <Compile Include="ConfirmConstraintWidget.cs" />
+    <Compile Include="LifetimeConstraintWidget.cs" />
     <Compile Include="SecureEdit.cs" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="qt\KeyManagerFrame.ui" />
+    <None Include="KeyManagerFrame.ui">
+      <DependentUpon>KeyManagerFrame.cs</DependentUpon>
+    </None>
     <None Include="app.config" />
-    <None Include="qt\PassphraseDialog.ui" />
-    <None Include="qt\ConfirmConstraintWidget.ui" />
-    <None Include="qt\LifetimeConstraintWidget.ui" />
+    <None Include="PassphraseDialog.ui">
+      <DependentUpon>PassphraseDialog.cs</DependentUpon>
+    </None>
+    <None Include="ConfirmConstraintWidget.ui">
+      <DependentUpon>ConfirmConstraintWidget.cs</DependentUpon>
+    </None>
+    <None Include="LifetimeConstraintWidget.ui">
+      <DependentUpon>LifetimeConstraintWidget.cs</DependentUpon>
+    </None>
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\..\SshAgentLib\SshAgentLib.csproj">

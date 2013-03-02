@@ -24,11 +24,6 @@ namespace dlech.SshAgentLib.Ui.QtAgent
       );
       fileMode = QFileDialog.FileMode.ExistingFiles;
 
-      var confirmCheckBox =
-          new QCheckBox (Tr ("Require confirmation"));
-      confirmCheckBox.ToolTip =
-          Tr ("User confirmation will be required each time this key is used to authenticate");
-
        mConfirmWidget = new ConfirmConstraintWidget();
        mLifetimeWidget = new LifetimeConstraintWidget();
 

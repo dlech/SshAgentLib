@@ -90,16 +90,31 @@ namespace dlech.SshAgentLib.Ui.QtAgent
 
     public void SetAgent (IAgent aAgent)
     {
+      var oldAgent = mAgent as Agent;
+      if (oldAgent != null)
+      {
+        oldAgent.KeyListChanged -= mAgent_KeyListChanged;
+      }
       mAgent = aAgent;
-      var agent = aAgent as Agent;
-      if (agent == null) {
+      var newAgent = aAgent as Agent;
+      if (newAgent == null) {
+        //client
         mTableWidget.HideColumn (0);
         mTableWidget.HideColumn (1);
       } else {
+        //agent
+        newAgent.KeyListChanged += mAgent_KeyListChanged;
         mTableWidget.ShowColumn (0);
         mTableWidget.ShowColumn (1);
       }
       ReloadData ();
+    }
+
+    [Q_SLOT()]
+    private void mAgent_KeyListChanged(object aSender,
+      Agent.KeyListChangeEventArgs aEventArgs)
+    {
+      ReloadData();
     }
 
     [Q_SLOT]
@@ -116,7 +131,7 @@ namespace dlech.SshAgentLib.Ui.QtAgent
         var newRowIndex = mTableWidget.RowCount;
         mTableWidget.Model.InsertRow (newRowIndex);
         // TODO - make checkboxes
-        mTableWidget.SetItem (newRowIndex, 0, new QTableWidgetItem(
+        mTableWidget.SetItem (newRowIndex, 0, new QTableWidgetItem (
           key.HasConstraint (Agent.KeyConstraintType.SSH_AGENT_CONSTRAIN_CONFIRM).ToString ()));
         mTableWidget.SetItem (newRowIndex, 1, new QTableWidgetItem(
           key.HasConstraint (Agent.KeyConstraintType.SSH_AGENT_CONSTRAIN_LIFETIME).ToString ()));
@@ -128,7 +143,7 @@ namespace dlech.SshAgentLib.Ui.QtAgent
           key.GetMD5Fingerprint ().ToHexString ()));
         mTableWidget.SetItem (newRowIndex, 5, new QTableWidgetItem(
           key.Comment));
-        // attach actual key object to arbitrary column for later retreval
+        // attach actual key object to arbitrary column for later retrieval
         mTableWidget.Item (newRowIndex, 0).SetData ((int)Qt.ItemDataRole.UserRole , key);
       }
       UpdateUIState ();
@@ -143,8 +158,8 @@ namespace dlech.SshAgentLib.Ui.QtAgent
         mRefreshButton.Visible = true;
         mMessageLabel.Text = Tr ("No keys loaded");
       } else {
-        mLockButton.Enabled = agent.IsLocked;
-        mUnlockButton.Enabled = !agent.IsLocked;
+        mLockButton.Enabled = !agent.IsLocked;
+        mUnlockButton.Enabled = agent.IsLocked;
         mRefreshButton.Visible = false;
         mMessageLabel.Text = agent.IsLocked ? Tr ("Locked") : Tr ("No keys loaded");
       }
