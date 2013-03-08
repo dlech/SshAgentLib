@@ -10,6 +10,10 @@ using dlech.SshAgentLib;
 using System.Security;
 using System.IO;
 using System.Diagnostics;
+using System.Reflection;
+using System.Text.RegularExpressions;
+
+
 #if !__MonoCS__
 using Microsoft.WindowsAPICodePack.Dialogs;
 using Microsoft.WindowsAPICodePack.Dialogs.Controls;
@@ -29,9 +33,11 @@ namespace dlech.SshAgentLib.WinForms
     private IAgent mAgent;
     private BindingList<KeyWrapper> mKeyCollection;
     private PasswordDialog mPasswordDialog;
+    private bool mSelectionChangedBroken;
 #if !__MonoCS__
     private CommonOpenFileDialog mWin7OpenFileDialog;
 #endif
+
     public ContextMenuStrip AddButtonSplitMenu
     {
       get
@@ -59,6 +65,27 @@ namespace dlech.SshAgentLib.WinForms
 
     public KeyInfoView()
     {
+      // workaround for mono bug
+      try
+      {
+        var monoRuntimeType = Type.GetType ("Mono.Runtime");
+        if (monoRuntimeType != null)
+        {
+          var getDisplayNameMethod = monoRuntimeType.GetMethod("GetDisplayName",
+                                     BindingFlags.NonPublic | BindingFlags.Static);
+          var displayName = getDisplayNameMethod.Invoke (null, null) as string;
+          var versionRegex = new Regex(@"\d+\.\d+\.\d+\.\d*");
+          var match = versionRegex.Match(displayName);
+          var version = match.Value;
+          mSelectionChangedBroken = Version.Parse (version) < Version.Parse ("2.11.2");
+        }
+      }
+      catch (Exception ex)
+      {
+        Debug.Fail (ex.ToString());
+      }
+
+
       InitializeComponent();
 #if !__MonoCS__
       if (CommonOpenFileDialog.IsPlatformSupported)
@@ -256,8 +283,8 @@ namespace dlech.SshAgentLib.WinForms
       lockButton.Enabled = !isLocked;
       unlockButton.Enabled = agent == null || isLocked;
       addKeyButton.Enabled = !isLocked;
-      removeKeyButton.Enabled = dataGridView.SelectedRows.Count > 0 &&
-        !isLocked;
+      removeKeyButton.Enabled = mSelectionChangedBroken ||
+        (dataGridView.SelectedRows.Count > 0 && !isLocked);
       removeAllbutton.Enabled = dataGridView.Rows.Count > 0 &&
         !isLocked;
     }
@@ -312,6 +339,7 @@ namespace dlech.SshAgentLib.WinForms
       UpdateButtonStates();
     }
 
+    // SelectionChanged event is broken on mono <= 2.11.1
     private void dataGridView_SelectionChanged(object sender, EventArgs e)
     {
       UpdateButtonStates();
