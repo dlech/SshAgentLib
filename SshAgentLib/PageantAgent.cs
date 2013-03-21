@@ -158,11 +158,21 @@ namespace dlech.SshAgentLib
       Thread winThread = new Thread(RunWindowInNewAppcontext);
       winThread.SetApartmentState(ApartmentState.STA);
       winThread.Name = "PageantWindow";
-      winThread.Start();
       lock (mLockObject) {
+        winThread.Start();
         // wait for window to be created before continuing to prevent more than
         // one instance being run at a time.
-        Monitor.Wait(mLockObject);
+        if (!Monitor.Wait(mLockObject, 5000))
+        {
+          if (winThread.ThreadState == System.Threading.ThreadState.Running)
+          {
+            MessageBox.Show("Pageant Agent start timed out.");
+          }
+          else
+          {
+            MessageBox.Show("Pageant Agent failed to start.");
+          }
+        }
       }
     }
 
