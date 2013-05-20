@@ -73,6 +73,16 @@
     <Compile Include="LifetimeConstraintControl.Designer.cs">
       <DependentUpon>LifetimeConstraintControl.cs</DependentUpon>
     </Compile>
+    <Compile Include="OpenFileDialogEx\AuthorAttribute.cs" />
+    <Compile Include="OpenFileDialogEx\Controls\OpenFileDialogEx.cs">
+      <SubType>UserControl</SubType>
+    </Compile>
+    <Compile Include="OpenFileDialogEx\Controls\OpenFileDialogEx.Designer.cs">
+      <DependentUpon>OpenFileDialogEx.cs</DependentUpon>
+    </Compile>
+    <Compile Include="OpenFileDialogEx\OS\Enums.cs" />
+    <Compile Include="OpenFileDialogEx\OS\Structs.cs" />
+    <Compile Include="OpenFileDialogEx\OS\Win32.cs" />
     <Compile Include="PasswordDialog.cs">
       <SubType>Form</SubType>
     </Compile>
@@ -109,6 +119,9 @@
     </EmbeddedResource>
     <EmbeddedResource Include="LifetimeConstraintControl.resx">
       <DependentUpon>LifetimeConstraintControl.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="OpenFileDialogEx\Controls\OpenFileDialogEx.resx">
+      <DependentUpon>OpenFileDialogEx.cs</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="PasswordDialog.resx">
       <DependentUpon>PasswordDialog.cs</DependentUpon>
