@@ -12,6 +12,7 @@ using System.IO;
 using System.Diagnostics;
 using System.Reflection;
 using System.Text.RegularExpressions;
+using FileDialogExtenders;
 
 
 #if !__MonoCS__
@@ -208,12 +209,22 @@ namespace dlech.SshAgentLib.WinForms
       else
       {
 #endif
-        var result = openFileDialog.ShowDialog();
-        if (result != DialogResult.OK)
-        {
-          return;
+        using (var xpOpenFileDialog = new XPOpenFileDialog()) {
+          xpOpenFileDialog.FileDlgStartLocation = AddonWindowLocation.Bottom;
+
+          var result = xpOpenFileDialog.ShowDialog();
+          if (result != DialogResult.OK) {
+            return;
+          }
+          if (xpOpenFileDialog.UseConfirmConstraintChecked) {
+            constraints.addConfirmConstraint();
+          }
+          if (xpOpenFileDialog.UseLifetimeConstraintChecked) {
+            constraints.addLifetimeConstraint
+              (xpOpenFileDialog.LifetimeConstraintDuration);
+          }
+          fileNames = xpOpenFileDialog.MSDialog.FileNames;
         }
-        fileNames = openFileDialog.FileNames;
 #if !__MonoCS__
       }
 #endif

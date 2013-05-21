@@ -66,7 +66,6 @@
       this.Name = "KeyManagerForm";
       this.Text = "SSH Agent";
       this.FormClosing += new System.Windows.Forms.FormClosingEventHandler(this.MainForm_FormClosing);
-      this.Load += new System.EventHandler(this.MainForm_Load);
       this.mainTableLayoutPanel.ResumeLayout(false);
       this.mainTableLayoutPanel.PerformLayout();
       this.ResumeLayout(false);

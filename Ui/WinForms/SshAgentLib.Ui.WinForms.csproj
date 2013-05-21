@@ -55,6 +55,18 @@
     </Compile>
     <Compile Include="Default.cs" />
     <Compile Include="Ext.cs" />
+    <Compile Include="FileDlgExtenders\Enums.cs" />
+    <Compile Include="FileDlgExtenders\FileDialogControlBase.cs">
+      <SubType>UserControl</SubType>
+    </Compile>
+    <Compile Include="FileDlgExtenders\FileDialogControlBase.designer.cs">
+      <DependentUpon>FileDialogControlBase.cs</DependentUpon>
+    </Compile>
+    <Compile Include="FileDlgExtenders\HelperTypes.cs">
+      <SubType>UserControl</SubType>
+    </Compile>
+    <Compile Include="FileDlgExtenders\structs.cs" />
+    <Compile Include="FileDlgExtenders\Win32.cs" />
     <Compile Include="KeyInfoView.cs">
       <SubType>UserControl</SubType>
     </Compile>
@@ -73,16 +85,6 @@
     <Compile Include="LifetimeConstraintControl.Designer.cs">
       <DependentUpon>LifetimeConstraintControl.cs</DependentUpon>
     </Compile>
-    <Compile Include="OpenFileDialogEx\AuthorAttribute.cs" />
-    <Compile Include="OpenFileDialogEx\Controls\OpenFileDialogEx.cs">
-      <SubType>UserControl</SubType>
-    </Compile>
-    <Compile Include="OpenFileDialogEx\Controls\OpenFileDialogEx.Designer.cs">
-      <DependentUpon>OpenFileDialogEx.cs</DependentUpon>
-    </Compile>
-    <Compile Include="OpenFileDialogEx\OS\Enums.cs" />
-    <Compile Include="OpenFileDialogEx\OS\Structs.cs" />
-    <Compile Include="OpenFileDialogEx\OS\Win32.cs" />
     <Compile Include="PasswordDialog.cs">
       <SubType>Form</SubType>
     </Compile>
@@ -99,6 +101,12 @@
       <AutoGen>True</AutoGen>
       <DesignTime>True</DesignTime>
     </Compile>
+    <Compile Include="XPOpenFileDialog.cs">
+      <SubType>UserControl</SubType>
+    </Compile>
+    <Compile Include="XPOpenFileDialog.Designer.cs">
+      <DependentUpon>XPOpenFileDialog.cs</DependentUpon>
+    </Compile>
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\..\SshAgentLib\SshAgentLib.csproj">
@@ -111,6 +119,9 @@
     <EmbeddedResource Include="ConfirmConstraintControl.resx">
       <DependentUpon>ConfirmConstraintControl.cs</DependentUpon>
     </EmbeddedResource>
+    <EmbeddedResource Include="FileDlgExtenders\FileDialogControlBase.resx">
+      <DependentUpon>FileDialogControlBase.cs</DependentUpon>
+    </EmbeddedResource>
     <EmbeddedResource Include="KeyInfoView.resx">
       <DependentUpon>KeyInfoView.cs</DependentUpon>
     </EmbeddedResource>
@@ -120,9 +131,6 @@
     <EmbeddedResource Include="LifetimeConstraintControl.resx">
       <DependentUpon>LifetimeConstraintControl.cs</DependentUpon>
     </EmbeddedResource>
-    <EmbeddedResource Include="OpenFileDialogEx\Controls\OpenFileDialogEx.resx">
-      <DependentUpon>OpenFileDialogEx.cs</DependentUpon>
-    </EmbeddedResource>
     <EmbeddedResource Include="PasswordDialog.resx">
       <DependentUpon>PasswordDialog.cs</DependentUpon>
     </EmbeddedResource>
@@ -130,6 +138,9 @@
       <Generator>PublicResXFileCodeGenerator</Generator>
       <LastGenOutput>Strings.Designer.cs</LastGenOutput>
       <SubType>Designer</SubType>
+    </EmbeddedResource>
+    <EmbeddedResource Include="XPOpenFileDialog.resx">
+      <DependentUpon>XPOpenFileDialog.cs</DependentUpon>
     </EmbeddedResource>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
