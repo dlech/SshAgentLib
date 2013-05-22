@@ -575,5 +575,50 @@ namespace dlech.SshAgentLib.WinForms
       }
     }
 
+    private void dataGridView_CellPainting(object sender,
+                                           DataGridViewCellPaintingEventArgs e)
+    {
+      if (e.RowIndex >= 0 &&
+          (e.ColumnIndex == confirmDataGridViewCheckBoxColumn.Index ||
+           e.ColumnIndex == lifetimeDataGridViewCheckBoxColumn.Index))
+      {
+        
+        var backColorBrush = new SolidBrush
+          (e.State.HasFlag(DataGridViewElementStates.Selected) ?
+           e.CellStyle.SelectionBackColor :
+           e.CellStyle.BackColor);
+
+        e.Graphics.FillRectangle(backColorBrush, e.CellBounds);
+
+        var gridBrush = new SolidBrush(this.dataGridView.GridColor);
+        var gridLinePen = new Pen(gridBrush);
+
+        e.Graphics.DrawLine(gridLinePen, e.CellBounds.Left,
+                            e.CellBounds.Bottom - 1, e.CellBounds.Right - 1,
+                            e.CellBounds.Bottom - 1);
+        e.Graphics.DrawLine(gridLinePen, e.CellBounds.Right - 1,
+                            e.CellBounds.Top, e.CellBounds.Right - 1,
+                            e.CellBounds.Bottom);
+
+        // TODO - make this pretty!
+
+        var foreColorPen = new Pen
+         (e.State.HasFlag(DataGridViewElementStates.Selected) ?
+          e.CellStyle.SelectionForeColor :
+          e.CellStyle.ForeColor);
+        
+        var midX = e.CellBounds.X + e.CellBounds.Width / 2;
+        var midY = e.CellBounds.Y + e.CellBounds.Height / 2;
+        e.Graphics.DrawRectangle(foreColorPen, midX - 5, midY - 5, 10, 10);
+
+        if (e.Value is bool && ((bool)e.Value)) {
+          e.Graphics.DrawLine(foreColorPen, midX - 5, midY - 5, midX + 5, midY + 5);
+          e.Graphics.DrawLine(foreColorPen, midX - 5, midY + 5, midX + 5, midY - 5);
+        }
+
+        e.Handled = true;
+      }
+    }
+
   }
 }

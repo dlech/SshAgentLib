@@ -91,6 +91,7 @@
       this.dataGridView.SelectionMode = System.Windows.Forms.DataGridViewSelectionMode.FullRowSelect;
       this.dataGridView.Size = new System.Drawing.Size(547, 216);
       this.dataGridView.TabIndex = 0;
+      this.dataGridView.CellPainting += new System.Windows.Forms.DataGridViewCellPaintingEventHandler(this.dataGridView_CellPainting);
       this.dataGridView.SelectionChanged += new System.EventHandler(this.dataGridView_SelectionChanged);
       this.dataGridView.DragDrop += new System.Windows.Forms.DragEventHandler(this.dataGridView_DragDrop);
       this.dataGridView.DragEnter += new System.Windows.Forms.DragEventHandler(this.dataGridView_DragEnter);
