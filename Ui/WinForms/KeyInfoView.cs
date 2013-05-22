@@ -35,6 +35,7 @@ namespace dlech.SshAgentLib.WinForms
     private BindingList<KeyWrapper> mKeyCollection;
     private PasswordDialog mPasswordDialog;
     private bool mSelectionChangedBroken;
+    private Dictionary<OpenFileDialog, XPOpenFileDialog> mOpenFileDialogMap;
 
     public ContextMenuStrip AddButtonSplitMenu
     {
@@ -63,6 +64,8 @@ namespace dlech.SshAgentLib.WinForms
 
     public KeyInfoView()
     {
+      mOpenFileDialogMap = new Dictionary<OpenFileDialog, XPOpenFileDialog>();
+
       // workaround for mono bug
       try
       {
@@ -163,7 +166,7 @@ namespace dlech.SshAgentLib.WinForms
         filter = new CommonFileDialogFilter(Strings.filterAllFiles, "*.*");
         win7OpenFileDialog.Filters.Add(filter);
 
-        win7OpenFileDialog.FileOk += OpenFileDialog_FileOk;
+        win7OpenFileDialog.FileOk += win7OpenFileDialog_FileOk;
 
         var result = win7OpenFileDialog.ShowDialog();
         if (result != CommonFileDialogResult.Ok)
@@ -190,13 +193,22 @@ namespace dlech.SshAgentLib.WinForms
       else
       {
 #endif
-        using (var xpOpenFileDialog = new XPOpenFileDialog()) {
+        using (var openFileDialog = new OpenFileDialog()) {
+
+          openFileDialog.FileOk += xpOpenFileDialog_FileOk;
+
+          var xpOpenFileDialog = new XPOpenFileDialog();
           xpOpenFileDialog.FileDlgStartLocation = AddonWindowLocation.Bottom;
 
-          var result = xpOpenFileDialog.ShowDialog();
+          mOpenFileDialogMap.Add(openFileDialog, xpOpenFileDialog);
+
+          var result = ((FileDialog)openFileDialog).ShowDialog(xpOpenFileDialog, null);
           if (result != DialogResult.OK) {
             return;
           }
+
+          mOpenFileDialogMap.Remove(openFileDialog);
+
           if (xpOpenFileDialog.UseConfirmConstraintChecked) {
             constraints.addConfirmConstraint();
           }
@@ -204,7 +216,7 @@ namespace dlech.SshAgentLib.WinForms
             constraints.addLifetimeConstraint
               (xpOpenFileDialog.LifetimeConstraintDuration);
           }
-          fileNames = xpOpenFileDialog.MSDialog.FileNames;
+          fileNames = openFileDialog.FileNames;
         }
 #if !__MonoCS__
       }
@@ -506,13 +518,10 @@ namespace dlech.SshAgentLib.WinForms
       ReloadKeyListView();
     }
 
-    private void OpenFileDialog_FileOk(object sender, CancelEventArgs e)
-    {
 #if !__MonoCS__
+    private void win7OpenFileDialog_FileOk(object sender, CancelEventArgs e)
+    {
       var win7OpenFileDialog = sender as CommonOpenFileDialog;
-#else
-      object win7OpenFileDialog = null;
-#endif
       if (win7OpenFileDialog != null)
       {
         var lifetimeConstraintCheckBox =
@@ -525,7 +534,7 @@ namespace dlech.SshAgentLib.WinForms
         {
           uint lifetime;
           var success = uint.TryParse(lifetimeConstraintTextBox.Text, out lifetime);
-          if (!success)
+          if (!success || lifetime == 0)
           {
             MessageBox.Show("Invalid lifetime", Util.AssemblyTitle,
               MessageBoxButtons.OK, MessageBoxIcon.Exclamation);
@@ -534,7 +543,25 @@ namespace dlech.SshAgentLib.WinForms
           }
         }
       }
+    }
+#endif
 
+    private void xpOpenFileDialog_FileOk(object sender, CancelEventArgs e)
+    {
+      var openFileDialog = sender as OpenFileDialog;
+      if (openFileDialog != null &&
+          mOpenFileDialogMap.ContainsKey(openFileDialog))
+      {
+        var xpOpenFileDialog = mOpenFileDialogMap[openFileDialog];
+        if (xpOpenFileDialog.UseLifetimeConstraintChecked) {
+          if (xpOpenFileDialog.LifetimeConstraintDuration == 0) {
+            MessageBox.Show("Invalid lifetime", Util.AssemblyTitle,
+              MessageBoxButtons.OK, MessageBoxIcon.Exclamation);
+            e.Cancel = true;
+            return;
+          }
+        }
+      }
     }
 
     private void KeyManagerForm_KeyUp(object sender, KeyEventArgs e)

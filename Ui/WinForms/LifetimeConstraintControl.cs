@@ -24,11 +24,18 @@ namespace KeeAgent.UI
       }
     }
 
+    /// <summary>
+    /// returns the lifetime entered in the text box or 0 if entered value is invalid
+    /// </summary>
     public uint Lifetime
     {
       get
       {
-        return uint.Parse(mLifetimeTextBox.Text);
+        uint lifetime;
+        if (uint.TryParse(mLifetimeTextBox.Text, out lifetime)) {
+          return lifetime;
+        }
+        return 0;
       }
       set
       {
