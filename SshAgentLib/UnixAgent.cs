@@ -54,8 +54,6 @@ namespace dlech.SshAgentLib
 
     public UnixAgent()
     {
-      // TODO load Mono.Unix assembly so that we can run on windows.
-
       if (Environment.GetEnvironmentVariable(UnixAgent.SSH_AUTHSOCKET_ENV_NAME) != null) {
         throw new Exception("ssh-agent is already running");
       }
@@ -109,7 +107,8 @@ namespace dlech.SshAgentLib
       for (int i = 0; i < this.numConnections; i++) {
         //Pre-allocate a set of reusable SocketAsyncEventArgs
         socketAsyncEventArgs = new SocketAsyncEventArgs();
-        socketAsyncEventArgs.Completed += new EventHandler<SocketAsyncEventArgs>(IO_Completed);
+        socketAsyncEventArgs.Completed +=
+          new EventHandler<SocketAsyncEventArgs>(IO_Completed);
         socketAsyncEventArgs.UserToken = new AsyncUserToken();
 
         // assign a byte buffer from the buffer pool to the SocketAsyncEventArg object
@@ -130,7 +129,8 @@ namespace dlech.SshAgentLib
     {
       if (acceptEventArg == null) {
         acceptEventArg = new SocketAsyncEventArgs();
-        acceptEventArg.Completed += new EventHandler<SocketAsyncEventArgs>(AcceptEventArg_Completed);
+        acceptEventArg.Completed +=
+          new EventHandler<SocketAsyncEventArgs>(AcceptEventArg_Completed);
       } else {
         // socket must be cleared since the context object is being reused
         acceptEventArg.AcceptSocket = null;
