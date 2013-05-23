@@ -53,6 +53,12 @@
     <Compile Include="ConfirmConstraintControl.Designer.cs">
       <DependentUpon>ConfirmConstraintControl.cs</DependentUpon>
     </Compile>
+    <Compile Include="ConstraintsInputDialog.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="ConstraintsInputDialog.Designer.cs">
+      <DependentUpon>ConstraintsInputDialog.cs</DependentUpon>
+    </Compile>
     <Compile Include="Default.cs" />
     <Compile Include="Ext.cs" />
     <Compile Include="FileDlgExtenders\Enums.cs" />
@@ -119,6 +125,9 @@
   <ItemGroup>
     <EmbeddedResource Include="ConfirmConstraintControl.resx">
       <DependentUpon>ConfirmConstraintControl.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="ConstraintsInputDialog.resx">
+      <DependentUpon>ConstraintsInputDialog.cs</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="FileDlgExtenders\FileDialogControlBase.resx">
       <DependentUpon>FileDialogControlBase.cs</DependentUpon>

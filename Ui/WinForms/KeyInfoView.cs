@@ -372,9 +372,16 @@ namespace dlech.SshAgentLib.WinForms
           var constraints = new List<Agent.KeyConstraint>();
           if ((e.KeyState & cDragDropKeyStateCtrl) == cDragDropKeyStateCtrl)
           {
-            var constraint = new Agent.KeyConstraint();
-            constraint.Type = Agent.KeyConstraintType.SSH_AGENT_CONSTRAIN_CONFIRM;
-            constraints.Add(constraint);
+            var dialog = new ConstraintsInputDialog();
+            var result = dialog.ShowDialog();
+            if (dialog.DialogResult == DialogResult.OK) {
+              if (dialog.ConfirmConstraintChecked) {
+                constraints.addConfirmConstraint();
+              }
+              if (dialog.LifetimeConstraintChecked) {
+                constraints.addLifetimeConstraint(dialog.LifetimeDuration);
+              }
+            }
           }
           mAgent.AddKeysFromFiles(fileNames, constraints);
           if (!(mAgent is Agent))
