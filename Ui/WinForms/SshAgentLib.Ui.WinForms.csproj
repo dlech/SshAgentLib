@@ -116,12 +116,6 @@
     </Compile>
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\..\SshAgentLib\SshAgentLib.csproj">
-      <Project>{9163B6B6-0603-4C6E-BC67-7111ED8CDDE1}</Project>
-      <Name>SshAgentLib</Name>
-    </ProjectReference>
-  </ItemGroup>
-  <ItemGroup>
     <EmbeddedResource Include="ConfirmConstraintControl.resx">
       <DependentUpon>ConfirmConstraintControl.cs</DependentUpon>
     </EmbeddedResource>
@@ -160,4 +154,10 @@
   <Target Name="AfterBuild">
   </Target>
   -->
+  <ItemGroup>
+    <ProjectReference Include="..\..\SshAgentLib\SshAgentLib.csproj">
+      <Project>{9163B6B6-0603-4C6E-BC67-7111ED8CDDE1}</Project>
+      <Name>SshAgentLib</Name>
+    </ProjectReference>
+  </ItemGroup>
 </Project>

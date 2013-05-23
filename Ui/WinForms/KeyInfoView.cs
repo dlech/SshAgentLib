@@ -192,7 +192,6 @@ namespace dlech.SshAgentLib.WinForms
       }
       else
       {
-#endif
         using (var openFileDialog = new OpenFileDialog()) {
 
           openFileDialog.FileOk += xpOpenFileDialog_FileOk;
@@ -218,7 +217,26 @@ namespace dlech.SshAgentLib.WinForms
           }
           fileNames = openFileDialog.FileNames;
         }
-#if !__MonoCS__
+      }
+#else
+      var fileDialog = new OpenFileDialog();
+      var result = fileDialog.ShowDialog ();
+      if (result != DialogResult.OK) {
+        return;
+      }
+      fileNames = fileDialog.FileNames;
+
+      if ((Control.ModifierKeys & Keys.Control) == Keys.Control) {
+        var constraintDialog = new ConstraintsInputDialog();
+        constraintDialog.ShowDialog();
+        if (constraintDialog.DialogResult == DialogResult.OK) {
+          if (constraintDialog.ConfirmConstraintChecked) {
+            constraints.addConfirmConstraint();
+          }
+          if (constraintDialog.LifetimeConstraintChecked) {
+            constraints.addLifetimeConstraint(constraintDialog.LifetimeDuration);
+          }
+        }
       }
 #endif
       UseWaitCursor = true;
@@ -373,7 +391,7 @@ namespace dlech.SshAgentLib.WinForms
           if ((e.KeyState & cDragDropKeyStateCtrl) == cDragDropKeyStateCtrl)
           {
             var dialog = new ConstraintsInputDialog();
-            var result = dialog.ShowDialog();
+            dialog.ShowDialog();
             if (dialog.DialogResult == DialogResult.OK) {
               if (dialog.ConfirmConstraintChecked) {
                 constraints.addConfirmConstraint();
@@ -551,7 +569,6 @@ namespace dlech.SshAgentLib.WinForms
         }
       }
     }
-#endif
 
     private void xpOpenFileDialog_FileOk(object sender, CancelEventArgs e)
     {
@@ -570,6 +587,7 @@ namespace dlech.SshAgentLib.WinForms
         }
       }
     }
+#endif
 
     private void KeyManagerForm_KeyUp(object sender, KeyEventArgs e)
     {

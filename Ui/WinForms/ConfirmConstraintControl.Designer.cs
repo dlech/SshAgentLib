@@ -1,4 +1,4 @@
-﻿namespace KeeAgent.UI
+﻿namespace dlech.SshAgentLib.WinForms
 {
   partial class ConfirmConstraintControl
   {

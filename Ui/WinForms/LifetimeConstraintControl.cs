@@ -8,7 +8,7 @@ using System.Text;
 using System.Windows.Forms;
 using dlech.SshAgentLib;
 
-namespace KeeAgent.UI
+namespace dlech.SshAgentLib.WinForms
 {
   public partial class LifetimeConstraintControl : UserControl
   {
@@ -47,6 +47,10 @@ namespace KeeAgent.UI
     public LifetimeConstraintControl()
     {
       InitializeComponent();
+#if __MonoCS__
+      AutoSize = false;
+      Width = 250;
+#endif
     }
 
     private void mLifetimeCheckBox_CheckedChanged(object sender, EventArgs e)

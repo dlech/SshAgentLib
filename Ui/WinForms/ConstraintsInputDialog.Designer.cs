@@ -28,16 +28,14 @@
     private void InitializeComponent()
     {
       this.mOKButton = new System.Windows.Forms.Button();
-      this.mTableLayoutPanel = new System.Windows.Forms.TableLayoutPanel();
-      this.mConfirmConstraintControl = new KeeAgent.UI.ConfirmConstraintControl();
-      this.mLifetimeConstraintControl = new KeeAgent.UI.LifetimeConstraintControl();
-      this.mTableLayoutPanel.SuspendLayout();
+      this.mConfirmConstraintControl = new dlech.SshAgentLib.WinForms.ConfirmConstraintControl();
+      this.mLifetimeConstraintControl = new dlech.SshAgentLib.WinForms.LifetimeConstraintControl();
       this.SuspendLayout();
       // 
       // mOKButton
       // 
       this.mOKButton.Anchor = System.Windows.Forms.AnchorStyles.Bottom;
-      this.mOKButton.Location = new System.Drawing.Point(64, 89);
+      this.mOKButton.Location = new System.Drawing.Point(56, 71);
       this.mOKButton.Name = "mOKButton";
       this.mOKButton.Size = new System.Drawing.Size(75, 23);
       this.mOKButton.TabIndex = 0;
@@ -45,42 +43,22 @@
       this.mOKButton.UseVisualStyleBackColor = true;
       this.mOKButton.Click += new System.EventHandler(this.mOKButton_Click);
       // 
-      // mTableLayoutPanel
-      // 
-      this.mTableLayoutPanel.ColumnCount = 1;
-      this.mTableLayoutPanel.ColumnStyles.Add(new System.Windows.Forms.ColumnStyle());
-      this.mTableLayoutPanel.Controls.Add(this.mConfirmConstraintControl, 0, 0);
-      this.mTableLayoutPanel.Controls.Add(this.mLifetimeConstraintControl, 0, 1);
-      this.mTableLayoutPanel.Location = new System.Drawing.Point(12, 7);
-      this.mTableLayoutPanel.Name = "mTableLayoutPanel";
-      this.mTableLayoutPanel.RowCount = 2;
-      this.mTableLayoutPanel.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Percent, 50F));
-      this.mTableLayoutPanel.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Percent, 50F));
-      this.mTableLayoutPanel.Size = new System.Drawing.Size(194, 68);
-      this.mTableLayoutPanel.TabIndex = 1;
-      // 
       // mConfirmConstraintControl
       // 
-      this.mConfirmConstraintControl.Anchor = System.Windows.Forms.AnchorStyles.Left;
-      this.mConfirmConstraintControl.AutoSize = true;
-      this.mConfirmConstraintControl.AutoSizeMode = System.Windows.Forms.AutoSizeMode.GrowAndShrink;
       this.mConfirmConstraintControl.BackColor = System.Drawing.Color.Transparent;
       this.mConfirmConstraintControl.Checked = false;
-      this.mConfirmConstraintControl.Location = new System.Drawing.Point(3, 8);
+      this.mConfirmConstraintControl.Location = new System.Drawing.Point(12, 12);
       this.mConfirmConstraintControl.Name = "mConfirmConstraintControl";
-      this.mConfirmConstraintControl.Size = new System.Drawing.Size(124, 17);
+      this.mConfirmConstraintControl.Size = new System.Drawing.Size(140, 17);
       this.mConfirmConstraintControl.TabIndex = 0;
       // 
       // mLifetimeConstraintControl
       // 
-      this.mLifetimeConstraintControl.Anchor = System.Windows.Forms.AnchorStyles.Left;
-      this.mLifetimeConstraintControl.AutoSize = true;
-      this.mLifetimeConstraintControl.AutoSizeMode = System.Windows.Forms.AutoSizeMode.GrowAndShrink;
       this.mLifetimeConstraintControl.Checked = false;
       this.mLifetimeConstraintControl.Lifetime = ((uint)(600u));
-      this.mLifetimeConstraintControl.Location = new System.Drawing.Point(3, 41);
+      this.mLifetimeConstraintControl.Location = new System.Drawing.Point(12, 35);
       this.mLifetimeConstraintControl.Name = "mLifetimeConstraintControl";
-      this.mLifetimeConstraintControl.Size = new System.Drawing.Size(158, 20);
+      this.mLifetimeConstraintControl.Size = new System.Drawing.Size(190, 20);
       this.mLifetimeConstraintControl.TabIndex = 1;
       // 
       // ConstraintsInputDialog
@@ -88,9 +66,10 @@
       this.AcceptButton = this.mOKButton;
       this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
       this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-      this.ClientSize = new System.Drawing.Size(206, 124);
+      this.ClientSize = new System.Drawing.Size(195, 120);
       this.ControlBox = false;
-      this.Controls.Add(this.mTableLayoutPanel);
+      this.Controls.Add(this.mLifetimeConstraintControl);
+      this.Controls.Add(this.mConfirmConstraintControl);
       this.Controls.Add(this.mOKButton);
       this.FormBorderStyle = System.Windows.Forms.FormBorderStyle.FixedDialog;
       this.MaximizeBox = false;
@@ -98,17 +77,15 @@
       this.Name = "ConstraintsInputDialog";
       this.StartPosition = System.Windows.Forms.FormStartPosition.CenterParent;
       this.Text = "Select Constraints";
-      this.mTableLayoutPanel.ResumeLayout(false);
-      this.mTableLayoutPanel.PerformLayout();
       this.ResumeLayout(false);
+      this.PerformLayout();
 
     }
 
     #endregion
 
     private System.Windows.Forms.Button mOKButton;
-    private System.Windows.Forms.TableLayoutPanel mTableLayoutPanel;
-    private KeeAgent.UI.ConfirmConstraintControl mConfirmConstraintControl;
-    private KeeAgent.UI.LifetimeConstraintControl mLifetimeConstraintControl;
+    private dlech.SshAgentLib.WinForms.ConfirmConstraintControl mConfirmConstraintControl;
+    private dlech.SshAgentLib.WinForms.LifetimeConstraintControl mLifetimeConstraintControl;
   }
 }

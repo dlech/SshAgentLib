@@ -27,8 +27,8 @@
     /// </summary>
     private void InitializeComponent()
     {
-      this.mConfirmConstraintControl = new KeeAgent.UI.ConfirmConstraintControl();
-      this.mLifetimeConstraintControl = new KeeAgent.UI.LifetimeConstraintControl();
+      this.mConfirmConstraintControl = new dlech.SshAgentLib.WinForms.ConfirmConstraintControl();
+      this.mLifetimeConstraintControl = new dlech.SshAgentLib.WinForms.LifetimeConstraintControl();
       this.mTableLayoutPanel = new System.Windows.Forms.TableLayoutPanel();
       this.mTableLayoutPanel.SuspendLayout();
       this.SuspendLayout();
@@ -89,8 +89,8 @@
 
     #endregion
 
-    private KeeAgent.UI.ConfirmConstraintControl mConfirmConstraintControl;
-    private KeeAgent.UI.LifetimeConstraintControl mLifetimeConstraintControl;
+    private dlech.SshAgentLib.WinForms.ConfirmConstraintControl mConfirmConstraintControl;
+    private dlech.SshAgentLib.WinForms.LifetimeConstraintControl mLifetimeConstraintControl;
     private System.Windows.Forms.TableLayoutPanel mTableLayoutPanel;
   }
 }
