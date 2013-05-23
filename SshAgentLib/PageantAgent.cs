@@ -164,6 +164,7 @@ namespace dlech.SshAgentLib
         // one instance being run at a time.
         if (!Monitor.Wait(mLockObject, 5000))
         {
+          // TODO - should throw execption here instead of showing message box
           if (winThread.ThreadState == System.Threading.ThreadState.Running)
           {
             MessageBox.Show("Pageant Agent start timed out.");
