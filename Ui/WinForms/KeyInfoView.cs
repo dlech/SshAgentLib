@@ -12,6 +12,7 @@ using System.IO;
 using System.Diagnostics;
 using System.Reflection;
 using System.Text.RegularExpressions;
+using FileDialogExtenders;
 
 
 #if !__MonoCS__
@@ -34,9 +35,7 @@ namespace dlech.SshAgentLib.WinForms
     private BindingList<KeyWrapper> mKeyCollection;
     private PasswordDialog mPasswordDialog;
     private bool mSelectionChangedBroken;
-#if !__MonoCS__
-    private CommonOpenFileDialog mWin7OpenFileDialog;
-#endif
+    private Dictionary<OpenFileDialog, XPOpenFileDialog> mOpenFileDialogMap;
 
     public ContextMenuStrip AddButtonSplitMenu
     {
@@ -65,6 +64,8 @@ namespace dlech.SshAgentLib.WinForms
 
     public KeyInfoView()
     {
+      mOpenFileDialogMap = new Dictionary<OpenFileDialog, XPOpenFileDialog>();
+
       // workaround for mono bug
       try
       {
@@ -85,51 +86,7 @@ namespace dlech.SshAgentLib.WinForms
         Debug.Fail (ex.ToString());
       }
 
-
       InitializeComponent();
-#if !__MonoCS__
-      if (CommonOpenFileDialog.IsPlatformSupported)
-      {
-        mWin7OpenFileDialog = new CommonOpenFileDialog();
-        mWin7OpenFileDialog.Multiselect = true;
-        mWin7OpenFileDialog.EnsureFileExists = true;
-
-        var confirmConstraintCheckBox =
-          new CommonFileDialogCheckBox(cConfirmConstraintCheckBox,
-          "Require user confirmation");
-        var lifetimeConstraintTextBox =
-          new CommonFileDialogTextBox(cLifetimeConstraintTextBox, string.Empty);
-        lifetimeConstraintTextBox.Visible = false;
-        var lifetimeConstraintCheckBox =
-          new CommonFileDialogCheckBox(cLifetimeConstraintCheckBox,
-          "Set lifetime (in seconds)");
-        lifetimeConstraintCheckBox.CheckedChanged +=
-          delegate(object aSender, EventArgs aEventArgs)
-          {
-            lifetimeConstraintTextBox.Visible =
-              lifetimeConstraintCheckBox.IsChecked;
-          };
-
-        var confirmConstraintGroupBox = new CommonFileDialogGroupBox();
-        var lifetimeConstraintGroupBox = new CommonFileDialogGroupBox();
-
-        confirmConstraintGroupBox.Items.Add(confirmConstraintCheckBox);
-        lifetimeConstraintGroupBox.Items.Add(lifetimeConstraintCheckBox);
-        lifetimeConstraintGroupBox.Items.Add(lifetimeConstraintTextBox);
-
-        mWin7OpenFileDialog.Controls.Add(confirmConstraintGroupBox);
-        mWin7OpenFileDialog.Controls.Add(lifetimeConstraintGroupBox);
-
-        var filter = new CommonFileDialogFilter(
-          Strings.filterPuttyPrivateKeyFiles, "*.ppk");
-        mWin7OpenFileDialog.Filters.Add(filter);
-        filter = new CommonFileDialogFilter(Strings.filterAllFiles, "*.*");
-        mWin7OpenFileDialog.Filters.Add(filter);
-
-        mWin7OpenFileDialog.FileOk += openFileDialog_FileOk;
-      }
-      //mWin7OpenFileDialog = null;
-#endif
     }
 
     public void SetAgent(IAgent aAgent)
@@ -172,28 +129,56 @@ namespace dlech.SshAgentLib.WinForms
       string[] fileNames;
       List<Agent.KeyConstraint> constraints = new List<Agent.KeyConstraint>();
 #if !__MonoCS__
-      if (mWin7OpenFileDialog != null)
-      {
-        var result = mWin7OpenFileDialog.ShowDialog();
+      if (CommonOpenFileDialog.IsPlatformSupported) {
+        var win7OpenFileDialog = new CommonOpenFileDialog();
+        win7OpenFileDialog.Multiselect = true;
+        win7OpenFileDialog.EnsureFileExists = true;
+
+        var confirmConstraintCheckBox =
+          new CommonFileDialogCheckBox(cConfirmConstraintCheckBox,
+          "Require user confirmation");
+        var lifetimeConstraintTextBox =
+          new CommonFileDialogTextBox(cLifetimeConstraintTextBox, string.Empty);
+        lifetimeConstraintTextBox.Visible = false;
+        var lifetimeConstraintCheckBox =
+          new CommonFileDialogCheckBox(cLifetimeConstraintCheckBox,
+          "Set lifetime (in seconds)");
+        lifetimeConstraintCheckBox.CheckedChanged +=
+          delegate(object aSender, EventArgs aEventArgs)
+          {
+            lifetimeConstraintTextBox.Visible =
+              lifetimeConstraintCheckBox.IsChecked;
+          };
+
+        var confirmConstraintGroupBox = new CommonFileDialogGroupBox();
+        var lifetimeConstraintGroupBox = new CommonFileDialogGroupBox();
+
+        confirmConstraintGroupBox.Items.Add(confirmConstraintCheckBox);
+        lifetimeConstraintGroupBox.Items.Add(lifetimeConstraintCheckBox);
+        lifetimeConstraintGroupBox.Items.Add(lifetimeConstraintTextBox);
+
+        win7OpenFileDialog.Controls.Add(confirmConstraintGroupBox);
+        win7OpenFileDialog.Controls.Add(lifetimeConstraintGroupBox);
+
+        var filter = new CommonFileDialogFilter(
+          Strings.filterPuttyPrivateKeyFiles, "*.ppk");
+        win7OpenFileDialog.Filters.Add(filter);
+        filter = new CommonFileDialogFilter(Strings.filterAllFiles, "*.*");
+        win7OpenFileDialog.Filters.Add(filter);
+
+        win7OpenFileDialog.FileOk += win7OpenFileDialog_FileOk;
+
+        var result = win7OpenFileDialog.ShowDialog();
         if (result != CommonFileDialogResult.Ok)
         {
           return;
         }
-        var confirmConstraintCheckBox =
-          mWin7OpenFileDialog.Controls[cConfirmConstraintCheckBox] as
-          CommonFileDialogCheckBox;
         if (confirmConstraintCheckBox.IsChecked)
         {
           var constraint = new Agent.KeyConstraint();
           constraint.Type = Agent.KeyConstraintType.SSH_AGENT_CONSTRAIN_CONFIRM;
           constraints.Add(constraint);
         }
-        var lifetimeConstraintCheckBox =
-          mWin7OpenFileDialog.Controls[cLifetimeConstraintCheckBox] as
-          CommonFileDialogCheckBox;
-        var lifetimeConstraintTextBox =
-          mWin7OpenFileDialog.Controls[cLifetimeConstraintTextBox] as
-          CommonFileDialogTextBox;
         if (lifetimeConstraintCheckBox.IsChecked)
         {
           // error checking for parse done in fileOK event handler
@@ -203,17 +188,36 @@ namespace dlech.SshAgentLib.WinForms
           constraint.Data = lifetime;
           constraints.Add(constraint);
         }
-        fileNames = mWin7OpenFileDialog.FileNames.ToArray();
+        fileNames = win7OpenFileDialog.FileNames.ToArray();
       }
       else
       {
 #endif
-        var result = openFileDialog.ShowDialog();
-        if (result != DialogResult.OK)
-        {
-          return;
+        using (var openFileDialog = new OpenFileDialog()) {
+
+          openFileDialog.FileOk += xpOpenFileDialog_FileOk;
+
+          var xpOpenFileDialog = new XPOpenFileDialog();
+          xpOpenFileDialog.FileDlgStartLocation = AddonWindowLocation.Bottom;
+
+          mOpenFileDialogMap.Add(openFileDialog, xpOpenFileDialog);
+
+          var result = ((FileDialog)openFileDialog).ShowDialog(xpOpenFileDialog, null);
+          if (result != DialogResult.OK) {
+            return;
+          }
+
+          mOpenFileDialogMap.Remove(openFileDialog);
+
+          if (xpOpenFileDialog.UseConfirmConstraintChecked) {
+            constraints.addConfirmConstraint();
+          }
+          if (xpOpenFileDialog.UseLifetimeConstraintChecked) {
+            constraints.addLifetimeConstraint
+              (xpOpenFileDialog.LifetimeConstraintDuration);
+          }
+          fileNames = openFileDialog.FileNames;
         }
-        fileNames = openFileDialog.FileNames;
 #if !__MonoCS__
       }
 #endif
@@ -368,9 +372,16 @@ namespace dlech.SshAgentLib.WinForms
           var constraints = new List<Agent.KeyConstraint>();
           if ((e.KeyState & cDragDropKeyStateCtrl) == cDragDropKeyStateCtrl)
           {
-            var constraint = new Agent.KeyConstraint();
-            constraint.Type = Agent.KeyConstraintType.SSH_AGENT_CONSTRAIN_CONFIRM;
-            constraints.Add(constraint);
+            var dialog = new ConstraintsInputDialog();
+            var result = dialog.ShowDialog();
+            if (dialog.DialogResult == DialogResult.OK) {
+              if (dialog.ConfirmConstraintChecked) {
+                constraints.addConfirmConstraint();
+              }
+              if (dialog.LifetimeConstraintChecked) {
+                constraints.addLifetimeConstraint(dialog.LifetimeDuration);
+              }
+            }
           }
           mAgent.AddKeysFromFiles(fileNames, constraints);
           if (!(mAgent is Agent))
@@ -514,22 +525,23 @@ namespace dlech.SshAgentLib.WinForms
       ReloadKeyListView();
     }
 
-    private void openFileDialog_FileOk(object sender, CancelEventArgs e)
-    {
 #if !__MonoCS__
-      if (mWin7OpenFileDialog != null)
+    private void win7OpenFileDialog_FileOk(object sender, CancelEventArgs e)
+    {
+      var win7OpenFileDialog = sender as CommonOpenFileDialog;
+      if (win7OpenFileDialog != null)
       {
         var lifetimeConstraintCheckBox =
-          mWin7OpenFileDialog.Controls[cLifetimeConstraintCheckBox] as
+          win7OpenFileDialog.Controls[cLifetimeConstraintCheckBox] as
           CommonFileDialogCheckBox;
         var lifetimeConstraintTextBox =
-          mWin7OpenFileDialog.Controls[cLifetimeConstraintTextBox] as
+          win7OpenFileDialog.Controls[cLifetimeConstraintTextBox] as
           CommonFileDialogTextBox;
         if (lifetimeConstraintCheckBox.IsChecked)
         {
           uint lifetime;
           var success = uint.TryParse(lifetimeConstraintTextBox.Text, out lifetime);
-          if (!success)
+          if (!success || lifetime == 0)
           {
             MessageBox.Show("Invalid lifetime", Util.AssemblyTitle,
               MessageBoxButtons.OK, MessageBoxIcon.Exclamation);
@@ -538,7 +550,25 @@ namespace dlech.SshAgentLib.WinForms
           }
         }
       }
+    }
 #endif
+
+    private void xpOpenFileDialog_FileOk(object sender, CancelEventArgs e)
+    {
+      var openFileDialog = sender as OpenFileDialog;
+      if (openFileDialog != null &&
+          mOpenFileDialogMap.ContainsKey(openFileDialog))
+      {
+        var xpOpenFileDialog = mOpenFileDialogMap[openFileDialog];
+        if (xpOpenFileDialog.UseLifetimeConstraintChecked) {
+          if (xpOpenFileDialog.LifetimeConstraintDuration == 0) {
+            MessageBox.Show("Invalid lifetime", Util.AssemblyTitle,
+              MessageBoxButtons.OK, MessageBoxIcon.Exclamation);
+            e.Cancel = true;
+            return;
+          }
+        }
+      }
     }
 
     private void KeyManagerForm_KeyUp(object sender, KeyEventArgs e)
@@ -549,6 +579,51 @@ namespace dlech.SshAgentLib.WinForms
         {
           ReloadKeyListView();
         }
+      }
+    }
+
+    private void dataGridView_CellPainting(object sender,
+                                           DataGridViewCellPaintingEventArgs e)
+    {
+      if (e.RowIndex >= 0 &&
+          (e.ColumnIndex == confirmDataGridViewCheckBoxColumn.Index ||
+           e.ColumnIndex == lifetimeDataGridViewCheckBoxColumn.Index))
+      {
+        
+        var backColorBrush = new SolidBrush
+          (e.State.HasFlag(DataGridViewElementStates.Selected) ?
+           e.CellStyle.SelectionBackColor :
+           e.CellStyle.BackColor);
+
+        e.Graphics.FillRectangle(backColorBrush, e.CellBounds);
+
+        var gridBrush = new SolidBrush(this.dataGridView.GridColor);
+        var gridLinePen = new Pen(gridBrush);
+
+        e.Graphics.DrawLine(gridLinePen, e.CellBounds.Left,
+                            e.CellBounds.Bottom - 1, e.CellBounds.Right - 1,
+                            e.CellBounds.Bottom - 1);
+        e.Graphics.DrawLine(gridLinePen, e.CellBounds.Right - 1,
+                            e.CellBounds.Top, e.CellBounds.Right - 1,
+                            e.CellBounds.Bottom);
+
+        // TODO - make this pretty!
+
+        var foreColorPen = new Pen
+         (e.State.HasFlag(DataGridViewElementStates.Selected) ?
+          e.CellStyle.SelectionForeColor :
+          e.CellStyle.ForeColor);
+        
+        var midX = e.CellBounds.X + e.CellBounds.Width / 2;
+        var midY = e.CellBounds.Y + e.CellBounds.Height / 2;
+        e.Graphics.DrawRectangle(foreColorPen, midX - 5, midY - 5, 10, 10);
+
+        if (e.Value is bool && ((bool)e.Value)) {
+          e.Graphics.DrawLine(foreColorPen, midX - 5, midY - 5, midX + 5, midY + 5);
+          e.Graphics.DrawLine(foreColorPen, midX - 5, midY + 5, midX + 5, midY - 5);
+        }
+
+        e.Handled = true;
       }
     }
 

@@ -51,14 +51,15 @@
       this.mTableLayoutPanel.Name = "mTableLayoutPanel";
       this.mTableLayoutPanel.RowCount = 1;
       this.mTableLayoutPanel.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Percent, 100F));
-      this.mTableLayoutPanel.Size = new System.Drawing.Size(167, 26);
+      this.mTableLayoutPanel.Size = new System.Drawing.Size(158, 20);
       this.mTableLayoutPanel.TabIndex = 0;
       // 
       // mLifetimeCheckBox
       // 
       this.mLifetimeCheckBox.AutoSize = true;
       this.mLifetimeCheckBox.Dock = System.Windows.Forms.DockStyle.Fill;
-      this.mLifetimeCheckBox.Location = new System.Drawing.Point(3, 3);
+      this.mLifetimeCheckBox.Location = new System.Drawing.Point(0, 0);
+      this.mLifetimeCheckBox.Margin = new System.Windows.Forms.Padding(0);
       this.mLifetimeCheckBox.Name = "mLifetimeCheckBox";
       this.mLifetimeCheckBox.Size = new System.Drawing.Size(62, 20);
       this.mLifetimeCheckBox.TabIndex = 0;
@@ -70,7 +71,8 @@
       // 
       this.mLifetimeTextBox.Dock = System.Windows.Forms.DockStyle.Fill;
       this.mLifetimeTextBox.Enabled = false;
-      this.mLifetimeTextBox.Location = new System.Drawing.Point(71, 3);
+      this.mLifetimeTextBox.Location = new System.Drawing.Point(65, 0);
+      this.mLifetimeTextBox.Margin = new System.Windows.Forms.Padding(3, 0, 3, 0);
       this.mLifetimeTextBox.Name = "mLifetimeTextBox";
       this.mLifetimeTextBox.Size = new System.Drawing.Size(38, 20);
       this.mLifetimeTextBox.TabIndex = 1;
@@ -82,9 +84,10 @@
       this.mTimeUnitsLabel.AutoSize = true;
       this.mTimeUnitsLabel.Dock = System.Windows.Forms.DockStyle.Fill;
       this.mTimeUnitsLabel.Enabled = false;
-      this.mTimeUnitsLabel.Location = new System.Drawing.Point(115, 0);
+      this.mTimeUnitsLabel.Location = new System.Drawing.Point(109, 0);
+      this.mTimeUnitsLabel.Margin = new System.Windows.Forms.Padding(3, 0, 0, 0);
       this.mTimeUnitsLabel.Name = "mTimeUnitsLabel";
-      this.mTimeUnitsLabel.Size = new System.Drawing.Size(49, 26);
+      this.mTimeUnitsLabel.Size = new System.Drawing.Size(49, 20);
       this.mTimeUnitsLabel.TabIndex = 2;
       this.mTimeUnitsLabel.Text = "Seconds";
       this.mTimeUnitsLabel.TextAlign = System.Drawing.ContentAlignment.MiddleLeft;
@@ -97,7 +100,7 @@
       this.AutoSizeMode = System.Windows.Forms.AutoSizeMode.GrowAndShrink;
       this.Controls.Add(this.mTableLayoutPanel);
       this.Name = "LifetimeConstraintControl";
-      this.Size = new System.Drawing.Size(167, 26);
+      this.Size = new System.Drawing.Size(158, 20);
       this.mTableLayoutPanel.ResumeLayout(false);
       this.mTableLayoutPanel.PerformLayout();
       this.ResumeLayout(false);

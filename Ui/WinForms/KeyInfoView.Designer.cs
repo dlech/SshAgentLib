@@ -42,11 +42,10 @@
       this.buttonTableLayoutPanel = new System.Windows.Forms.TableLayoutPanel();
       this.lockButton = new System.Windows.Forms.Button();
       this.unlockButton = new System.Windows.Forms.Button();
+      this.addKeyButton = new wyDay.Controls.SplitButton();
       this.removeKeyButton = new System.Windows.Forms.Button();
       this.removeAllbutton = new System.Windows.Forms.Button();
       this.refreshButton = new System.Windows.Forms.Button();
-      this.openFileDialog = new System.Windows.Forms.OpenFileDialog();
-      this.addKeyButton = new wyDay.Controls.SplitButton();
       ((System.ComponentModel.ISupportInitialize)(this.dataGridView)).BeginInit();
       ((System.ComponentModel.ISupportInitialize)(this.keyWrapperBindingSource)).BeginInit();
       this.mainTableLayoutPanel.SuspendLayout();
@@ -92,6 +91,7 @@
       this.dataGridView.SelectionMode = System.Windows.Forms.DataGridViewSelectionMode.FullRowSelect;
       this.dataGridView.Size = new System.Drawing.Size(547, 216);
       this.dataGridView.TabIndex = 0;
+      this.dataGridView.CellPainting += new System.Windows.Forms.DataGridViewCellPaintingEventHandler(this.dataGridView_CellPainting);
       this.dataGridView.SelectionChanged += new System.EventHandler(this.dataGridView_SelectionChanged);
       this.dataGridView.DragDrop += new System.Windows.Forms.DragEventHandler(this.dataGridView_DragDrop);
       this.dataGridView.DragEnter += new System.Windows.Forms.DragEventHandler(this.dataGridView_DragEnter);
@@ -232,6 +232,18 @@
       this.unlockButton.UseVisualStyleBackColor = true;
       this.unlockButton.Click += new System.EventHandler(this.unlockButton_Click);
       // 
+      // addKeyButton
+      // 
+      this.addKeyButton.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Left | System.Windows.Forms.AnchorStyles.Right)));
+      this.addKeyButton.AutoSize = true;
+      this.addKeyButton.Location = new System.Drawing.Point(185, 3);
+      this.addKeyButton.Name = "addKeyButton";
+      this.addKeyButton.Size = new System.Drawing.Size(85, 23);
+      this.addKeyButton.TabIndex = 2;
+      this.addKeyButton.Text = "&Add...";
+      this.addKeyButton.UseVisualStyleBackColor = true;
+      this.addKeyButton.Click += new System.EventHandler(this.addKeyButton_Click);
+      // 
       // removeKeyButton
       // 
       this.removeKeyButton.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Left | System.Windows.Forms.AnchorStyles.Right)));
@@ -268,25 +280,6 @@
       this.refreshButton.UseVisualStyleBackColor = true;
       this.refreshButton.Click += new System.EventHandler(this.refreshButton_Click);
       // 
-      // openFileDialog
-      // 
-      this.openFileDialog.Filter = "Putty Private Key files|*.ppk|All files|*.*";
-      this.openFileDialog.Multiselect = true;
-      this.openFileDialog.Title = "Open SSH Key File";
-      this.openFileDialog.FileOk += new System.ComponentModel.CancelEventHandler(this.openFileDialog_FileOk);
-      // 
-      // addKeyButton
-      // 
-      this.addKeyButton.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Left | System.Windows.Forms.AnchorStyles.Right)));
-      this.addKeyButton.AutoSize = true;
-      this.addKeyButton.Location = new System.Drawing.Point(185, 3);
-      this.addKeyButton.Name = "addKeyButton";
-      this.addKeyButton.Size = new System.Drawing.Size(85, 23);
-      this.addKeyButton.TabIndex = 2;
-      this.addKeyButton.Text = "&Add...";
-      this.addKeyButton.UseVisualStyleBackColor = true;
-      this.addKeyButton.Click += new System.EventHandler(this.addKeyButton_Click);
-      // 
       // KeyInfoView
       // 
       this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
@@ -317,7 +310,6 @@
     private System.Windows.Forms.Button removeKeyButton;
     private System.Windows.Forms.Button removeAllbutton;
     private System.Windows.Forms.Button refreshButton;
-    private System.Windows.Forms.OpenFileDialog openFileDialog;
     private System.Windows.Forms.Panel dataGridViewPanel;
     private System.Windows.Forms.DataGridViewCheckBoxColumn confirmDataGridViewCheckBoxColumn;
     private System.Windows.Forms.DataGridViewCheckBoxColumn lifetimeDataGridViewCheckBoxColumn;
