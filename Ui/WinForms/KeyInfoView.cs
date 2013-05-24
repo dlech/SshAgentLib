@@ -35,7 +35,9 @@ namespace dlech.SshAgentLib.WinForms
     private BindingList<KeyWrapper> mKeyCollection;
     private PasswordDialog mPasswordDialog;
     private bool mSelectionChangedBroken;
+#if !__MonoCS__
     private Dictionary<OpenFileDialog, XPOpenFileDialog> mOpenFileDialogMap;
+#endif
 
     public ContextMenuStrip AddButtonSplitMenu
     {
@@ -64,8 +66,9 @@ namespace dlech.SshAgentLib.WinForms
 
     public KeyInfoView()
     {
+#if !__MonoCS__
       mOpenFileDialogMap = new Dictionary<OpenFileDialog, XPOpenFileDialog>();
-
+#endif
       // workaround for mono bug
       try
       {
@@ -371,7 +374,7 @@ namespace dlech.SshAgentLib.WinForms
     {
       if ((mAgent != null) && e.Data.GetDataPresent(DataFormats.FileDrop))
       {
-        e.Effect = DragDropEffects.Move;
+        e.Effect = DragDropEffects.Copy;
       }
       else
       {
@@ -388,7 +391,12 @@ namespace dlech.SshAgentLib.WinForms
         {
           UseWaitCursor = true;
           var constraints = new List<Agent.KeyConstraint>();
-          if ((e.KeyState & cDragDropKeyStateCtrl) == cDragDropKeyStateCtrl)
+          // MONO WORKAROUND - mono does not provide e.KeyState information
+          // it is always 0. However, when pressing the Control key (at least
+          // in Gnome), e.AllowedEffect is limited to just Copy, so we can use
+          // it to detect that the control key has been pressed
+          if ((e.KeyState & cDragDropKeyStateCtrl) == cDragDropKeyStateCtrl ||
+              e.AllowedEffect == DragDropEffects.Copy)
           {
             var dialog = new ConstraintsInputDialog();
             dialog.ShowDialog();
