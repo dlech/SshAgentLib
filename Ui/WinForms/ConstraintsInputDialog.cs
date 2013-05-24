@@ -29,6 +29,17 @@ namespace dlech.SshAgentLib.WinForms
     public ConstraintsInputDialog()
     {
       InitializeComponent();
+#if __MonoCS__
+      mConfirmConstraintControl.AutoSize = false;
+      mConfirmConstraintControl.Size =
+        new Size(200, mConfirmConstraintControl.Height);
+      mLifetimeConstraintControl.AutoSize = false;
+      mLifetimeConstraintControl.Size =
+        new Size(200, mLifetimeConstraintControl.Height);
+      mOKButton.Location = new Point(mOKButton.Location.X,
+                                     mOKButton.Location.Y - 20);
+	    Size = new Size (Width, Height + 20);
+#endif
     }
 
     private void mOKButton_Click(object sender, EventArgs e)
