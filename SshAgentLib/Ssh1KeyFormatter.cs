@@ -35,7 +35,6 @@ namespace dlech.SshAgentLib
       if (GetPassphraseCallbackMethod != null) {
         pwFinder = new PasswordFinder(GetPassphraseCallbackMethod);
       }
-      StreamWriter streamWriter = new StreamWriter(aStream);
       PinnedArray<char> passphrase = null;
       if (pwFinder != null) {
         passphrase = new PinnedArray<char>(0);
