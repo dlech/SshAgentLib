@@ -28,14 +28,14 @@
     private void InitializeComponent()
     {
       this.mOKButton = new System.Windows.Forms.Button();
-      this.mConfirmConstraintControl = new dlech.SshAgentLib.WinForms.ConfirmConstraintControl();
       this.mLifetimeConstraintControl = new dlech.SshAgentLib.WinForms.LifetimeConstraintControl();
+      this.mConfirmConstraintControl = new dlech.SshAgentLib.WinForms.ConfirmConstraintControl();
       this.SuspendLayout();
       // 
       // mOKButton
       // 
       this.mOKButton.Anchor = System.Windows.Forms.AnchorStyles.Bottom;
-      this.mOKButton.Location = new System.Drawing.Point(56, 71);
+      this.mOKButton.Location = new System.Drawing.Point(51, 71);
       this.mOKButton.Name = "mOKButton";
       this.mOKButton.Size = new System.Drawing.Size(75, 23);
       this.mOKButton.TabIndex = 0;
@@ -43,30 +43,34 @@
       this.mOKButton.UseVisualStyleBackColor = true;
       this.mOKButton.Click += new System.EventHandler(this.mOKButton_Click);
       // 
-      // mConfirmConstraintControl
-      // 
-      this.mConfirmConstraintControl.BackColor = System.Drawing.Color.Transparent;
-      this.mConfirmConstraintControl.Checked = false;
-      this.mConfirmConstraintControl.Location = new System.Drawing.Point(12, 12);
-      this.mConfirmConstraintControl.Name = "mConfirmConstraintControl";
-      this.mConfirmConstraintControl.Size = new System.Drawing.Size(140, 17);
-      this.mConfirmConstraintControl.TabIndex = 0;
-      // 
       // mLifetimeConstraintControl
       // 
+      this.mLifetimeConstraintControl.AutoSize = true;
+      this.mLifetimeConstraintControl.AutoSizeMode = System.Windows.Forms.AutoSizeMode.GrowAndShrink;
       this.mLifetimeConstraintControl.Checked = false;
       this.mLifetimeConstraintControl.Lifetime = ((uint)(600u));
       this.mLifetimeConstraintControl.Location = new System.Drawing.Point(12, 35);
       this.mLifetimeConstraintControl.Name = "mLifetimeConstraintControl";
-      this.mLifetimeConstraintControl.Size = new System.Drawing.Size(190, 20);
+      this.mLifetimeConstraintControl.Size = new System.Drawing.Size(158, 20);
       this.mLifetimeConstraintControl.TabIndex = 1;
+      // 
+      // mConfirmConstraintControl
+      // 
+      this.mConfirmConstraintControl.AutoSize = true;
+      this.mConfirmConstraintControl.AutoSizeMode = System.Windows.Forms.AutoSizeMode.GrowAndShrink;
+      this.mConfirmConstraintControl.BackColor = System.Drawing.Color.Transparent;
+      this.mConfirmConstraintControl.Checked = false;
+      this.mConfirmConstraintControl.Location = new System.Drawing.Point(12, 12);
+      this.mConfirmConstraintControl.Name = "mConfirmConstraintControl";
+      this.mConfirmConstraintControl.Size = new System.Drawing.Size(124, 17);
+      this.mConfirmConstraintControl.TabIndex = 0;
       // 
       // ConstraintsInputDialog
       // 
       this.AcceptButton = this.mOKButton;
       this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
       this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-      this.ClientSize = new System.Drawing.Size(195, 120);
+      this.ClientSize = new System.Drawing.Size(195, 106);
       this.ControlBox = false;
       this.Controls.Add(this.mLifetimeConstraintControl);
       this.Controls.Add(this.mConfirmConstraintControl);
