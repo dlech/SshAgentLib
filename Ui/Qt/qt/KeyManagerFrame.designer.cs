@@ -1,7 +1,7 @@
 /********************************************************************************
 ** Form generated from reading ui file 'KeyManagerFrame.ui'
 **
-** Created: Thu Feb 21 00:12:00 2013
+** Created: Fri May 24 20:36:53 2013
 **      by: Qt User Interface Compiler for C# version 4.8.3
 **
 ** WARNING! All changes made in this file will be lost when recompiling ui file!

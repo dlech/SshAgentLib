@@ -11,6 +11,8 @@
     <RootNamespace>dlech.SshAgentLib</RootNamespace>
     <AssemblyName>SshAgentLib</AssemblyName>
     <FileAlignment>512</FileAlignment>
+    <ReleaseVersion>0.3.8</ReleaseVersion>
+    <SynchReleaseVersion>False</SynchReleaseVersion>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|AnyCPU'">
     <DebugSymbols>True</DebugSymbols>
