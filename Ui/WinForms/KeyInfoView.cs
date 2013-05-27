@@ -35,6 +35,7 @@ namespace dlech.SshAgentLib.WinForms
     private BindingList<KeyWrapper> mKeyCollection;
     private PasswordDialog mPasswordDialog;
     private bool mSelectionChangedBroken;
+    private int mButtonLayoutInitialColumnCount;
 #if !__MonoCS__
     private Dictionary<OpenFileDialog, XPOpenFileDialog> mOpenFileDialogMap;
 #endif
@@ -90,6 +91,7 @@ namespace dlech.SshAgentLib.WinForms
       }
 
       InitializeComponent();
+      mButtonLayoutInitialColumnCount = buttonTableLayoutPanel.ColumnCount;
     }
 
     public void SetAgent(IAgent aAgent)
@@ -105,8 +107,10 @@ namespace dlech.SshAgentLib.WinForms
         }
       }
 
-      mAgent = aAgent;
+      buttonTableLayoutPanel.ColumnCount = mButtonLayoutInitialColumnCount;
+      buttonTableLayoutPanel.Controls.Clear();
 
+      mAgent = aAgent;
       if (mAgent is Agent)
       {
         var agent = mAgent as Agent;
@@ -114,16 +118,38 @@ namespace dlech.SshAgentLib.WinForms
         lifetimeDataGridViewCheckBoxColumn.Visible = true;
         agent.KeyListChanged += AgentKeyListChangeHandler;
         agent.Locked += AgentLockHandler;
-        buttonTableLayoutPanel.Controls.Remove(refreshButton);
-        buttonTableLayoutPanel.ColumnCount = 5;
+        buttonTableLayoutPanel.ColumnCount -= 1;
+
+        buttonTableLayoutPanel.Controls.Add(lockButton, 0, 0);
+        buttonTableLayoutPanel.Controls.Add(unlockButton, 1, 0);
+        buttonTableLayoutPanel.Controls.Add(addKeyButton, 2, 0);
+        buttonTableLayoutPanel.Controls.Add(removeKeyButton, 3, 0);
+        buttonTableLayoutPanel.Controls.Add(removeAllButton, 4, 0);
       }
       else
       {
+        // hide lock/unlock buttons if using Pageant since they are not supported
+        if (mAgent is PageantClient) {
+          buttonTableLayoutPanel.ColumnCount -= 2;
+        } else {
+          buttonTableLayoutPanel.Controls.Add(lockButton, 0, 0);
+          buttonTableLayoutPanel.Controls.Add(unlockButton, 1, 0);
+        }
+        var colCount = buttonTableLayoutPanel.ColumnCount;
+        buttonTableLayoutPanel.Controls.Add(addKeyButton, colCount - 4, 0);
+        buttonTableLayoutPanel.Controls.Add(removeKeyButton, colCount - 3, 0);
+        buttonTableLayoutPanel.Controls.Add(removeAllButton, colCount - 2, 0);
+        buttonTableLayoutPanel.Controls.Add(refreshButton, colCount - 1, 0);
+
         confirmDataGridViewCheckBoxColumn.Visible = false;
         lifetimeDataGridViewCheckBoxColumn.Visible = false;
-        buttonTableLayoutPanel.ColumnCount = 6;
-        buttonTableLayoutPanel.Controls.Add(refreshButton, 5, 0);
       }
+
+      for (int i = 0; i < buttonTableLayoutPanel.ColumnCount; i++) {
+        buttonTableLayoutPanel.ColumnStyles[i] =
+          new ColumnStyle(SizeType.Percent, 100F / buttonTableLayoutPanel.ColumnCount);
+      }
+
       ReloadKeyListView();
     }
 
@@ -310,7 +336,7 @@ namespace dlech.SshAgentLib.WinForms
       addKeyButton.Enabled = !isLocked;
       removeKeyButton.Enabled = mSelectionChangedBroken ||
         (dataGridView.SelectedRows.Count > 0 && !isLocked);
-      removeAllbutton.Enabled = dataGridView.Rows.Count > 0 &&
+      removeAllButton.Enabled = dataGridView.Rows.Count > 0 &&
         !isLocked;
     }
 

@@ -44,7 +44,7 @@
       this.unlockButton = new System.Windows.Forms.Button();
       this.addKeyButton = new wyDay.Controls.SplitButton();
       this.removeKeyButton = new System.Windows.Forms.Button();
-      this.removeAllbutton = new System.Windows.Forms.Button();
+      this.removeAllButton = new System.Windows.Forms.Button();
       this.refreshButton = new System.Windows.Forms.Button();
       ((System.ComponentModel.ISupportInitialize)(this.dataGridView)).BeginInit();
       ((System.ComponentModel.ISupportInitialize)(this.keyWrapperBindingSource)).BeginInit();
@@ -199,7 +199,7 @@
       this.buttonTableLayoutPanel.Controls.Add(this.unlockButton, 1, 0);
       this.buttonTableLayoutPanel.Controls.Add(this.addKeyButton, 2, 0);
       this.buttonTableLayoutPanel.Controls.Add(this.removeKeyButton, 3, 0);
-      this.buttonTableLayoutPanel.Controls.Add(this.removeAllbutton, 4, 0);
+      this.buttonTableLayoutPanel.Controls.Add(this.removeAllButton, 4, 0);
       this.buttonTableLayoutPanel.Controls.Add(this.refreshButton, 5, 0);
       this.buttonTableLayoutPanel.Location = new System.Drawing.Point(3, 225);
       this.buttonTableLayoutPanel.Name = "buttonTableLayoutPanel";
@@ -258,15 +258,15 @@
       // 
       // removeAllbutton
       // 
-      this.removeAllbutton.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Left | System.Windows.Forms.AnchorStyles.Right)));
-      this.removeAllbutton.AutoSize = true;
-      this.removeAllbutton.Location = new System.Drawing.Point(367, 3);
-      this.removeAllbutton.Name = "removeAllbutton";
-      this.removeAllbutton.Size = new System.Drawing.Size(85, 23);
-      this.removeAllbutton.TabIndex = 4;
-      this.removeAllbutton.Text = "R&emove All";
-      this.removeAllbutton.UseVisualStyleBackColor = true;
-      this.removeAllbutton.Click += new System.EventHandler(this.removeAllButton_Click);
+      this.removeAllButton.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Left | System.Windows.Forms.AnchorStyles.Right)));
+      this.removeAllButton.AutoSize = true;
+      this.removeAllButton.Location = new System.Drawing.Point(367, 3);
+      this.removeAllButton.Name = "removeAllbutton";
+      this.removeAllButton.Size = new System.Drawing.Size(85, 23);
+      this.removeAllButton.TabIndex = 4;
+      this.removeAllButton.Text = "R&emove All";
+      this.removeAllButton.UseVisualStyleBackColor = true;
+      this.removeAllButton.Click += new System.EventHandler(this.removeAllButton_Click);
       // 
       // refreshButton
       // 
@@ -308,7 +308,7 @@
     private System.Windows.Forms.Button lockButton;
     private System.Windows.Forms.Button unlockButton;
     private System.Windows.Forms.Button removeKeyButton;
-    private System.Windows.Forms.Button removeAllbutton;
+    private System.Windows.Forms.Button removeAllButton;
     private System.Windows.Forms.Button refreshButton;
     private System.Windows.Forms.Panel dataGridViewPanel;
     private System.Windows.Forms.DataGridViewCheckBoxColumn confirmDataGridViewCheckBoxColumn;
