@@ -115,7 +115,7 @@ Global
 		$0.TextStylePolicy = $13
 		$13.inheritsSet = null
 		$13.scope = application/x-desktop
-		version = 0.4.0
+		version = 0.4.1
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
