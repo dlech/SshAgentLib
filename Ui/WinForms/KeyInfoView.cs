@@ -158,7 +158,26 @@ namespace dlech.SshAgentLib.WinForms
       string[] fileNames;
       List<Agent.KeyConstraint> constraints = new List<Agent.KeyConstraint>();
 #if !__MonoCS__
-      if (CommonOpenFileDialog.IsPlatformSupported) {
+      if (mAgent is PageantClient) {
+        // Client Mode with Pageant - Show standard file dialog since we don't
+        // need / can't use constraints
+
+        using (var openFileDialog = new OpenFileDialog())
+        {
+          openFileDialog.Filter = string.Join("|",
+            Strings.filterPuttyPrivateKeyFiles, "*.ppk",
+             Strings.filterAllFiles, "*.*");
+
+          var result = openFileDialog.ShowDialog();
+          if (result != DialogResult.OK) {
+            return;
+          }
+          fileNames = openFileDialog.FileNames;
+        }
+      } else if (CommonOpenFileDialog.IsPlatformSupported) {
+        // Windows Vista/7/8 has new style file open dialog that can be extended
+        // using the Windows API via the WindowsAPICodepack library
+
         var win7OpenFileDialog = new CommonOpenFileDialog();
         win7OpenFileDialog.Multiselect = true;
         win7OpenFileDialog.EnsureFileExists = true;
@@ -218,10 +237,15 @@ namespace dlech.SshAgentLib.WinForms
           constraints.Add(constraint);
         }
         fileNames = win7OpenFileDialog.FileNames.ToArray();
-      }
-      else
-      {
+      } else {
+        // Windows XP uses old style file open dialog that can be extended
+        // using the Windows API via FileDlgExtenders library
+
         using (var openFileDialog = new OpenFileDialog()) {
+
+          openFileDialog.Filter = string.Join("|",
+            Strings.filterPuttyPrivateKeyFiles, "*.ppk",
+             Strings.filterAllFiles, "*.*");
 
           openFileDialog.FileOk += xpOpenFileDialog_FileOk;
 
