@@ -11,7 +11,7 @@ namespace Microsoft.WindowsAPICodePack.Dialogs.Controls
     /// <summary>
     /// Represents a radio button list for the Common File Dialog.
     /// </summary>
-    [ContentProperty("Items")]
+    //[ContentProperty("Items")]
     public class CommonFileDialogRadioButtonList : CommonFileDialogControl, ICommonFileDialogIndexedControls
     {
         private Collection<CommonFileDialogRadioButtonListItem> items = new Collection<CommonFileDialogRadioButtonListItem>();

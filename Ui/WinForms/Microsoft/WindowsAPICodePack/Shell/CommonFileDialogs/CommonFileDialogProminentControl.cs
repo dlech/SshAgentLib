@@ -7,7 +7,7 @@ namespace Microsoft.WindowsAPICodePack.Dialogs.Controls
     /// <summary>
     /// Defines the properties and constructors for all prominent controls in the Common File Dialog.
     /// </summary>
-    [ContentProperty("Items")]
+    //[ContentProperty("Items")]
     public abstract class CommonFileDialogProminentControl : CommonFileDialogControl
     {
         private bool isProminent;

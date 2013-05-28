@@ -111,6 +111,150 @@
     <Compile Include="XPOpenFileDialog.Designer.cs">
       <DependentUpon>XPOpenFileDialog.cs</DependentUpon>
     </Compile>
+    <Compile Include="Microsoft\WindowsAPICodePack\Core\Dialogs\Common\DialogControl.cs" />
+    <Compile Include="Microsoft\WindowsAPICodePack\Core\Dialogs\Common\DialogControlCollection.cs" />
+    <Compile Include="Microsoft\WindowsAPICodePack\Core\Dialogs\Common\DialogsDefaults.cs" />
+    <Compile Include="Microsoft\WindowsAPICodePack\Core\Dialogs\Common\IDialogControlHost.cs" />
+    <Compile Include="Microsoft\WindowsAPICodePack\Core\Interop\CoreErrorHelper.cs" />
+    <Compile Include="Microsoft\WindowsAPICodePack\Core\Interop\CoreHelpers.cs" />
+    <Compile Include="Microsoft\WindowsAPICodePack\Core\Interop\CoreNativeMethods.cs" />
+    <Compile Include="Microsoft\WindowsAPICodePack\Core\Interop\WindowMessage.cs" />
+    <Compile Include="Microsoft\WindowsAPICodePack\Core\Interop\Dialogs\DialogShowState.cs" />
+    <Compile Include="Microsoft\WindowsAPICodePack\Shell\Common\DefaultShellImageSizes.cs" />
+    <Compile Include="Microsoft\WindowsAPICodePack\Shell\Common\EnumUnknown.cs" />
+    <Compile Include="Microsoft\WindowsAPICodePack\Shell\Common\EventHandlerExtensionMethods.cs" />
+    <Compile Include="Microsoft\WindowsAPICodePack\Shell\Common\IconReference.cs" />
+    <Compile Include="Microsoft\WindowsAPICodePack\Shell\Common\NativePoint.cs" />
+    <Compile Include="Microsoft\WindowsAPICodePack\Shell\Common\NativeRect.cs" />
+    <Compile Include="Microsoft\WindowsAPICodePack\Shell\Common\SearchCondition.cs" />
+    <Compile Include="Microsoft\WindowsAPICodePack\Shell\Common\SearchConditionFactory.cs" />
+    <Compile Include="Microsoft\WindowsAPICodePack\Shell\Common\ShellEnums.cs" />
+    <Compile Include="Microsoft\WindowsAPICodePack\Shell\Common\ShellException.cs" />
+    <Compile Include="Microsoft\WindowsAPICodePack\Shell\Common\ShellFile.cs" />
+    <Compile Include="Microsoft\WindowsAPICodePack\Shell\Common\ShellFileSystemFolder.cs" />
+    <Compile Include="Microsoft\WindowsAPICodePack\Shell\Common\ShellFolder.cs" />
+    <Compile Include="Microsoft\WindowsAPICodePack\Shell\Common\ShellFolderItems.cs" />
+    <Compile Include="Microsoft\WindowsAPICodePack\Shell\Common\ShellHelper.cs" />
+    <Compile Include="Microsoft\WindowsAPICodePack\Shell\Common\ShellItemArray.cs" />
+    <Compile Include="Microsoft\WindowsAPICodePack\Shell\Common\ShellLibrary.cs" />
+    <Compile Include="Microsoft\WindowsAPICodePack\Shell\Common\ShellLink.cs" />
+    <Compile Include="Microsoft\WindowsAPICodePack\Shell\Common\ShellNonFileSystemFolder.cs" />
+    <Compile Include="Microsoft\WindowsAPICodePack\Shell\Common\ShellNonFileSystemItem.cs" />
+    <Compile Include="Microsoft\WindowsAPICodePack\Shell\Common\ShellObject.cs" />
+    <Compile Include="Microsoft\WindowsAPICodePack\Shell\Common\ShellObjectCollection.cs" />
+    <Compile Include="Microsoft\WindowsAPICodePack\Shell\Common\ShellObjectContainer.cs" />
+    <Compile Include="Microsoft\WindowsAPICodePack\Shell\Common\ShellObjectFactory.cs" />
+    <Compile Include="Microsoft\WindowsAPICodePack\Shell\Common\ShellSavedSearchCollection.cs" />
+    <Compile Include="Microsoft\WindowsAPICodePack\Shell\Common\ShellSearchCollection.cs" />
+    <Compile Include="Microsoft\WindowsAPICodePack\Shell\Common\ShellSearchConnector.cs" />
+    <Compile Include="Microsoft\WindowsAPICodePack\Shell\Common\ShellSearchFolder.cs" />
+    <Compile Include="Microsoft\WindowsAPICodePack\Shell\Common\ShellThumbnail.cs" />
+    <Compile Include="Microsoft\WindowsAPICodePack\Shell\Common\ShellThumbnailEnums.cs" />
+    <Compile Include="Microsoft\WindowsAPICodePack\Shell\Common\SortColumn.cs" />
+    <Compile Include="Microsoft\WindowsAPICodePack\Shell\CommonFileDialogs\CommonFileDialog.cs" />
+    <Compile Include="Microsoft\WindowsAPICodePack\Shell\CommonFileDialogs\CommonFileDialogButton.cs" />
+    <Compile Include="Microsoft\WindowsAPICodePack\Shell\CommonFileDialogs\CommonFileDialogCheckBox.cs" />
+    <Compile Include="Microsoft\WindowsAPICodePack\Shell\CommonFileDialogs\CommonFileDialogComboBox.cs" />
+    <Compile Include="Microsoft\WindowsAPICodePack\Shell\CommonFileDialogs\CommonFileDialogControl.cs" />
+    <Compile Include="Microsoft\WindowsAPICodePack\Shell\CommonFileDialogs\CommonFileDialogControlCollection.cs" />
+    <Compile Include="Microsoft\WindowsAPICodePack\Shell\CommonFileDialogs\CommonFileDialogFilter.cs" />
+    <Compile Include="Microsoft\WindowsAPICodePack\Shell\CommonFileDialogs\CommonFileDialogFilterCollection.cs" />
+    <Compile Include="Microsoft\WindowsAPICodePack\Shell\CommonFileDialogs\CommonFileDialogFolderChangeEventArgs.cs" />
+    <Compile Include="Microsoft\WindowsAPICodePack\Shell\CommonFileDialogs\CommonFileDialogGroupBox.cs" />
+    <Compile Include="Microsoft\WindowsAPICodePack\Shell\CommonFileDialogs\CommonFileDialogLabel.cs" />
+    <Compile Include="Microsoft\WindowsAPICodePack\Shell\CommonFileDialogs\CommonFileDialogMenu.cs" />
+    <Compile Include="Microsoft\WindowsAPICodePack\Shell\CommonFileDialogs\CommonFileDialogProminentControl.cs" />
+    <Compile Include="Microsoft\WindowsAPICodePack\Shell\CommonFileDialogs\CommonFileDialogRadioButtonList.cs" />
+    <Compile Include="Microsoft\WindowsAPICodePack\Shell\CommonFileDialogs\CommonFileDialogResult.cs" />
+    <Compile Include="Microsoft\WindowsAPICodePack\Shell\CommonFileDialogs\CommonFileDialogSeperator.cs" />
+    <Compile Include="Microsoft\WindowsAPICodePack\Shell\CommonFileDialogs\CommonFileDialogStandardFilters.cs" />
+    <Compile Include="Microsoft\WindowsAPICodePack\Shell\CommonFileDialogs\CommonFileDialogTextBox.cs" />
+    <Compile Include="Microsoft\WindowsAPICodePack\Shell\CommonFileDialogs\CommonOpenFileDialog.cs" />
+    <Compile Include="Microsoft\WindowsAPICodePack\Shell\CommonFileDialogs\CommonSaveFileDialog.cs" />
+    <Compile Include="Microsoft\WindowsAPICodePack\Shell\CommonFileDialogs\ICommonFileDialogIndexedControls.cs" />
+    <Compile Include="Microsoft\WindowsAPICodePack\Shell\Interop\Common\IntPtrExtensions.cs" />
+    <Compile Include="Microsoft\WindowsAPICodePack\Shell\Interop\Common\ShellCOMClasses.cs" />
+    <Compile Include="Microsoft\WindowsAPICodePack\Shell\Interop\Common\ShellCOMGuids.cs" />
+    <Compile Include="Microsoft\WindowsAPICodePack\Shell\Interop\Common\ShellCOMInterfaces.cs" />
+    <Compile Include="Microsoft\WindowsAPICodePack\Shell\Interop\Common\ShellNativeMethods.cs" />
+    <Compile Include="Microsoft\WindowsAPICodePack\Shell\Interop\Common\ShellNativeStructs.cs" />
+    <Compile Include="Microsoft\WindowsAPICodePack\Shell\Interop\Common\WindowUtilities.cs" />
+    <Compile Include="Microsoft\WindowsAPICodePack\Shell\Interop\Dialogs\DialogsCOMClasses.cs" />
+    <Compile Include="Microsoft\WindowsAPICodePack\Shell\Interop\Dialogs\DialogsCOMInterfaces.cs" />
+    <Compile Include="Microsoft\WindowsAPICodePack\Shell\Interop\PropertySystem\PropertySystemCOMInterfaces.cs" />
+    <Compile Include="Microsoft\WindowsAPICodePack\Shell\Interop\PropertySystem\PropertySystemNativeMethods.cs" />
+    <Compile Include="Microsoft\WindowsAPICodePack\Shell\PropertySystem\IShellProperty.cs" />
+    <Compile Include="Microsoft\WindowsAPICodePack\Shell\PropertySystem\PropertySystemException.cs" />
+    <Compile Include="Microsoft\WindowsAPICodePack\Shell\PropertySystem\ShellProperties.cs" />
+    <Compile Include="Microsoft\WindowsAPICodePack\Shell\PropertySystem\ShellProperty.cs" />
+    <Compile Include="Microsoft\WindowsAPICodePack\Shell\PropertySystem\ShellPropertyCollection.cs" />
+    <Compile Include="Microsoft\WindowsAPICodePack\Shell\PropertySystem\ShellPropertyDescription.cs" />
+    <Compile Include="Microsoft\WindowsAPICodePack\Shell\PropertySystem\ShellPropertyDescriptionsCache.cs" />
+    <Compile Include="Microsoft\WindowsAPICodePack\Shell\PropertySystem\ShellPropertyEnumType.cs" />
+    <Compile Include="Microsoft\WindowsAPICodePack\Shell\PropertySystem\ShellPropertyEnums.cs" />
+    <Compile Include="Microsoft\WindowsAPICodePack\Shell\PropertySystem\ShellPropertyFactory.cs" />
+    <Compile Include="Microsoft\WindowsAPICodePack\Shell\PropertySystem\ShellPropertyWriter.cs" />
+    <Compile Include="Microsoft\WindowsAPICodePack\Shell\PropertySystem\StronglyTypedProperties.cs" />
+    <Compile Include="Microsoft\WindowsAPICodePack\Shell\PropertySystem\SystemProperties.cs" />
+    <Compile Include="Microsoft\WindowsAPICodePack\Shell\PropertySystem\WindowProperties.cs" />
+    <Compile Include="Microsoft\WindowsAPICodePack\Shell\Resources\LocalizedMessages.Designer.cs">
+      <DependentUpon>LocalizedMessages.resx</DependentUpon>
+    </Compile>
+    <Compile Include="Microsoft\WindowsAPICodePack\Core\Resources\LocalizedMessages.Designer.cs">
+      <DependentUpon>LocalizedMessages.resx</DependentUpon>
+    </Compile>
+    <Compile Include="Microsoft\WindowsAPICodePack\Core\PropertySystem\PropVariant.cs" />
+    <Compile Include="Microsoft\WindowsAPICodePack\Core\PropertySystem\PropVariantNativeMethods.cs" />
+    <Compile Include="Microsoft\WindowsAPICodePack\Core\PropertySystem\PropertyKey.cs" />
+    <Compile Include="Microsoft\WindowsAPICodePack\Shell\Interop\Taskbar\TabbedThumbnailNativeMethods.cs" />
+    <Compile Include="Microsoft\WindowsAPICodePack\Shell\Interop\Taskbar\TaskbarCOMInterfaces.cs" />
+    <Compile Include="Microsoft\WindowsAPICodePack\Shell\Interop\Taskbar\TaskbarNativeMethods.cs" />
+    <Compile Include="Microsoft\WindowsAPICodePack\Shell\KnownFolders\DefinitionOptions.cs" />
+    <Compile Include="Microsoft\WindowsAPICodePack\Shell\KnownFolders\FileSystemKnownFolder.cs" />
+    <Compile Include="Microsoft\WindowsAPICodePack\Shell\KnownFolders\FolderCategory.cs" />
+    <Compile Include="Microsoft\WindowsAPICodePack\Shell\KnownFolders\FolderProperties.cs" />
+    <Compile Include="Microsoft\WindowsAPICodePack\Shell\KnownFolders\FolderTypes.cs" />
+    <Compile Include="Microsoft\WindowsAPICodePack\Shell\KnownFolders\FoldersIdentifiers.cs" />
+    <Compile Include="Microsoft\WindowsAPICodePack\Shell\KnownFolders\IKnownFolder.cs" />
+    <Compile Include="Microsoft\WindowsAPICodePack\Shell\KnownFolders\KnownFolderHelper.cs" />
+    <Compile Include="Microsoft\WindowsAPICodePack\Shell\KnownFolders\KnownFolderSettings.cs" />
+    <Compile Include="Microsoft\WindowsAPICodePack\Shell\KnownFolders\KnownFolders.cs" />
+    <Compile Include="Microsoft\WindowsAPICodePack\Shell\KnownFolders\NonFileSystemKnownFolder.cs" />
+    <Compile Include="Microsoft\WindowsAPICodePack\Shell\KnownFolders\RedirectionCapabilities.cs" />
+    <Compile Include="Microsoft\WindowsAPICodePack\Shell\KnownFolders\RetrievalOptions.cs" />
+    <Compile Include="Microsoft\WindowsAPICodePack\Shell\ShellObjectWatcher\ChangeNotifyEventManager.cs" />
+    <Compile Include="Microsoft\WindowsAPICodePack\Shell\ShellObjectWatcher\ChangeNotifyLock.cs" />
+    <Compile Include="Microsoft\WindowsAPICodePack\Shell\ShellObjectWatcher\MessageListener.cs" />
+    <Compile Include="Microsoft\WindowsAPICodePack\Shell\ShellObjectWatcher\MessageListenerFilter.cs" />
+    <Compile Include="Microsoft\WindowsAPICodePack\Shell\ShellObjectWatcher\ShellObjectNotificationEventArgs.cs" />
+    <Compile Include="Microsoft\WindowsAPICodePack\Shell\ShellObjectWatcher\ShellObjectWatcher.cs" />
+    <Compile Include="Microsoft\WindowsAPICodePack\Shell\ShellObjectWatcher\ShellObjectWatcherEnums.cs" />
+    <Compile Include="Microsoft\WindowsAPICodePack\Shell\Interop\ShellObjectWatcher\ShellObjectWatcherNativeMethods.cs" />
+    <Compile Include="Microsoft\WindowsAPICodePack\Shell\Interop\KnownFolders\KnownFoldersCOMGuids.cs" />
+    <Compile Include="Microsoft\WindowsAPICodePack\Shell\Interop\KnownFolders\KnownFoldersCOMInterfaces.cs" />
+    <Compile Include="Microsoft\WindowsAPICodePack\Shell\Interop\KnownFolders\KnownFoldersNativeMethods.cs" />
+    <Compile Include="Microsoft\WindowsAPICodePack\Core\Interop\TaskDialogs\NativeTaskDialog.cs" />
+    <Compile Include="Microsoft\WindowsAPICodePack\Core\Interop\TaskDialogs\NativeTaskDialogSettings.cs" />
+    <Compile Include="Microsoft\WindowsAPICodePack\Core\Interop\TaskDialogs\TaskDialogNativeMethods.cs" />
+    <Compile Include="Microsoft\WindowsAPICodePack\Core\Dialogs\TaskDialogs\TaskDialog.cs" />
+    <Compile Include="Microsoft\WindowsAPICodePack\Core\Dialogs\TaskDialogs\TaskDialogBar.cs" />
+    <Compile Include="Microsoft\WindowsAPICodePack\Core\Dialogs\TaskDialogs\TaskDialogButton.cs" />
+    <Compile Include="Microsoft\WindowsAPICodePack\Core\Dialogs\TaskDialogs\TaskDialogButtonBase.cs" />
+    <Compile Include="Microsoft\WindowsAPICodePack\Core\Dialogs\TaskDialogs\TaskDialogClosingEventArgs.cs" />
+    <Compile Include="Microsoft\WindowsAPICodePack\Core\Dialogs\TaskDialogs\TaskDialogCommandLink.cs" />
+    <Compile Include="Microsoft\WindowsAPICodePack\Core\Dialogs\TaskDialogs\TaskDialogControl.cs" />
+    <Compile Include="Microsoft\WindowsAPICodePack\Core\Dialogs\TaskDialogs\TaskDialogDefaults.cs" />
+    <Compile Include="Microsoft\WindowsAPICodePack\Core\Dialogs\TaskDialogs\TaskDialogExpandedInfoMode.cs" />
+    <Compile Include="Microsoft\WindowsAPICodePack\Core\Dialogs\TaskDialogs\TaskDialogHyperlinkClickedEventArgs.cs" />
+    <Compile Include="Microsoft\WindowsAPICodePack\Core\Dialogs\TaskDialogs\TaskDialogProgressBar.cs" />
+    <Compile Include="Microsoft\WindowsAPICodePack\Core\Dialogs\TaskDialogs\TaskDialogProgressBarState.cs" />
+    <Compile Include="Microsoft\WindowsAPICodePack\Core\Dialogs\TaskDialogs\TaskDialogRadioButton.cs" />
+    <Compile Include="Microsoft\WindowsAPICodePack\Core\Dialogs\TaskDialogs\TaskDialogResult.cs" />
+    <Compile Include="Microsoft\WindowsAPICodePack\Core\Dialogs\TaskDialogs\TaskDialogStandardButton.cs" />
+    <Compile Include="Microsoft\WindowsAPICodePack\Core\Dialogs\TaskDialogs\TaskDialogStandardIcon.cs" />
+    <Compile Include="Microsoft\WindowsAPICodePack\Core\Dialogs\TaskDialogs\TaskDialogStartupLocation.cs" />
+    <Compile Include="Microsoft\WindowsAPICodePack\Core\Dialogs\TaskDialogs\TaskDialogTickEventArgs.cs" />
+    <Compile Include="Microsoft\WindowsAPICodePack\Shell\ExplorerBrowser\CommonControlException.cs" />
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Include="ConfirmConstraintControl.resx">
@@ -142,6 +286,14 @@
     <EmbeddedResource Include="XPOpenFileDialog.resx">
       <DependentUpon>XPOpenFileDialog.cs</DependentUpon>
     </EmbeddedResource>
+    <EmbeddedResource Include="Microsoft\WindowsAPICodePack\Shell\Resources\LocalizedMessages.resx">
+      <LogicalName>Microsoft.WindowsAPICodePack.Shell.Resources.LocalizedMessages.resourcesshell</LogicalName>
+      <Generator>ResXFileCodeGenerator</Generator>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Microsoft\WindowsAPICodePack\Core\Resources\LocalizedMessages.resx">
+      <LogicalName>Microsoft.WindowsAPICodePack.Resources.LocalizedMessages.resources</LogicalName>
+      <Generator>ResXFileCodeGenerator</Generator>
+    </EmbeddedResource>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
@@ -156,5 +308,20 @@
       <Project>{9163B6B6-0603-4C6E-BC67-7111ED8CDDE1}</Project>
       <Name>SshAgentLib</Name>
     </ProjectReference>
+  </ItemGroup>
+  <ItemGroup>
+    <Folder Include="Microsoft\" />
+    <Folder Include="Microsoft\WindowsAPICodePack\Shell\PropertySystem\" />
+    <Folder Include="Microsoft\WindowsAPICodePack\Shell\Resources\" />
+    <Folder Include="Microsoft\WindowsAPICodePack\Core\Resources\" />
+    <Folder Include="Microsoft\WindowsAPICodePack\Core\PropertySystem\" />
+    <Folder Include="Microsoft\WindowsAPICodePack\Shell\Interop\Taskbar\" />
+    <Folder Include="Microsoft\WindowsAPICodePack\Shell\KnownFolders\" />
+    <Folder Include="Microsoft\WindowsAPICodePack\Shell\ShellObjectWatcher\" />
+    <Folder Include="Microsoft\WindowsAPICodePack\Shell\Interop\ShellObjectWatcher\" />
+    <Folder Include="Microsoft\WindowsAPICodePack\Shell\Interop\KnownFolders\" />
+    <Folder Include="Microsoft\WindowsAPICodePack\Core\Interop\TaskDialogs\" />
+    <Folder Include="Microsoft\WindowsAPICodePack\Core\Dialogs\TaskDialogs\" />
+    <Folder Include="Microsoft\WindowsAPICodePack\Shell\ExplorerBrowser\" />
   </ItemGroup>
 </Project>

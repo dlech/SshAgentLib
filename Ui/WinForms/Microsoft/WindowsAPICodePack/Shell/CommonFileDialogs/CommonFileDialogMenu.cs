@@ -10,7 +10,7 @@ namespace Microsoft.WindowsAPICodePack.Dialogs.Controls
     /// <summary>
     /// Defines the menu controls for the Common File Dialog.
     /// </summary>
-    [ContentProperty("Items")]
+    //[ContentProperty("Items")]
     public class CommonFileDialogMenu : CommonFileDialogProminentControl
     {
         private Collection<CommonFileDialogMenuItem> items = new Collection<CommonFileDialogMenuItem>();

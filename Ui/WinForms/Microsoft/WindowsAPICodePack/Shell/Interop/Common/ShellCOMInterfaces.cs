@@ -6,7 +6,7 @@ using System.Runtime.InteropServices;
 using System.Runtime.InteropServices.ComTypes;
 using System.Text;
 using Microsoft.WindowsAPICodePack.Shell.PropertySystem;
-using Microsoft.WindowsAPICodePack.Taskbar;
+//using Microsoft.WindowsAPICodePack.Taskbar;
 using MS.WindowsAPICodePack.Internal;
 
 namespace Microsoft.WindowsAPICodePack.Shell
@@ -296,35 +296,35 @@ namespace Microsoft.WindowsAPICodePack.Shell
         [Out] out IntPtr phbm);
     }
 
-    [ComImport,
-    Guid(ShellIIDGuid.IThumbnailCache),
-    InterfaceType(ComInterfaceType.InterfaceIsIUnknown)]
-    interface IThumbnailCache
-    {
-        void GetThumbnail([In] IShellItem pShellItem,
-        [In] uint cxyRequestedThumbSize,
-        [In] Microsoft.WindowsAPICodePack.Shell.ShellNativeMethods.ThumbnailOptions flags,
-        [Out] out ISharedBitmap ppvThumb,
-        [Out] out Microsoft.WindowsAPICodePack.Shell.ShellNativeMethods.ThumbnailCacheOptions pOutFlags,
-        [Out] Microsoft.WindowsAPICodePack.Shell.ShellNativeMethods.ThumbnailId pThumbnailID);
+//    [ComImport,
+//    Guid(ShellIIDGuid.IThumbnailCache),
+//    InterfaceType(ComInterfaceType.InterfaceIsIUnknown)]
+//    interface IThumbnailCache
+//    {
+//        void GetThumbnail([In] IShellItem pShellItem,
+//        [In] uint cxyRequestedThumbSize,
+//        [In] Microsoft.WindowsAPICodePack.Shell.ShellNativeMethods.ThumbnailOptions flags,
+//        [Out] out ISharedBitmap ppvThumb,
+//        [Out] out Microsoft.WindowsAPICodePack.Shell.ShellNativeMethods.ThumbnailCacheOptions pOutFlags,
+//        [Out] Microsoft.WindowsAPICodePack.Shell.ShellNativeMethods.ThumbnailId pThumbnailID);
+//
+//        void GetThumbnailByID([In] Microsoft.WindowsAPICodePack.Shell.ShellNativeMethods.ThumbnailId thumbnailID,
+//        [In] uint cxyRequestedThumbSize,
+//        [Out] out ISharedBitmap ppvThumb,
+//        [Out] out Microsoft.WindowsAPICodePack.Shell.ShellNativeMethods.ThumbnailCacheOptions pOutFlags);
+//    }
 
-        void GetThumbnailByID([In] Microsoft.WindowsAPICodePack.Shell.ShellNativeMethods.ThumbnailId thumbnailID,
-        [In] uint cxyRequestedThumbSize,
-        [Out] out ISharedBitmap ppvThumb,
-        [Out] out Microsoft.WindowsAPICodePack.Shell.ShellNativeMethods.ThumbnailCacheOptions pOutFlags);
-    }
-
-    [ComImport,
-    Guid(ShellIIDGuid.ISharedBitmap),
-    InterfaceType(ComInterfaceType.InterfaceIsIUnknown)]
-    interface ISharedBitmap
-    {
-        void GetSharedBitmap([Out] out IntPtr phbm);
-        void GetSize([Out] out CoreNativeMethods.Size pSize);
-        void GetFormat([Out] out ThumbnailAlphaType pat);
-        void InitializeBitmap([In] IntPtr hbm, [In] ThumbnailAlphaType wtsAT);
-        void Detach([Out] out IntPtr phbm);
-    }
+//    [ComImport,
+//    Guid(ShellIIDGuid.ISharedBitmap),
+//    InterfaceType(ComInterfaceType.InterfaceIsIUnknown)]
+//    interface ISharedBitmap
+//    {
+//        void GetSharedBitmap([Out] out IntPtr phbm);
+//        void GetSize([Out] out CoreNativeMethods.Size pSize);
+//        void GetFormat([Out] out ThumbnailAlphaType pat);
+//        void InitializeBitmap([In] IntPtr hbm, [In] ThumbnailAlphaType wtsAT);
+//        void Detach([Out] out IntPtr phbm);
+//    }
     [ComImport,
     Guid(ShellIIDGuid.IShellFolder),
     InterfaceType(ComInterfaceType.InterfaceIsIUnknown),

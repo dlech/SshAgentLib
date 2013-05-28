@@ -10,7 +10,7 @@ namespace Microsoft.WindowsAPICodePack.Dialogs.Controls
     /// <summary>
     /// Represents a group box control for the Common File Dialog.
     /// </summary>note
-    [ContentProperty("Items")]
+    //[ContentProperty("Items")]
     public class CommonFileDialogGroupBox : CommonFileDialogProminentControl
     {
         private Collection<DialogControl> items;

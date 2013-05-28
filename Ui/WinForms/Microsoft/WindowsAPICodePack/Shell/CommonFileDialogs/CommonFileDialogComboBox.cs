@@ -3,7 +3,7 @@
 using System;
 using System.Collections.ObjectModel;
 using System.Diagnostics;
-using System.Windows.Markup;
+//using System.Windows.Markup;
 using Microsoft.WindowsAPICodePack.Shell.Resources;
 
 namespace Microsoft.WindowsAPICodePack.Dialogs.Controls
@@ -11,7 +11,7 @@ namespace Microsoft.WindowsAPICodePack.Dialogs.Controls
     /// <summary>
     /// Creates the ComboBox controls in the Common File Dialog.
     /// </summary>
-    [ContentProperty("Items")]
+    //[ContentProperty("Items")]
     public class CommonFileDialogComboBox : CommonFileDialogProminentControl, ICommonFileDialogIndexedControls
     {
         private readonly Collection<CommonFileDialogComboBoxItem> items = new Collection<CommonFileDialogComboBoxItem>();

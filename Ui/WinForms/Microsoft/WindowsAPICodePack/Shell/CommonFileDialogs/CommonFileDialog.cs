@@ -7,7 +7,7 @@ using System.Diagnostics;
 using System.Runtime.InteropServices;
 using System.Windows;
 using System.Windows.Interop;
-using System.Windows.Markup;
+//using System.Windows.Markup;
 using Microsoft.WindowsAPICodePack.Controls;
 using Microsoft.WindowsAPICodePack.Dialogs.Controls;
 using Microsoft.WindowsAPICodePack.Shell;
@@ -20,7 +20,7 @@ namespace Microsoft.WindowsAPICodePack.Dialogs
     /// <summary>
     /// Defines the abstract base class for the common file dialogs.
     /// </summary>
-    [ContentProperty("Controls")]
+    //[ContentProperty("Controls")]
     public abstract class CommonFileDialog : IDialogControlHost, IDisposable
     {
         /// <summary>
