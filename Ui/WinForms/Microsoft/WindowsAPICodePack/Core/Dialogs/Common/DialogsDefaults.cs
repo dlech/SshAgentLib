@@ -17,7 +17,7 @@ namespace Microsoft.WindowsAPICodePack.Dialogs
 
         // For generating control ID numbers that won't 
         // collide with the standard button return IDs.
-        internal const int MinimumDialogControlId =
-            (int)TaskDialogNativeMethods.TaskDialogCommonButtonReturnIds.Close + 1;
+        internal const int MinimumDialogControlId = 9;
+//            (int)TaskDialogNativeMethods.TaskDialogCommonButtonReturnIds.Close + 1;
     }
 }

@@ -326,18 +326,18 @@ namespace Microsoft.WindowsAPICodePack.Shell
             }
         }
 
-        private ShellThumbnail thumbnail;
-        /// <summary>
-        /// Gets the thumbnail of the ShellObject.
-        /// </summary>
-        public ShellThumbnail Thumbnail
-        {
-            get
-            {
-                if (thumbnail == null) { thumbnail = new ShellThumbnail(this); }
-                return thumbnail;
-            }
-        }
+        //private ShellThumbnail thumbnail;
+        ///// <summary>
+        ///// Gets the thumbnail of the ShellObject.
+        ///// </summary>
+        //public ShellThumbnail Thumbnail
+        //{
+        //    get
+        //    {
+        //        if (thumbnail == null) { thumbnail = new ShellThumbnail(this); }
+        //        return thumbnail;
+        //    }
+        //}
 
         private ShellObject parentShellObject;
         /// <summary>
@@ -388,7 +388,7 @@ namespace Microsoft.WindowsAPICodePack.Shell
                 _internalName = null;
                 _internalParsingName = null;
                 properties = null;
-                thumbnail = null;
+//                thumbnail = null;
                 parentShellObject = null;
             }
 

@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?>
+﻿<?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="4.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <PropertyGroup>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
@@ -153,8 +153,6 @@
     <Compile Include="Microsoft\WindowsAPICodePack\Shell\Common\ShellSearchCollection.cs" />
     <Compile Include="Microsoft\WindowsAPICodePack\Shell\Common\ShellSearchConnector.cs" />
     <Compile Include="Microsoft\WindowsAPICodePack\Shell\Common\ShellSearchFolder.cs" />
-    <Compile Include="Microsoft\WindowsAPICodePack\Shell\Common\ShellThumbnail.cs" />
-    <Compile Include="Microsoft\WindowsAPICodePack\Shell\Common\ShellThumbnailEnums.cs" />
     <Compile Include="Microsoft\WindowsAPICodePack\Shell\Common\SortColumn.cs" />
     <Compile Include="Microsoft\WindowsAPICodePack\Shell\CommonFileDialogs\CommonFileDialog.cs" />
     <Compile Include="Microsoft\WindowsAPICodePack\Shell\CommonFileDialogs\CommonFileDialogButton.cs" />
@@ -235,27 +233,6 @@
     <Compile Include="Microsoft\WindowsAPICodePack\Shell\Interop\KnownFolders\KnownFoldersCOMGuids.cs" />
     <Compile Include="Microsoft\WindowsAPICodePack\Shell\Interop\KnownFolders\KnownFoldersCOMInterfaces.cs" />
     <Compile Include="Microsoft\WindowsAPICodePack\Shell\Interop\KnownFolders\KnownFoldersNativeMethods.cs" />
-    <Compile Include="Microsoft\WindowsAPICodePack\Core\Interop\TaskDialogs\NativeTaskDialog.cs" />
-    <Compile Include="Microsoft\WindowsAPICodePack\Core\Interop\TaskDialogs\NativeTaskDialogSettings.cs" />
-    <Compile Include="Microsoft\WindowsAPICodePack\Core\Interop\TaskDialogs\TaskDialogNativeMethods.cs" />
-    <Compile Include="Microsoft\WindowsAPICodePack\Core\Dialogs\TaskDialogs\TaskDialog.cs" />
-    <Compile Include="Microsoft\WindowsAPICodePack\Core\Dialogs\TaskDialogs\TaskDialogBar.cs" />
-    <Compile Include="Microsoft\WindowsAPICodePack\Core\Dialogs\TaskDialogs\TaskDialogButton.cs" />
-    <Compile Include="Microsoft\WindowsAPICodePack\Core\Dialogs\TaskDialogs\TaskDialogButtonBase.cs" />
-    <Compile Include="Microsoft\WindowsAPICodePack\Core\Dialogs\TaskDialogs\TaskDialogClosingEventArgs.cs" />
-    <Compile Include="Microsoft\WindowsAPICodePack\Core\Dialogs\TaskDialogs\TaskDialogCommandLink.cs" />
-    <Compile Include="Microsoft\WindowsAPICodePack\Core\Dialogs\TaskDialogs\TaskDialogControl.cs" />
-    <Compile Include="Microsoft\WindowsAPICodePack\Core\Dialogs\TaskDialogs\TaskDialogDefaults.cs" />
-    <Compile Include="Microsoft\WindowsAPICodePack\Core\Dialogs\TaskDialogs\TaskDialogExpandedInfoMode.cs" />
-    <Compile Include="Microsoft\WindowsAPICodePack\Core\Dialogs\TaskDialogs\TaskDialogHyperlinkClickedEventArgs.cs" />
-    <Compile Include="Microsoft\WindowsAPICodePack\Core\Dialogs\TaskDialogs\TaskDialogProgressBar.cs" />
-    <Compile Include="Microsoft\WindowsAPICodePack\Core\Dialogs\TaskDialogs\TaskDialogProgressBarState.cs" />
-    <Compile Include="Microsoft\WindowsAPICodePack\Core\Dialogs\TaskDialogs\TaskDialogRadioButton.cs" />
-    <Compile Include="Microsoft\WindowsAPICodePack\Core\Dialogs\TaskDialogs\TaskDialogResult.cs" />
-    <Compile Include="Microsoft\WindowsAPICodePack\Core\Dialogs\TaskDialogs\TaskDialogStandardButton.cs" />
-    <Compile Include="Microsoft\WindowsAPICodePack\Core\Dialogs\TaskDialogs\TaskDialogStandardIcon.cs" />
-    <Compile Include="Microsoft\WindowsAPICodePack\Core\Dialogs\TaskDialogs\TaskDialogStartupLocation.cs" />
-    <Compile Include="Microsoft\WindowsAPICodePack\Core\Dialogs\TaskDialogs\TaskDialogTickEventArgs.cs" />
     <Compile Include="Microsoft\WindowsAPICodePack\Shell\ExplorerBrowser\CommonControlException.cs" />
   </ItemGroup>
   <ItemGroup>
