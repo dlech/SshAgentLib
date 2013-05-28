@@ -39,7 +39,8 @@ namespace Microsoft.WindowsAPICodePack.Shell.Resources {
         internal static global::System.Resources.ResourceManager ResourceManager {
             get {
                 if (object.ReferenceEquals(resourceMan, null)) {
-                    global::System.Resources.ResourceManager temp = new global::System.Resources.ResourceManager("Microsoft.WindowsAPICodePack.Shell.Resources.LocalizedMessages", typeof(LocalizedMessages).Assembly);
+                    global::System.Resources.ResourceManager temp = new global::System.Resources.ResourceManager("dlech.SshAgentLib.WinForms.Microsoft.WindowsAPICodePack.Shell.Resources.Localized" +
+                            "Messages", typeof(LocalizedMessages).Assembly);
                     resourceMan = temp;
                 }
                 return resourceMan;
