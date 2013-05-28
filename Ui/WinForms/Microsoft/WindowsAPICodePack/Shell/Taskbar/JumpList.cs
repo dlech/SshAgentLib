@@ -40,16 +40,16 @@ namespace Microsoft.WindowsAPICodePack.Taskbar
             return new JumpList(appId, windowHandle);
         }
 
-        /// <summary>
-        /// Create a JumpList for the application's taskbar button.
-        /// </summary>
-        /// <param name="appId">Application Id for the individual window. This must be unique for each top-level window in order to have a individual JumpList.</param>
-        /// <param name="window">WPF Window associated with the new JumpList</param>
-        /// <returns>A new JumpList that is associated with the specific WPF window</returns>
-        public static JumpList CreateJumpListForIndividualWindow(string appId, System.Windows.Window window)
-        {
-            return new JumpList(appId, window);
-        }
+//        /// <summary>
+//        /// Create a JumpList for the application's taskbar button.
+//        /// </summary>
+//        /// <param name="appId">Application Id for the individual window. This must be unique for each top-level window in order to have a individual JumpList.</param>
+//        /// <param name="window">WPF Window associated with the new JumpList</param>
+//        /// <returns>A new JumpList that is associated with the specific WPF window</returns>
+//        public static JumpList CreateJumpListForIndividualWindow(string appId, System.Windows.Window window)
+//        {
+//            return new JumpList(appId, window);
+//        }
 
         // Best practice recommends defining a private object to lock on
         private readonly object syncLock = new Object();
@@ -206,16 +206,16 @@ namespace Microsoft.WindowsAPICodePack.Taskbar
         {
         }
 
-        /// <summary>
-        /// Creates a new instance of the JumpList class with the specified
-        /// appId. The JumpList is associated with the given WPF Window.
-        /// </summary>
-        /// <param name="appID">Application Id to use for this instace.</param>
-        /// <param name="window">WPF Window that is associated with this JumpList</param>
-        internal JumpList(string appID, System.Windows.Window window)
-            : this(appID, (new System.Windows.Interop.WindowInteropHelper(window)).Handle)
-        {
-        }
+//        /// <summary>
+//        /// Creates a new instance of the JumpList class with the specified
+//        /// appId. The JumpList is associated with the given WPF Window.
+//        /// </summary>
+//        /// <param name="appID">Application Id to use for this instace.</param>
+//        /// <param name="window">WPF Window that is associated with this JumpList</param>
+//        internal JumpList(string appID, System.Windows.Window window)
+//            : this(appID, (new System.Windows.Interop.WindowInteropHelper(window)).Handle)
+//        {
+//        }
 
         /// <summary>
         /// Creates a new instance of the JumpList class with the specified

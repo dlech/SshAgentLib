@@ -6,7 +6,7 @@ using System.IO;
 using System.Windows;
 using System.Windows.Interop;
 using System.Windows.Media;
-using System.Windows.Media.Imaging;
+//using System.Windows.Media.Imaging;
 using Microsoft.WindowsAPICodePack.Shell;
 
 namespace Microsoft.WindowsAPICodePack.Taskbar
@@ -87,59 +87,59 @@ namespace Microsoft.WindowsAPICodePack.Taskbar
             }
         }
 
-        /// <summary>
-        /// Grabs a snapshot of a WPF UIElement and returns the image as Bitmap.
-        /// </summary>
-        /// <param name="element">Represents the element to take the snapshot from.</param>
-        /// <param name="dpiX">Represents the X DPI value used to capture this snapshot.</param>
-        /// <param name="dpiY">Represents the Y DPI value used to capture this snapshot.</param>
-        /// <param name="width">The requested bitmap width.</param>
-        /// <param name="height">The requested bitmap height.</param>
-        /// <returns>Returns the bitmap (PNG format).</returns>
-        public static Bitmap GrabWindowBitmap(UIElement element, int dpiX, int dpiY, int width, int height)
-        {
-            // Special case for HwndHost controls
-            HwndHost host = element as HwndHost;
-            if (host != null)
-            {
-                IntPtr handle = host.Handle;
-                return GrabWindowBitmap(handle, new System.Drawing.Size(width, height));
-            }
-
-            Rect bounds = VisualTreeHelper.GetDescendantBounds(element);
-
-            // create the renderer.
-            if (bounds.Height == 0 || bounds.Width == 0)
-            {
-                return null;    // 0 sized element. Probably hidden
-            }
-
-            RenderTargetBitmap rendertarget = new RenderTargetBitmap((int)(bounds.Width * dpiX / 96.0),
-             (int)(bounds.Height * dpiY / 96.0), dpiX, dpiY, PixelFormats.Default);
-
-            DrawingVisual dv = new DrawingVisual();
-            using (DrawingContext ctx = dv.RenderOpen())
-            {
-                VisualBrush vb = new VisualBrush(element);
-                ctx.DrawRectangle(vb, null, new Rect(new System.Windows.Point(), bounds.Size));
-            }
-
-            rendertarget.Render(dv);
-
-            BitmapEncoder bmpe = new PngBitmapEncoder();
-            bmpe.Frames.Add(BitmapFrame.Create(rendertarget));
-
-            Bitmap bmp;
-            // Create a MemoryStream with the image.            
-            using (MemoryStream fl = new MemoryStream())
-            {
-                bmpe.Save(fl);
-                fl.Position = 0;
-                bmp = new Bitmap(fl);
-            }
-
-            return (Bitmap)bmp.GetThumbnailImage(width, height, null, IntPtr.Zero);
-        }
+//        /// <summary>
+//        /// Grabs a snapshot of a WPF UIElement and returns the image as Bitmap.
+//        /// </summary>
+//        /// <param name="element">Represents the element to take the snapshot from.</param>
+//        /// <param name="dpiX">Represents the X DPI value used to capture this snapshot.</param>
+//        /// <param name="dpiY">Represents the Y DPI value used to capture this snapshot.</param>
+//        /// <param name="width">The requested bitmap width.</param>
+//        /// <param name="height">The requested bitmap height.</param>
+//        /// <returns>Returns the bitmap (PNG format).</returns>
+//        public static Bitmap GrabWindowBitmap(UIElement element, int dpiX, int dpiY, int width, int height)
+//        {
+//            // Special case for HwndHost controls
+//            HwndHost host = element as HwndHost;
+//            if (host != null)
+//            {
+//                IntPtr handle = host.Handle;
+//                return GrabWindowBitmap(handle, new System.Drawing.Size(width, height));
+//            }
+//
+//            Rect bounds = VisualTreeHelper.GetDescendantBounds(element);
+//
+//            // create the renderer.
+//            if (bounds.Height == 0 || bounds.Width == 0)
+//            {
+//                return null;    // 0 sized element. Probably hidden
+//            }
+//
+//            RenderTargetBitmap rendertarget = new RenderTargetBitmap((int)(bounds.Width * dpiX / 96.0),
+//             (int)(bounds.Height * dpiY / 96.0), dpiX, dpiY, PixelFormats.Default);
+//
+//            DrawingVisual dv = new DrawingVisual();
+//            using (DrawingContext ctx = dv.RenderOpen())
+//            {
+//                VisualBrush vb = new VisualBrush(element);
+//                ctx.DrawRectangle(vb, null, new Rect(new System.Windows.Point(), bounds.Size));
+//            }
+//
+//            rendertarget.Render(dv);
+//
+//            BitmapEncoder bmpe = new PngBitmapEncoder();
+//            bmpe.Frames.Add(BitmapFrame.Create(rendertarget));
+//
+//            Bitmap bmp;
+//            // Create a MemoryStream with the image.            
+//            using (MemoryStream fl = new MemoryStream())
+//            {
+//                bmpe.Save(fl);
+//                fl.Position = 0;
+//                bmp = new Bitmap(fl);
+//            }
+//
+//            return (Bitmap)bmp.GetThumbnailImage(width, height, null, IntPtr.Zero);
+//        }
 
         /// <summary>
         /// Resizes the given bitmap while maintaining the aspect ratio.

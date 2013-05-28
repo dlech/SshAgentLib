@@ -12,7 +12,7 @@ namespace Microsoft.WindowsAPICodePack.Taskbar
         private ThumbnailToolBarButton[] _thumbnailButtons;
         private IntPtr _internalWindowHandle;
 
-        internal System.Windows.UIElement WindowsControl { get; set; }
+//        internal System.Windows.UIElement WindowsControl { get; set; }
 
         internal IntPtr WindowToTellTaskbarAbout
         {
@@ -46,21 +46,21 @@ namespace Microsoft.WindowsAPICodePack.Taskbar
             this.AssignHandle(windowHandle);
         }
 
-        internal ThumbnailToolbarProxyWindow(System.Windows.UIElement windowsControl, ThumbnailToolBarButton[] buttons)
-        {
-            if (windowsControl == null) { throw new ArgumentNullException("windowsControl"); }
-            if (buttons != null && buttons.Length == 0)
-            {
-                throw new ArgumentException(LocalizedMessages.ThumbnailToolbarManagerNullEmptyArray, "buttons");
-            }
-
-            _internalWindowHandle = IntPtr.Zero;
-            WindowsControl = windowsControl;
-            _thumbnailButtons = buttons;
-
-            // Set the window handle on the buttons (for future updates)
-            Array.ForEach(_thumbnailButtons, new Action<ThumbnailToolBarButton>(UpdateHandle));
-        }
+//        internal ThumbnailToolbarProxyWindow(System.Windows.UIElement windowsControl, ThumbnailToolBarButton[] buttons)
+//        {
+//            if (windowsControl == null) { throw new ArgumentNullException("windowsControl"); }
+//            if (buttons != null && buttons.Length == 0)
+//            {
+//                throw new ArgumentException(LocalizedMessages.ThumbnailToolbarManagerNullEmptyArray, "buttons");
+//            }
+//
+//            _internalWindowHandle = IntPtr.Zero;
+//            WindowsControl = windowsControl;
+//            _thumbnailButtons = buttons;
+//
+//            // Set the window handle on the buttons (for future updates)
+//            Array.ForEach(_thumbnailButtons, new Action<ThumbnailToolBarButton>(UpdateHandle));
+//        }
 
         private void UpdateHandle(ThumbnailToolBarButton button)
         {

@@ -2,7 +2,7 @@
 
 using System;
 using System.Runtime.InteropServices;
-using System.Windows.Media.Imaging;
+//using System.Windows.Media.Imaging;
 
 namespace Microsoft.WindowsAPICodePack.Shell
 {
@@ -29,7 +29,7 @@ namespace Microsoft.WindowsAPICodePack.Shell
         internal string localizedName;
         internal string localizedNameResourceId;
         internal string iconResourceId;
-        internal BitmapSource icon;
+//        internal BitmapSource icon;
         internal DefinitionOptions definitionOptions;
         internal System.IO.FileAttributes fileAttributes;
         internal Guid folderTypeId;

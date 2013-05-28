@@ -41,26 +41,26 @@ namespace Microsoft.WindowsAPICodePack.Taskbar
             TaskbarWindowManager.AddThumbnailButtons(windowHandle, buttons);
         }
 
-        /// <summary>
-        /// Adds thumbnail toolbar for the specified WPF Control.
-        /// </summary>
-        /// <param name="control">WPF Control for which the thumbnail toolbar buttons need to be added</param>
-        /// <param name="buttons">Thumbnail buttons for the window's thumbnail toolbar</param>
-        /// <exception cref="System.ArgumentException">If the number of buttons exceed the maximum allowed capacity (7).</exception>
-        /// <exception cref="System.ArgumentNullException">If the control passed in null</exception>
-        /// <remarks>After a toolbar has been added to a thumbnail, buttons can be altered only through various 
-        /// properties on the ThumbnailToolBarButton. While individual buttons cannot be added or removed, 
-        /// they can be shown and hidden through ThumbnailToolBarButton.Visible as needed. 
-        /// The toolbar itself cannot be removed without re-creating the window itself.
-        /// </remarks>
-        public void AddButtons(UIElement control, params ThumbnailToolBarButton[] buttons)
-        {
-            if (control == null) { throw new ArgumentNullException("control"); }
-            VerifyButtons(buttons);
-
-            // Add the buttons to our window manager, which will also create a proxy window
-            TaskbarWindowManager.AddThumbnailButtons(control, buttons);
-        }
+//        /// <summary>
+//        /// Adds thumbnail toolbar for the specified WPF Control.
+//        /// </summary>
+//        /// <param name="control">WPF Control for which the thumbnail toolbar buttons need to be added</param>
+//        /// <param name="buttons">Thumbnail buttons for the window's thumbnail toolbar</param>
+//        /// <exception cref="System.ArgumentException">If the number of buttons exceed the maximum allowed capacity (7).</exception>
+//        /// <exception cref="System.ArgumentNullException">If the control passed in null</exception>
+//        /// <remarks>After a toolbar has been added to a thumbnail, buttons can be altered only through various 
+//        /// properties on the ThumbnailToolBarButton. While individual buttons cannot be added or removed, 
+//        /// they can be shown and hidden through ThumbnailToolBarButton.Visible as needed. 
+//        /// The toolbar itself cannot be removed without re-creating the window itself.
+//        /// </remarks>
+//        public void AddButtons(UIElement control, params ThumbnailToolBarButton[] buttons)
+//        {
+//            if (control == null) { throw new ArgumentNullException("control"); }
+//            VerifyButtons(buttons);
+//
+//            // Add the buttons to our window manager, which will also create a proxy window
+//            TaskbarWindowManager.AddThumbnailButtons(control, buttons);
+//        }
 
         private static void VerifyButtons(params ThumbnailToolBarButton[] buttons)
         {

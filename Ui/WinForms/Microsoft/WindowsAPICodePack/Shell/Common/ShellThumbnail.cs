@@ -4,7 +4,7 @@ using System;
 using System.Drawing;
 using System.Runtime.InteropServices;
 using System.Windows.Interop;
-using System.Windows.Media.Imaging;
+//using System.Windows.Media.Imaging;
 using Microsoft.WindowsAPICodePack.Shell.Resources;
 using MS.WindowsAPICodePack.Internal;
 
@@ -87,11 +87,11 @@ namespace Microsoft.WindowsAPICodePack.Shell
         /// </summary>
         public Bitmap Bitmap { get { return GetBitmap(CurrentSize); } }
 
-        /// <summary>
-        /// Gets the thumbnail or icon image in <see cref="System.Windows.Media.Imaging.BitmapSource"/> format. 
-        /// Null is returned if the ShellObject does not have a thumbnail or icon image.
-        /// </summary>
-        public BitmapSource BitmapSource { get { return GetBitmapSource(CurrentSize); } }
+//        /// <summary>
+//        /// Gets the thumbnail or icon image in <see cref="System.Windows.Media.Imaging.BitmapSource"/> format. 
+//        /// Null is returned if the ShellObject does not have a thumbnail or icon image.
+//        /// </summary>
+//        public BitmapSource BitmapSource { get { return GetBitmapSource(CurrentSize); } }
 
         /// <summary>
         /// Gets the thumbnail or icon image in <see cref="System.Drawing.Icon"/> format. 
@@ -110,16 +110,16 @@ namespace Microsoft.WindowsAPICodePack.Shell
             }
         }
 
-        /// <summary>
-        /// Gets the thumbnail or icon in small size and <see cref="System.Windows.Media.Imaging.BitmapSource"/> format.
-        /// </summary>
-        public BitmapSource SmallBitmapSource
-        {
-            get
-            {
-                return GetBitmapSource(DefaultIconSize.Small, DefaultThumbnailSize.Small);
-            }
-        }
+//        /// <summary>
+//        /// Gets the thumbnail or icon in small size and <see cref="System.Windows.Media.Imaging.BitmapSource"/> format.
+//        /// </summary>
+//        public BitmapSource SmallBitmapSource
+//        {
+//            get
+//            {
+//                return GetBitmapSource(DefaultIconSize.Small, DefaultThumbnailSize.Small);
+//            }
+//        }
 
         /// <summary>
         /// Gets the thumbnail or icon in small size and <see cref="System.Drawing.Icon"/> format.
@@ -137,16 +137,16 @@ namespace Microsoft.WindowsAPICodePack.Shell
             }
         }
 
-        /// <summary>
-        /// Gets the thumbnail or icon in medium size and <see cref="System.Windows.Media.Imaging.BitmapSource"/> format.
-        /// </summary>
-        public BitmapSource MediumBitmapSource
-        {
-            get
-            {
-                return GetBitmapSource(DefaultIconSize.Medium, DefaultThumbnailSize.Medium);
-            }
-        }
+//        /// <summary>
+//        /// Gets the thumbnail or icon in medium size and <see cref="System.Windows.Media.Imaging.BitmapSource"/> format.
+//        /// </summary>
+//        public BitmapSource MediumBitmapSource
+//        {
+//            get
+//            {
+//                return GetBitmapSource(DefaultIconSize.Medium, DefaultThumbnailSize.Medium);
+//            }
+//        }
 
         /// <summary>
         /// Gets the thumbnail or icon in Medium size and <see cref="System.Drawing.Icon"/> format.
@@ -164,16 +164,16 @@ namespace Microsoft.WindowsAPICodePack.Shell
             }
         }
 
-        /// <summary>
-        /// Gets the thumbnail or icon in large size and <see cref="System.Windows.Media.Imaging.BitmapSource"/> format.
-        /// </summary>
-        public BitmapSource LargeBitmapSource
-        {
-            get
-            {
-                return GetBitmapSource(DefaultIconSize.Large, DefaultThumbnailSize.Large);
-            }
-        }
+//        /// <summary>
+//        /// Gets the thumbnail or icon in large size and <see cref="System.Windows.Media.Imaging.BitmapSource"/> format.
+//        /// </summary>
+//        public BitmapSource LargeBitmapSource
+//        {
+//            get
+//            {
+//                return GetBitmapSource(DefaultIconSize.Large, DefaultThumbnailSize.Large);
+//            }
+//        }
 
         /// <summary>
         /// Gets the thumbnail or icon in Large size and <see cref="System.Drawing.Icon"/> format.
@@ -191,16 +191,16 @@ namespace Microsoft.WindowsAPICodePack.Shell
             }
         }
 
-        /// <summary>
-        /// Gets the thumbnail or icon in Extra Large size and <see cref="System.Windows.Media.Imaging.BitmapSource"/> format.
-        /// </summary>
-        public BitmapSource ExtraLargeBitmapSource
-        {
-            get
-            {
-                return GetBitmapSource(DefaultIconSize.ExtraLarge, DefaultThumbnailSize.ExtraLarge);
-            }
-        }
+//        /// <summary>
+//        /// Gets the thumbnail or icon in Extra Large size and <see cref="System.Windows.Media.Imaging.BitmapSource"/> format.
+//        /// </summary>
+//        public BitmapSource ExtraLargeBitmapSource
+//        {
+//            get
+//            {
+//                return GetBitmapSource(DefaultIconSize.ExtraLarge, DefaultThumbnailSize.ExtraLarge);
+//            }
+//        }
 
         /// <summary>
         /// Gets the thumbnail or icon in Extra Large size and <see cref="System.Drawing.Icon"/> format.
@@ -328,28 +328,28 @@ namespace Microsoft.WindowsAPICodePack.Shell
             return returnValue;
         }
 
-        private BitmapSource GetBitmapSource(System.Windows.Size iconOnlySize, System.Windows.Size thumbnailSize)
-        {
-            return GetBitmapSource(FormatOption == ShellThumbnailFormatOption.IconOnly ? iconOnlySize : thumbnailSize);
-        }
+//        private BitmapSource GetBitmapSource(System.Windows.Size iconOnlySize, System.Windows.Size thumbnailSize)
+//        {
+//            return GetBitmapSource(FormatOption == ShellThumbnailFormatOption.IconOnly ? iconOnlySize : thumbnailSize);
+//        }
 
-        private BitmapSource GetBitmapSource(System.Windows.Size size)
-        {
-            IntPtr hBitmap = GetHBitmap(size);
-
-            // return a System.Media.Imaging.BitmapSource
-            // Use interop to create a BitmapSource from hBitmap.
-            BitmapSource returnValue = Imaging.CreateBitmapSourceFromHBitmap(
-                hBitmap,
-                IntPtr.Zero,
-                System.Windows.Int32Rect.Empty,
-                BitmapSizeOptions.FromEmptyOptions());
-
-            // delete HBitmap to avoid memory leaks
-            ShellNativeMethods.DeleteObject(hBitmap);
-
-            return returnValue;
-        }
+//        private BitmapSource GetBitmapSource(System.Windows.Size size)
+//        {
+//            IntPtr hBitmap = GetHBitmap(size);
+//
+//            // return a System.Media.Imaging.BitmapSource
+//            // Use interop to create a BitmapSource from hBitmap.
+//            BitmapSource returnValue = Imaging.CreateBitmapSourceFromHBitmap(
+//                hBitmap,
+//                IntPtr.Zero,
+//                System.Windows.Int32Rect.Empty,
+//                BitmapSizeOptions.FromEmptyOptions());
+//
+//            // delete HBitmap to avoid memory leaks
+//            ShellNativeMethods.DeleteObject(hBitmap);
+//
+//            return returnValue;
+//        }
 
         #endregion
 

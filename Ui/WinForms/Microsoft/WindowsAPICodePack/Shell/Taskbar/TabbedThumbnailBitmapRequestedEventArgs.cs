@@ -3,7 +3,7 @@
 using System;
 using System.Drawing;
 using System.Windows;
-using System.Windows.Media.Imaging;
+//using System.Windows.Media.Imaging;
 
 namespace Microsoft.WindowsAPICodePack.Taskbar
 {
@@ -23,14 +23,14 @@ namespace Microsoft.WindowsAPICodePack.Taskbar
         {
         }
 
-        /// <summary>
-        /// Creates a Event Args for a TabbedThumbnailBitmapRequested event.
-        /// </summary>
-        /// <param name="windowsControl">WPF Control (UIElement) related to the event</param>
-        public TabbedThumbnailBitmapRequestedEventArgs(UIElement windowsControl)
-            : base(windowsControl)
-        {
-        }
+//        /// <summary>
+//        /// Creates a Event Args for a TabbedThumbnailBitmapRequested event.
+//        /// </summary>
+//        /// <param name="windowsControl">WPF Control (UIElement) related to the event</param>
+//        public TabbedThumbnailBitmapRequestedEventArgs(UIElement windowsControl)
+//            : base(windowsControl)
+//        {
+//        }
 
 
         /// <summary>

@@ -574,24 +574,24 @@ namespace Microsoft.WindowsAPICodePack.Dialogs
             return ShowDialog();
         }
 
-        /// <summary>
-        /// Displays the dialog.
-        /// </summary>
-        /// <param name="window">Top-level WPF window that will own the modal dialog box.</param>
-        /// <returns>A <see cref="CommonFileDialogResult"/> object.</returns>
-        public CommonFileDialogResult ShowDialog(Window window)
-        {
-            if (window == null)
-            {
-                throw new ArgumentNullException("window");
-            }
-
-            // Set the parent / owner window
-            parentWindow = (new WindowInteropHelper(window)).Handle;
-
-            // Show the modal dialog
-            return ShowDialog();
-        }
+//        /// <summary>
+//        /// Displays the dialog.
+//        /// </summary>
+//        /// <param name="window">Top-level WPF window that will own the modal dialog box.</param>
+//        /// <returns>A <see cref="CommonFileDialogResult"/> object.</returns>
+//        public CommonFileDialogResult ShowDialog(Window window)
+//        {
+//            if (window == null)
+//            {
+//                throw new ArgumentNullException("window");
+//            }
+//
+//            // Set the parent / owner window
+//            parentWindow = (new WindowInteropHelper(window)).Handle;
+//
+//            // Show the modal dialog
+//            return ShowDialog();
+//        }
 
         /// <summary>
         /// Displays the dialog.
@@ -683,11 +683,12 @@ namespace Microsoft.WindowsAPICodePack.Dialogs
 
             if (parentWindow == IntPtr.Zero)
             {
-                if (System.Windows.Application.Current != null && System.Windows.Application.Current.MainWindow != null)
-                {
-                    parentWindow = (new WindowInteropHelper(System.Windows.Application.Current.MainWindow)).Handle;
-                }
-                else if (System.Windows.Forms.Application.OpenForms.Count > 0)
+//                if (System.Windows.Application.Current != null && System.Windows.Application.Current.MainWindow != null)
+//                {
+//                    parentWindow = (new WindowInteropHelper(System.Windows.Application.Current.MainWindow)).Handle;
+//                }
+//                else
+				if (System.Windows.Forms.Application.OpenForms.Count > 0)
                 {
                     parentWindow = System.Windows.Forms.Application.OpenForms[0].Handle;
                 }

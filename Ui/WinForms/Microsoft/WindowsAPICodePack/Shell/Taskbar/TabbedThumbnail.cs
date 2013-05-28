@@ -7,7 +7,7 @@ using System.Threading;
 using System.Windows;
 using System.Windows.Forms;
 using System.Windows.Interop;
-using System.Windows.Media.Imaging;
+//using System.Windows.Media.Imaging;
 using Microsoft.WindowsAPICodePack.Shell;
 using Microsoft.WindowsAPICodePack.Shell.Resources;
 using MS.WindowsAPICodePack.Internal;
@@ -25,9 +25,9 @@ namespace Microsoft.WindowsAPICodePack.Taskbar
         internal IntPtr WindowHandle { get; set; }
         internal IntPtr ParentWindowHandle { get; set; }
 
-        // WPF properties
-        internal UIElement WindowsControl { get; set; }
-        internal Window WindowsControlParentWindow { get; set; }
+//        // WPF properties
+//        internal UIElement WindowsControl { get; set; }
+//        internal Window WindowsControlParentWindow { get; set; }
 
         private TaskbarWindow _taskbarWindow;
         internal TaskbarWindow TaskbarWindow
@@ -114,34 +114,34 @@ namespace Microsoft.WindowsAPICodePack.Taskbar
             ParentWindowHandle = parentWindowHandle;
         }
 
-        /// <summary>
-        /// Creates a new TabbedThumbnail with the given window handle of the parent and
-        /// a WPF child Window. For WindowsFormHost control, use TabbedThumbnail(IntPtr, Control) overload and pass
-        /// the WindowsFormHost.Child as the second parameter.
-        /// </summary>
-        /// <param name="parentWindow">Parent window for the UIElement control. 
-        /// This window has to be a top-level window and the handle cannot be null</param>
-        /// <param name="windowsControl">WPF Control (UIElement) for which a tabbed thumbnail needs to be displayed</param>
-        /// <param name="peekOffset">Offset point used for displaying the peek bitmap. This setting is
-        /// recomended for hidden WPF controls as it is difficult to calculate their offset.</param>
-        public TabbedThumbnail(Window parentWindow, UIElement windowsControl, Vector peekOffset)
-        {
-            if (windowsControl == null)
-            {
-                throw new ArgumentNullException("windowsControl");
-            }
-            if (parentWindow == null)
-            {
-                throw new ArgumentNullException("parentWindow");
-            }
-
-            WindowHandle = IntPtr.Zero;
-
-            WindowsControl = windowsControl;
-            WindowsControlParentWindow = parentWindow;
-            ParentWindowHandle = (new WindowInteropHelper(parentWindow)).Handle;
-            PeekOffset = peekOffset;
-        }
+//        /// <summary>
+//        /// Creates a new TabbedThumbnail with the given window handle of the parent and
+//        /// a WPF child Window. For WindowsFormHost control, use TabbedThumbnail(IntPtr, Control) overload and pass
+//        /// the WindowsFormHost.Child as the second parameter.
+//        /// </summary>
+//        /// <param name="parentWindow">Parent window for the UIElement control. 
+//        /// This window has to be a top-level window and the handle cannot be null</param>
+//        /// <param name="windowsControl">WPF Control (UIElement) for which a tabbed thumbnail needs to be displayed</param>
+//        /// <param name="peekOffset">Offset point used for displaying the peek bitmap. This setting is
+//        /// recomended for hidden WPF controls as it is difficult to calculate their offset.</param>
+//        public TabbedThumbnail(Window parentWindow, UIElement windowsControl, Vector peekOffset)
+//        {
+//            if (windowsControl == null)
+//            {
+//                throw new ArgumentNullException("windowsControl");
+//            }
+//            if (parentWindow == null)
+//            {
+//                throw new ArgumentNullException("parentWindow");
+//            }
+//
+//            WindowHandle = IntPtr.Zero;
+//
+//            WindowsControl = windowsControl;
+//            WindowsControlParentWindow = parentWindow;
+//            ParentWindowHandle = (new WindowInteropHelper(parentWindow)).Handle;
+//            PeekOffset = peekOffset;
+//        }
 
         #endregion
 
@@ -262,41 +262,41 @@ namespace Microsoft.WindowsAPICodePack.Taskbar
             }
         }
 
-        /// <summary>
-        /// Override the thumbnail and peek bitmap. 
-        /// By providing this bitmap manually, Thumbnail Window manager will provide the 
-        /// Desktop Window Manager (DWM) this bitmap instead of rendering one automatically.
-        /// Use this property to update the bitmap whenever the control is updated and the user
-        /// needs to be shown a new thumbnail on the taskbar preview (or aero peek).
-        /// </summary>
-        /// <param name="bitmapSource">The image to use.</param>
-        /// <remarks>
-        /// If the bitmap doesn't have the right dimensions, the DWM may scale it or not 
-        /// render certain areas as appropriate - it is the user's responsibility
-        /// to render a bitmap with the proper dimensions.
-        /// </remarks>
-        public void SetImage(BitmapSource bitmapSource)
-        {
-            if (bitmapSource == null)
-            {
-                SetImage(IntPtr.Zero);
-                return;
-            }
-
-            BmpBitmapEncoder encoder = new BmpBitmapEncoder();
-            encoder.Frames.Add(BitmapFrame.Create(bitmapSource));
-
-            using (MemoryStream memoryStream = new MemoryStream())
-            {
-                encoder.Save(memoryStream);
-                memoryStream.Position = 0;
-
-                using (Bitmap bmp = new Bitmap(memoryStream))
-                {
-                    SetImage(bmp.GetHbitmap());
-                }
-            }
-        }
+//        /// <summary>
+//        /// Override the thumbnail and peek bitmap. 
+//        /// By providing this bitmap manually, Thumbnail Window manager will provide the 
+//        /// Desktop Window Manager (DWM) this bitmap instead of rendering one automatically.
+//        /// Use this property to update the bitmap whenever the control is updated and the user
+//        /// needs to be shown a new thumbnail on the taskbar preview (or aero peek).
+//        /// </summary>
+//        /// <param name="bitmapSource">The image to use.</param>
+//        /// <remarks>
+//        /// If the bitmap doesn't have the right dimensions, the DWM may scale it or not 
+//        /// render certain areas as appropriate - it is the user's responsibility
+//        /// to render a bitmap with the proper dimensions.
+//        /// </remarks>
+//        public void SetImage(BitmapSource bitmapSource)
+//        {
+//            if (bitmapSource == null)
+//            {
+//                SetImage(IntPtr.Zero);
+//                return;
+//            }
+//
+//            BmpBitmapEncoder encoder = new BmpBitmapEncoder();
+//            encoder.Frames.Add(BitmapFrame.Create(bitmapSource));
+//
+//            using (MemoryStream memoryStream = new MemoryStream())
+//            {
+//                encoder.Save(memoryStream);
+//                memoryStream.Position = 0;
+//
+//                using (Bitmap bmp = new Bitmap(memoryStream))
+//                {
+//                    SetImage(bmp.GetHbitmap());
+//                }
+//            }
+//        }
 
         /// <summary>
         /// Override the thumbnail and peek bitmap. 
@@ -474,10 +474,10 @@ namespace Microsoft.WindowsAPICodePack.Taskbar
                 {
                     eventArgs = new TabbedThumbnailBitmapRequestedEventArgs(this.WindowHandle);
                 }
-                else if (this.WindowsControl != null)
-                {
-                    eventArgs = new TabbedThumbnailBitmapRequestedEventArgs(this.WindowsControl);
-                }
+//                else if (this.WindowsControl != null)
+//                {
+//                    eventArgs = new TabbedThumbnailBitmapRequestedEventArgs(this.WindowsControl);
+//                }
 
                 TabbedThumbnailBitmapRequested(this, eventArgs);
             }
@@ -491,10 +491,10 @@ namespace Microsoft.WindowsAPICodePack.Taskbar
             {
                 eventArgs = new TabbedThumbnailClosedEventArgs(this.WindowHandle);
             }
-            else if (this.WindowsControl != null)
-            {
-                eventArgs = new TabbedThumbnailClosedEventArgs(this.WindowsControl);
-            }
+//            else if (this.WindowsControl != null)
+//            {
+//                eventArgs = new TabbedThumbnailClosedEventArgs(this.WindowsControl);
+//            }
 
             return eventArgs;
         }
@@ -507,10 +507,10 @@ namespace Microsoft.WindowsAPICodePack.Taskbar
             {
                 eventArgs = new TabbedThumbnailEventArgs(this.WindowHandle);
             }
-            else if (this.WindowsControl != null)
-            {
-                eventArgs = new TabbedThumbnailEventArgs(this.WindowsControl);
-            }
+//            else if (this.WindowsControl != null)
+//            {
+//                eventArgs = new TabbedThumbnailEventArgs(this.WindowsControl);
+//            }
 
             return eventArgs;
         }
@@ -551,7 +551,7 @@ namespace Microsoft.WindowsAPICodePack.Taskbar
 
                 _title = null;
                 _tooltip = null;
-                WindowsControl = null;
+                //WindowsControl = null;
             }
 
             if (CurrentHBitmap != IntPtr.Zero)

@@ -20,15 +20,15 @@ namespace Microsoft.WindowsAPICodePack.Taskbar
                 Text = preview.Title;
             }
 
-            if (preview.WindowsControl != null)
-            {                
-                WindowsControl = preview.WindowsControl;            
-            }
+//            if (preview.WindowsControl != null)
+//            {                
+//                WindowsControl = preview.WindowsControl;            
+//            }
         }
 
         internal TabbedThumbnail TabbedThumbnail { get; private set; }
 
-        internal UIElement WindowsControl { get; private set; }
+//        internal UIElement WindowsControl { get; private set; }
 
         internal IntPtr WindowToTellTaskbarAbout { get { return this.Handle; } }
 
@@ -79,7 +79,7 @@ namespace Microsoft.WindowsAPICodePack.Taskbar
 
                 TabbedThumbnail = null;
                 
-                WindowsControl = null;
+                //WindowsControl = null;
             }
 
             base.Dispose(disposing);

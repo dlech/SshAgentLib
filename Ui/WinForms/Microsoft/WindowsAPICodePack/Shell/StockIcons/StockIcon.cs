@@ -5,7 +5,7 @@ using System.Drawing;
 using System.Runtime.InteropServices;
 using System.Windows;
 using System.Windows.Interop;
-using System.Windows.Media.Imaging;
+//using System.Windows.Media.Imaging;
 using Microsoft.WindowsAPICodePack.Shell.Resources;
 using MS.WindowsAPICodePack.Internal;
 
@@ -128,19 +128,19 @@ namespace Microsoft.WindowsAPICodePack.Shell
             }
         }
 
-        /// <summary>
-        /// Gets the icon image in <see cref="System.Windows.Media.Imaging.BitmapSource"/> format. 
-        /// </summary>
-        public BitmapSource BitmapSource
-        {
-            get
-            {
-                UpdateHIcon();
-
-                return (hIcon != IntPtr.Zero) ?
-                    Imaging.CreateBitmapSourceFromHIcon(hIcon, Int32Rect.Empty, null) : null;
-            }
-        }
+//        /// <summary>
+//        /// Gets the icon image in <see cref="System.Windows.Media.Imaging.BitmapSource"/> format. 
+//        /// </summary>
+//        public BitmapSource BitmapSource
+//        {
+//            get
+//            {
+//                UpdateHIcon();
+//
+//                return (hIcon != IntPtr.Zero) ?
+//                    Imaging.CreateBitmapSourceFromHIcon(hIcon, Int32Rect.Empty, null) : null;
+//            }
+//        }
 
         /// <summary>
         /// Gets the icon image in <see cref="System.Drawing.Icon"/> format.

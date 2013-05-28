@@ -283,10 +283,10 @@ namespace Microsoft.WindowsAPICodePack.Taskbar
                 {
                     Click(this, new ThumbnailButtonClickedEventArgs(taskbarWindow.UserWindowHandle, this));
                 }
-                else if (taskbarWindow.WindowsControl != null)
-                {
-                    Click(this, new ThumbnailButtonClickedEventArgs(taskbarWindow.WindowsControl, this));
-                }
+//                else if (taskbarWindow.WindowsControl != null)
+//                {
+//                    Click(this, new ThumbnailButtonClickedEventArgs(taskbarWindow.WindowsControl, this));
+//                }
             }
         }
 
