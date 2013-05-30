@@ -6,6 +6,7 @@ using System.Diagnostics;
 using System.Collections.Generic;
 using System.Text;
 using System.IO;
+using System.Security;
 
 namespace dlech.SshAgentLib.Ui.QtAgent
 {
@@ -90,14 +91,23 @@ namespace dlech.SshAgentLib.Ui.QtAgent
 
     public void SetAgent (IAgent aAgent)
     {
+      var agent = mAgent as Agent;
+      if (agent != null) {
+        agent.Locked -= mAgent_Locked;
+        agent.KeyListChanged -= mAgent_KeyListChanged;
+      }
+
       mAgent = aAgent;
-      var agent = aAgent as Agent;
+
+      agent = mAgent as Agent;
       if (agent == null) {
         mTableWidget.HideColumn (0);
         mTableWidget.HideColumn (1);
       } else {
         mTableWidget.ShowColumn (0);
         mTableWidget.ShowColumn (1);
+        agent.Locked += mAgent_Locked;
+        agent.KeyListChanged += mAgent_KeyListChanged;
       }
       ReloadData ();
     }
@@ -143,8 +153,8 @@ namespace dlech.SshAgentLib.Ui.QtAgent
         mRefreshButton.Visible = true;
         mMessageLabel.Text = Tr ("No keys loaded");
       } else {
-        mLockButton.Enabled = agent.IsLocked;
-        mUnlockButton.Enabled = !agent.IsLocked;
+        mLockButton.Enabled = !agent.IsLocked;
+        mUnlockButton.Enabled = agent.IsLocked;
         mRefreshButton.Visible = false;
         mMessageLabel.Text = agent.IsLocked ? Tr ("Locked") : Tr ("No keys loaded");
       }
@@ -233,8 +243,24 @@ namespace dlech.SshAgentLib.Ui.QtAgent
           var constraints = dialog.GetConstraints ();
           foreach (var file in dialog.SelectedFiles) {
             try {
-              // TODO - add passphrase callback
-              mAgent.AddKeyFromFile (file, null, constraints);
+              KeyFormatter.GetPassphraseCallback passphraseCallback = () =>
+              {
+                var passphraseDialog = new PassphraseDialog();
+                passphraseDialog.Exec();
+                if (passphraseDialog.Result == (int)QDialog.DialogCode.Rejected) {
+                  return null;
+                }
+                using (var passphrase =
+                       new PinnedArray<byte>(passphraseDialog.GetPassphrase()))
+                {
+                  var securePassphrase = new SecureString();
+                  foreach (var b in passphrase.Data) {
+                    securePassphrase.AppendChar((char)b);
+                  }
+                  return securePassphrase;
+                }
+              };
+              mAgent.AddKeyFromFile (file, passphraseCallback, constraints);
             } catch (AgentFailureException) {
               QMessageBox.Critical (this,
                                     Tr("Agent Failure"),
@@ -319,5 +345,16 @@ namespace dlech.SshAgentLib.Ui.QtAgent
       ReloadData ();
     }
 
+    void mAgent_Locked(object aSender, Agent.LockEventArgs aEventArgs)
+    {
+      // TODO figure out how to invoke Qt UI thread
+      UpdateUIState ();
+    }
+
+    void mAgent_KeyListChanged(object aSender, Agent.KeyListChangeEventArgs aEventArgs)
+    {
+      // TODO figure out how to invoke Qt UI thread
+      ReloadData ();
+    }
   }
 }
