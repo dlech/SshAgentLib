@@ -13,7 +13,7 @@ namespace dlech.SshAgentLib
     /// Gets passphrase.
     /// </summary>
     /// <returns>the passphrase</returns>
-    public delegate SecureString GetPassphraseCallback();
+    public delegate SecureString GetPassphraseCallback(string comment);
 
     public SerializationBinder Binder { get; set; }
 

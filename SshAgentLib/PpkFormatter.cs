@@ -318,7 +318,7 @@ namespace dlech.SshAgentLib
           if (GetPassphraseCallbackMethod == null) {
             throw new CallbackNullException();
           }
-          fileData.passphrase = GetPassphraseCallbackMethod.Invoke();
+          fileData.passphrase = GetPassphraseCallbackMethod.Invoke(fileData.comment);
           DecryptPrivateKey(ref fileData);
         }
 

@@ -207,7 +207,7 @@ namespace dlech.SshAgentLib
 
       public char[] GetPassword()
       {
-        SecureString passphrase = mCallback.Invoke();
+        SecureString passphrase = mCallback.Invoke(null);
         char[] passwordChars = new char[passphrase.Length];
         IntPtr passphrasePtr = Marshal.SecureStringToGlobalAllocUnicode(passphrase);
         for (int i = 0; i < passphrase.Length; i++) {
