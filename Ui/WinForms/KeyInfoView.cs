@@ -661,6 +661,9 @@ namespace dlech.SshAgentLib.WinForms
     private void dataGridView_CellPainting(object sender,
                                            DataGridViewCellPaintingEventArgs e)
     {
+      // Override the drawing of the checkbox for the confirm and lifetime 
+      // constraints. The default rendering looks like you should be able
+      // to check the boxes, but they are really read-only.
       if (e.RowIndex >= 0 &&
           (e.ColumnIndex == confirmDataGridViewCheckBoxColumn.Index ||
            e.ColumnIndex == lifetimeDataGridViewCheckBoxColumn.Index))
@@ -683,20 +686,15 @@ namespace dlech.SshAgentLib.WinForms
                             e.CellBounds.Top, e.CellBounds.Right - 1,
                             e.CellBounds.Bottom);
 
-        // TODO - make this pretty!
-
         var foreColorPen = new Pen
          (e.State.HasFlag(DataGridViewElementStates.Selected) ?
           e.CellStyle.SelectionForeColor :
           e.CellStyle.ForeColor);
-        
-        var midX = e.CellBounds.X + e.CellBounds.Width / 2;
-        var midY = e.CellBounds.Y + e.CellBounds.Height / 2;
-        e.Graphics.DrawRectangle(foreColorPen, midX - 5, midY - 5, 10, 10);
 
         if (e.Value is bool && ((bool)e.Value)) {
-          e.Graphics.DrawLine(foreColorPen, midX - 5, midY - 5, midX + 5, midY + 5);
-          e.Graphics.DrawLine(foreColorPen, midX - 5, midY + 5, midX + 5, midY - 5);
+          var midX = e.CellBounds.X + e.CellBounds.Width / 2;
+          var midY = e.CellBounds.Y + e.CellBounds.Height / 2;
+          e.Graphics.DrawImage (Properties.Resources.checkmark, midX - 8, midY - 8, 16, 16);
         }
 
         e.Handled = true;
