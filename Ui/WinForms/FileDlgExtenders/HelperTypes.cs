@@ -177,7 +177,7 @@ namespace FileDialogExtenders
             #endregion
         }
 
-        private class WholeDialogWrapper: NativeWindow, IDisposable      
+        private class WholeDialogWrapper: NativeWindow, IDisposable
         {
             #region Constants Declaration
             private const SetWindowPosFlags UFLAGSSIZEEX =

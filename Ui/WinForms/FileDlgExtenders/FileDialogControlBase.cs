@@ -524,7 +524,7 @@ namespace FileDialogExtenders
                 owner = wr;
             }
             OriginalCtrlSize = this.Size;
-            MSDialog = fdlg;               
+            MSDialog = fdlg;
             _dlgWrapper = new WholeDialogWrapper(this);
             
             try

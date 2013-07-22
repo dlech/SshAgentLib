@@ -140,11 +140,10 @@ namespace FileDialogExtenders
             {
             }
         }
-
     }
 
     //http://www.codeguru.com/cpp/misc/misc/system/article.php/c13407/
-    // fot .net 4.0 and up use CustomPlaces instead :http://msdn.microsoft.com/en-us/library/microsoft.win32.filedialog.customplaces.aspx
+    // for .net 4.0 and up use CustomPlaces instead :http://msdn.microsoft.com/en-us/library/microsoft.win32.filedialog.customplaces.aspx
     public enum Places
     {
         [Description("Desktop")]
@@ -229,10 +228,10 @@ namespace FileDialogExtenders
         [Description("<user name>\\PrintHood ")]
         User_Name_PrintHood = 0x1b,
 
-        [Description("<user name>\\Local Settings\\Applicaiton Data (nonroaming)")]
+        [Description("<user name>\\Local Settings\\Application Data (non-roaming)")]
         Local_ApplicaitonData = 0x1c,
 
-        [Description("Nonlocalized common startup ")]
+        [Description("Non-localized common startup ")]
         NonlocalizedCommonStartup = 0x1e,
 
         [Description("")]

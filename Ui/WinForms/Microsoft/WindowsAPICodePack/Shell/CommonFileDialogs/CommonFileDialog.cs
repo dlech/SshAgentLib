@@ -830,7 +830,7 @@ namespace Microsoft.WindowsAPICodePack.Dialogs
         }
 
         /// <summary>
-        /// Returns if change to the colleciton is allowed.
+        /// Returns if change to the collection is allowed.
         /// </summary>
         /// <returns>true if collection change is allowed.</returns>
         public virtual bool IsCollectionChangeAllowed()
@@ -855,7 +855,6 @@ namespace Microsoft.WindowsAPICodePack.Dialogs
                     control.IsAdded = true;
                 }
             }
-
         }
 
         /// <summary>
