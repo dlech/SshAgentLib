@@ -26,12 +26,12 @@ namespace dlech.SshAgentLib.WinForms
     public ConfirmConstraintControl()
     {
       InitializeComponent();
-#if __MonoCS__
-      mConfirmCheckBox.AutoSize = false;
-      mConfirmCheckBox.Width = 200;
-      AutoSize = false;
-      Width = 200;
-#endif
+      if (Type.GetType("Mono.Runtime") != null) {
+        mConfirmCheckBox.AutoSize = false;
+        mConfirmCheckBox.Width = 200;
+        AutoSize = false;
+        Width = 200;
+      }
       BackColor = Color.Transparent;
     }
   }

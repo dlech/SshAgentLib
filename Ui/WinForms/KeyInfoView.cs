@@ -13,22 +13,16 @@ using System.Diagnostics;
 using System.Reflection;
 using System.Text.RegularExpressions;
 using FileDialogExtenders;
-
-
-#if !__MonoCS__
 using Microsoft.WindowsAPICodePack.Dialogs;
 using Microsoft.WindowsAPICodePack.Dialogs.Controls;
-#endif
 
 namespace dlech.SshAgentLib.WinForms
 {
   public partial class KeyInfoView : UserControl
   {
-#if !__MonoCS__
     private const string cConfirmConstraintCheckBox = "ConfirmConstraintCheckBox";
     private const string cLifetimeConstraintCheckBox = "LifetimeConstraintCheckBox";
     private const string cLifetimeConstraintTextBox = "LifetimeConstraintTextBox";
-#endif
     private const int cDragDropKeyStateCtrl = 8;
 
     private IAgent mAgent;
@@ -36,9 +30,7 @@ namespace dlech.SshAgentLib.WinForms
     private PasswordDialog mPasswordDialog;
     private bool mSelectionChangedBroken;
     private int mButtonLayoutInitialColumnCount;
-#if !__MonoCS__
     private Dictionary<OpenFileDialog, XPOpenFileDialog> mOpenFileDialogMap;
-#endif
 
     public ContextMenuStrip AddButtonSplitMenu
     {
@@ -67,9 +59,7 @@ namespace dlech.SshAgentLib.WinForms
 
     public KeyInfoView()
     {
-#if !__MonoCS__
       mOpenFileDialogMap = new Dictionary<OpenFileDialog, XPOpenFileDialog>();
-#endif
       // workaround for mono bug
       try
       {
@@ -157,18 +147,16 @@ namespace dlech.SshAgentLib.WinForms
     {
       string[] fileNames;
       List<Agent.KeyConstraint> constraints = new List<Agent.KeyConstraint>();
-#if !__MonoCS__
       if (mAgent is PageantClient) {
         // Client Mode with Pageant - Show standard file dialog since we don't
         // need / can't use constraints
 
-        using (var openFileDialog = new OpenFileDialog())
-        {
-          openFileDialog.Filter = string.Join("|",
+        using (var openFileDialog = new OpenFileDialog()) {
+          openFileDialog.Filter = string.Join ("|",
             Strings.filterPuttyPrivateKeyFiles, "*.ppk",
              Strings.filterAllFiles, "*.*");
 
-          var result = openFileDialog.ShowDialog();
+          var result = openFileDialog.ShowDialog ();
           if (result != DialogResult.OK) {
             return;
           }
@@ -178,91 +166,87 @@ namespace dlech.SshAgentLib.WinForms
         // Windows Vista/7/8 has new style file open dialog that can be extended
         // using the Windows API via the WindowsAPICodepack library
 
-        var win7OpenFileDialog = new CommonOpenFileDialog();
+        var win7OpenFileDialog = new CommonOpenFileDialog ();
         win7OpenFileDialog.Multiselect = true;
         win7OpenFileDialog.EnsureFileExists = true;
 
         var confirmConstraintCheckBox =
-          new CommonFileDialogCheckBox(cConfirmConstraintCheckBox,
+          new CommonFileDialogCheckBox (cConfirmConstraintCheckBox,
           "Require user confirmation");
         var lifetimeConstraintTextBox =
-          new CommonFileDialogTextBox(cLifetimeConstraintTextBox, string.Empty);
+          new CommonFileDialogTextBox (cLifetimeConstraintTextBox, string.Empty);
         lifetimeConstraintTextBox.Visible = false;
         var lifetimeConstraintCheckBox =
-          new CommonFileDialogCheckBox(cLifetimeConstraintCheckBox,
+          new CommonFileDialogCheckBox (cLifetimeConstraintCheckBox,
           "Set lifetime (in seconds)");
         lifetimeConstraintCheckBox.CheckedChanged +=
-          delegate(object aSender, EventArgs aEventArgs)
-          {
-            lifetimeConstraintTextBox.Visible =
+          delegate(object aSender, EventArgs aEventArgs) {
+          lifetimeConstraintTextBox.Visible =
               lifetimeConstraintCheckBox.IsChecked;
-          };
+        };
 
-        var confirmConstraintGroupBox = new CommonFileDialogGroupBox();
-        var lifetimeConstraintGroupBox = new CommonFileDialogGroupBox();
+        var confirmConstraintGroupBox = new CommonFileDialogGroupBox ();
+        var lifetimeConstraintGroupBox = new CommonFileDialogGroupBox ();
 
-        confirmConstraintGroupBox.Items.Add(confirmConstraintCheckBox);
-        lifetimeConstraintGroupBox.Items.Add(lifetimeConstraintCheckBox);
-        lifetimeConstraintGroupBox.Items.Add(lifetimeConstraintTextBox);
+        confirmConstraintGroupBox.Items.Add (confirmConstraintCheckBox);
+        lifetimeConstraintGroupBox.Items.Add (lifetimeConstraintCheckBox);
+        lifetimeConstraintGroupBox.Items.Add (lifetimeConstraintTextBox);
 
-        win7OpenFileDialog.Controls.Add(confirmConstraintGroupBox);
-        win7OpenFileDialog.Controls.Add(lifetimeConstraintGroupBox);
+        win7OpenFileDialog.Controls.Add (confirmConstraintGroupBox);
+        win7OpenFileDialog.Controls.Add (lifetimeConstraintGroupBox);
 
-        var filter = new CommonFileDialogFilter(
+        var filter = new CommonFileDialogFilter (
           Strings.filterPuttyPrivateKeyFiles, "*.ppk");
-        win7OpenFileDialog.Filters.Add(filter);
-        filter = new CommonFileDialogFilter(Strings.filterAllFiles, "*.*");
-        win7OpenFileDialog.Filters.Add(filter);
+        win7OpenFileDialog.Filters.Add (filter);
+        filter = new CommonFileDialogFilter (Strings.filterAllFiles, "*.*");
+        win7OpenFileDialog.Filters.Add (filter);
 
         win7OpenFileDialog.FileOk += win7OpenFileDialog_FileOk;
 
-        var result = win7OpenFileDialog.ShowDialog();
-        if (result != CommonFileDialogResult.Ok)
-        {
+        var result = win7OpenFileDialog.ShowDialog ();
+        if (result != CommonFileDialogResult.Ok) {
           return;
         }
-        if (confirmConstraintCheckBox.IsChecked)
-        {
-          var constraint = new Agent.KeyConstraint();
+        if (confirmConstraintCheckBox.IsChecked) {
+          var constraint = new Agent.KeyConstraint ();
           constraint.Type = Agent.KeyConstraintType.SSH_AGENT_CONSTRAIN_CONFIRM;
-          constraints.Add(constraint);
+          constraints.Add (constraint);
         }
-        if (lifetimeConstraintCheckBox.IsChecked)
-        {
+        if (lifetimeConstraintCheckBox.IsChecked) {
           // error checking for parse done in fileOK event handler
-          uint lifetime = uint.Parse(lifetimeConstraintTextBox.Text);
-          var constraint = new Agent.KeyConstraint();
+          uint lifetime = uint.Parse (lifetimeConstraintTextBox.Text);
+          var constraint = new Agent.KeyConstraint ();
           constraint.Type = Agent.KeyConstraintType.SSH_AGENT_CONSTRAIN_LIFETIME;
           constraint.Data = lifetime;
-          constraints.Add(constraint);
+          constraints.Add (constraint);
         }
-        fileNames = win7OpenFileDialog.FileNames.ToArray();
-      } else {
+        fileNames = win7OpenFileDialog.FileNames.ToArray ();
+      } else if (Type.GetType ("Mono.Runtime") == null) {
         // Windows XP uses old style file open dialog that can be extended
         // using the Windows API via FileDlgExtenders library
 
         using (var openFileDialog = new OpenFileDialog()) {
 
-          openFileDialog.Filter = string.Join("|",
+          openFileDialog.Filter = string.Join ("|",
             Strings.filterPuttyPrivateKeyFiles, "*.ppk",
              Strings.filterAllFiles, "*.*");
 
           openFileDialog.FileOk += xpOpenFileDialog_FileOk;
 
-          var xpOpenFileDialog = new XPOpenFileDialog();
+          var xpOpenFileDialog = new XPOpenFileDialog ();
           xpOpenFileDialog.FileDlgStartLocation = AddonWindowLocation.Bottom;
 
-          mOpenFileDialogMap.Add(openFileDialog, xpOpenFileDialog);
+          mOpenFileDialogMap.Add (openFileDialog, xpOpenFileDialog);
 
-          var result = ((FileDialog)openFileDialog).ShowDialog(xpOpenFileDialog, null);
+          var result = ((FileDialog)openFileDialog).ShowDialog (xpOpenFileDialog, null);
           if (result != DialogResult.OK) {
             return;
           }
 
-          mOpenFileDialogMap.Remove(openFileDialog);
+          mOpenFileDialogMap.Remove (openFileDialog);
 
           if (xpOpenFileDialog.UseConfirmConstraintChecked) {
-            constraints.addConfirmConstraint();
+            constraints.addConfirmConstraint ();
           }
           if (xpOpenFileDialog.UseLifetimeConstraintChecked) {
             constraints.addLifetimeConstraint
@@ -270,28 +254,27 @@ namespace dlech.SshAgentLib.WinForms
           }
           fileNames = openFileDialog.FileNames;
         }
-      }
-#else
-      var fileDialog = new OpenFileDialog();
-      var result = fileDialog.ShowDialog ();
-      if (result != DialogResult.OK) {
-        return;
-      }
-      fileNames = fileDialog.FileNames;
+      } else {
+        var fileDialog = new OpenFileDialog ();
+        var result = fileDialog.ShowDialog ();
+        if (result != DialogResult.OK) {
+          return;
+        }
+        fileNames = fileDialog.FileNames;
 
-      if ((Control.ModifierKeys & Keys.Control) == Keys.Control) {
-        var constraintDialog = new ConstraintsInputDialog();
-        constraintDialog.ShowDialog();
-        if (constraintDialog.DialogResult == DialogResult.OK) {
-          if (constraintDialog.ConfirmConstraintChecked) {
-            constraints.addConfirmConstraint();
-          }
-          if (constraintDialog.LifetimeConstraintChecked) {
-            constraints.addLifetimeConstraint(constraintDialog.LifetimeDuration);
+        if ((Control.ModifierKeys & Keys.Control) == Keys.Control) {
+          var constraintDialog = new ConstraintsInputDialog ();
+          constraintDialog.ShowDialog ();
+          if (constraintDialog.DialogResult == DialogResult.OK) {
+            if (constraintDialog.ConfirmConstraintChecked) {
+              constraints.addConfirmConstraint ();
+            }
+            if (constraintDialog.LifetimeConstraintChecked) {
+              constraints.addLifetimeConstraint (constraintDialog.LifetimeDuration);
+            }
           }
         }
       }
-#endif
       UseWaitCursor = true;
       mAgent.AddKeysFromFiles(fileNames, constraints);
       if (!(mAgent is Agent))
@@ -601,7 +584,6 @@ namespace dlech.SshAgentLib.WinForms
       ReloadKeyListView();
     }
 
-#if !__MonoCS__
     private void win7OpenFileDialog_FileOk(object sender, CancelEventArgs e)
     {
       var win7OpenFileDialog = sender as CommonOpenFileDialog;
@@ -645,7 +627,6 @@ namespace dlech.SshAgentLib.WinForms
         }
       }
     }
-#endif
 
     private void KeyManagerForm_KeyUp(object sender, KeyEventArgs e)
     {

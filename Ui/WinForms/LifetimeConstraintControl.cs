@@ -47,10 +47,10 @@ namespace dlech.SshAgentLib.WinForms
     public LifetimeConstraintControl()
     {
       InitializeComponent();
-#if __MonoCS__
-      AutoSize = false;
-      Width = 250;
-#endif
+      if (Type.GetType ("Mono.Runtime") != null) {
+        AutoSize = false;
+        Width = 250;
+      }
     }
 
     private void mLifetimeCheckBox_CheckedChanged(object sender, EventArgs e)
