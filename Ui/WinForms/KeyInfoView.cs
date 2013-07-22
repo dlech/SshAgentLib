@@ -57,6 +57,8 @@ namespace dlech.SshAgentLib.WinForms
       }
     }
 
+    public event EventHandler AddFromFileHelpRequested;
+
     public KeyInfoView()
     {
       mOpenFileDialogMap = new Dictionary<OpenFileDialog, XPOpenFileDialog>();
@@ -202,6 +204,7 @@ namespace dlech.SshAgentLib.WinForms
         win7OpenFileDialog.Filters.Add (filter);
 
         win7OpenFileDialog.FileOk += win7OpenFileDialog_FileOk;
+        // TODO: add help listener to win7OpenFileDialog
 
         var result = win7OpenFileDialog.ShowDialog ();
         if (result != CommonFileDialogResult.Ok) {
@@ -221,58 +224,61 @@ namespace dlech.SshAgentLib.WinForms
           constraints.Add (constraint);
         }
         fileNames = win7OpenFileDialog.FileNames.ToArray ();
-      } else if (Type.GetType ("Mono.Runtime") == null) {
-        // Windows XP uses old style file open dialog that can be extended
-        // using the Windows API via FileDlgExtenders library
-
-        using (var openFileDialog = new OpenFileDialog()) {
-
+      } else {
+        using (var openFileDialog = new OpenFileDialog())
+        {
           openFileDialog.Filter = string.Join ("|",
             Strings.filterPuttyPrivateKeyFiles, "*.ppk",
              Strings.filterAllFiles, "*.*");
 
           openFileDialog.FileOk += xpOpenFileDialog_FileOk;
+          
+          // Windows XP uses old style file open dialog that can be extended
+          // using the Windows API via FileDlgExtenders library
+          XPOpenFileDialog xpOpenFileDialog = null;
+          if (Type.GetType("Mono.Runtime") == null) {
+            xpOpenFileDialog = new XPOpenFileDialog ();
+            xpOpenFileDialog.FileDlgStartLocation = AddonWindowLocation.Bottom;
+            mOpenFileDialogMap.Add (openFileDialog, xpOpenFileDialog);
+          }
 
-          var xpOpenFileDialog = new XPOpenFileDialog ();
-          xpOpenFileDialog.FileDlgStartLocation = AddonWindowLocation.Bottom;
+          openFileDialog.HelpRequest += OnAddFromFileHelpRequested;
+          // TODO: technically, a listener could be added after this
+          openFileDialog.ShowHelp = AddFromFileHelpRequested != null;
 
-          mOpenFileDialogMap.Add (openFileDialog, xpOpenFileDialog);
-
-          var result = ((FileDialog)openFileDialog).ShowDialog (xpOpenFileDialog, null);
-          if (result != DialogResult.OK) {
+          var result = xpOpenFileDialog == null ?
+            openFileDialog.ShowDialog() :
+            openFileDialog.ShowDialog(xpOpenFileDialog, null);
+          if (result != DialogResult.OK)
             return;
-          }
 
-          mOpenFileDialogMap.Remove (openFileDialog);
+          if (xpOpenFileDialog == null) {
+            // If dialog could not be extended, then we add constraints by holding
+            // down the control key when clicking the Open button.
+            if (Control.ModifierKeys.HasFlag(Keys.Control)) {
+              var constraintDialog = new ConstraintsInputDialog ();
+              constraintDialog.ShowDialog ();
+              if (constraintDialog.DialogResult == DialogResult.OK) {
+                if (constraintDialog.ConfirmConstraintChecked) {
+                  constraints.addConfirmConstraint ();
+                }
+                if (constraintDialog.LifetimeConstraintChecked) {
+                  constraints.addLifetimeConstraint (constraintDialog.LifetimeDuration);
+                }
+              }
+            }
+          } else {
+            mOpenFileDialogMap.Remove (openFileDialog);
 
-          if (xpOpenFileDialog.UseConfirmConstraintChecked) {
-            constraints.addConfirmConstraint ();
-          }
-          if (xpOpenFileDialog.UseLifetimeConstraintChecked) {
-            constraints.addLifetimeConstraint
-              (xpOpenFileDialog.LifetimeConstraintDuration);
-          }
-          fileNames = openFileDialog.FileNames;
-        }
-      } else {
-        var fileDialog = new OpenFileDialog ();
-        var result = fileDialog.ShowDialog ();
-        if (result != DialogResult.OK) {
-          return;
-        }
-        fileNames = fileDialog.FileNames;
-
-        if ((Control.ModifierKeys & Keys.Control) == Keys.Control) {
-          var constraintDialog = new ConstraintsInputDialog ();
-          constraintDialog.ShowDialog ();
-          if (constraintDialog.DialogResult == DialogResult.OK) {
-            if (constraintDialog.ConfirmConstraintChecked) {
+            if (xpOpenFileDialog.UseConfirmConstraintChecked) {
               constraints.addConfirmConstraint ();
             }
-            if (constraintDialog.LifetimeConstraintChecked) {
-              constraints.addLifetimeConstraint (constraintDialog.LifetimeDuration);
+            if (xpOpenFileDialog.UseLifetimeConstraintChecked) {
+              constraints.addLifetimeConstraint
+                (xpOpenFileDialog.LifetimeConstraintDuration);
             }
           }
+          fileNames = openFileDialog.FileNames;
         }
       }
       UseWaitCursor = true;
@@ -309,6 +315,12 @@ namespace dlech.SshAgentLib.WinForms
       dataGridView.Columns[0].Visible = columnZeroVisible;
       UpdateVisibility();
       UpdateButtonStates();
+    }
+
+    void OnAddFromFileHelpRequested(object sender, EventArgs e)
+    {
+      if (AddFromFileHelpRequested != null)
+        AddFromFileHelpRequested(sender, e);
     }
 
     private void UpdateVisibility()
