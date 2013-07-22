@@ -1,17 +1,13 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.ComponentModel;
-using System.Drawing;
-using System.Data;
-using System.Linq;
-using System.Text;
-using System.Windows.Forms;
-using dlech.SshAgentLib;
-using System.Security;
-using System.IO;
 using System.Diagnostics;
+using System.Drawing;
+using System.Linq;
 using System.Reflection;
+using System.Runtime.InteropServices;
 using System.Text.RegularExpressions;
+using System.Windows.Forms;
 using FileDialogExtenders;
 using Microsoft.WindowsAPICodePack.Dialogs;
 using Microsoft.WindowsAPICodePack.Dialogs.Controls;
@@ -204,7 +200,27 @@ namespace dlech.SshAgentLib.WinForms
         win7OpenFileDialog.Filters.Add (filter);
 
         win7OpenFileDialog.FileOk += win7OpenFileDialog_FileOk;
-        // TODO: add help listener to win7OpenFileDialog
+
+        // add help listeners to win7OpenFileDialog
+        win7OpenFileDialog.DialogOpening += (sender, e) =>
+        {
+          var hwnd = win7OpenFileDialog.GetWindowHandle();
+
+          // hook into WndProc to catch WM_HELP, i.e. user pressed F1
+          WndProcDelegate oldWndProc = null;
+          WndProcDelegate newWndProc = (hWnd, msg, wParam, lParam) =>
+          {
+            if (msg == (int)Win32Types.Msg.WM_HELP) {
+              OnAddFromFileHelpRequested(win7OpenFileDialog, EventArgs.Empty);
+              return (IntPtr)1; // TRUE
+            }
+            return CallWindowProc(oldWndProc, hwnd, msg, wParam, lParam);
+          };
+          var newWndProcPtr = Marshal.GetFunctionPointerForDelegate(newWndProc);
+          var oldWndProcPtr = SetWindowLongPtr(hwnd, WindowLongFlags.GWL_WNDPROC, newWndProcPtr);
+          oldWndProc = (WndProcDelegate)
+              Marshal.GetDelegateForFunctionPointer(oldWndProcPtr, typeof(WndProcDelegate));
+        };
 
         var result = win7OpenFileDialog.ShowDialog ();
         if (result != CommonFileDialogResult.Ok) {
@@ -694,5 +710,45 @@ namespace dlech.SshAgentLib.WinForms
       }
     }
 
+    enum WindowLongFlags : int
+    {
+      GWL_EXSTYLE = -20,
+      GWLP_HINSTANCE = -6,
+      GWLP_HWNDPARENT = -8,
+      GWL_ID = -12,
+      GWL_STYLE = -16,
+      GWL_USERDATA = -21,
+      GWL_WNDPROC = -4,
+      DWLP_USER = 0x8,
+      DWLP_MSGRESULT = 0x0,
+      DWLP_DLGPROC = 0x4
+    }
+
+    /// <summary>
+    /// Changes an attribute of the specified window. The function also sets the 32-bit (long) value at the specified offset into the extra window memory.
+    /// </summary>
+    /// <param name="hWnd">A handle to the window and, indirectly, the class to which the window belongs..</param>
+    /// <param name="nIndex">The zero-based offset to the value to be set. Valid values are in the range zero through the number of bytes of extra window memory, minus the size of an integer. To set any other value, specify one of the following values: GWL_EXSTYLE, GWL_HINSTANCE, GWL_ID, GWL_STYLE, GWL_USERDATA, GWL_WNDPROC </param>
+    /// <param name="dwNewLong">The replacement value.</param>
+    /// <returns>If the function succeeds, the return value is the previous value of the specified 32-bit integer.
+    /// If the function fails, the return value is zero. To get extended error information, call GetLastError. </returns>
+    static IntPtr SetWindowLongPtr(IntPtr hWnd, WindowLongFlags nIndex, IntPtr dwNewLong)
+    {
+      if (IntPtr.Size == 8)
+        return SetWindowLongPtr64(hWnd, nIndex, dwNewLong);
+      else
+        return new IntPtr(SetWindowLong32(hWnd, nIndex, dwNewLong.ToInt32()));
+    }
+
+    [DllImport("user32.dll", EntryPoint = "SetWindowLong")]
+    static extern int SetWindowLong32(IntPtr hWnd, WindowLongFlags nIndex, int dwNewLong);
+
+    [DllImport("user32.dll", EntryPoint = "SetWindowLongPtr")]
+    static extern IntPtr SetWindowLongPtr64(IntPtr hWnd, WindowLongFlags nIndex, IntPtr dwNewLong);
+
+    [DllImport("user32.dll")]
+    static extern IntPtr CallWindowProc(WndProcDelegate lpPrevWndFunc, IntPtr hWnd, uint Msg, IntPtr wParam, IntPtr lParam);
+
+    delegate IntPtr WndProcDelegate(IntPtr hWnd, uint msg, IntPtr wParam, IntPtr lParam);
   }
 }

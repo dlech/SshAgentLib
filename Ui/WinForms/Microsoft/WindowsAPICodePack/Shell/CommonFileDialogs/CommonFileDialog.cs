@@ -42,6 +42,7 @@ namespace Microsoft.WindowsAPICodePack.Dialogs
 
         private IFileDialog nativeDialog;
         private IFileDialogCustomize customize;
+        private IOleWindow oleWindow;
         private NativeDialogEventSink nativeEventSink;
         private bool? canceled;
         private bool resetSelections;
@@ -952,6 +953,14 @@ namespace Microsoft.WindowsAPICodePack.Dialogs
             }
         }
 
+        public IntPtr GetWindowHandle()
+        {
+          IntPtr hwnd;
+          GetOleWindow();
+          oleWindow.GetWindow(out hwnd);
+          return hwnd;
+        }
+
         #endregion
 
         #region Helpers
@@ -1057,6 +1066,17 @@ namespace Microsoft.WindowsAPICodePack.Dialogs
                     nativeDialog = GetNativeFileDialog();
                 }
                 customize = (IFileDialogCustomize)nativeDialog;
+            }
+        }
+
+        private void GetOleWindow()
+        {
+            if (oleWindow == null) {
+                if (nativeDialog == null) {
+                    InitializeNativeFileDialog();
+                    nativeDialog = GetNativeFileDialog();
+                }
+                oleWindow = (IOleWindow)nativeDialog;
             }
         }
         #endregion
