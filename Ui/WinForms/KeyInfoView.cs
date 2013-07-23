@@ -67,7 +67,7 @@ namespace dlech.SshAgentLib.WinForms
           var getDisplayNameMethod = monoRuntimeType.GetMethod("GetDisplayName",
                                      BindingFlags.NonPublic | BindingFlags.Static);
           var displayName = getDisplayNameMethod.Invoke (null, null) as string;
-          var versionRegex = new Regex(@"\d+\.\d+\.\d+\.\d*");
+          var versionRegex = new Regex(@"\d+\.\d+\.\d+(\.\d+)?");
           var match = versionRegex.Match(displayName);
           var version = match.Value;
           mSelectionChangedBroken = Version.Parse (version) < Version.Parse ("2.11.2");
