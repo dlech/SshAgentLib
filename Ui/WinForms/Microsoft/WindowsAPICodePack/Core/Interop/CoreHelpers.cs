@@ -42,7 +42,8 @@ namespace MS.WindowsAPICodePack.Internal
         {
             get
             {
-                return Environment.OSVersion.Version.Major >= 6;
+                return Environment.OSVersion.Platform == PlatformID.Win32NT &&
+                    Environment.OSVersion.Version.Major >= 6;
             }
         }
 
