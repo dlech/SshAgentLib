@@ -201,18 +201,39 @@ namespace dlech.SshAgentLib.WinForms
 
         win7OpenFileDialog.FileOk += win7OpenFileDialog_FileOk;
 
-        // add help listeners to win7OpenFileDialog
+        /* add help listeners to win7OpenFileDialog */
+
+        // declare variables here so that the GC does not eat them.
+        WndProcDelegate newWndProc, oldWndProc = null;
         win7OpenFileDialog.DialogOpening += (sender, e) =>
         {
           var hwnd = win7OpenFileDialog.GetWindowHandle();
 
           // hook into WndProc to catch WM_HELP, i.e. user pressed F1
-          WndProcDelegate oldWndProc = null;
-          WndProcDelegate newWndProc = (hWnd, msg, wParam, lParam) =>
+          newWndProc = (hWnd, msg, wParam, lParam) =>
           {
-            if (msg == (int)Win32Types.Msg.WM_HELP) {
-              OnAddFromFileHelpRequested(win7OpenFileDialog, EventArgs.Empty);
-              return (IntPtr)1; // TRUE
+            const short shellHelpCommand = 0x7091;
+
+            var win32Msg = (Win32Types.Msg)msg;
+            switch (win32Msg) {
+              case Win32Types.Msg.WM_HELP:
+                var helpInfo = (HELPINFO)Marshal.PtrToStructure(lParam, typeof(HELPINFO));
+                // Ignore if we are on an unknown control or control 100.
+                // These are the windows shell control. The help command is
+                // issued by these controls so by not ignoring, we would call
+                // the help method twice.
+                if (helpInfo.iCtrlId != 0 && helpInfo.iCtrlId != 100)
+                  OnAddFromFileHelpRequested(win7OpenFileDialog, EventArgs.Empty);
+                return (IntPtr)1; // TRUE
+              case Win32Types.Msg.WM_COMMAND:
+                var wParamBytes = BitConverter.GetBytes(wParam.ToInt32());
+                var highWord = BitConverter.ToInt16(wParamBytes, 0);
+                var lowWord = BitConverter.ToInt16(wParamBytes, 2);
+                if (lowWord == 0 && highWord == shellHelpCommand) {
+                  OnAddFromFileHelpRequested(win7OpenFileDialog, EventArgs.Empty);
+                  return (IntPtr)0;
+                }
+                break;
             }
             return CallWindowProc(oldWndProc, hwnd, msg, wParam, lParam);
           };
@@ -723,6 +744,23 @@ namespace dlech.SshAgentLib.WinForms
       DWLP_MSGRESULT = 0x0,
       DWLP_DLGPROC = 0x4
     }
+
+    [StructLayout(LayoutKind.Sequential)]
+    public struct POINT
+    {
+      public int X, Y;
+    }
+
+    [StructLayout(LayoutKind.Sequential)]
+    struct HELPINFO
+    {
+      public uint cbSize;
+      public int iContextType;
+      public int iCtrlId;
+      public IntPtr hItemHandle;
+      public IntPtr dwContextId;
+      public POINT MousePos;
+    };
 
     /// <summary>
     /// Changes an attribute of the specified window. The function also sets the 32-bit (long) value at the specified offset into the extra window memory.
