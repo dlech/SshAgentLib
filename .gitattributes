@@ -1,6 +1,20 @@
-* text=auto
-
 *.csproj eol=crlf
 *.sln eol=crlf
 
-*.cs diff=csharp
+*.cs text diff=csharp
+*.xsd text
+*.xml text
+*.xaml text
+*.xsd text
+*.cd text
+*.txt text
+*.resx text
+*.config text
+*.settings text
+*.svg text
+
+*.ico binary
+*.png binary
+*.bmp binary
+*.jpg binary
+
