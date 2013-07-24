@@ -214,7 +214,7 @@ namespace dlech.SshAgentLib
       string[] pair = new string[2];
       int lineCount, i;
 
-      StreamReader reader = new StreamReader(aStream);
+      StreamReader reader = new StreamReader(aStream, Encoding.GetEncoding(1252));
       char[] delimArray = { cDelimeter };
 
       try {
@@ -318,7 +318,7 @@ namespace dlech.SshAgentLib
           if (GetPassphraseCallbackMethod == null) {
             throw new CallbackNullException();
           }
-          fileData.passphrase = GetPassphraseCallbackMethod.Invoke();
+          fileData.passphrase = GetPassphraseCallbackMethod.Invoke(fileData.comment);
           DecryptPrivateKey(ref fileData);
         }
 
@@ -424,7 +424,7 @@ namespace dlech.SshAgentLib
       if (fileData.ppkFileVersion != Version.V1) {
         builder.AddStringBlob(fileData.publicKeyAlgorithm.GetIdentifierString());
         builder.AddStringBlob(fileData.privateKeyAlgorithm.GetIdentifierString());
-        builder.AddStringBlob(fileData.comment);
+        builder.AddBlob(Encoding.GetEncoding(1252).GetBytes(fileData.comment));
         builder.AddBlob(fileData.publicKeyBlob);
         builder.AddInt(fileData.privateKeyBlob.Data.Length);
       }

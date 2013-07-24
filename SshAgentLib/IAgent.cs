@@ -65,6 +65,13 @@ namespace dlech.SshAgentLib
           key.AddConstraint(constraint);
         }
       }
+      // prevent error in Pageant by attempting to remove key before adding it
+      // this makes behavior more consistent with OpenSSH
+      if (aAgent is PageantClient) {
+        try {
+          aAgent.RemoveKey (key);
+        } catch (Exception) { /* error will occur if key is not loaded */ }
+      }
       aAgent.AddKey(key);
       return key;
     }

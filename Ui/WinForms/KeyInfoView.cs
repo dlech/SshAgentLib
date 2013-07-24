@@ -1,37 +1,33 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.ComponentModel;
-using System.Drawing;
-using System.Data;
-using System.Linq;
-using System.Text;
-using System.Windows.Forms;
-using dlech.SshAgentLib;
-using System.Security;
-using System.IO;
 using System.Diagnostics;
-#if !__MonoCS__
+using System.Drawing;
+using System.Linq;
+using System.Reflection;
+using System.Runtime.InteropServices;
+using System.Text.RegularExpressions;
+using System.Windows.Forms;
+using FileDialogExtenders;
 using Microsoft.WindowsAPICodePack.Dialogs;
 using Microsoft.WindowsAPICodePack.Dialogs.Controls;
-#endif
 
 namespace dlech.SshAgentLib.WinForms
 {
   public partial class KeyInfoView : UserControl
   {
-#if !__MonoCS__
     private const string cConfirmConstraintCheckBox = "ConfirmConstraintCheckBox";
     private const string cLifetimeConstraintCheckBox = "LifetimeConstraintCheckBox";
     private const string cLifetimeConstraintTextBox = "LifetimeConstraintTextBox";
-#endif
     private const int cDragDropKeyStateCtrl = 8;
 
     private IAgent mAgent;
     private BindingList<KeyWrapper> mKeyCollection;
     private PasswordDialog mPasswordDialog;
-#if !__MonoCS__
-    private CommonOpenFileDialog mWin7OpenFileDialog;
-#endif
+    private bool mSelectionChangedBroken;
+    private int mButtonLayoutInitialColumnCount;
+    private Dictionary<OpenFileDialog, XPOpenFileDialog> mOpenFileDialogMap;
+
     public ContextMenuStrip AddButtonSplitMenu
     {
       get
@@ -57,52 +53,33 @@ namespace dlech.SshAgentLib.WinForms
       }
     }
 
+    public event EventHandler AddFromFileHelpRequested;
+
     public KeyInfoView()
     {
-      InitializeComponent();
-#if !__MonoCS__
-      if (CommonOpenFileDialog.IsPlatformSupported)
+      mOpenFileDialogMap = new Dictionary<OpenFileDialog, XPOpenFileDialog>();
+      // workaround for mono bug
+      try
       {
-        mWin7OpenFileDialog = new CommonOpenFileDialog();
-        mWin7OpenFileDialog.Multiselect = true;
-        mWin7OpenFileDialog.EnsureFileExists = true;
-
-        var confirmConstraintCheckBox =
-          new CommonFileDialogCheckBox(cConfirmConstraintCheckBox,
-          "Require user confirmation");
-        var lifetimeConstraintTextBox =
-          new CommonFileDialogTextBox(cLifetimeConstraintTextBox, string.Empty);
-        lifetimeConstraintTextBox.Visible = false;
-        var lifetimeConstraintCheckBox =
-          new CommonFileDialogCheckBox(cLifetimeConstraintCheckBox,
-          "Set lifetime (in seconds)");
-        lifetimeConstraintCheckBox.CheckedChanged +=
-          delegate(object aSender, EventArgs aEventArgs)
-          {
-            lifetimeConstraintTextBox.Visible =
-              lifetimeConstraintCheckBox.IsChecked;
-          };
-
-        var confirmConstraintGroupBox = new CommonFileDialogGroupBox();
-        var lifetimeConstraintGroupBox = new CommonFileDialogGroupBox();
-
-        confirmConstraintGroupBox.Items.Add(confirmConstraintCheckBox);
-        lifetimeConstraintGroupBox.Items.Add(lifetimeConstraintCheckBox);
-        lifetimeConstraintGroupBox.Items.Add(lifetimeConstraintTextBox);
-
-        mWin7OpenFileDialog.Controls.Add(confirmConstraintGroupBox);
-        mWin7OpenFileDialog.Controls.Add(lifetimeConstraintGroupBox);
-
-        var filter = new CommonFileDialogFilter(
-          Strings.filterPuttyPrivateKeyFiles, "*.ppk");
-        mWin7OpenFileDialog.Filters.Add(filter);
-        filter = new CommonFileDialogFilter(Strings.filterAllFiles, "*.*");
-        mWin7OpenFileDialog.Filters.Add(filter);
-
-        mWin7OpenFileDialog.FileOk += openFileDialog_FileOk;
+        var monoRuntimeType = Type.GetType ("Mono.Runtime");
+        if (monoRuntimeType != null)
+        {
+          var getDisplayNameMethod = monoRuntimeType.GetMethod("GetDisplayName",
+                                     BindingFlags.NonPublic | BindingFlags.Static);
+          var displayName = getDisplayNameMethod.Invoke (null, null) as string;
+          var versionRegex = new Regex(@"\d+\.\d+\.\d+(\.\d+)?");
+          var match = versionRegex.Match(displayName);
+          var version = match.Value;
+          mSelectionChangedBroken = Version.Parse (version) < Version.Parse ("2.11.2");
+        }
       }
-      //mWin7OpenFileDialog = null;
-#endif
+      catch (Exception ex)
+      {
+        Debug.Fail (ex.ToString());
+      }
+
+      InitializeComponent();
+      mButtonLayoutInitialColumnCount = buttonTableLayoutPanel.ColumnCount;
     }
 
     public void SetAgent(IAgent aAgent)
@@ -118,8 +95,10 @@ namespace dlech.SshAgentLib.WinForms
         }
       }
 
-      mAgent = aAgent;
+      buttonTableLayoutPanel.ColumnCount = mButtonLayoutInitialColumnCount;
+      buttonTableLayoutPanel.Controls.Clear();
 
+      mAgent = aAgent;
       if (mAgent is Agent)
       {
         var agent = mAgent as Agent;
@@ -127,16 +106,38 @@ namespace dlech.SshAgentLib.WinForms
         lifetimeDataGridViewCheckBoxColumn.Visible = true;
         agent.KeyListChanged += AgentKeyListChangeHandler;
         agent.Locked += AgentLockHandler;
-        buttonTableLayoutPanel.Controls.Remove(refreshButton);
-        buttonTableLayoutPanel.ColumnCount = 5;
+        buttonTableLayoutPanel.ColumnCount -= 1;
+
+        buttonTableLayoutPanel.Controls.Add(lockButton, 0, 0);
+        buttonTableLayoutPanel.Controls.Add(unlockButton, 1, 0);
+        buttonTableLayoutPanel.Controls.Add(addKeyButton, 2, 0);
+        buttonTableLayoutPanel.Controls.Add(removeKeyButton, 3, 0);
+        buttonTableLayoutPanel.Controls.Add(removeAllButton, 4, 0);
       }
       else
       {
+        // hide lock/unlock buttons if using Pageant since they are not supported
+        if (mAgent is PageantClient) {
+          buttonTableLayoutPanel.ColumnCount -= 2;
+        } else {
+          buttonTableLayoutPanel.Controls.Add(lockButton, 0, 0);
+          buttonTableLayoutPanel.Controls.Add(unlockButton, 1, 0);
+        }
+        var colCount = buttonTableLayoutPanel.ColumnCount;
+        buttonTableLayoutPanel.Controls.Add(addKeyButton, colCount - 4, 0);
+        buttonTableLayoutPanel.Controls.Add(removeKeyButton, colCount - 3, 0);
+        buttonTableLayoutPanel.Controls.Add(removeAllButton, colCount - 2, 0);
+        buttonTableLayoutPanel.Controls.Add(refreshButton, colCount - 1, 0);
+
         confirmDataGridViewCheckBoxColumn.Visible = false;
         lifetimeDataGridViewCheckBoxColumn.Visible = false;
-        buttonTableLayoutPanel.ColumnCount = 6;
-        buttonTableLayoutPanel.Controls.Add(refreshButton, 5, 0);
       }
+
+      for (int i = 0; i < buttonTableLayoutPanel.ColumnCount; i++) {
+        buttonTableLayoutPanel.ColumnStyles[i] =
+          new ColumnStyle(SizeType.Percent, 100F / buttonTableLayoutPanel.ColumnCount);
+      }
+
       ReloadKeyListView();
     }
 
@@ -144,52 +145,179 @@ namespace dlech.SshAgentLib.WinForms
     {
       string[] fileNames;
       List<Agent.KeyConstraint> constraints = new List<Agent.KeyConstraint>();
-#if !__MonoCS__
-      if (mWin7OpenFileDialog != null)
-      {
-        var result = mWin7OpenFileDialog.ShowDialog();
-        if (result != CommonFileDialogResult.Ok)
+      if (mAgent is PageantClient) {
+        // Client Mode with Pageant - Show standard file dialog since we don't
+        // need / can't use constraints
+
+        using (var openFileDialog = new OpenFileDialog()) {
+          openFileDialog.Filter = string.Join ("|",
+            Strings.filterPuttyPrivateKeyFiles, "*.ppk",
+             Strings.filterAllFiles, "*.*");
+
+          var result = openFileDialog.ShowDialog ();
+          if (result != DialogResult.OK) {
+            return;
+          }
+          fileNames = openFileDialog.FileNames;
+        }
+      } else if (CommonOpenFileDialog.IsPlatformSupported) {
+        // Windows Vista/7/8 has new style file open dialog that can be extended
+        // using the Windows API via the WindowsAPICodepack library
+
+        var win7OpenFileDialog = new CommonOpenFileDialog ();
+        win7OpenFileDialog.Multiselect = true;
+        win7OpenFileDialog.EnsureFileExists = true;
+
+        var confirmConstraintCheckBox =
+          new CommonFileDialogCheckBox (cConfirmConstraintCheckBox,
+          "Require user confirmation");
+        var lifetimeConstraintTextBox =
+          new CommonFileDialogTextBox (cLifetimeConstraintTextBox, string.Empty);
+        lifetimeConstraintTextBox.Visible = false;
+        var lifetimeConstraintCheckBox =
+          new CommonFileDialogCheckBox (cLifetimeConstraintCheckBox,
+          "Set lifetime (in seconds)");
+        lifetimeConstraintCheckBox.CheckedChanged +=
+          delegate(object aSender, EventArgs aEventArgs) {
+          lifetimeConstraintTextBox.Visible =
+              lifetimeConstraintCheckBox.IsChecked;
+        };
+
+        var confirmConstraintGroupBox = new CommonFileDialogGroupBox ();
+        var lifetimeConstraintGroupBox = new CommonFileDialogGroupBox ();
+
+        confirmConstraintGroupBox.Items.Add (confirmConstraintCheckBox);
+        lifetimeConstraintGroupBox.Items.Add (lifetimeConstraintCheckBox);
+        lifetimeConstraintGroupBox.Items.Add (lifetimeConstraintTextBox);
+
+        win7OpenFileDialog.Controls.Add (confirmConstraintGroupBox);
+        win7OpenFileDialog.Controls.Add (lifetimeConstraintGroupBox);
+
+        var filter = new CommonFileDialogFilter (
+          Strings.filterPuttyPrivateKeyFiles, "*.ppk");
+        win7OpenFileDialog.Filters.Add (filter);
+        filter = new CommonFileDialogFilter (Strings.filterAllFiles, "*.*");
+        win7OpenFileDialog.Filters.Add (filter);
+
+        win7OpenFileDialog.FileOk += win7OpenFileDialog_FileOk;
+
+        /* add help listeners to win7OpenFileDialog */
+
+        // declare variables here so that the GC does not eat them.
+        WndProcDelegate newWndProc, oldWndProc = null;
+        win7OpenFileDialog.DialogOpening += (sender, e) =>
         {
+          var hwnd = win7OpenFileDialog.GetWindowHandle();
+
+          // hook into WndProc to catch WM_HELP, i.e. user pressed F1
+          newWndProc = (hWnd, msg, wParam, lParam) =>
+          {
+            const short shellHelpCommand = 0x7091;
+
+            var win32Msg = (Win32Types.Msg)msg;
+            switch (win32Msg) {
+              case Win32Types.Msg.WM_HELP:
+                var helpInfo = (HELPINFO)Marshal.PtrToStructure(lParam, typeof(HELPINFO));
+                // Ignore if we are on an unknown control or control 100.
+                // These are the windows shell control. The help command is
+                // issued by these controls so by not ignoring, we would call
+                // the help method twice.
+                if (helpInfo.iCtrlId != 0 && helpInfo.iCtrlId != 100)
+                  OnAddFromFileHelpRequested(win7OpenFileDialog, EventArgs.Empty);
+                return (IntPtr)1; // TRUE
+              case Win32Types.Msg.WM_COMMAND:
+                var wParamBytes = BitConverter.GetBytes(wParam.ToInt32());
+                var highWord = BitConverter.ToInt16(wParamBytes, 0);
+                var lowWord = BitConverter.ToInt16(wParamBytes, 2);
+                if (lowWord == 0 && highWord == shellHelpCommand) {
+                  OnAddFromFileHelpRequested(win7OpenFileDialog, EventArgs.Empty);
+                  return (IntPtr)0;
+                }
+                break;
+            }
+            return CallWindowProc(oldWndProc, hwnd, msg, wParam, lParam);
+          };
+          var newWndProcPtr = Marshal.GetFunctionPointerForDelegate(newWndProc);
+          var oldWndProcPtr = SetWindowLongPtr(hwnd, WindowLongFlags.GWL_WNDPROC, newWndProcPtr);
+          oldWndProc = (WndProcDelegate)
+              Marshal.GetDelegateForFunctionPointer(oldWndProcPtr, typeof(WndProcDelegate));
+        };
+
+        var result = win7OpenFileDialog.ShowDialog ();
+        if (result != CommonFileDialogResult.Ok) {
           return;
         }
-        var confirmConstraintCheckBox =
-          mWin7OpenFileDialog.Controls[cConfirmConstraintCheckBox] as
-          CommonFileDialogCheckBox;
-        if (confirmConstraintCheckBox.IsChecked)
-        {
-          var constraint = new Agent.KeyConstraint();
+        if (confirmConstraintCheckBox.IsChecked) {
+          var constraint = new Agent.KeyConstraint ();
           constraint.Type = Agent.KeyConstraintType.SSH_AGENT_CONSTRAIN_CONFIRM;
-          constraints.Add(constraint);
+          constraints.Add (constraint);
         }
-        var lifetimeConstraintCheckBox =
-          mWin7OpenFileDialog.Controls[cLifetimeConstraintCheckBox] as
-          CommonFileDialogCheckBox;
-        var lifetimeConstraintTextBox =
-          mWin7OpenFileDialog.Controls[cLifetimeConstraintTextBox] as
-          CommonFileDialogTextBox;
-        if (lifetimeConstraintCheckBox.IsChecked)
-        {
+        if (lifetimeConstraintCheckBox.IsChecked) {
           // error checking for parse done in fileOK event handler
-          uint lifetime = uint.Parse(lifetimeConstraintTextBox.Text);
-          var constraint = new Agent.KeyConstraint();
+          uint lifetime = uint.Parse (lifetimeConstraintTextBox.Text);
+          var constraint = new Agent.KeyConstraint ();
           constraint.Type = Agent.KeyConstraintType.SSH_AGENT_CONSTRAIN_LIFETIME;
           constraint.Data = lifetime;
-          constraints.Add(constraint);
+          constraints.Add (constraint);
         }
-        fileNames = mWin7OpenFileDialog.FileNames.ToArray();
-      }
-      else
-      {
-#endif
-        var result = openFileDialog.ShowDialog();
-        if (result != DialogResult.OK)
+        fileNames = win7OpenFileDialog.FileNames.ToArray ();
+      } else {
+        using (var openFileDialog = new OpenFileDialog())
         {
-          return;
+          openFileDialog.Filter = string.Join ("|",
+            Strings.filterPuttyPrivateKeyFiles, "*.ppk",
+             Strings.filterAllFiles, "*.*");
+
+          openFileDialog.FileOk += xpOpenFileDialog_FileOk;
+          
+          // Windows XP uses old style file open dialog that can be extended
+          // using the Windows API via FileDlgExtenders library
+          XPOpenFileDialog xpOpenFileDialog = null;
+          if (Type.GetType("Mono.Runtime") == null) {
+            xpOpenFileDialog = new XPOpenFileDialog ();
+            xpOpenFileDialog.FileDlgStartLocation = AddonWindowLocation.Bottom;
+            mOpenFileDialogMap.Add (openFileDialog, xpOpenFileDialog);
+          }
+
+          openFileDialog.HelpRequest += OnAddFromFileHelpRequested;
+          // TODO: technically, a listener could be added after this
+          openFileDialog.ShowHelp = AddFromFileHelpRequested != null;
+
+          var result = xpOpenFileDialog == null ?
+            openFileDialog.ShowDialog() :
+            openFileDialog.ShowDialog(xpOpenFileDialog, null);
+          if (result != DialogResult.OK)
+            return;
+
+          if (xpOpenFileDialog == null) {
+            // If dialog could not be extended, then we add constraints by holding
+            // down the control key when clicking the Open button.
+            if (Control.ModifierKeys.HasFlag(Keys.Control)) {
+              var constraintDialog = new ConstraintsInputDialog ();
+              constraintDialog.ShowDialog ();
+              if (constraintDialog.DialogResult == DialogResult.OK) {
+                if (constraintDialog.ConfirmConstraintChecked) {
+                  constraints.addConfirmConstraint ();
+                }
+                if (constraintDialog.LifetimeConstraintChecked) {
+                  constraints.addLifetimeConstraint (constraintDialog.LifetimeDuration);
+                }
+              }
+            }
+          } else {
+            mOpenFileDialogMap.Remove (openFileDialog);
+
+            if (xpOpenFileDialog.UseConfirmConstraintChecked) {
+              constraints.addConfirmConstraint ();
+            }
+            if (xpOpenFileDialog.UseLifetimeConstraintChecked) {
+              constraints.addLifetimeConstraint
+                (xpOpenFileDialog.LifetimeConstraintDuration);
+            }
+          }
+          fileNames = openFileDialog.FileNames;
         }
-        fileNames = openFileDialog.FileNames;
-#if !__MonoCS__
       }
-#endif
       UseWaitCursor = true;
       mAgent.AddKeysFromFiles(fileNames, constraints);
       if (!(mAgent is Agent))
@@ -226,6 +354,12 @@ namespace dlech.SshAgentLib.WinForms
       UpdateButtonStates();
     }
 
+    void OnAddFromFileHelpRequested(object sender, EventArgs e)
+    {
+      if (AddFromFileHelpRequested != null)
+        AddFromFileHelpRequested(sender, e);
+    }
+
     private void UpdateVisibility()
     {
       var agent = mAgent as Agent;
@@ -256,9 +390,9 @@ namespace dlech.SshAgentLib.WinForms
       lockButton.Enabled = !isLocked;
       unlockButton.Enabled = agent == null || isLocked;
       addKeyButton.Enabled = !isLocked;
-      removeKeyButton.Enabled = dataGridView.SelectedRows.Count > 0 &&
-        !isLocked;
-      removeAllbutton.Enabled = dataGridView.Rows.Count > 0 &&
+      removeKeyButton.Enabled = mSelectionChangedBroken ||
+        (dataGridView.SelectedRows.Count > 0 && !isLocked);
+      removeAllButton.Enabled = dataGridView.Rows.Count > 0 &&
         !isLocked;
     }
 
@@ -312,6 +446,7 @@ namespace dlech.SshAgentLib.WinForms
       UpdateButtonStates();
     }
 
+    // SelectionChanged event is broken on mono <= 2.11.1
     private void dataGridView_SelectionChanged(object sender, EventArgs e)
     {
       UpdateButtonStates();
@@ -321,7 +456,7 @@ namespace dlech.SshAgentLib.WinForms
     {
       if ((mAgent != null) && e.Data.GetDataPresent(DataFormats.FileDrop))
       {
-        e.Effect = DragDropEffects.Move;
+        e.Effect = DragDropEffects.Copy;
       }
       else
       {
@@ -338,11 +473,23 @@ namespace dlech.SshAgentLib.WinForms
         {
           UseWaitCursor = true;
           var constraints = new List<Agent.KeyConstraint>();
-          if ((e.KeyState & cDragDropKeyStateCtrl) == cDragDropKeyStateCtrl)
+          // MONO WORKAROUND - mono does not provide e.KeyState information
+          // it is always 0. However, when pressing the Control key (at least
+          // in Gnome), e.AllowedEffect is limited to just Copy, so we can use
+          // it to detect that the control key has been pressed
+          if ((e.KeyState & cDragDropKeyStateCtrl) == cDragDropKeyStateCtrl ||
+              e.AllowedEffect == DragDropEffects.Copy)
           {
-            var constraint = new Agent.KeyConstraint();
-            constraint.Type = Agent.KeyConstraintType.SSH_AGENT_CONSTRAIN_CONFIRM;
-            constraints.Add(constraint);
+            var dialog = new ConstraintsInputDialog();
+            dialog.ShowDialog();
+            if (dialog.DialogResult == DialogResult.OK) {
+              if (dialog.ConfirmConstraintChecked) {
+                constraints.addConfirmConstraint();
+              }
+              if (dialog.LifetimeConstraintChecked) {
+                constraints.addLifetimeConstraint(dialog.LifetimeDuration);
+              }
+            }
           }
           mAgent.AddKeysFromFiles(fileNames, constraints);
           if (!(mAgent is Agent))
@@ -486,22 +633,22 @@ namespace dlech.SshAgentLib.WinForms
       ReloadKeyListView();
     }
 
-    private void openFileDialog_FileOk(object sender, CancelEventArgs e)
+    private void win7OpenFileDialog_FileOk(object sender, CancelEventArgs e)
     {
-#if !__MonoCS__
-      if (mWin7OpenFileDialog != null)
+      var win7OpenFileDialog = sender as CommonOpenFileDialog;
+      if (win7OpenFileDialog != null)
       {
         var lifetimeConstraintCheckBox =
-          mWin7OpenFileDialog.Controls[cLifetimeConstraintCheckBox] as
+          win7OpenFileDialog.Controls[cLifetimeConstraintCheckBox] as
           CommonFileDialogCheckBox;
         var lifetimeConstraintTextBox =
-          mWin7OpenFileDialog.Controls[cLifetimeConstraintTextBox] as
+          win7OpenFileDialog.Controls[cLifetimeConstraintTextBox] as
           CommonFileDialogTextBox;
         if (lifetimeConstraintCheckBox.IsChecked)
         {
           uint lifetime;
           var success = uint.TryParse(lifetimeConstraintTextBox.Text, out lifetime);
-          if (!success)
+          if (!success || lifetime == 0)
           {
             MessageBox.Show("Invalid lifetime", Util.AssemblyTitle,
               MessageBoxButtons.OK, MessageBoxIcon.Exclamation);
@@ -510,7 +657,24 @@ namespace dlech.SshAgentLib.WinForms
           }
         }
       }
-#endif
+    }
+
+    private void xpOpenFileDialog_FileOk(object sender, CancelEventArgs e)
+    {
+      var openFileDialog = sender as OpenFileDialog;
+      if (openFileDialog != null &&
+          mOpenFileDialogMap.ContainsKey(openFileDialog))
+      {
+        var xpOpenFileDialog = mOpenFileDialogMap[openFileDialog];
+        if (xpOpenFileDialog.UseLifetimeConstraintChecked) {
+          if (xpOpenFileDialog.LifetimeConstraintDuration == 0) {
+            MessageBox.Show("Invalid lifetime", Util.AssemblyTitle,
+              MessageBoxButtons.OK, MessageBoxIcon.Exclamation);
+            e.Cancel = true;
+            return;
+          }
+        }
+      }
     }
 
     private void KeyManagerForm_KeyUp(object sender, KeyEventArgs e)
@@ -524,5 +688,105 @@ namespace dlech.SshAgentLib.WinForms
       }
     }
 
+    private void dataGridView_CellPainting(object sender,
+                                           DataGridViewCellPaintingEventArgs e)
+    {
+      // Override the drawing of the checkbox for the confirm and lifetime 
+      // constraints. The default rendering looks like you should be able
+      // to check the boxes, but they are really read-only.
+      if (e.RowIndex >= 0 &&
+          (e.ColumnIndex == confirmDataGridViewCheckBoxColumn.Index ||
+           e.ColumnIndex == lifetimeDataGridViewCheckBoxColumn.Index))
+      {
+        
+        var backColorBrush = new SolidBrush
+          (e.State.HasFlag(DataGridViewElementStates.Selected) ?
+           e.CellStyle.SelectionBackColor :
+           e.CellStyle.BackColor);
+
+        e.Graphics.FillRectangle(backColorBrush, e.CellBounds);
+
+        var gridBrush = new SolidBrush(this.dataGridView.GridColor);
+        var gridLinePen = new Pen(gridBrush);
+
+        e.Graphics.DrawLine(gridLinePen, e.CellBounds.Left,
+                            e.CellBounds.Bottom - 1, e.CellBounds.Right - 1,
+                            e.CellBounds.Bottom - 1);
+        e.Graphics.DrawLine(gridLinePen, e.CellBounds.Right - 1,
+                            e.CellBounds.Top, e.CellBounds.Right - 1,
+                            e.CellBounds.Bottom);
+
+        var foreColorPen = new Pen
+         (e.State.HasFlag(DataGridViewElementStates.Selected) ?
+          e.CellStyle.SelectionForeColor :
+          e.CellStyle.ForeColor);
+
+        if (e.Value is bool && ((bool)e.Value)) {
+          var midX = e.CellBounds.X + e.CellBounds.Width / 2;
+          var midY = e.CellBounds.Y + e.CellBounds.Height / 2;
+          e.Graphics.DrawImage (Properties.Resources.checkmark, midX - 8, midY - 8, 16, 16);
+        }
+
+        e.Handled = true;
+      }
+    }
+
+    enum WindowLongFlags : int
+    {
+      GWL_EXSTYLE = -20,
+      GWLP_HINSTANCE = -6,
+      GWLP_HWNDPARENT = -8,
+      GWL_ID = -12,
+      GWL_STYLE = -16,
+      GWL_USERDATA = -21,
+      GWL_WNDPROC = -4,
+      DWLP_USER = 0x8,
+      DWLP_MSGRESULT = 0x0,
+      DWLP_DLGPROC = 0x4
+    }
+
+    [StructLayout(LayoutKind.Sequential)]
+    public struct POINT
+    {
+      public int X, Y;
+    }
+
+    [StructLayout(LayoutKind.Sequential)]
+    struct HELPINFO
+    {
+      public uint cbSize;
+      public int iContextType;
+      public int iCtrlId;
+      public IntPtr hItemHandle;
+      public IntPtr dwContextId;
+      public POINT MousePos;
+    };
+
+    /// <summary>
+    /// Changes an attribute of the specified window. The function also sets the 32-bit (long) value at the specified offset into the extra window memory.
+    /// </summary>
+    /// <param name="hWnd">A handle to the window and, indirectly, the class to which the window belongs..</param>
+    /// <param name="nIndex">The zero-based offset to the value to be set. Valid values are in the range zero through the number of bytes of extra window memory, minus the size of an integer. To set any other value, specify one of the following values: GWL_EXSTYLE, GWL_HINSTANCE, GWL_ID, GWL_STYLE, GWL_USERDATA, GWL_WNDPROC </param>
+    /// <param name="dwNewLong">The replacement value.</param>
+    /// <returns>If the function succeeds, the return value is the previous value of the specified 32-bit integer.
+    /// If the function fails, the return value is zero. To get extended error information, call GetLastError. </returns>
+    static IntPtr SetWindowLongPtr(IntPtr hWnd, WindowLongFlags nIndex, IntPtr dwNewLong)
+    {
+      if (IntPtr.Size == 8)
+        return SetWindowLongPtr64(hWnd, nIndex, dwNewLong);
+      else
+        return new IntPtr(SetWindowLong32(hWnd, nIndex, dwNewLong.ToInt32()));
+    }
+
+    [DllImport("user32.dll", EntryPoint = "SetWindowLong")]
+    static extern int SetWindowLong32(IntPtr hWnd, WindowLongFlags nIndex, int dwNewLong);
+
+    [DllImport("user32.dll", EntryPoint = "SetWindowLongPtr")]
+    static extern IntPtr SetWindowLongPtr64(IntPtr hWnd, WindowLongFlags nIndex, IntPtr dwNewLong);
+
+    [DllImport("user32.dll")]
+    static extern IntPtr CallWindowProc(WndProcDelegate lpPrevWndFunc, IntPtr hWnd, uint Msg, IntPtr wParam, IntPtr lParam);
+
+    delegate IntPtr WndProcDelegate(IntPtr hWnd, uint msg, IntPtr wParam, IntPtr lParam);
   }
 }

@@ -31,11 +31,8 @@ namespace dlech.SshAgentLib
     public static string SSH_AUTHSOCKET_ENV_NAME = "SSH_AUTH_SOCK";
     /* Listen backlog for sshd, ssh-agent and forwarding sockets */
     private static int SSH_LISTEN_BACKLOG = 128;
-    private static string TMPDIR_TEMPLATE = "ssh-XXXXXX";
     private static int maxNumConnections = 10;
     private static int receiveBufferSize = 4096;
-
-
 
     /* global variables */
     private string socketDir; // temporary directory that contains domain socket file
@@ -45,32 +42,26 @@ namespace dlech.SshAgentLib
     private int numConnections;
     private Semaphore maxNumberAcceptedClients;
     private bool isDisposed;
-    /* external */
-
-    [DllImport("libc", SetLastError = true)]
-    private static extern string mkdtemp(IntPtr template);
 
     /* constructor */
 
     public UnixAgent()
     {
-      if (Environment.GetEnvironmentVariable(UnixAgent.SSH_AUTHSOCKET_ENV_NAME) != null) {
-        throw new Exception("ssh-agent is already running");
-      }
-
       this.isDisposed = false;
 
+#if DEBUG
+      string pid = "debug";
+#else
       string pid = Process.GetCurrentProcess().Id.ToString();
+#endif
 
       this.socketDir = Path.GetTempPath() ?? "/tmp";
-      this.socketDir = Path.Combine(this.socketDir, TMPDIR_TEMPLATE);
-      IntPtr socketDirPtr = Marshal.StringToCoTaskMemAnsi(this.socketDir);
-      this.socketDir = mkdtemp(socketDirPtr);
-      Marshal.ZeroFreeCoTaskMemAnsi(socketDirPtr);
-      if (this.socketDir == null) {
-        int errno = Marshal.GetLastWin32Error();
-        throw new Exception(errno.ToString());
+      this.socketDir = Path.Combine(this.socketDir, "ssh-agent-lib-sock");
+
+      if (Directory.Exists(socketDir)) {
+        Directory.Delete(socketDir, true);
       }
+      Directory.CreateDirectory(socketDir);
       string socketPath = Path.Combine(this.socketDir, "agent." + pid);
 
       this.socket = new Socket(AddressFamily.Unix, SocketType.Stream,
@@ -107,7 +98,7 @@ namespace dlech.SshAgentLib
       for (int i = 0; i < this.numConnections; i++) {
         //Pre-allocate a set of reusable SocketAsyncEventArgs
         socketAsyncEventArgs = new SocketAsyncEventArgs();
-        socketAsyncEventArgs.Completed += new EventHandler<SocketAsyncEventArgs>(IO_Completed);
+        socketAsyncEventArgs.Completed += IO_Completed;
         socketAsyncEventArgs.UserToken = new AsyncUserToken();
 
         // assign a byte buffer from the buffer pool to the SocketAsyncEventArg object
@@ -128,7 +119,8 @@ namespace dlech.SshAgentLib
     {
       if (acceptEventArg == null) {
         acceptEventArg = new SocketAsyncEventArgs();
-        acceptEventArg.Completed += new EventHandler<SocketAsyncEventArgs>(AcceptEventArg_Completed);
+        acceptEventArg.Completed +=
+          new EventHandler<SocketAsyncEventArgs>(AcceptEventArg_Completed);
       } else {
         // socket must be cleared since the context object is being reused
         acceptEventArg.AcceptSocket = null;
@@ -189,16 +181,18 @@ namespace dlech.SshAgentLib
     /// <summary>
     /// This method is invoked when an asynchronous receive operation completes.
     /// If the remote host closed the connection, then the socket is closed.
-    /// If data was received then the data is echoed back to the client.
     /// </summary>
     private void ProcessReceive(SocketAsyncEventArgs e)
     {
       // check if the remote host closed the connection
       AsyncUserToken token = (AsyncUserToken)e.UserToken;
       if (e.BytesTransferred > 0 && e.SocketError == SocketError.Success) {
+        if (token.Socket.Available > 0) {
+          token.Socket.Receive(e.Buffer, e.Count, token.Socket.Available, e.SocketFlags);
+        }
         MemoryStream stream = new MemoryStream(e.Buffer);
         AnswerMessage(stream);
-        e.SetBuffer(stream.ToArray(), 0, (int)stream.Position);
+        e.SetBuffer(0, (int)stream.Position);
         bool willRaiseEvent = token.Socket.SendAsync(e);
         if (!willRaiseEvent) {
           ProcessSend(e);

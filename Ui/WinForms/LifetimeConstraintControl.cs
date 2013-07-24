@@ -8,7 +8,7 @@ using System.Text;
 using System.Windows.Forms;
 using dlech.SshAgentLib;
 
-namespace KeeAgent.UI
+namespace dlech.SshAgentLib.WinForms
 {
   public partial class LifetimeConstraintControl : UserControl
   {
@@ -24,11 +24,18 @@ namespace KeeAgent.UI
       }
     }
 
+    /// <summary>
+    /// returns the lifetime entered in the text box or 0 if entered value is invalid
+    /// </summary>
     public uint Lifetime
     {
       get
       {
-        return uint.Parse(mLifetimeTextBox.Text);
+        uint lifetime;
+        if (uint.TryParse(mLifetimeTextBox.Text, out lifetime)) {
+          return lifetime;
+        }
+        return 0;
       }
       set
       {
@@ -40,6 +47,10 @@ namespace KeeAgent.UI
     public LifetimeConstraintControl()
     {
       InitializeComponent();
+      if (Type.GetType ("Mono.Runtime") != null) {
+        AutoSize = false;
+        Width = 250;
+      }
     }
 
     private void mLifetimeCheckBox_CheckedChanged(object sender, EventArgs e)

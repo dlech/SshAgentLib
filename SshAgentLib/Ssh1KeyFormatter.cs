@@ -35,7 +35,6 @@ namespace dlech.SshAgentLib
       if (GetPassphraseCallbackMethod != null) {
         pwFinder = new PasswordFinder(GetPassphraseCallbackMethod);
       }
-      StreamWriter streamWriter = new StreamWriter(aStream);
       PinnedArray<char> passphrase = null;
       if (pwFinder != null) {
         passphrase = new PinnedArray<char>(0);
@@ -208,7 +207,7 @@ namespace dlech.SshAgentLib
 
       public char[] GetPassword()
       {
-        SecureString passphrase = mCallback.Invoke();
+        SecureString passphrase = mCallback.Invoke(null);
         char[] passwordChars = new char[passphrase.Length];
         IntPtr passphrasePtr = Marshal.SecureStringToGlobalAllocUnicode(passphrase);
         for (int i = 0; i < passphrase.Length; i++) {

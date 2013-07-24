@@ -49,10 +49,13 @@ namespace dlech.SshAgentLib.WinForms
     public static KeyFormatter.GetPassphraseCallback
       PasswordCallbackFactory(string aMessage)
     {
-      return new KeyFormatter.GetPassphraseCallback(delegate()
+      return new KeyFormatter.GetPassphraseCallback(delegate(string comment)
       {
         var dialog = new PasswordDialog();
         dialog.Text = aMessage;
+        if (!string.IsNullOrWhiteSpace(comment)) {
+          dialog.Text += string.Format(" ({0})", comment);
+        }
         var result = dialog.ShowDialog();
         if (result != DialogResult.OK) {
           return null;

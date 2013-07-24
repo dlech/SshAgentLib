@@ -22,14 +22,9 @@ namespace dlech.SshAgentLib.WinForms
       keyInfoViewer.SetAgent(aAgent); 
     }
 
-    private void MainForm_Load(object sender, EventArgs e)
-    {
-           
-    }
-
     private void MainForm_FormClosing(object sender, FormClosingEventArgs e)
     {
-      //Properties.Settings.Default.Save();      
+      //Properties.Settings.Default.Save();
     }
   }
 }

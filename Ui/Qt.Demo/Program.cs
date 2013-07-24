@@ -15,7 +15,7 @@ namespace dlech.SshAgentLib.Ui.QtAgent
       SizeGripEnabled = true;
 
       var keyManager = new KeyManagerFrame ();
-      keyManager.SetAgent (new UnixClient ());
+      keyManager.SetAgent (new UnixAgent ());
       var layout = new QVBoxLayout ();
       layout.AddWidget (keyManager);
       layout.ContentsMargins = new QMargins (0, 0, 0, 0);

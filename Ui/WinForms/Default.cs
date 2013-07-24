@@ -1,10 +1,4 @@
-﻿// -----------------------------------------------------------------------
-// <copyright file="Default.cs" company="">
-// TODO: Update copyright text.
-// </copyright>
-// -----------------------------------------------------------------------
-
-namespace dlech.SshAgentLib.WinForms
+﻿namespace dlech.SshAgentLib.WinForms
 {
   using System;
   using System.Collections.Generic;
