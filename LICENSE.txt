@@ -1,0 +1,17 @@
+All code unless otherwise specified is licensed under the MIT License.
+[License.MIT.txt]
+
+lib/NUnit/* is licensed under its own license.
+[License.NUnit.txt]
+
+SshAgentLib/Microsoft/* is licensed under the Microsoft Limited Public License.
+[License.MS-LPL.txt]
+
+Ui/WinForms/FileDlgExtenders/* is licensed under the BSD License.
+[License.BSD.txt]
+
+Ui/WinForms/WindowsAPICodepack/* is licensed under its own license.
+[License.WindowsAPICodePack.txt]
+
+Ui/WinForms/SplitButton.cs is licensed under the BSD License.
+[License.BSD.txt]
