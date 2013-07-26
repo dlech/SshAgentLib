@@ -32,7 +32,7 @@ namespace dlech.SshAgentLibTests
       };
 
       string passphrase = "Ŧéşť";
-      formatter.GetPassphraseCallbackMethod = delegate()
+      formatter.GetPassphraseCallbackMethod = delegate(string comment)
       {
         SecureString result = new SecureString();
         foreach (char c in passphrase) {
@@ -68,7 +68,7 @@ namespace dlech.SshAgentLibTests
       };
 
       string passphrase = "PageantSharp";
-      PpkFormatter.GetPassphraseCallback getPassphrase = delegate()
+      PpkFormatter.GetPassphraseCallback getPassphrase = delegate(string comment)
       {
         SecureString result = new SecureString();
         foreach (char c in passphrase) {
@@ -78,7 +78,7 @@ namespace dlech.SshAgentLibTests
       };
 
 
-      PpkFormatter.GetPassphraseCallback getBadPassphrase = delegate()
+      PpkFormatter.GetPassphraseCallback getBadPassphrase = delegate(string comment)
       {
         SecureString result = new SecureString();
         foreach (char c in "badword") {

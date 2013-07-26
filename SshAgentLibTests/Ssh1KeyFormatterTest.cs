@@ -26,7 +26,7 @@ namespace dlech.SshAgentLibTests
     [TestFixtureSetUp()]
     public void SetupFixture()
     {
-      mPassphraseCallback = delegate()
+      mPassphraseCallback = delegate(string comment)
       {
         SecureString passphrase = new SecureString();
         foreach (char c in "PageantSharp") {
