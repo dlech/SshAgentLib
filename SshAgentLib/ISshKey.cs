@@ -193,6 +193,32 @@ namespace dlech.SshAgentLib
       return result;
     }
 
+    public static string GetAuthorizedKeyString(this ISshKey aKey)
+    {
+      string result = "";
+      switch (aKey.Version) {
+        case SshVersion.SSH1:
+          AsymmetricKeyParameter parameters = aKey.GetPublicKeyParameters();
+          RsaKeyParameters rsaPublicKeyParameters = (RsaKeyParameters)parameters;
+          result = aKey.Size + " " +
+            rsaPublicKeyParameters.Exponent.ToString(10) + " " +
+            rsaPublicKeyParameters.Modulus.ToString(10) + " " +
+            String.Format(aKey.GetMD5Fingerprint().ToHexString()) + " " +
+            aKey.Comment;
+          break;
+        case SshVersion.SSH2:
+          result = PublicKeyAlgorithmExt.GetIdentifierString(aKey.Algorithm)+ " " +
+            Convert.ToBase64String(aKey.GetPublicKeyBlob()) + " " +
+            String.Format(aKey.GetMD5Fingerprint().ToHexString()) + " " +
+            aKey.Comment;
+          break;
+        default:
+          result = "# unsuported SshVersion: '"+aKey.Version+"'";
+          break;
+      }
+      return result;
+    }
+
     public static byte[] GetMD5Fingerprint(this ISshKey aKey)
     {
       try {
