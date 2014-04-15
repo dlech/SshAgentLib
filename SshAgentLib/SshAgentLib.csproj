@@ -117,7 +117,7 @@
     <Reference Include="System.Net" />
     <Reference Include="System.Management" />
     <Reference Include="BouncyCastle.Crypto">
-      <HintPath>..\..\packages\BouncyCastle.1.7.0\lib\Net40-Client\BouncyCastle.Crypto.dll</HintPath>
+      <HintPath>..\packages\BouncyCastle.1.7.0\lib\Net40-Client\BouncyCastle.Crypto.dll</HintPath>
     </Reference>
   </ItemGroup>
   <ItemGroup />
