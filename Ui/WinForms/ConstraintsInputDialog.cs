@@ -3,7 +3,7 @@
 //
 // Author(s): David Lechner <david@lechnology.com>
 //
-// Copyright (c) 2013 David Lechner
+// Copyright (c) 2013-2014 David Lechner
 //
 // Permission is hereby granted, free of charge, to any person obtaining a copy
 // of this software and associated documentation files (the "Software"), to deal
@@ -33,31 +33,36 @@ namespace dlech.SshAgentLib.WinForms
   {
     public bool ConfirmConstraintChecked
     {
-      get { return mConfirmConstraintControl.Checked; }
+      get { return confirmConstraintControl.Checked; }
     }
 
     public bool LifetimeConstraintChecked
     {
-      get { return mLifetimeConstraintControl.Checked; }
+      get { return lifetimeConstraintControl.Checked; }
     }
 
     public uint LifetimeDuration
     {
-      get { return mLifetimeConstraintControl.Lifetime; }
+      get { return lifetimeConstraintControl.Lifetime; }
     }
 
-    public ConstraintsInputDialog()
+    public ConstraintsInputDialog() : this(false)
+    {
+    }
+
+    public ConstraintsInputDialog(bool initalConfirmChecked)
     {
       InitializeComponent();
+      confirmConstraintControl.Checked = initalConfirmChecked;
       if (Type.GetType ("Mono.Runtime") != null) {
-        mConfirmConstraintControl.AutoSize = false;
-        mConfirmConstraintControl.Size =
-        new Size (200, mConfirmConstraintControl.Height);
-        mLifetimeConstraintControl.AutoSize = false;
-        mLifetimeConstraintControl.Size =
-        new Size (200, mLifetimeConstraintControl.Height);
-        mOKButton.Location = new Point (mOKButton.Location.X,
-                                     mOKButton.Location.Y - 20);
+        confirmConstraintControl.AutoSize = false;
+        confirmConstraintControl.Size =
+        new Size (200, confirmConstraintControl.Height);
+        lifetimeConstraintControl.AutoSize = false;
+        lifetimeConstraintControl.Size =
+        new Size (200, lifetimeConstraintControl.Height);
+        okButton.Location = new Point (okButton.Location.X,
+                                     okButton.Location.Y - 20);
         Size = new Size (Width, Height + 20);
       }
     }
