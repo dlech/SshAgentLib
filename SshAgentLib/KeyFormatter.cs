@@ -25,9 +25,12 @@
 // THE SOFTWARE.
 
 using System;
+using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Runtime.Serialization;
 using System.Security;
+using System.Text;
 using System.Text.RegularExpressions;
 
 namespace dlech.SshAgentLib
@@ -101,6 +104,17 @@ namespace dlech.SshAgentLib
         new FileStream(aFileName, FileMode.Open, FileAccess.Read)) {
         var key = Deserialize(stream) as ISshKey;
         if (string.IsNullOrEmpty(key.Comment)) {
+          try {
+            var pubFile = aFileName + ".pub";
+            if (File.Exists(pubFile)) {
+              var lines = File.ReadAllLines(pubFile, Encoding.UTF8);
+              key.Comment = GetComment (lines);
+            }
+          } catch (Exception) {
+            // don't worry about it
+          }
+        }
+        if (string.IsNullOrEmpty(key.Comment)) {
           key.Comment = Path.GetFileName(aFileName);
         }
         return key;
@@ -151,6 +165,48 @@ namespace dlech.SshAgentLib
       }
       throw new KeyFormatterException ("Unknown file format");
     }
+
+    public static string GetComment(IEnumerable<string> publicKeyFileLines, string defaultValue = null)
+    {
+      const string rfc4716BeginMarker = "---- BEGIN SSH2 PUBLIC KEY ----";
+      const string rfc4716CommentHeader = "Comment: ";
+      const string openSshPublicKeyStart = "ssh-";
+      string comment = null;
+
+      if (publicKeyFileLines == null)
+        throw new ArgumentNullException("publicKeyFileLines");
+      var firstLine = publicKeyFileLines.FirstOrDefault();
+      if (firstLine != null) {
+        if (firstLine == rfc4716BeginMarker) {
+          var commentFound = false;
+          foreach (var line in publicKeyFileLines) {
+            if (commentFound) {
+              comment += line;
+            } else if (line.StartsWith(rfc4716CommentHeader)) {
+              commentFound = true;
+              comment = line.Substring(rfc4716CommentHeader.Length);
+            }
+            if (!commentFound)
+              continue;
+            if (comment.EndsWith("\\")) {
+              comment = comment.Substring(0, comment.Length - 1);
+              continue;
+            }
+          }
+          if (comment == null)
+            return defaultValue;
+          if (comment.StartsWith("\"") && comment.EndsWith("\"")) {
+            comment = comment.Substring(1, comment.Length - 2);
+          }
+          return comment;
+        } else if (firstLine.StartsWith(openSshPublicKeyStart)) {
+          var item = firstLine.Split(new char[] { ' ' }, 3);
+          if (item.Length == 3)
+            return item[2];
+        }
+      }
+      return defaultValue;
+    }
   }
 
   public static class KeyFormatterExt
@@ -160,7 +216,8 @@ namespace dlech.SshAgentLib
     /// </summary>
     /// <param name="aStream"></param>
     /// <returns></returns>
-    public static ISshKey ReadSshKey(this Stream aStream, KeyFormatter.GetPassphraseCallback aGetPassphraseCallback = null)
+    public static ISshKey ReadSshKey(this Stream aStream,
+                                     KeyFormatter.GetPassphraseCallback aGetPassphraseCallback = null)
     {
       using (var reader = new StreamReader(aStream)) {
         var firstLine = reader.ReadLine();
