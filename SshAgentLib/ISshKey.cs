@@ -259,11 +259,23 @@ namespace dlech.SshAgentLib
         BigInteger s = ((DerInteger)seq[1]).PositiveValue;
         BlobBuilder formatedSignature = new BlobBuilder();
         if (publicKey is ECPublicKeyParameters) {
-          formatedSignature.AddBlob(r.ToByteArray());
-          formatedSignature.AddBlob(s.ToByteArray());
+          var bytes = r.ToByteArray().ToList ();
+          while (bytes.Count < 20)
+            bytes.Insert(0, 0);
+          formatedSignature.AddBlob(bytes.ToArray());
+          bytes = s.ToByteArray().ToList();
+          while (bytes.Count < 20)
+            bytes.Insert(0, 0);
+          formatedSignature.AddBlob(bytes.ToArray());
         } else {
-          formatedSignature.AddBytes(r.ToByteArrayUnsigned());
-          formatedSignature.AddBytes(s.ToByteArrayUnsigned());
+          var bytes = r.ToByteArrayUnsigned().ToList();
+          while (bytes.Count < 20)
+            bytes.Insert(0, 0);
+          formatedSignature.AddBytes(bytes.ToArray());
+          bytes = s.ToByteArrayUnsigned().ToList();
+          while (bytes.Count < 20)
+            bytes.Insert(0, 0);
+          formatedSignature.AddBytes(bytes.ToArray());
         }
         return formatedSignature.GetBlob();
       } else if (publicKey is RsaKeyParameters) {
