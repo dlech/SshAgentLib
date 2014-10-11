@@ -4,7 +4,7 @@
 // Author(s): David Lechner <david@lechnology.com>
 //            Max Laverse
 //
-// Copyright (c) 2012-2013 David Lechner
+// Copyright (c) 2012-2014 David Lechner
 //
 // Permission is hereby granted, free of charge, to any person obtaining a copy
 // of this software and associated documentation files (the "Software"), to deal
@@ -38,42 +38,41 @@ namespace dlech.SshAgentLib
   /// </summary>
   public class SshKey : ISshKey
   {
-    private List<Agent.KeyConstraint> mKeyConstraints;
-    private AsymmetricKeyParameter mPublicKeyParameter;
-    private AsymmetricKeyParameter mPrivateKeyParameter;
+    private List<Agent.KeyConstraint> keyConstraints;
+    private AsymmetricKeyParameter publicKeyParameter;
+    private AsymmetricKeyParameter privateKeyParameter;
 
-    public SshKey(SshVersion aVersion, AsymmetricKeyParameter aPublicKeyParameter,
-      AsymmetricKeyParameter aPrivateKeyParameter = null, string aComment = "")
+    public SshKey(SshVersion version, AsymmetricKeyParameter publicKeyParameter,
+      AsymmetricKeyParameter privateKeyParameter = null, string comment = "")
     {
-      if (aPublicKeyParameter == null) {
-        throw new ArgumentNullException("aPublicKeyParameter");
+      if (publicKeyParameter == null) {
+        throw new ArgumentNullException("publicKeyParameter");
       }
-      IsPublicOnly = (aPrivateKeyParameter == null);
-      Version = aVersion;
-      mPublicKeyParameter = aPublicKeyParameter;
-      mPrivateKeyParameter = aPrivateKeyParameter;
-      Comment = aComment;
-      mKeyConstraints = new List<Agent.KeyConstraint>();
+      IsPublicOnly = (privateKeyParameter == null);
+      Version = version;
+      this.publicKeyParameter = publicKeyParameter;
+      this.privateKeyParameter = privateKeyParameter;
+      Comment = comment;
+      keyConstraints = new List<Agent.KeyConstraint>();
     }
 
-    public SshKey(SshVersion aVersion, AsymmetricCipherKeyPair aCipherKeyPair,
-      string aComment = "")
-      : this(aVersion, aCipherKeyPair.Public, aCipherKeyPair.Private, aComment) { }
-
-
+    public SshKey(SshVersion version, AsymmetricCipherKeyPair cipherKeyPair,
+      string comment = "")
+      : this(version, cipherKeyPair.Public, cipherKeyPair.Private, comment) { }
+    
     public SshVersion Version { get; private set; }
 
     public PublicKeyAlgorithm Algorithm
     {
       get
       {
-        if (mPublicKeyParameter is RsaKeyParameters) {
+        if (publicKeyParameter is RsaKeyParameters) {
           return PublicKeyAlgorithm.SSH_RSA;
-        } else if (mPublicKeyParameter is DsaPublicKeyParameters) {
+        } else if (publicKeyParameter is DsaPublicKeyParameters) {
           return PublicKeyAlgorithm.SSH_DSS;
-        } else if (mPublicKeyParameter is ECPublicKeyParameters) {
+        } else if (publicKeyParameter is ECPublicKeyParameters) {
           ECPublicKeyParameters ecdsaParameters =
-            (ECPublicKeyParameters)mPublicKeyParameter;
+            (ECPublicKeyParameters)publicKeyParameter;
           switch (ecdsaParameters.Q.Curve.FieldSize) {
             case 256:
               return PublicKeyAlgorithm.ECDSA_SHA2_NISTP256;
@@ -93,17 +92,17 @@ namespace dlech.SshAgentLib
     {
       get
       {
-        if (mPublicKeyParameter is RsaKeyParameters) {
+        if (publicKeyParameter is RsaKeyParameters) {
           RsaKeyParameters rsaKeyParameters =
-            (RsaKeyParameters)mPublicKeyParameter;
+            (RsaKeyParameters)publicKeyParameter;
           return rsaKeyParameters.Modulus.BitLength;
-        } else if (mPublicKeyParameter is DsaPublicKeyParameters) {
+        } else if (publicKeyParameter is DsaPublicKeyParameters) {
           DsaPublicKeyParameters dsaKeyParameters =
-            (DsaPublicKeyParameters)mPublicKeyParameter;
+            (DsaPublicKeyParameters)publicKeyParameter;
           return dsaKeyParameters.Parameters.P.BitLength;
-        } else if (mPublicKeyParameter is ECPublicKeyParameters) {
+        } else if (publicKeyParameter is ECPublicKeyParameters) {
           ECPublicKeyParameters ecdsaParameters =
-            (ECPublicKeyParameters)mPublicKeyParameter;
+            (ECPublicKeyParameters)publicKeyParameter;
           return ecdsaParameters.Q.Curve.FieldSize;
         }
         // TODO need a better exception here
@@ -114,28 +113,29 @@ namespace dlech.SshAgentLib
     /// <summary>
     /// User comment
     /// </summary>
-    public string Comment
-    {
-      get;
-      set;
-    }
+    public string Comment { get; set; }
+
+    /// <summary>
+    /// Source of the key file
+    /// </summary>
+    public string Source { get; set; }
 
     public ReadOnlyCollection<Agent.KeyConstraint> Constraints
     {
       get
       {
-        return mKeyConstraints.AsReadOnly();
+        return keyConstraints.AsReadOnly();
       }
     }
 
     public AsymmetricKeyParameter GetPublicKeyParameters()
     {
-      return mPublicKeyParameter;
+      return publicKeyParameter;
     }
 
     public AsymmetricKeyParameter GetPrivateKeyParameters()
     {
-      return mPrivateKeyParameter;
+      return privateKeyParameter;
     }
 
     public void AddConstraint(Agent.KeyConstraint aConstraint)
@@ -145,7 +145,7 @@ namespace dlech.SshAgentLib
            aConstraint.Data.GetType() != aConstraint.Type.GetDataType())) {
         throw new ArgumentException("Malformed constraint", "aConstraint");
       }
-      mKeyConstraints.Add(aConstraint);
+      keyConstraints.Add(aConstraint);
     }
 
     ~SshKey()
@@ -164,7 +164,8 @@ namespace dlech.SshAgentLib
       AsymmetricCipherKeyPair keyPair = new AsymmetricCipherKeyPair(
         GetPublicKeyParameters(), GetPrivateKeyParameters());
       SshKey newKey = new SshKey(Version, keyPair, Comment);
-      foreach (Agent.KeyConstraint constraint in mKeyConstraints) {
+      newKey.Source = Source;
+      foreach (Agent.KeyConstraint constraint in keyConstraints) {
         newKey.AddConstraint(constraint);
       }
       return newKey;

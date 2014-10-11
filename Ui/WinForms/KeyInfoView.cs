@@ -3,7 +3,7 @@
 //
 // Author(s): David Lechner <david@lechnology.com>
 //
-// Copyright (c) 2013 David Lechner
+// Copyright (c) 2013-2014 David Lechner
 //
 // Permission is hereby granted, free of charge, to any person obtaining a copy
 // of this software and associated documentation files (the "Software"), to deal
@@ -129,6 +129,7 @@ namespace dlech.SshAgentLib.WinForms
         var agent = mAgent as Agent;
         confirmDataGridViewCheckBoxColumn.Visible = true;
         lifetimeDataGridViewCheckBoxColumn.Visible = true;
+        sourceDataGridViewTextBoxColumn.Visible = true;
         agent.KeyListChanged += AgentKeyListChangeHandler;
         agent.Locked += AgentLockHandler;
         buttonTableLayoutPanel.ColumnCount -= 1;
@@ -156,6 +157,7 @@ namespace dlech.SshAgentLib.WinForms
 
         confirmDataGridViewCheckBoxColumn.Visible = false;
         lifetimeDataGridViewCheckBoxColumn.Visible = false;
+        sourceDataGridViewTextBoxColumn.Visible = false;
       }
 
       for (int i = 0; i < buttonTableLayoutPanel.ColumnCount; i++) {

@@ -30,27 +30,28 @@
       this.components = new System.ComponentModel.Container();
       this.messageLabel = new System.Windows.Forms.Label();
       this.dataGridView = new System.Windows.Forms.DataGridView();
+      this.mainTableLayoutPanel = new System.Windows.Forms.TableLayoutPanel();
+      this.dataGridViewPanel = new System.Windows.Forms.Panel();
+      this.buttonTableLayoutPanel = new System.Windows.Forms.TableLayoutPanel();
+      this.lockButton = new System.Windows.Forms.Button();
+      this.unlockButton = new System.Windows.Forms.Button();
+      this.removeKeyButton = new System.Windows.Forms.Button();
+      this.removeAllButton = new System.Windows.Forms.Button();
+      this.refreshButton = new System.Windows.Forms.Button();
+      this.keyWrapperBindingSource = new System.Windows.Forms.BindingSource(this.components);
+      this.addKeyButton = new wyDay.Controls.SplitButton();
       this.confirmDataGridViewCheckBoxColumn = new System.Windows.Forms.DataGridViewCheckBoxColumn();
       this.lifetimeDataGridViewCheckBoxColumn = new System.Windows.Forms.DataGridViewCheckBoxColumn();
       this.typeDataGridViewTextBoxColumn = new System.Windows.Forms.DataGridViewTextBoxColumn();
       this.sizeDataGridViewTextBoxColumn = new System.Windows.Forms.DataGridViewTextBoxColumn();
       this.fingerprintDataGridViewTextBoxColumn = new System.Windows.Forms.DataGridViewTextBoxColumn();
       this.commentDataGridViewTextBoxColumn = new System.Windows.Forms.DataGridViewTextBoxColumn();
-      this.keyWrapperBindingSource = new System.Windows.Forms.BindingSource(this.components);
-      this.mainTableLayoutPanel = new System.Windows.Forms.TableLayoutPanel();
-      this.dataGridViewPanel = new System.Windows.Forms.Panel();
-      this.buttonTableLayoutPanel = new System.Windows.Forms.TableLayoutPanel();
-      this.lockButton = new System.Windows.Forms.Button();
-      this.unlockButton = new System.Windows.Forms.Button();
-      this.addKeyButton = new wyDay.Controls.SplitButton();
-      this.removeKeyButton = new System.Windows.Forms.Button();
-      this.removeAllButton = new System.Windows.Forms.Button();
-      this.refreshButton = new System.Windows.Forms.Button();
+      this.sourceDataGridViewTextBoxColumn = new System.Windows.Forms.DataGridViewTextBoxColumn();
       ((System.ComponentModel.ISupportInitialize)(this.dataGridView)).BeginInit();
-      ((System.ComponentModel.ISupportInitialize)(this.keyWrapperBindingSource)).BeginInit();
       this.mainTableLayoutPanel.SuspendLayout();
       this.dataGridViewPanel.SuspendLayout();
       this.buttonTableLayoutPanel.SuspendLayout();
+      ((System.ComponentModel.ISupportInitialize)(this.keyWrapperBindingSource)).BeginInit();
       this.SuspendLayout();
       // 
       // messageLabel
@@ -81,7 +82,8 @@
             this.typeDataGridViewTextBoxColumn,
             this.sizeDataGridViewTextBoxColumn,
             this.fingerprintDataGridViewTextBoxColumn,
-            this.commentDataGridViewTextBoxColumn});
+            this.commentDataGridViewTextBoxColumn,
+            this.sourceDataGridViewTextBoxColumn});
       this.dataGridView.DataSource = this.keyWrapperBindingSource;
       this.dataGridView.Dock = System.Windows.Forms.DockStyle.Fill;
       this.dataGridView.Location = new System.Drawing.Point(0, 0);
@@ -95,66 +97,6 @@
       this.dataGridView.SelectionChanged += new System.EventHandler(this.dataGridView_SelectionChanged);
       this.dataGridView.DragDrop += new System.Windows.Forms.DragEventHandler(this.dataGridView_DragDrop);
       this.dataGridView.DragEnter += new System.Windows.Forms.DragEventHandler(this.dataGridView_DragEnter);
-      // 
-      // confirmDataGridViewCheckBoxColumn
-      // 
-      this.confirmDataGridViewCheckBoxColumn.AutoSizeMode = System.Windows.Forms.DataGridViewAutoSizeColumnMode.AllCells;
-      this.confirmDataGridViewCheckBoxColumn.DataPropertyName = "Confirm";
-      this.confirmDataGridViewCheckBoxColumn.HeaderText = "C";
-      this.confirmDataGridViewCheckBoxColumn.Name = "confirmDataGridViewCheckBoxColumn";
-      this.confirmDataGridViewCheckBoxColumn.ReadOnly = true;
-      this.confirmDataGridViewCheckBoxColumn.ToolTipText = "Confirm Constraint";
-      this.confirmDataGridViewCheckBoxColumn.Width = 20;
-      // 
-      // lifetimeDataGridViewCheckBoxColumn
-      // 
-      this.lifetimeDataGridViewCheckBoxColumn.AutoSizeMode = System.Windows.Forms.DataGridViewAutoSizeColumnMode.AllCells;
-      this.lifetimeDataGridViewCheckBoxColumn.DataPropertyName = "Lifetime";
-      this.lifetimeDataGridViewCheckBoxColumn.HeaderText = "L";
-      this.lifetimeDataGridViewCheckBoxColumn.Name = "lifetimeDataGridViewCheckBoxColumn";
-      this.lifetimeDataGridViewCheckBoxColumn.ReadOnly = true;
-      this.lifetimeDataGridViewCheckBoxColumn.ToolTipText = "Lifetime Constraint";
-      this.lifetimeDataGridViewCheckBoxColumn.Width = 19;
-      // 
-      // typeDataGridViewTextBoxColumn
-      // 
-      this.typeDataGridViewTextBoxColumn.AutoSizeMode = System.Windows.Forms.DataGridViewAutoSizeColumnMode.AllCells;
-      this.typeDataGridViewTextBoxColumn.DataPropertyName = "Type";
-      this.typeDataGridViewTextBoxColumn.HeaderText = "Type";
-      this.typeDataGridViewTextBoxColumn.Name = "typeDataGridViewTextBoxColumn";
-      this.typeDataGridViewTextBoxColumn.ReadOnly = true;
-      this.typeDataGridViewTextBoxColumn.Width = 56;
-      // 
-      // sizeDataGridViewTextBoxColumn
-      // 
-      this.sizeDataGridViewTextBoxColumn.AutoSizeMode = System.Windows.Forms.DataGridViewAutoSizeColumnMode.AllCells;
-      this.sizeDataGridViewTextBoxColumn.DataPropertyName = "Size";
-      this.sizeDataGridViewTextBoxColumn.HeaderText = "Size";
-      this.sizeDataGridViewTextBoxColumn.Name = "sizeDataGridViewTextBoxColumn";
-      this.sizeDataGridViewTextBoxColumn.ReadOnly = true;
-      this.sizeDataGridViewTextBoxColumn.Width = 52;
-      // 
-      // fingerprintDataGridViewTextBoxColumn
-      // 
-      this.fingerprintDataGridViewTextBoxColumn.AutoSizeMode = System.Windows.Forms.DataGridViewAutoSizeColumnMode.AllCells;
-      this.fingerprintDataGridViewTextBoxColumn.DataPropertyName = "Fingerprint";
-      this.fingerprintDataGridViewTextBoxColumn.HeaderText = "Fingerprint";
-      this.fingerprintDataGridViewTextBoxColumn.Name = "fingerprintDataGridViewTextBoxColumn";
-      this.fingerprintDataGridViewTextBoxColumn.ReadOnly = true;
-      this.fingerprintDataGridViewTextBoxColumn.Width = 81;
-      // 
-      // commentDataGridViewTextBoxColumn
-      // 
-      this.commentDataGridViewTextBoxColumn.AutoSizeMode = System.Windows.Forms.DataGridViewAutoSizeColumnMode.AllCells;
-      this.commentDataGridViewTextBoxColumn.DataPropertyName = "Comment";
-      this.commentDataGridViewTextBoxColumn.HeaderText = "Comment";
-      this.commentDataGridViewTextBoxColumn.Name = "commentDataGridViewTextBoxColumn";
-      this.commentDataGridViewTextBoxColumn.ReadOnly = true;
-      this.commentDataGridViewTextBoxColumn.Width = 76;
-      // 
-      // keyWrapperBindingSource
-      // 
-      this.keyWrapperBindingSource.DataSource = typeof(dlech.SshAgentLib.KeyWrapper);
       // 
       // mainTableLayoutPanel
       // 
@@ -232,18 +174,6 @@
       this.unlockButton.UseVisualStyleBackColor = true;
       this.unlockButton.Click += new System.EventHandler(this.unlockButton_Click);
       // 
-      // addKeyButton
-      // 
-      this.addKeyButton.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Left | System.Windows.Forms.AnchorStyles.Right)));
-      this.addKeyButton.AutoSize = true;
-      this.addKeyButton.Location = new System.Drawing.Point(185, 3);
-      this.addKeyButton.Name = "addKeyButton";
-      this.addKeyButton.Size = new System.Drawing.Size(85, 23);
-      this.addKeyButton.TabIndex = 2;
-      this.addKeyButton.Text = "&Add...";
-      this.addKeyButton.UseVisualStyleBackColor = true;
-      this.addKeyButton.Click += new System.EventHandler(this.addKeyButton_Click);
-      // 
       // removeKeyButton
       // 
       this.removeKeyButton.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Left | System.Windows.Forms.AnchorStyles.Right)));
@@ -256,12 +186,12 @@
       this.removeKeyButton.UseVisualStyleBackColor = true;
       this.removeKeyButton.Click += new System.EventHandler(this.removeButton_Click);
       // 
-      // removeAllbutton
+      // removeAllButton
       // 
       this.removeAllButton.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Left | System.Windows.Forms.AnchorStyles.Right)));
       this.removeAllButton.AutoSize = true;
       this.removeAllButton.Location = new System.Drawing.Point(367, 3);
-      this.removeAllButton.Name = "removeAllbutton";
+      this.removeAllButton.Name = "removeAllButton";
       this.removeAllButton.Size = new System.Drawing.Size(85, 23);
       this.removeAllButton.TabIndex = 4;
       this.removeAllButton.Text = "R&emove All";
@@ -280,6 +210,87 @@
       this.refreshButton.UseVisualStyleBackColor = true;
       this.refreshButton.Click += new System.EventHandler(this.refreshButton_Click);
       // 
+      // keyWrapperBindingSource
+      // 
+      this.keyWrapperBindingSource.DataSource = typeof(dlech.SshAgentLib.KeyWrapper);
+      // 
+      // addKeyButton
+      // 
+      this.addKeyButton.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Left | System.Windows.Forms.AnchorStyles.Right)));
+      this.addKeyButton.AutoSize = true;
+      this.addKeyButton.Location = new System.Drawing.Point(185, 3);
+      this.addKeyButton.Name = "addKeyButton";
+      this.addKeyButton.Size = new System.Drawing.Size(85, 23);
+      this.addKeyButton.TabIndex = 2;
+      this.addKeyButton.Text = "&Add...";
+      this.addKeyButton.UseVisualStyleBackColor = true;
+      this.addKeyButton.Click += new System.EventHandler(this.addKeyButton_Click);
+      // 
+      // confirmDataGridViewCheckBoxColumn
+      // 
+      this.confirmDataGridViewCheckBoxColumn.AutoSizeMode = System.Windows.Forms.DataGridViewAutoSizeColumnMode.AllCells;
+      this.confirmDataGridViewCheckBoxColumn.DataPropertyName = "Confirm";
+      this.confirmDataGridViewCheckBoxColumn.HeaderText = "C";
+      this.confirmDataGridViewCheckBoxColumn.Name = "confirmDataGridViewCheckBoxColumn";
+      this.confirmDataGridViewCheckBoxColumn.ReadOnly = true;
+      this.confirmDataGridViewCheckBoxColumn.ToolTipText = "Confirm Constraint";
+      this.confirmDataGridViewCheckBoxColumn.Width = 20;
+      // 
+      // lifetimeDataGridViewCheckBoxColumn
+      // 
+      this.lifetimeDataGridViewCheckBoxColumn.AutoSizeMode = System.Windows.Forms.DataGridViewAutoSizeColumnMode.AllCells;
+      this.lifetimeDataGridViewCheckBoxColumn.DataPropertyName = "Lifetime";
+      this.lifetimeDataGridViewCheckBoxColumn.HeaderText = "L";
+      this.lifetimeDataGridViewCheckBoxColumn.Name = "lifetimeDataGridViewCheckBoxColumn";
+      this.lifetimeDataGridViewCheckBoxColumn.ReadOnly = true;
+      this.lifetimeDataGridViewCheckBoxColumn.ToolTipText = "Lifetime Constraint";
+      this.lifetimeDataGridViewCheckBoxColumn.Width = 19;
+      // 
+      // typeDataGridViewTextBoxColumn
+      // 
+      this.typeDataGridViewTextBoxColumn.AutoSizeMode = System.Windows.Forms.DataGridViewAutoSizeColumnMode.AllCells;
+      this.typeDataGridViewTextBoxColumn.DataPropertyName = "Type";
+      this.typeDataGridViewTextBoxColumn.HeaderText = "Type";
+      this.typeDataGridViewTextBoxColumn.Name = "typeDataGridViewTextBoxColumn";
+      this.typeDataGridViewTextBoxColumn.ReadOnly = true;
+      this.typeDataGridViewTextBoxColumn.Width = 56;
+      // 
+      // sizeDataGridViewTextBoxColumn
+      // 
+      this.sizeDataGridViewTextBoxColumn.AutoSizeMode = System.Windows.Forms.DataGridViewAutoSizeColumnMode.AllCells;
+      this.sizeDataGridViewTextBoxColumn.DataPropertyName = "Size";
+      this.sizeDataGridViewTextBoxColumn.HeaderText = "Size";
+      this.sizeDataGridViewTextBoxColumn.Name = "sizeDataGridViewTextBoxColumn";
+      this.sizeDataGridViewTextBoxColumn.ReadOnly = true;
+      this.sizeDataGridViewTextBoxColumn.Width = 52;
+      // 
+      // fingerprintDataGridViewTextBoxColumn
+      // 
+      this.fingerprintDataGridViewTextBoxColumn.AutoSizeMode = System.Windows.Forms.DataGridViewAutoSizeColumnMode.AllCells;
+      this.fingerprintDataGridViewTextBoxColumn.DataPropertyName = "Fingerprint";
+      this.fingerprintDataGridViewTextBoxColumn.HeaderText = "Fingerprint";
+      this.fingerprintDataGridViewTextBoxColumn.Name = "fingerprintDataGridViewTextBoxColumn";
+      this.fingerprintDataGridViewTextBoxColumn.ReadOnly = true;
+      this.fingerprintDataGridViewTextBoxColumn.Width = 81;
+      // 
+      // commentDataGridViewTextBoxColumn
+      // 
+      this.commentDataGridViewTextBoxColumn.AutoSizeMode = System.Windows.Forms.DataGridViewAutoSizeColumnMode.AllCells;
+      this.commentDataGridViewTextBoxColumn.DataPropertyName = "Comment";
+      this.commentDataGridViewTextBoxColumn.HeaderText = "Comment";
+      this.commentDataGridViewTextBoxColumn.Name = "commentDataGridViewTextBoxColumn";
+      this.commentDataGridViewTextBoxColumn.ReadOnly = true;
+      this.commentDataGridViewTextBoxColumn.Width = 76;
+      // 
+      // sourceDataGridViewTextBoxColumn
+      // 
+      this.sourceDataGridViewTextBoxColumn.AutoSizeMode = System.Windows.Forms.DataGridViewAutoSizeColumnMode.AllCells;
+      this.sourceDataGridViewTextBoxColumn.DataPropertyName = "Source";
+      this.sourceDataGridViewTextBoxColumn.HeaderText = "Source";
+      this.sourceDataGridViewTextBoxColumn.Name = "sourceDataGridViewTextBoxColumn";
+      this.sourceDataGridViewTextBoxColumn.ReadOnly = true;
+      this.sourceDataGridViewTextBoxColumn.Width = 66;
+      // 
       // KeyInfoView
       // 
       this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
@@ -288,12 +299,12 @@
       this.Name = "KeyInfoView";
       this.Size = new System.Drawing.Size(553, 257);
       ((System.ComponentModel.ISupportInitialize)(this.dataGridView)).EndInit();
-      ((System.ComponentModel.ISupportInitialize)(this.keyWrapperBindingSource)).EndInit();
       this.mainTableLayoutPanel.ResumeLayout(false);
       this.mainTableLayoutPanel.PerformLayout();
       this.dataGridViewPanel.ResumeLayout(false);
       this.buttonTableLayoutPanel.ResumeLayout(false);
       this.buttonTableLayoutPanel.PerformLayout();
+      ((System.ComponentModel.ISupportInitialize)(this.keyWrapperBindingSource)).EndInit();
       this.ResumeLayout(false);
 
     }
@@ -311,12 +322,13 @@
     private System.Windows.Forms.Button removeAllButton;
     private System.Windows.Forms.Button refreshButton;
     private System.Windows.Forms.Panel dataGridViewPanel;
+    private wyDay.Controls.SplitButton addKeyButton;
     private System.Windows.Forms.DataGridViewCheckBoxColumn confirmDataGridViewCheckBoxColumn;
     private System.Windows.Forms.DataGridViewCheckBoxColumn lifetimeDataGridViewCheckBoxColumn;
     private System.Windows.Forms.DataGridViewTextBoxColumn typeDataGridViewTextBoxColumn;
     private System.Windows.Forms.DataGridViewTextBoxColumn sizeDataGridViewTextBoxColumn;
     private System.Windows.Forms.DataGridViewTextBoxColumn fingerprintDataGridViewTextBoxColumn;
     private System.Windows.Forms.DataGridViewTextBoxColumn commentDataGridViewTextBoxColumn;
-    private wyDay.Controls.SplitButton addKeyButton;
+    private System.Windows.Forms.DataGridViewTextBoxColumn sourceDataGridViewTextBoxColumn;
   }
 }

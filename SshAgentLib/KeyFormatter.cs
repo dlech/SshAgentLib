@@ -4,7 +4,7 @@
 // Author(s): David Lechner <david@lechnology.com>
 //            Max Laverse
 //
-// Copyright (c) 2012-2013 David Lechner
+// Copyright (c) 2012-2014 David Lechner
 //
 // Permission is hereby granted, free of charge, to any person obtaining a copy
 // of this software and associated documentation files (the "Software"), to deal
@@ -93,19 +93,19 @@ namespace dlech.SshAgentLib
     /// <summary>
     /// Read file containing SSH key data
     /// </summary>
-    /// <param name="aFileName">file containing SSH key data</param>
+    /// <param name="fileName">file containing SSH key data</param>
     /// <returns>key created from file data</returns>
     /// <exception cref="CallbackNullException">
     /// GetPassphraseCallbackMethod is null and aStream constrains encrypted key
     /// </exception>
-    public ISshKey DeserializeFile(string aFileName)
+    public ISshKey DeserializeFile(string fileName)
     {
       using (FileStream stream =
-        new FileStream(aFileName, FileMode.Open, FileAccess.Read)) {
+        new FileStream(fileName, FileMode.Open, FileAccess.Read)) {
         var key = Deserialize(stream) as ISshKey;
         if (string.IsNullOrEmpty(key.Comment)) {
           try {
-            var pubFile = aFileName + ".pub";
+            var pubFile = fileName + ".pub";
             if (File.Exists(pubFile)) {
               var lines = File.ReadAllLines(pubFile, Encoding.UTF8);
               key.Comment = GetComment (lines);
@@ -114,9 +114,7 @@ namespace dlech.SshAgentLib
             // don't worry about it
           }
         }
-        if (string.IsNullOrEmpty(key.Comment)) {
-          key.Comment = Path.GetFileName(aFileName);
-        }
+        key.Source = fileName;
         return key;
       }
     }

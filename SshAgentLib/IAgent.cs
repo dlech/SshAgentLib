@@ -3,7 +3,7 @@
 //
 // Author(s): David Lechner <david@lechnology.com>
 //
-// Copyright (c) 2012-2013 David Lechner
+// Copyright (c) 2012-2014 David Lechner
 //
 // Permission is hereby granted, free of charge, to any person obtaining a copy
 // of this software and associated documentation files (the "Software"), to deal
@@ -34,19 +34,17 @@ namespace dlech.SshAgentLib
   /// </summary>
   public interface IAgent
   {
-
     void AddKey(ISshKey aKey);
 
     void RemoveKey(ISshKey aKey);
 
     void RemoveAllKeys(SshVersion aVersion);
 
-     ICollection<ISshKey> ListKeys(SshVersion aVersion);
+    ICollection<ISshKey> ListKeys(SshVersion aVersion);
 
     void Lock(byte[] aPassphrase);
 
     void Unlock(byte[] aPassphrase);
-
   }
 
   public static class IAgentExt

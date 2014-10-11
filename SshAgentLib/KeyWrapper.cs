@@ -3,7 +3,7 @@
 //
 // Author(s): David Lechner <david@lechnology.com>
 //
-// Copyright (c) 2012-2013 David Lechner
+// Copyright (c) 2012-2014 David Lechner
 //
 // Permission is hereby granted, free of charge, to any person obtaining a copy
 // of this software and associated documentation files (the "Software"), to deal
@@ -27,13 +27,13 @@ namespace dlech.SshAgentLib
 {
   public class KeyWrapper
   {
-    private ISshKey mKey;
+    private ISshKey key;
 
     public bool Confirm
     {
       get
       {
-        return mKey.HasConstraint(Agent.KeyConstraintType.SSH_AGENT_CONSTRAIN_CONFIRM);
+        return key.HasConstraint(Agent.KeyConstraintType.SSH_AGENT_CONSTRAIN_CONFIRM);
       }
     }
 
@@ -41,7 +41,7 @@ namespace dlech.SshAgentLib
     {
       get
       {
-        return mKey.HasConstraint(Agent.KeyConstraintType.SSH_AGENT_CONSTRAIN_LIFETIME);
+        return key.HasConstraint(Agent.KeyConstraintType.SSH_AGENT_CONSTRAIN_LIFETIME);
       }
     }
 
@@ -49,7 +49,7 @@ namespace dlech.SshAgentLib
     {
       get
       {
-        return mKey.Algorithm.GetIdentifierString();
+        return key.Algorithm.GetIdentifierString();
       }
     }
 
@@ -57,7 +57,7 @@ namespace dlech.SshAgentLib
     {
       get
       {
-        return mKey.Size;
+        return key.Size;
       }
     }
 
@@ -65,7 +65,7 @@ namespace dlech.SshAgentLib
     {
       get
       {
-        return mKey.GetMD5Fingerprint().ToHexString();
+        return key.GetMD5Fingerprint().ToHexString();
       }
     }
 
@@ -73,18 +73,26 @@ namespace dlech.SshAgentLib
     {
       get
       {
-        return mKey.Comment;
+        return key.Comment;
+      }
+    }
+
+    public string Source
+    {
+      get
+      {
+        return key.Source;
       }
     }
     
-    public KeyWrapper(ISshKey aKey)
+    public KeyWrapper(ISshKey key)
     {
-      mKey = aKey;
+      this.key = key;
     }
 
     public ISshKey GetKey()
     {
-      return mKey;
+      return key;
     }
 
   }

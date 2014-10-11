@@ -4,7 +4,7 @@
 // Author(s): David Lechner <david@lechnology.com>
 //            Max Laverse
 //
-// Copyright (c) 2012-2013 David Lechner
+// Copyright (c) 2012-2014 David Lechner
 //
 // Permission is hereby granted, free of charge, to any person obtaining a copy
 // of this software and associated documentation files (the "Software"), to deal
@@ -566,6 +566,7 @@ namespace dlech.SshAgentLib
 
             SshKey key = new SshKey(SshVersion.SSH1, keyPair);
             key.Comment = messageParser.ReadString();
+            key.Source = "External client";
 
             if (ssh1constrained) {
               while (aMessageStream.Position < header.BlobLength + 4) {
@@ -609,6 +610,7 @@ namespace dlech.SshAgentLib
             var keyPair = messageParser.ReadSsh2KeyData(publicKeyParams);
             SshKey key = new SshKey(SshVersion.SSH2, keyPair);
             key.Comment = messageParser.ReadString();
+            key.Source = "External client";
 
             if (constrained) {
               while (aMessageStream.Position < header.BlobLength + 4) {
