@@ -511,9 +511,7 @@ namespace dlech.SshAgentLib
 
             var matchingKey =
               mKeyList.Where(key => key.Version == SshVersion.SSH2 &&
-              key.GetPublicKeyBlob()
-              .SequenceEqual(keyBlob))
-              .Single();
+              key.GetPublicKeyBlob().SequenceEqual(keyBlob)).First();
             var confirmConstraints = matchingKey.Constraints
               .Where(constraint => constraint.Type ==
                 KeyConstraintType.SSH_AGENT_CONSTRAIN_CONFIRM);
