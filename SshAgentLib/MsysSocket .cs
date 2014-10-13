@@ -1,0 +1,148 @@
+﻿//
+// MsysSocket.cs
+//
+// Author(s): David Lechner <david@lechnology.com>
+//
+// Copyright (c) 2014 David Lechner
+//
+// Inspired by CCygSock and CCygSockChannel from PuttyAgent plugin for KeePass 1
+// Copyright (C) 2014 Nikolaus Hammler <nikolaus@hammler.net>
+//
+// and also
+// http://stackoverflow.com/questions/23086038/what-mechanism-is-used-by-msys-cygwin-to-emulate-unix-domain-sockets
+//
+// Permission is hereby granted, free of charge, to any person obtaining a copy
+// of this software and associated documentation files (the "Software"), to deal
+// in the Software without restriction, including without limitation the rights
+// to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+// copies of the Software, and to permit persons to whom the Software is
+// furnished to do so, subject to the following conditions:
+//
+// The above copyright notice and this permission notice shall be included in
+// all copies or substantial portions of the Software.
+//
+// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+// IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+// FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+// AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+// LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+// OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+// THE SOFTWARE.
+
+using System;
+using System.Diagnostics;
+using System.IO;
+using System.Linq;
+using System.Net;
+using System.Net.Sockets;
+using System.Text;
+using System.Threading;
+
+namespace dlech.SshAgentLib
+{
+  class MsysSocket : IDisposable
+  {
+    const string waitHandleNamePrefix = "cygwin.local_socket.secret";
+
+    string path;
+    Socket socket;
+    Guid guid;
+    string guidString;
+    bool disposed;
+    EventWaitHandle serverWaitHandle;
+
+    public event ConnectionAcceptedEventHandler ConnectionAccepted;
+
+    /// <summary>
+    /// Create new "unix domain" socket for use with MSYS
+    /// </summary>
+    /// <param name="path">The name of the file to use for the socket</param>
+    public MsysSocket(string path)
+    {
+      this.path = path;
+      guid = Guid.NewGuid();
+      using (var stream = new FileStream(path, FileMode.CreateNew))
+      using (var writer = new StreamWriter(stream)) {
+        try {
+          File.SetAttributes(path, FileAttributes.System);
+          socket = new Socket(AddressFamily.InterNetwork, SocketType.Stream,
+            ProtocolType.Tcp);
+          var endpoint = new IPEndPoint(IPAddress.Loopback, 0);
+          socket.Bind(endpoint);
+          socket.Listen(5);
+          var socketThread = new Thread(AcceptConnections);
+          socketThread.Name = "MsysSocket";
+          socketThread.Start();
+          writer.Write("!<socket >");
+          var actualPort = ((IPEndPoint)socket.LocalEndPoint).Port;
+          writer.Write(actualPort);
+          writer.Write(" ");
+          var guidBytes = guid.ToByteArray();
+          var builder = new StringBuilder();
+          for (int i = 0; i < 4; i++) {
+            builder.Append(string.Format("{0:X8}",
+              BitConverter.ToUInt32(guidBytes, i * 4)));
+            if (i < 3)
+              builder.Append("-");
+          }
+          guidString = builder.ToString();
+          writer.Write(guidString);
+          serverWaitHandle = new EventWaitHandle (false, EventResetMode.AutoReset,
+            string.Format("{0}.{1}.{2}", waitHandleNamePrefix,
+            (UInt16)IPAddress.HostToNetworkOrder((Int16)actualPort), guidString));
+        } catch (Exception) {
+          if (socket != null)
+            socket.Close();
+          File.Delete(path);
+          throw;
+        }
+      }
+    }
+
+    public void Dispose()
+    {
+      Dispose(true);
+      GC.SuppressFinalize(this);
+    }
+
+    void Dispose(bool disposing)
+    {
+      if (!disposed) {
+        disposed = true;
+        if (disposing) {
+          // Dispose managed resources
+          socket.Close();
+          File.Delete(path);
+        }
+        // Dispose unmanaged resources
+      }
+    }
+
+    void AcceptConnections()
+    {
+      var buffer = new byte[16];
+      while (true) {
+        try {
+          using (var clientSocket = socket.Accept())
+          using (var stream = new NetworkStream(clientSocket)) {
+            try {
+              var clientPort = ((IPEndPoint)clientSocket.RemoteEndPoint).Port;
+              var clientWaitHandleName = string.Format("{0}.{1}.{2}",
+                waitHandleNamePrefix, (UInt16)IPAddress.HostToNetworkOrder((Int16)clientPort), guidString);
+              var clientWaitHandle = EventWaitHandle.OpenExisting(clientWaitHandleName);
+              if (!EventWaitHandle.SignalAndWait(serverWaitHandle, clientWaitHandle, 10000, false))
+                continue;
+            } catch (Exception ex) {
+              Debug.Fail(ex.ToString());
+            }
+            if (ConnectionAccepted != null)
+              ConnectionAccepted(this, new ConnectionAcceptedEventArgs(stream));
+          }
+        } catch (Exception ex) {
+          Debug.Assert(disposed, ex.ToString());
+          break;
+        }
+      }
+    }
+  }
+}

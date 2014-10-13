@@ -3,7 +3,7 @@
 //
 // Author(s): David Lechner <david@lechnology.com>
 //
-// Copyright (c) 2012-2013 David Lechner
+// Copyright (c) 2012-2014 David Lechner
 //
 // Permission is hereby granted, free of charge, to any person obtaining a copy
 // of this software and associated documentation files (the "Software"), to deal
@@ -25,7 +25,9 @@
 
 using System;
 using System.Diagnostics;
+using System.IO;
 using System.IO.MemoryMappedFiles;
+using System.Net.Sockets;
 using System.Runtime.InteropServices;
 using System.Security.Principal;
 using System.Threading;
@@ -47,23 +49,26 @@ namespace dlech.SshAgentLib
 
     /* From WINAPI */
 
-    private const int ERROR_CLASS_ALREADY_EXISTS = 1410;
-    private const int WM_COPYDATA = 0x004A;
+    const int ERROR_CLASS_ALREADY_EXISTS = 1410;
+    const int WM_COPYDATA = 0x004A;
+    const int WSAECONNABORTED = 10053;
 
     /* From PuTTY source code */
 
-    private const string cClassName = "Pageant";
-    private const long AGENT_COPYDATA_ID = 0x804e50ba;
+    const string className = "Pageant";
+    const long AGENT_COPYDATA_ID = 0x804e50ba;
 
     #endregion
 
 
     #region /* instance variables */
 
-    private bool mDisposed;
-    private WndProc mCustomWndProc;
-    private ApplicationContext mAppContext;
-    private object mLockObject = new object();
+    bool disposed;
+    WndProc customWndProc;
+    ApplicationContext appContext;
+    object lockObject = new object();
+    CygwinSocket cygwinSocket;
+    MsysSocket msysSocket;
 
     #endregion
 
@@ -162,12 +167,12 @@ namespace dlech.SshAgentLib
       }
 
       // create reference to delegate so that garbage collector does not eat it.
-      mCustomWndProc = new WndProc(CustomWndProc);
+      customWndProc = new WndProc(CustomWndProc);
 
       // Create WNDCLASS
       WNDCLASS wind_class = new WNDCLASS();
-      wind_class.lpszClassName = cClassName;
-      wind_class.lpfnWndProc = mCustomWndProc;
+      wind_class.lpszClassName = className;
+      wind_class.lpfnWndProc = customWndProc;
 
       UInt16 class_atom = RegisterClassW(ref wind_class);
 
@@ -182,20 +187,19 @@ namespace dlech.SshAgentLib
       Thread winThread = new Thread(RunWindowInNewAppcontext);
       winThread.SetApartmentState(ApartmentState.STA);
       winThread.Name = "PageantWindow";
-      lock (mLockObject) {
+      lock (lockObject) {
         winThread.Start();
         // wait for window to be created before continuing to prevent more than
         // one instance being run at a time.
-        if (!Monitor.Wait(mLockObject, 5000))
+        if (!Monitor.Wait(lockObject, 5000))
         {
-          // TODO - should throw execption here instead of showing message box
           if (winThread.ThreadState == System.Threading.ThreadState.Running)
           {
-            MessageBox.Show("Pageant Agent start timed out.");
+            throw new TimeoutException("PageantAgent start timed out.");
           }
           else
           {
-            MessageBox.Show("Pageant Agent failed to start.");
+            throw new Exception("PageantAgent failed to start.");
           }
         }
       }
@@ -213,10 +217,51 @@ namespace dlech.SshAgentLib
     public static bool CheckPageantRunning()
     {
       DoOSCheck();
-      IntPtr hwnd = FindWindow(cClassName, cClassName);
+      IntPtr hwnd = FindWindow(className, className);
       return (hwnd != IntPtr.Zero);
     }
 
+    /// <summary>
+    /// Starts a cygwin style socket that can be used by the ssh program
+    /// that comes with cygwin.
+    /// </summary>
+    /// <param name="path">The path to the socket file that will be created.</param>
+    public void StartCygwinSocket(string path)
+    {
+      if (cygwinSocket != null)
+        return;
+      cygwinSocket = new CygwinSocket(path);
+      cygwinSocket.ConnectionAccepted += OnSocketConnectionAccepted;
+    }
+
+    public void StopCygwinSocket()
+    {
+      if (cygwinSocket == null)
+        return;
+      cygwinSocket.Dispose();
+      cygwinSocket = null;
+    }
+
+    /// <summary>
+    /// Starts a msysgit style socket that can be used by the ssh program
+    /// that comes with msysgit.
+    /// </summary>
+    /// <param name="path">The path to the socket file that will be created.</param>
+    public void StartMsysSocket(string path)
+    {
+      if (msysSocket != null)
+        return;
+      msysSocket = new MsysSocket(path);
+      msysSocket.ConnectionAccepted += OnSocketConnectionAccepted;
+    }
+
+    public void StopMsysSocket()
+    {
+      if (msysSocket == null)
+        return;
+      msysSocket.Dispose();
+      msysSocket = null;
+    }
 
     public override void Dispose()
     {
@@ -232,12 +277,12 @@ namespace dlech.SshAgentLib
     private void RunWindowInNewAppcontext()
     {
       IntPtr hwnd;
-      lock (mLockObject) {
+      lock (lockObject) {
         // Create window
         hwnd = CreateWindowExW(
             0, // dwExStyle
-            cClassName, // lpClassName
-            cClassName, // lpWindowName
+            className, // lpClassName
+            className, // lpWindowName
             0, // dwStyle
             0, // x
             0, // y
@@ -249,27 +294,31 @@ namespace dlech.SshAgentLib
             IntPtr.Zero // lpParam
         );
 
-        mAppContext = new ApplicationContext();
-        Monitor.Pulse(mLockObject);
+        appContext = new ApplicationContext();
+        Monitor.Pulse(lockObject);
       }
       // Pageant window is run in its own application context so that it does
       // not block the UI thread of applications that use it.
-      Application.Run(mAppContext);
+      Application.Run(appContext);
       if (hwnd != IntPtr.Zero) {
         if (DestroyWindow(hwnd)) {
           hwnd = IntPtr.Zero;
-          mDisposed = true;
+          disposed = true;
         }
       }
     }
 
     private void Dispose(bool aDisposing)
     {
-      if (!mDisposed) {
+      if (!disposed) {
         if (aDisposing) {
           // Dispose managed resources
+          if (cygwinSocket != null)
+            cygwinSocket.Dispose();
+          if (msysSocket != null)
+            msysSocket.Dispose();
         }
-        mAppContext.ExitThread();
+        appContext.ExitThread();
         // Dispose unmanaged resources 
       }
     }
@@ -348,6 +397,21 @@ namespace dlech.SshAgentLib
     {
       if (Environment.OSVersion.Platform != PlatformID.Win32NT) {
         throw new NotSupportedException ("Pageant requires Windows");
+      }
+    }
+
+    private void OnSocketConnectionAccepted(object sender, ConnectionAcceptedEventArgs e)
+    {
+      try {
+        while (true)
+          AnswerMessage(e.Stream);
+      } catch (Exception ex) {
+        if (ex is IOException && ex.InnerException is SocketException) {
+          // expected error
+          if (((SocketException)ex.InnerException).ErrorCode == WSAECONNABORTED)
+            return;
+        }
+        Debug.Fail(ex.ToString());
       }
     }
 

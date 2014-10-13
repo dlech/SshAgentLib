@@ -74,6 +74,9 @@
     <Compile Include="BlobParser.cs" />
     <Compile Include="CallbackNullException.cs" />
     <Compile Include="AgentLockedException.cs" />
+    <Compile Include="ConnectionAcceptedEventArgs.cs" />
+    <Compile Include="MsysSocket .cs" />
+    <Compile Include="CygwinSocket.cs" />
     <Compile Include="PassphraseException.cs" />
     <Compile Include="DesSsh1Engine.cs" />
     <Compile Include="KeyFormatterException.cs" />

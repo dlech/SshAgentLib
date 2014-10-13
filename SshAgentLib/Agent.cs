@@ -390,13 +390,13 @@ namespace dlech.SshAgentLib
     /// <summary>
     /// Answers the message.
     /// </summary>
-    /// <param name='aMessageStream'>
+    /// <param name='messageStream'>
     /// Message stream.
     /// </param>
     /// <remarks>code based on winpgnt.c from PuTTY source code</remarks>
-    public void AnswerMessage(Stream aMessageStream)
+    public void AnswerMessage(Stream messageStream)
     {
-      BlobParser messageParser = new BlobParser(aMessageStream);
+      BlobParser messageParser = new BlobParser(messageStream);
       BlobBuilder responseBuilder = new BlobBuilder();
       BlobHeader header = messageParser.ReadHeader();
 
@@ -569,7 +569,7 @@ namespace dlech.SshAgentLib
             key.Source = "External client";
 
             if (ssh1constrained) {
-              while (aMessageStream.Position < header.BlobLength + 4) {
+              while (messageStream.Position < header.BlobLength + 4) {
                 KeyConstraint constraint = new KeyConstraint();
                 constraint.Type = (KeyConstraintType)messageParser.ReadByte();
                 if (constraint.Type ==
@@ -613,7 +613,7 @@ namespace dlech.SshAgentLib
             key.Source = "External client";
 
             if (constrained) {
-              while (aMessageStream.Position < header.BlobLength + 4) {
+              while (messageStream.Position < header.BlobLength + 4) {
                 KeyConstraint constraint = new KeyConstraint();
                 constraint.Type =
                   (KeyConstraintType)messageParser.ReadByte();
@@ -748,8 +748,10 @@ namespace dlech.SshAgentLib
           break;
       }
       /* write response to stream */
-      aMessageStream.Position = 0;
-      aMessageStream.Write(responseBuilder.GetBlob(), 0, responseBuilder.Length);
+      if (messageStream.CanSeek)
+        messageStream.Position = 0;
+      messageStream.Write(responseBuilder.GetBlob(), 0, responseBuilder.Length);
+      messageStream.Flush();
     }
 
     public abstract void Dispose();

@@ -4,7 +4,7 @@
 // Author(s): David Lechner <david@lechnology.com>
 //            Max Laverse
 //
-// Copyright (c) 2012-2013 David Lechner
+// Copyright (c) 2012-2014 David Lechner
 //
 // Permission is hereby granted, free of charge, to any person obtaining a copy
 // of this software and associated documentation files (the "Software"), to deal
@@ -41,19 +41,19 @@ namespace dlech.SshAgentLib
   {
     public Stream Stream { get; private set; }
 
-    public BlobParser(byte[] aBlob) : this(new MemoryStream(aBlob)) { }
+    public BlobParser(byte[] blob) : this(new MemoryStream(blob)) { }
 
-    public BlobParser(Stream aStream)
+    public BlobParser(Stream stream)
     {
-      if (aStream == null) {
-        throw new ArgumentNullException("aStream");
+      if (stream == null) {
+        throw new ArgumentNullException("stream");
       }
-      Stream = aStream;
+      Stream = stream;
     }
 
     public byte ReadByte()
     {
-      if (Stream.Length - Stream.Position < 1) {
+      if (Stream.CanSeek && Stream.Length - Stream.Position < 1) {
         throw new Exception("Not enough data");
       }
       return (byte)Stream.ReadByte();
@@ -62,7 +62,7 @@ namespace dlech.SshAgentLib
     public UInt32 ReadInt()
     {
       byte[] dataLegthBytes = new byte[4];
-      if (Stream.Length - Stream.Position < dataLegthBytes.Length) {
+      if (Stream.CanSeek && Stream.Length - Stream.Position < dataLegthBytes.Length) {
         throw new Exception("Not enough data");
       }
       Stream.Read(dataLegthBytes, 0, dataLegthBytes.Length);
@@ -72,7 +72,7 @@ namespace dlech.SshAgentLib
     public UInt16 ReadShort()
     {
         byte[] dataLegthBytes = new byte[2];
-        if (Stream.Length - Stream.Position < dataLegthBytes.Length)
+        if (Stream.CanSeek && Stream.Length - Stream.Position < dataLegthBytes.Length)
         {
             throw new Exception("Not enough data");
         }
@@ -85,7 +85,7 @@ namespace dlech.SshAgentLib
       Agent.BlobHeader header = new Agent.BlobHeader();
 
       header.BlobLength = ReadInt();
-      if (Stream.Length - Stream.Position < header.BlobLength) {
+      if (Stream.CanSeek && Stream.Length - Stream.Position < header.BlobLength) {
         throw new Exception("Not enough data");
       }
       header.Message = (Agent.Message)ReadByte();
@@ -108,14 +108,14 @@ namespace dlech.SshAgentLib
       return ReadBits(bitCount);
     }
 
-    public byte[] ReadBits(UInt32 aBitCount)
+    public byte[] ReadBits(UInt32 bitCount)
     {
-      return ReadBytes((aBitCount + (uint)7) / 8);
+      return ReadBytes((bitCount + (uint)7) / 8);
     }
 
     public byte[] ReadBytes(UInt32 blobLength)
     {
-        if (Stream.Length - Stream.Position < blobLength)
+      if (Stream.CanSeek && Stream.Length - Stream.Position < blobLength)
         {
             throw new Exception("Not enough data");
         }
@@ -129,13 +129,13 @@ namespace dlech.SshAgentLib
     /// reads OpenSSH formatted public key blob and creates
     /// an AsymmetricKeyParameter object
     /// </summary>
-    /// <param name="aReverseRsaParameters">
+    /// <param name="reverseRsaParameters">
     /// Set to true to read RSA modulus first. Normally exponent is read first.
     /// Has no effect on other algorithms
     /// </param>
     /// <returns>AsymmetricKeyParameter containing the public key</returns>
     public AsymmetricKeyParameter ReadSsh2PublicKeyData(
-      bool aReverseRsaParameters = false)
+      bool reverseRsaParameters = false)
     {
       var algorithm = Encoding.UTF8.GetString(ReadBlob());
 
@@ -143,7 +143,7 @@ namespace dlech.SshAgentLib
         case PublicKeyAlgorithmExt.ALGORITHM_RSA_KEY:
           var rsaE = new BigInteger(1, ReadBlob()); // exponent
           var rsaN = new BigInteger(1, ReadBlob()); // modulus
-          if (aReverseRsaParameters) {
+          if (reverseRsaParameters) {
             return new RsaKeyParameters(false, rsaE, rsaN);
           }
           return new RsaKeyParameters(false, rsaN, rsaE);
@@ -198,9 +198,9 @@ namespace dlech.SshAgentLib
     /// intended to be called immediately after ParseSsh2PublicKeyData
     /// </remarks>
     public AsymmetricCipherKeyPair ReadSsh2KeyData(
-      AsymmetricKeyParameter aPublicKeyParameter)
+      AsymmetricKeyParameter publicKeyParameter)
     {
-      if (aPublicKeyParameter is RsaKeyParameters) {
+      if (publicKeyParameter is RsaKeyParameters) {
         var rsaD = new BigInteger(1, ReadBlob());
         var rsaIQMP = new BigInteger(1, ReadBlob());
         var rsaP = new BigInteger(1, ReadBlob());
@@ -210,24 +210,24 @@ namespace dlech.SshAgentLib
         var rsaDP = rsaD.Remainder(rsaP.Subtract(BigInteger.One));
         var rsaDQ = rsaD.Remainder(rsaQ.Subtract(BigInteger.One));
 
-        var rsaPublicKeyParams = aPublicKeyParameter as RsaKeyParameters;
+        var rsaPublicKeyParams = publicKeyParameter as RsaKeyParameters;
         var rsaPrivateKeyParams = new RsaPrivateCrtKeyParameters(
           rsaPublicKeyParams.Modulus, rsaPublicKeyParams.Exponent,
           rsaD, rsaP, rsaQ, rsaDP, rsaDQ, rsaIQMP);
 
         return new AsymmetricCipherKeyPair(rsaPublicKeyParams, rsaPrivateKeyParams);
-      } else if (aPublicKeyParameter is DsaPublicKeyParameters) {
+      } else if (publicKeyParameter is DsaPublicKeyParameters) {
         var dsaX = new BigInteger(1, ReadBlob()); // private key
 
-        var dsaPublicKeyParams = aPublicKeyParameter as DsaPublicKeyParameters;
+        var dsaPublicKeyParams = publicKeyParameter as DsaPublicKeyParameters;
         DsaPrivateKeyParameters dsaPrivateKeyParams =
           new DsaPrivateKeyParameters(dsaX, dsaPublicKeyParams.Parameters);
 
         return new AsymmetricCipherKeyPair(dsaPublicKeyParams, dsaPrivateKeyParams);
-      } else if (aPublicKeyParameter is ECPublicKeyParameters) {
+      } else if (publicKeyParameter is ECPublicKeyParameters) {
         var ecdsaPrivate = new BigInteger(1, ReadBlob());
 
-        var ecPublicKeyParams = aPublicKeyParameter as ECPublicKeyParameters;
+        var ecPublicKeyParams = publicKeyParameter as ECPublicKeyParameters;
         ECPrivateKeyParameters ecPrivateKeyParams =
           new ECPrivateKeyParameters(ecdsaPrivate, ecPublicKeyParams.Parameters);
 
@@ -243,12 +243,12 @@ namespace dlech.SshAgentLib
     /// an AsymmetricKeyParameter object
     /// </summary>
     /// <param name="Stream">stream to parse</param>
-    /// <param name="aReverseRsaParameters">
+    /// <param name="reverseRsaParameters">
     /// Set to true to read RSA modulus first. Normally exponent is read first.
     /// </param>
     /// <returns>AsymmetricKeyParameter containing the public key</returns>
     public AsymmetricKeyParameter ReadSsh1PublicKeyData(
-      bool aReverseRsaParameters = false)
+      bool reverseRsaParameters = false)
     {
       // ignore not used warning
       #pragma warning disable 0219
@@ -257,7 +257,7 @@ namespace dlech.SshAgentLib
       var rsaN = new BigInteger(1, ReadSsh1BigIntBlob());
       var rsaE = new BigInteger(1, ReadSsh1BigIntBlob());
 
-      if (aReverseRsaParameters) {
+      if (reverseRsaParameters) {
         return new RsaKeyParameters(false, rsaE, rsaN);
       }
       return new RsaKeyParameters(false, rsaN, rsaE);
@@ -273,7 +273,7 @@ namespace dlech.SshAgentLib
     /// intended to be called immediately after ParseSsh1PublicKeyData
     /// </remarks>
     public AsymmetricCipherKeyPair ReadSsh1KeyData(
-      AsymmetricKeyParameter aPublicKeyParameter)
+      AsymmetricKeyParameter publicKeyParameter)
     {
       var rsa_d = ReadSsh1BigIntBlob();
       var rsa_iqmp = ReadSsh1BigIntBlob();
@@ -288,7 +288,7 @@ namespace dlech.SshAgentLib
       var rsaDP = rsaD.Remainder(rsaP.Subtract(BigInteger.One));
       var rsaDQ = rsaD.Remainder(rsaQ.Subtract(BigInteger.One));
 
-      var rsaPublicKeyParams = aPublicKeyParameter as RsaKeyParameters;
+      var rsaPublicKeyParams = publicKeyParameter as RsaKeyParameters;
 
       var rsaPrivateKeyParams = 
         new RsaPrivateCrtKeyParameters(rsaPublicKeyParams.Modulus,
