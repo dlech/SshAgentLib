@@ -6,20 +6,14 @@ using System.Runtime.InteropServices;
 // set of attributes. Change these attribute values to modify the information
 // associated with an assembly.
 
-#if DOT_NET_35
-[assembly: AssemblyTitle("PageantSharp35")]
-[assembly: AssemblyProduct("PageantSharp35")]
-[assembly: AssemblyDescription(".NET 3.5 Library for creating a Putty key agents")]
-#else
 [assembly: AssemblyTitle("SshAgentLib")]
 [assembly: AssemblyProduct("SshAgentLib")]
 [assembly: AssemblyDescription("SSH Agent .NET 4.0 Library")]
-#endif // DOT_NET_35
 
 [assembly: AssemblyConfiguration("")]
 [assembly: AssemblyCompany("David Lechner")]
 
-[assembly: AssemblyCopyright("2012-2013")]
+[assembly: AssemblyCopyright("2012-2014")]
 [assembly: AssemblyTrademark("")]
 [assembly: AssemblyCulture("")]
 
@@ -38,5 +32,5 @@ using System.Runtime.InteropServices;
 //      Build Number
 //      Revision
 //
-[assembly: AssemblyVersion("0.4.2.0")]
-[assembly: AssemblyFileVersion("0.4.2.0")]
+[assembly: AssemblyVersion("0.5.0.0")]
+[assembly: AssemblyFileVersion("0.5.0.0")]
