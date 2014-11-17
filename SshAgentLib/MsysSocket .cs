@@ -35,6 +35,8 @@ using System.IO;
 using System.Linq;
 using System.Net;
 using System.Net.Sockets;
+using System.Security.AccessControl;
+using System.Security.Principal;
 using System.Text;
 using System.Threading;
 
@@ -65,6 +67,17 @@ namespace dlech.SshAgentLib
       using (var writer = new StreamWriter(stream)) {
         try {
           File.SetAttributes(path, FileAttributes.System);
+          var fileSecurity = File.GetAccessControl(path);
+          // This turns off ACL inheritance and removes all inherited rules
+          fileSecurity.SetAccessRuleProtection(true, false);
+          // We are left with no permissions at all, so we have to add them
+          // back for the current user
+          var userOnlyRule = new FileSystemAccessRule(
+            WindowsIdentity.GetCurrent().User,
+            FileSystemRights.FullControl,
+            AccessControlType.Allow);
+          fileSecurity.SetAccessRule(userOnlyRule);
+          File.SetAccessControl(path, fileSecurity);
           socket = new Socket(AddressFamily.InterNetwork, SocketType.Stream,
             ProtocolType.Tcp);
           var endpoint = new IPEndPoint(IPAddress.Loopback, 0);
