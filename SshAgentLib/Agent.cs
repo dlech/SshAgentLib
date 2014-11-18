@@ -64,7 +64,12 @@ namespace dlech.SshAgentLib
     /// <summary>
     /// fired when a key is added or removed
     /// </summary>
-    public event KeyListChangeEventHandler KeyListChanged;
+    public event SshKeyEventHandler KeyAdded;
+
+    /// <summary>
+    /// fired when a key is added or removed
+    /// </summary>
+    public event SshKeyEventHandler KeyRemoved;
 
     /// <summary>
     /// fired when a message is received by the agent
@@ -132,13 +137,7 @@ namespace dlech.SshAgentLib
     {
       SSH_AGENT_OLD_SIGNATURE = 1
     }
-
-    public enum KeyListChangeEventAction
-    {
-      Add,
-      Remove
-    }
-
+    
     #endregion
 
     #region Data Types
@@ -185,20 +184,6 @@ namespace dlech.SshAgentLib
     /// <param name="aSender"></param>
     /// <param name="aEventArgs"></param>
     public delegate void LockEventHandler(object aSender, LockEventArgs aEventArgs);
-
-    public class KeyListChangeEventArgs : EventArgs
-    {
-      public KeyListChangeEventArgs(KeyListChangeEventAction aAction, ISshKey aKey)
-      {
-        Action = aAction;
-        Key = aKey;
-      }
-      public KeyListChangeEventAction Action { get; private set; }
-      public ISshKey Key { get; private set; }
-    }
-
-    public delegate void KeyListChangeEventHandler(object aSender,
-      KeyListChangeEventArgs aEventArgs);
 
     public class MessageReceivedEventArgs : EventArgs
     {
@@ -272,7 +257,7 @@ namespace dlech.SshAgentLib
 
     #region Public Methods
 
-    public void AddKey(ISshKey aKey)
+    public void AddKey(ISshKey key)
     {
       if (IsLocked) {
         throw new AgentLockedException();
@@ -280,7 +265,7 @@ namespace dlech.SshAgentLib
 
       /* handle constraints */
 
-      foreach (KeyConstraint constraint in aKey.Constraints) {
+      foreach (KeyConstraint constraint in key.Constraints) {
         if (constraint.Type ==
                   KeyConstraintType.SSH_AGENT_CONSTRAIN_CONFIRM &&
                   ConfirmUserPermissionCallback == null) {
@@ -297,7 +282,7 @@ namespace dlech.SshAgentLib
             delegate(object aSender, ElapsedEventArgs aEventArgs)
             {
               timer.Elapsed -= onTimerElapsed;
-              RemoveKey(aKey);
+              RemoveKey(key);
             };
           timer.Elapsed += onTimerElapsed;
           timer.Start();
@@ -305,21 +290,21 @@ namespace dlech.SshAgentLib
       }
 
       /* first remove matching key if it exists */
-      ISshKey matchingKey = mKeyList.Get(aKey.Version, aKey.GetPublicKeyBlob());
+      ISshKey matchingKey = mKeyList.Get(key.Version, key.GetPublicKeyBlob());
       RemoveKey(matchingKey);
 
-      mKeyList.Add(aKey);
-      FireKeyListChanged(KeyListChangeEventAction.Add, aKey);
+      mKeyList.Add(key);
+      FireKeyAdded(key);
     }
 
-    public void RemoveKey(ISshKey aKey)
+    public void RemoveKey(ISshKey key)
     {
       if (IsLocked) {
         throw new AgentLockedException();
       }
 
-      if (mKeyList.Remove(aKey)) {
-        FireKeyListChanged(KeyListChangeEventAction.Remove, aKey);
+      if (mKeyList.Remove(key)) {
+        FireKeyRemoved(key);
       }
     }
 
@@ -760,14 +745,19 @@ namespace dlech.SshAgentLib
 
     #region Private Methods
 
-    /// <summary>
-    /// Fires KeyListChanged event
-    /// </summary>
-    private void FireKeyListChanged(KeyListChangeEventAction aAction, ISshKey aKey)
+    private void FireKeyAdded(ISshKey key)
     {
-      if (KeyListChanged != null) {
-        KeyListChangeEventArgs args = new KeyListChangeEventArgs(aAction, aKey);
-        KeyListChanged(this, args);
+      if (KeyAdded != null) {
+        SshKeyEventArgs args = new SshKeyEventArgs(key);
+        KeyAdded(this, args);
+      }
+    }
+
+    private void FireKeyRemoved(ISshKey key)
+    {
+      if (KeyRemoved != null) {
+        SshKeyEventArgs args = new SshKeyEventArgs(key);
+        KeyRemoved(this, args);
       }
     }
 

@@ -34,6 +34,10 @@ namespace dlech.SshAgentLib
   /// </summary>
   public interface IAgent
   {
+    event SshKeyEventHandler KeyAdded;
+
+    event SshKeyEventHandler KeyRemoved;
+
     void AddKey(ISshKey aKey);
 
     void RemoveKey(ISshKey aKey);

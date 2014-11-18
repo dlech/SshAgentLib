@@ -115,7 +115,8 @@ namespace dlech.SshAgentLib.WinForms
         if (mAgent is Agent)
         {
           var agent = mAgent as Agent;
-          agent.KeyListChanged -= AgentKeyListChangeHandler;
+          agent.KeyAdded -= AgentKeyAddedHandler;
+          agent.KeyRemoved -= AgentKeyRemovedHandler;
           agent.Locked -= AgentLockHandler;
         }
       }
@@ -130,7 +131,8 @@ namespace dlech.SshAgentLib.WinForms
         confirmDataGridViewCheckBoxColumn.Visible = true;
         lifetimeDataGridViewCheckBoxColumn.Visible = true;
         sourceDataGridViewTextBoxColumn.Visible = true;
-        agent.KeyListChanged += AgentKeyListChangeHandler;
+        agent.KeyAdded += AgentKeyAddedHandler;
+        agent.KeyRemoved += AgentKeyRemovedHandler;
         agent.Locked += AgentLockHandler;
         buttonTableLayoutPanel.ColumnCount -= 1;
 
@@ -438,38 +440,40 @@ namespace dlech.SshAgentLib.WinForms
       UpdateButtonStates();
     }
 
-    private void AgentKeyListChangeHandler(object aSender,
-      Agent.KeyListChangeEventArgs aArgs)
+    private void AgentKeyAddedHandler(object sender, SshKeyEventArgs e)
     {
-      if (IsDisposed)
-      {
+      if (IsDisposed) {
         return;
       }
-      if (InvokeRequired)
-      {
-        Invoke((MethodInvoker)delegate()
-          {
-            AgentKeyListChangeHandler(aSender, aArgs);
-          });
+      if (InvokeRequired) {
+        Invoke((MethodInvoker)delegate() {
+            AgentKeyAddedHandler(sender, e);
+        });
         return;
       }
-      switch (aArgs.Action)
-      {
-        case Agent.KeyListChangeEventAction.Add:
-          mKeyCollection.Add(new KeyWrapper(aArgs.Key));
-          UpdateVisibility();
-          break;
-        case Agent.KeyListChangeEventAction.Remove:
-          var matchFingerprint = aArgs.Key.GetMD5Fingerprint().ToHexString();
-          var matches = mKeyCollection.Where(k =>
-            k.Fingerprint == matchFingerprint).ToList();
-          foreach (var key in matches)
-          {
-            mKeyCollection.Remove(key);
-          }
-          UpdateVisibility();
-          break;
+      mKeyCollection.Add(new KeyWrapper(e.Key));
+      UpdateVisibility();
+      UpdateButtonStates();
+    }
+
+    private void AgentKeyRemovedHandler(object sender, SshKeyEventArgs e)
+    {
+      if (IsDisposed) {
+        return;
       }
+      if (InvokeRequired) {
+        Invoke((MethodInvoker)delegate() {
+          AgentKeyRemovedHandler(sender, e);
+        });
+        return;
+      }
+      var matchFingerprint = e.Key.GetMD5Fingerprint().ToHexString();
+      var matches = mKeyCollection.Where(k =>
+        k.Fingerprint == matchFingerprint).ToList();
+      foreach (var key in matches) {
+        mKeyCollection.Remove(key);
+      }
+      UpdateVisibility();
       UpdateButtonStates();
     }
 

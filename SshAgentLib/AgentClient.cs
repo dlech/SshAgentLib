@@ -60,6 +60,10 @@ namespace dlech.SshAgentLib
       }
     }
 
+    public event SshKeyEventHandler KeyAdded;
+
+    public event SshKeyEventHandler KeyRemoved;
+
     /// <summary>
     /// Implementer should send the message to an SSH agent and return the reply
     /// </summary>
@@ -70,24 +74,24 @@ namespace dlech.SshAgentLib
     /// <summary>
     /// Adds key to SSH agent
     /// </summary>
-    /// <param name="aKey">the key to add</param>
+    /// <param name="key">the key to add</param>
     /// <returns>true if operation was successful</returns>
     /// <remarks>applies constraints in aKeys.Constraints, if any</remarks>
-    public void AddKey(ISshKey aKey)
+    public void AddKey(ISshKey key)
     {
-      AddKey(aKey, aKey.Constraints);
+      AddKey(key, key.Constraints);
     }
 
     /// <summary>
     /// Adds key to SSH agent
     /// </summary>
-    /// <param name="aKey">the key to add</param>
+    /// <param name="key">the key to add</param>
     /// <param name="aConstraints">constraints to apply</param>
     /// <returns>true if operation was successful</returns>
     /// <remarks>ignores constraints in aKey.Constraints</remarks>
-    public void AddKey(ISshKey aKey, ICollection<Agent.KeyConstraint> aConstraints)
+    public void AddKey(ISshKey key, ICollection<Agent.KeyConstraint> aConstraints)
     {
-      var builder = CreatePrivateKeyBlob(aKey);
+      var builder = CreatePrivateKeyBlob(key);
       if (aConstraints != null && aConstraints.Count > 0) {
         foreach (var constraint in aConstraints) {
           builder.AddByte((byte)constraint.Type);
@@ -95,7 +99,7 @@ namespace dlech.SshAgentLib
             builder.AddInt((uint)constraint.Data);
           }
         }
-        switch (aKey.Version) {
+        switch (key.Version) {
           case SshVersion.SSH1:
             builder.InsertHeader(Agent.Message.SSH1_AGENTC_ADD_RSA_ID_CONSTRAINED);
             break;
@@ -106,7 +110,7 @@ namespace dlech.SshAgentLib
             throw new Exception(cUnsupportedSshVersion);
         }
       } else {
-        switch (aKey.Version) {
+        switch (key.Version) {
           case SshVersion.SSH1:
             builder.InsertHeader(Agent.Message.SSH1_AGENTC_ADD_RSA_IDENTITY);
             break;
@@ -118,17 +122,18 @@ namespace dlech.SshAgentLib
         }
       }
       SendMessageAndCheckSuccess(builder);
+      FireKeyAdded(key);
     }
 
     /// <summary>
     /// Remove key from SSH agent
     /// </summary>
-    /// <param name="aKey">The key to remove</param>
+    /// <param name="key">The key to remove</param>
     /// <returns>true if removal succeeded</returns>
-    public void RemoveKey(ISshKey aKey)
+    public void RemoveKey(ISshKey key)
     {
-      var builder = CreatePublicKeyBlob(aKey);
-      switch (aKey.Version) {
+      var builder = CreatePublicKeyBlob(key);
+      switch (key.Version) {
         case SshVersion.SSH1:
           builder.InsertHeader(Agent.Message.SSH1_AGENTC_REMOVE_RSA_IDENTITY);
           break;
@@ -139,12 +144,16 @@ namespace dlech.SshAgentLib
           throw new Exception(cUnsupportedSshVersion);
       }
       SendMessageAndCheckSuccess(builder);
+      FireKeyRemoved(key);
     }
 
-    public void RemoveAllKeys(SshVersion aVersion)
+    public void RemoveAllKeys(SshVersion version)
     {
       BlobBuilder builder = new BlobBuilder();
-      switch (aVersion) {
+      ICollection<ISshKey> keys = null;
+      if (KeyRemoved != null)
+        keys = ListKeys(version);
+      switch (version) {
         case SshVersion.SSH1:
           builder.InsertHeader(Agent.Message.SSH1_AGENTC_REMOVE_ALL_RSA_IDENTITIES);
           break;
@@ -155,6 +164,10 @@ namespace dlech.SshAgentLib
           throw new Exception(cUnsupportedSshVersion);
       }
       SendMessageAndCheckSuccess(builder);
+      if (keys != null) {
+        foreach (var key in keys)
+          FireKeyRemoved(key);
+      }
     }
 
     public ICollection<ISshKey> ListKeys(SshVersion aVersion)
@@ -379,5 +392,20 @@ namespace dlech.SshAgentLib
       return builder;
     }
 
+    private void FireKeyAdded(ISshKey key)
+    {
+      if (KeyAdded != null) {
+        SshKeyEventArgs args = new SshKeyEventArgs(key);
+        KeyAdded(this, args);
+      }
+    }
+
+    private void FireKeyRemoved(ISshKey key)
+    {
+      if (KeyRemoved != null) {
+        SshKeyEventArgs args = new SshKeyEventArgs(key);
+        KeyRemoved(this, args);
+      }
+    }
   }
 }

@@ -89,6 +89,7 @@
     <Compile Include="PublicKeyAlgorithm.cs" />
     <Compile Include="SshKey.cs" />
     <Compile Include="BlobBuilder.cs" />
+    <Compile Include="SshKeyEvent.cs" />
     <Compile Include="Util.cs" />
     <Compile Include="PageantRunningException.cs" />
     <Compile Include="SshVersion.cs" />
