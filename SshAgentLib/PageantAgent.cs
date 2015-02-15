@@ -228,6 +228,8 @@ namespace dlech.SshAgentLib
     /// <param name="path">The path to the socket file that will be created.</param>
     public void StartCygwinSocket(string path)
     {
+      if (disposed)
+        throw new ObjectDisposedException("PagentAgent");
       if (cygwinSocket != null)
         return;
       cygwinSocket = new CygwinSocket(path);
@@ -236,6 +238,8 @@ namespace dlech.SshAgentLib
 
     public void StopCygwinSocket()
     {
+      if (disposed)
+        throw new ObjectDisposedException("PagentAgent");
       if (cygwinSocket == null)
         return;
       cygwinSocket.Dispose();
@@ -249,6 +253,8 @@ namespace dlech.SshAgentLib
     /// <param name="path">The path to the socket file that will be created.</param>
     public void StartMsysSocket(string path)
     {
+      if (disposed)
+        throw new ObjectDisposedException("PagentAgent");
       if (msysSocket != null)
         return;
       msysSocket = new MsysSocket(path);
@@ -257,6 +263,8 @@ namespace dlech.SshAgentLib
 
     public void StopMsysSocket()
     {
+      if (disposed)
+        throw new ObjectDisposedException("PagentAgent");
       if (msysSocket == null)
         return;
       msysSocket.Dispose();
@@ -300,6 +308,11 @@ namespace dlech.SshAgentLib
       // Pageant window is run in its own application context so that it does
       // not block the UI thread of applications that use it.
       Application.Run(appContext);
+
+      // make sure socket files are cleaned up when we stop.
+      StopCygwinSocket();
+      StopMsysSocket();
+
       if (hwnd != IntPtr.Zero) {
         if (DestroyWindow(hwnd)) {
           hwnd = IntPtr.Zero;
@@ -308,18 +321,10 @@ namespace dlech.SshAgentLib
       }
     }
 
-    private void Dispose(bool aDisposing)
+    private void Dispose(bool disposing)
     {
       if (!disposed) {
-        if (aDisposing) {
-          // Dispose managed resources
-          if (cygwinSocket != null)
-            cygwinSocket.Dispose();
-          if (msysSocket != null)
-            msysSocket.Dispose();
-        }
         appContext.ExitThread();
-        // Dispose unmanaged resources 
       }
     }
 
