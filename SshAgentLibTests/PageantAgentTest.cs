@@ -97,10 +97,11 @@ namespace dlech.SshAgentLibTests
             }
             copyData.cbData = mapName.Length + 1;
             copyData.lpData = Marshal.StringToCoTaskMemAnsi(mapName);
-            GCHandle copyDataGCHandle = GCHandle.Alloc(copyData, GCHandleType.Pinned);
-            IntPtr copyDataPtr = copyDataGCHandle.AddrOfPinnedObject();
+            IntPtr copyDataPtr = Marshal.AllocHGlobal(Marshal.SizeOf(copyData));
+            Marshal.StructureToPtr(copyData, copyDataPtr, false);
             IntPtr resultPtr = SendMessage(hwnd, WM_COPYDATA, IntPtr.Zero, copyDataPtr);
-            copyDataGCHandle.Free();
+            Marshal.FreeHGlobal(copyData.lpData);
+            Marshal.FreeHGlobal(copyDataPtr);
             Assert.That(resultPtr, Is.Not.EqualTo(IntPtr.Zero));
             byte[] reply = new byte[5];
             stream.Position = 0;

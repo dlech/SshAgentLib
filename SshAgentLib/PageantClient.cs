@@ -77,11 +77,12 @@ namespace dlech.SshAgentLib
           }
           copyData.cbData = mapName.Length + 1;
           copyData.lpData = Marshal.StringToCoTaskMemAnsi(mapName);
-          var copyDataGCHandle = GCHandle.Alloc(copyData, GCHandleType.Pinned);
-          var copyDataPtr = copyDataGCHandle.AddrOfPinnedObject();
+          IntPtr copyDataPtr = Marshal.AllocHGlobal(Marshal.SizeOf(copyData));
+          Marshal.StructureToPtr(copyData, copyDataPtr, false);
           var resultPtr =
             SendMessage(hwnd, WM_COPYDATA, IntPtr.Zero, copyDataPtr);
-          copyDataGCHandle.Free();          
+          Marshal.FreeHGlobal(copyData.lpData);
+          Marshal.FreeHGlobal(copyDataPtr);
           if (resultPtr == IntPtr.Zero) {
             throw new Exception("send message failed");
           }

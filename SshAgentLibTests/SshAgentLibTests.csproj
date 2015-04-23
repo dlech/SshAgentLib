@@ -91,6 +91,7 @@
     <Compile Include="AgentTest.cs" />
     <Compile Include="BlobBuilderTest.cs" />
     <Compile Include="KeyGenerator.cs" />
+    <Compile Include="PageantClientTest.cs" />
     <Compile Include="Ssh1KeyFormatterTest.cs" />
     <Compile Include="Ssh2KeyFormatterTest.cs" />
     <Compile Include="PpkFormatterTest.cs" />
@@ -143,5 +144,8 @@
       <LastGenOutput>Resources.Designer.cs</LastGenOutput>
       <SubType>Designer</SubType>
     </EmbeddedResource>
+  </ItemGroup>
+  <ItemGroup>
+    <Service Include="{82A7F48D-3B50-4B1E-B82E-3ADA8210C358}" />
   </ItemGroup>
 </Project>
