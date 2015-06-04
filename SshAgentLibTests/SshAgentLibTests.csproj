@@ -109,6 +109,10 @@
   </ItemGroup>
   <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
   <ItemGroup>
+    <ProjectReference Include="..\Chaos.NaCl\Chaos.NaCl\Chaos.NaCl.csproj">
+      <Project>{ae28fd14-7985-4707-a963-c94b8597ae50}</Project>
+      <Name>Chaos.NaCl</Name>
+    </ProjectReference>
     <ProjectReference Include="..\SshAgentLib\SshAgentLib.csproj">
       <Project>{9163B6B6-0603-4C6E-BC67-7111ED8CDDE1}</Project>
       <Name>SshAgentLib</Name>

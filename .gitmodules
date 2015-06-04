@@ -1,0 +1,3 @@
+[submodule "Chaos.NaCl"]
+	path = Chaos.NaCl
+	url = https://github.com/CodesInChaos/Chaos.NaCl.git

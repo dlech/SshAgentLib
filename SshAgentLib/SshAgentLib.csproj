@@ -122,7 +122,12 @@
       <HintPath>..\..\packages\BouncyCastle.1.7.0\lib\Net40-Client\BouncyCastle.Crypto.dll</HintPath>
     </Reference>
   </ItemGroup>
-  <ItemGroup />
+  <ItemGroup>
+    <ProjectReference Include="..\Chaos.NaCl\Chaos.NaCl\Chaos.NaCl.csproj">
+      <Project>{ae28fd14-7985-4707-a963-c94b8597ae50}</Project>
+      <Name>Chaos.NaCl</Name>
+    </ProjectReference>
+  </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.
