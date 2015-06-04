@@ -73,6 +73,8 @@
     <Compile Include="CallbackNullException.cs" />
     <Compile Include="AgentLockedException.cs" />
     <Compile Include="ConnectionAcceptedEventArgs.cs" />
+    <Compile Include="Crypto\BCrypt.cs" />
+    <Compile Include="Crypto\SaltParseException.cs" />
     <Compile Include="MsysSocket .cs" />
     <Compile Include="CygwinSocket.cs" />
     <Compile Include="PassphraseException.cs" />

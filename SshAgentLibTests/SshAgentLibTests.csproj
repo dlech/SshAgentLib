@@ -89,6 +89,7 @@
   <ItemGroup>
     <Compile Include="AgentClientTest.cs" />
     <Compile Include="AgentTest.cs" />
+    <Compile Include="BCryptTest.cs" />
     <Compile Include="BlobBuilderTest.cs" />
     <Compile Include="KeyGenerator.cs" />
     <Compile Include="PageantClientTest.cs" />
