@@ -156,7 +156,7 @@ namespace dlech.SshAgentLib
         if (ppkRegex.IsMatch (aFirstLine)) {
           return new PpkFormatter ();
         } else if (pemPrivateKeyRegex.IsMatch (aFirstLine)) {
-          return new Ssh2KeyFormatter ();
+          return new PemKeyFormatter ();
         } else if (Ssh1KeyFormatter.FILE_HEADER_LINE.Equals (aFirstLine)) {
           return new Ssh1KeyFormatter ();
         }

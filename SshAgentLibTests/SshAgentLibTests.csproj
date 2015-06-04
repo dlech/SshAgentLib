@@ -93,7 +93,7 @@
     <Compile Include="KeyGenerator.cs" />
     <Compile Include="PageantClientTest.cs" />
     <Compile Include="Ssh1KeyFormatterTest.cs" />
-    <Compile Include="Ssh2KeyFormatterTest.cs" />
+    <Compile Include="PemKeyFormatterTest.cs" />
     <Compile Include="PpkFormatterTest.cs" />
     <Compile Include="Properties\Resources.Designer.cs">
       <AutoGen>True</AutoGen>

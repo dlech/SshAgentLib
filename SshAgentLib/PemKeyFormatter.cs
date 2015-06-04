@@ -1,5 +1,5 @@
 ﻿//
-// Ssh2KeyFormatter.cs
+// PemKeyFormatter.cs
 //
 // Author(s): David Lechner <david@lechnology.com>
 //
@@ -34,9 +34,9 @@ using Org.BouncyCastle.Security;
 namespace dlech.SshAgentLib
 {
   /// <summary>
-  /// Formats SSH2 public keys in file format specified by RFC 4716
+  /// Formats SSH private keys in PEM format.
   /// </summary>
-  public class Ssh2KeyFormatter : KeyFormatter
+  public class PemKeyFormatter : KeyFormatter
   {
 
     public override void Serialize(Stream aStream, object aObject)

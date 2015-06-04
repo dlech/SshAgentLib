@@ -84,7 +84,7 @@
     <Compile Include="KeyFormatter.cs" />
     <Compile Include="PageantClient.cs" />
     <Compile Include="Ssh1KeyFormatter.cs" />
-    <Compile Include="Ssh2KeyFormatter.cs" />
+    <Compile Include="PemKeyFormatter.cs" />
     <Compile Include="ISshKey.cs" />
     <Compile Include="PublicKeyAlgorithm.cs" />
     <Compile Include="SshKey.cs" />
