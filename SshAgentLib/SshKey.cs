@@ -29,6 +29,7 @@ using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using Org.BouncyCastle.Crypto;
 using Org.BouncyCastle.Crypto.Parameters;
+using dlech.SshAgentLib.Crypto;
 
 namespace dlech.SshAgentLib
 {

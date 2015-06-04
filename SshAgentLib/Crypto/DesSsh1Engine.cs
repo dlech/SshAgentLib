@@ -29,7 +29,7 @@ using Org.BouncyCastle.Crypto.Engines;
 using Org.BouncyCastle.Crypto.Modes;
 using Org.BouncyCastle.Crypto.Parameters;
 
-namespace dlech.SshAgentLib
+namespace dlech.SshAgentLib.Crypto
 {
   /*
    * SSH1 private keys are encrypted with non-standard version of 3DES

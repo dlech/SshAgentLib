@@ -29,6 +29,7 @@ using Org.BouncyCastle.Asn1.Pkcs;
 using Org.BouncyCastle.Asn1.X9;
 using Org.BouncyCastle.Crypto;
 using Org.BouncyCastle.Security;
+using dlech.SshAgentLib.Crypto;
 
 namespace dlech.SshAgentLib
 {
