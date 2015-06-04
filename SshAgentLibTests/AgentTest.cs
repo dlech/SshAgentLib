@@ -4,7 +4,7 @@
 // Author(s): David Lechner <david@lechnology.com>
 //            Max Laverse
 //
-// Copyright (c) 2012-2013 David Lechner
+// Copyright (c) 2012-2013,2015 David Lechner
 //
 // Permission is hereby granted, free of charge, to any person obtaining a copy
 // of this software and associated documentation files (the "Software"), to deal
@@ -54,16 +54,17 @@ namespace dlech.SshAgentLibTests
     private const string cTestNotImplemented = "Test not implemented";
 
     /* instance variables */
-    static byte[] mBuffer;
-    static MemoryStream mStream;
-    static BlobParser mParser;
-    static SshKey mRsa1Key;
-    static SshKey mRsaKey;
-    static SshKey mDsaKey;
-    static SshKey mEcdsa256Key;
-    static SshKey mEcdsa384Key;
-    static SshKey mEcdsa521Key;
-    static ReadOnlyCollection<ISshKey> mAllKeys;
+    static byte[] buffer;
+    static MemoryStream stream;
+    static BlobParser parser;
+    static SshKey rsa1Key;
+    static SshKey rsaKey;
+    static SshKey dsaKey;
+    static SshKey ecdsa256Key;
+    static SshKey ecdsa384Key;
+    static SshKey ecdsa521Key;
+    static SshKey ed25519Key;
+    static ReadOnlyCollection<ISshKey> allKeys;
 
 
     // since Agent is an abstract class, we need to create a trivial
@@ -85,35 +86,34 @@ namespace dlech.SshAgentLibTests
 
     static AgentTest()
     {
-      mBuffer = new byte[4096];
-      mStream = new MemoryStream(mBuffer);
-      mParser = new BlobParser(mStream);
+      buffer = new byte[4096];
+      stream = new MemoryStream(buffer);
+      parser = new BlobParser(stream);
 
-      mRsa1Key = KeyGenerator.CreateKey(SshVersion.SSH1,
+      rsa1Key = KeyGenerator.CreateKey(SshVersion.SSH1,
         PublicKeyAlgorithm.SSH_RSA, "SSH1 RSA test key");
-      mRsaKey = KeyGenerator.CreateKey(SshVersion.SSH2,
-     PublicKeyAlgorithm.SSH_RSA, "SSH2 RSA test key");
-
-      mDsaKey = KeyGenerator.CreateKey(SshVersion.SSH2,
-      PublicKeyAlgorithm.SSH_DSS, "SSH2 DSA test key");
-
-      mEcdsa256Key = KeyGenerator.CreateKey(SshVersion.SSH2,
-      PublicKeyAlgorithm.ECDSA_SHA2_NISTP256, "SSH2 ECDSA 256 test key");
-
-      mEcdsa384Key = KeyGenerator.CreateKey(SshVersion.SSH2,
+      rsaKey = KeyGenerator.CreateKey(SshVersion.SSH2,
+        PublicKeyAlgorithm.SSH_RSA, "SSH2 RSA test key");
+      dsaKey = KeyGenerator.CreateKey(SshVersion.SSH2,
+        PublicKeyAlgorithm.SSH_DSS, "SSH2 DSA test key");
+      ecdsa256Key = KeyGenerator.CreateKey(SshVersion.SSH2,
+        PublicKeyAlgorithm.ECDSA_SHA2_NISTP256, "SSH2 ECDSA 256 test key");
+      ecdsa384Key = KeyGenerator.CreateKey(SshVersion.SSH2,
        PublicKeyAlgorithm.ECDSA_SHA2_NISTP384, "SSH2 ECDSA 384 test key");
-
-      mEcdsa521Key = KeyGenerator.CreateKey(SshVersion.SSH2,
+      ecdsa521Key = KeyGenerator.CreateKey(SshVersion.SSH2,
        PublicKeyAlgorithm.ECDSA_SHA2_NISTP521, "SSH2 ECDSA 521 test key");
+      ed25519Key = KeyGenerator.CreateKey(SshVersion.SSH2,
+        PublicKeyAlgorithm.ED25519, "SSH2 ED25519 test key");
 
-      List<ISshKey> allKeys = new List<ISshKey>();
-      allKeys.Add(mRsa1Key);
-      allKeys.Add(mRsaKey);
-      allKeys.Add(mDsaKey);
-      allKeys.Add(mEcdsa256Key);
-      allKeys.Add(mEcdsa384Key);
-      allKeys.Add(mEcdsa521Key);
-      mAllKeys = allKeys.AsReadOnly();
+      List<ISshKey> allKeysList = new List<ISshKey>();
+      allKeysList.Add(rsa1Key);
+      allKeysList.Add(rsaKey);
+      allKeysList.Add(dsaKey);
+      allKeysList.Add(ecdsa256Key);
+      allKeysList.Add(ecdsa384Key);
+      allKeysList.Add(ecdsa521Key);
+      allKeysList.Add(ed25519Key);
+      allKeys = allKeysList.AsReadOnly();
     }
 
     [Test()]
@@ -125,9 +125,9 @@ namespace dlech.SshAgentLibTests
       Assert.That(Enum.IsDefined(typeof(Agent.Message), unknownMessage), Is.False);
       Assert.That(unknownMessage, Is.Not.EqualTo(Agent.Message.SSH_AGENT_FAILURE));
       PrepareSimpleMessage(unchecked((Agent.Message)(unknownMessage)));
-      agent.AnswerMessage(mStream);
+      agent.AnswerMessage(stream);
       RewindStream();
-      Agent.BlobHeader header = mParser.ReadHeader();
+      Agent.BlobHeader header = parser.ReadHeader();
       Assert.That(header.BlobLength, Is.EqualTo(1));
       Assert.That(header.Message, Is.EqualTo(Agent.Message.SSH_AGENT_FAILURE));
     }
@@ -141,20 +141,20 @@ namespace dlech.SshAgentLibTests
 
       BlobBuilder builder = new BlobBuilder();
       RsaPrivateCrtKeyParameters rsaParameters =
-        (RsaPrivateCrtKeyParameters)mRsa1Key.GetPrivateKeyParameters();
-      builder.AddInt(mRsa1Key.Size);
+        (RsaPrivateCrtKeyParameters)rsa1Key.GetPrivateKeyParameters();
+      builder.AddInt(rsa1Key.Size);
       builder.AddSsh1BigIntBlob(rsaParameters.Modulus);
       builder.AddSsh1BigIntBlob(rsaParameters.PublicExponent);
       builder.AddSsh1BigIntBlob(rsaParameters.Exponent);
       builder.AddSsh1BigIntBlob(rsaParameters.QInv);
       builder.AddSsh1BigIntBlob(rsaParameters.P);
       builder.AddSsh1BigIntBlob(rsaParameters.Q);
-      builder.AddStringBlob(mRsa1Key.Comment);
+      builder.AddStringBlob(rsa1Key.Comment);
       builder.InsertHeader(Agent.Message.SSH1_AGENTC_ADD_RSA_IDENTITY);
       PrepareMessage(builder);
-      agent.AnswerMessage(mStream);
+      agent.AnswerMessage(stream);
       RewindStream();
-      Agent.BlobHeader header = mParser.ReadHeader();
+      Agent.BlobHeader header = parser.ReadHeader();
       Assert.That(header.BlobLength, Is.EqualTo(1));
       Assert.That(header.Message, Is.EqualTo(Agent.Message.SSH_AGENT_SUCCESS));
       ISshKey returnedKey = agent.GetAllKeys().First();
@@ -162,9 +162,9 @@ namespace dlech.SshAgentLibTests
                   Is.InstanceOf<RsaKeyParameters>());
       Assert.That(returnedKey.GetPrivateKeyParameters(),
                   Is.InstanceOf<RsaKeyParameters>());
-      Assert.That(returnedKey.Size, Is.EqualTo(mRsa1Key.Size));
-      Assert.That(returnedKey.Comment, Is.EqualTo(mRsa1Key.Comment));
-      Assert.That(returnedKey.GetMD5Fingerprint(), Is.EqualTo(mRsa1Key.GetMD5Fingerprint()));
+      Assert.That(returnedKey.Size, Is.EqualTo(rsa1Key.Size));
+      Assert.That(returnedKey.Comment, Is.EqualTo(rsa1Key.Comment));
+      Assert.That(returnedKey.GetMD5Fingerprint(), Is.EqualTo(rsa1Key.GetMD5Fingerprint()));
     }
 
     [Test()]
@@ -176,20 +176,20 @@ namespace dlech.SshAgentLibTests
 
       BlobBuilder builder = new BlobBuilder();
       RsaPrivateCrtKeyParameters rsaParameters =
-        (RsaPrivateCrtKeyParameters)mRsaKey.GetPrivateKeyParameters();
-      builder.AddStringBlob(mRsaKey.Algorithm.GetIdentifierString());
+        (RsaPrivateCrtKeyParameters)rsaKey.GetPrivateKeyParameters();
+      builder.AddStringBlob(rsaKey.Algorithm.GetIdentifierString());
       builder.AddBigIntBlob(rsaParameters.Modulus);
       builder.AddBigIntBlob(rsaParameters.PublicExponent);
       builder.AddBigIntBlob(rsaParameters.Exponent);
       builder.AddBigIntBlob(rsaParameters.QInv);
       builder.AddBigIntBlob(rsaParameters.P);
       builder.AddBigIntBlob(rsaParameters.Q);
-      builder.AddStringBlob(mRsaKey.Comment);
+      builder.AddStringBlob(rsaKey.Comment);
       builder.InsertHeader(Agent.Message.SSH2_AGENTC_ADD_IDENTITY);
       PrepareMessage(builder);
-      agent.AnswerMessage(mStream);
+      agent.AnswerMessage(stream);
       RewindStream();
-      Agent.BlobHeader header = mParser.ReadHeader();
+      Agent.BlobHeader header = parser.ReadHeader();
       Assert.That(header.BlobLength, Is.EqualTo(1));
       Assert.That(header.Message, Is.EqualTo(Agent.Message.SSH_AGENT_SUCCESS));
       ISshKey returnedKey = agent.GetAllKeys().First();
@@ -197,30 +197,30 @@ namespace dlech.SshAgentLibTests
                   Is.InstanceOf<RsaKeyParameters>());
       Assert.That(returnedKey.GetPrivateKeyParameters(),
                   Is.InstanceOf<RsaKeyParameters>());
-      Assert.That(returnedKey.Size, Is.EqualTo(mRsaKey.Size));
-      Assert.That(returnedKey.Comment, Is.EqualTo(mRsaKey.Comment));
-      Assert.That(returnedKey.GetMD5Fingerprint(), Is.EqualTo(mRsaKey.GetMD5Fingerprint()));
+      Assert.That(returnedKey.Size, Is.EqualTo(rsaKey.Size));
+      Assert.That(returnedKey.Comment, Is.EqualTo(rsaKey.Comment));
+      Assert.That(returnedKey.GetMD5Fingerprint(), Is.EqualTo(rsaKey.GetMD5Fingerprint()));
 
       /* test adding DSA key */
 
       agent = new TestAgent();
       builder.Clear();
       DsaPublicKeyParameters dsaPublicParameters =
-        (DsaPublicKeyParameters)mDsaKey.GetPublicKeyParameters();
+        (DsaPublicKeyParameters)dsaKey.GetPublicKeyParameters();
       DsaPrivateKeyParameters dsaPrivateParameters =
-        (DsaPrivateKeyParameters)mDsaKey.GetPrivateKeyParameters();
-      builder.AddStringBlob(mDsaKey.Algorithm.GetIdentifierString());
+        (DsaPrivateKeyParameters)dsaKey.GetPrivateKeyParameters();
+      builder.AddStringBlob(dsaKey.Algorithm.GetIdentifierString());
       builder.AddBigIntBlob(dsaPublicParameters.Parameters.P);
       builder.AddBigIntBlob(dsaPublicParameters.Parameters.Q);
       builder.AddBigIntBlob(dsaPublicParameters.Parameters.G);
       builder.AddBigIntBlob(dsaPublicParameters.Y);
       builder.AddBigIntBlob(dsaPrivateParameters.X);
-      builder.AddStringBlob(mDsaKey.Comment);
+      builder.AddStringBlob(dsaKey.Comment);
       builder.InsertHeader(Agent.Message.SSH2_AGENTC_ADD_IDENTITY);
       PrepareMessage(builder);
-      agent.AnswerMessage(mStream);
+      agent.AnswerMessage(stream);
       RewindStream();
-      header = mParser.ReadHeader();
+      header = parser.ReadHeader();
       Assert.That(header.BlobLength, Is.EqualTo(1));
       Assert.That(header.Message, Is.EqualTo(Agent.Message.SSH_AGENT_SUCCESS));
       returnedKey = agent.GetAllKeys().First();
@@ -228,16 +228,16 @@ namespace dlech.SshAgentLibTests
                   Is.InstanceOf<DsaKeyParameters>());
       Assert.That(returnedKey.GetPrivateKeyParameters(),
                   Is.InstanceOf<DsaKeyParameters>());
-      Assert.That(returnedKey.Size, Is.EqualTo(mDsaKey.Size));
-      Assert.That(returnedKey.Comment, Is.EqualTo(mDsaKey.Comment));
-      Assert.That(returnedKey.GetMD5Fingerprint(), Is.EqualTo(mDsaKey.GetMD5Fingerprint()));
+      Assert.That(returnedKey.Size, Is.EqualTo(dsaKey.Size));
+      Assert.That(returnedKey.Comment, Is.EqualTo(dsaKey.Comment));
+      Assert.That(returnedKey.GetMD5Fingerprint(), Is.EqualTo(dsaKey.GetMD5Fingerprint()));
 
       /* test adding ECDSA keys */
 
       List<ISshKey> ecdsaKeysList = new List<ISshKey>();
-      ecdsaKeysList.Add(mEcdsa256Key);
-      ecdsaKeysList.Add(mEcdsa384Key);
-      ecdsaKeysList.Add(mEcdsa521Key);
+      ecdsaKeysList.Add(ecdsa256Key);
+      ecdsaKeysList.Add(ecdsa384Key);
+      ecdsaKeysList.Add(ecdsa521Key);
       foreach (ISshKey key in ecdsaKeysList) {
         agent = new TestAgent();
         builder.Clear();
@@ -256,9 +256,9 @@ namespace dlech.SshAgentLibTests
         builder.AddStringBlob(key.Comment);
         builder.InsertHeader(Agent.Message.SSH2_AGENTC_ADD_IDENTITY);
         PrepareMessage(builder);
-        agent.AnswerMessage(mStream);
+        agent.AnswerMessage(stream);
         RewindStream();
-        header = mParser.ReadHeader();
+        header = parser.ReadHeader();
         Assert.That(header.BlobLength, Is.EqualTo(1));
         Assert.That(header.Message, Is.EqualTo(Agent.Message.SSH_AGENT_SUCCESS));
         returnedKey = agent.GetAllKeys().First();
@@ -276,9 +276,9 @@ namespace dlech.SshAgentLibTests
       int startingCount = agent.GetAllKeys().Count();
       Assert.That(startingCount, Is.Not.EqualTo(0));
       PrepareMessage(builder);
-      agent.AnswerMessage(mStream);
+      agent.AnswerMessage(stream);
       RewindStream();
-      header = mParser.ReadHeader();
+      header = parser.ReadHeader();
       Assert.That(header.BlobLength, Is.EqualTo(1));
       Assert.That(header.Message, Is.EqualTo(Agent.Message.SSH_AGENT_SUCCESS));
       Assert.That(agent.GetAllKeys().Count(), Is.EqualTo(startingCount));
@@ -287,9 +287,9 @@ namespace dlech.SshAgentLibTests
       agent = new TestAgent();
       agent.Lock(new byte[0]);
       PrepareMessage(builder);
-      agent.AnswerMessage(mStream);
+      agent.AnswerMessage(stream);
       RewindStream();
-      header = mParser.ReadHeader();
+      header = parser.ReadHeader();
       Assert.That(header.BlobLength, Is.EqualTo(1));
       Assert.That(header.Message, Is.EqualTo(Agent.Message.SSH_AGENT_FAILURE));
       Assert.That(agent.GetAllKeys().Count, Is.EqualTo(0));
@@ -310,23 +310,23 @@ namespace dlech.SshAgentLibTests
 
       BlobBuilder builder = new BlobBuilder();
       RsaPrivateCrtKeyParameters rsaParameters =
-        (RsaPrivateCrtKeyParameters)mRsa1Key.GetPrivateKeyParameters();
-      builder.AddInt(mRsa1Key.Size);
+        (RsaPrivateCrtKeyParameters)rsa1Key.GetPrivateKeyParameters();
+      builder.AddInt(rsa1Key.Size);
       builder.AddSsh1BigIntBlob(rsaParameters.Modulus);
       builder.AddSsh1BigIntBlob(rsaParameters.PublicExponent);
       builder.AddSsh1BigIntBlob(rsaParameters.Exponent);
       builder.AddSsh1BigIntBlob(rsaParameters.QInv);
       builder.AddSsh1BigIntBlob(rsaParameters.P);
       builder.AddSsh1BigIntBlob(rsaParameters.Q);
-      builder.AddStringBlob(mRsa1Key.Comment);
+      builder.AddStringBlob(rsa1Key.Comment);
       //save blob so far so we don't have to repeat later.
       byte[] commonBlob = builder.GetBlob();
       builder.AddByte((byte)Agent.KeyConstraintType.SSH_AGENT_CONSTRAIN_CONFIRM);
       builder.InsertHeader(Agent.Message.SSH1_AGENTC_ADD_RSA_ID_CONSTRAINED);
       PrepareMessage(builder);
-      agent.AnswerMessage(mStream);
+      agent.AnswerMessage(stream);
       RewindStream();
-      Agent.BlobHeader header = mParser.ReadHeader();
+      Agent.BlobHeader header = parser.ReadHeader();
       Assert.That(header.BlobLength, Is.EqualTo(1));
       Assert.That(header.Message, Is.EqualTo(Agent.Message.SSH_AGENT_FAILURE));
 
@@ -335,9 +335,9 @@ namespace dlech.SshAgentLibTests
       agent = new TestAgent();
       agent.ConfirmUserPermissionCallback = confirmCallback;
       PrepareMessage(builder);
-      agent.AnswerMessage(mStream);
+      agent.AnswerMessage(stream);
       RewindStream();
-      header = mParser.ReadHeader();
+      header = parser.ReadHeader();
       Assert.That(header.BlobLength, Is.EqualTo(1));
       Assert.That(header.Message, Is.EqualTo(Agent.Message.SSH_AGENT_SUCCESS));
       ISshKey returnedKey = agent.GetAllKeys().First();
@@ -355,9 +355,9 @@ namespace dlech.SshAgentLibTests
       builder.AddInt(10);
       builder.InsertHeader(Agent.Message.SSH1_AGENTC_ADD_RSA_ID_CONSTRAINED);
       PrepareMessage(builder);
-      agent.AnswerMessage(mStream);
+      agent.AnswerMessage(stream);
       RewindStream();
-      header = mParser.ReadHeader();
+      header = parser.ReadHeader();
       Assert.That(header.BlobLength, Is.EqualTo(1));
       Assert.That(header.Message, Is.EqualTo(Agent.Message.SSH_AGENT_SUCCESS));
       returnedKey = agent.GetAllKeys().First();
@@ -379,9 +379,9 @@ namespace dlech.SshAgentLibTests
       builder.AddInt(10);
       builder.InsertHeader(Agent.Message.SSH1_AGENTC_ADD_RSA_ID_CONSTRAINED);
       PrepareMessage(builder);
-      agent.AnswerMessage(mStream);
+      agent.AnswerMessage(stream);
       RewindStream();
-      header = mParser.ReadHeader();
+      header = parser.ReadHeader();
       Assert.That(header.BlobLength, Is.EqualTo(1));
       Assert.That(header.Message, Is.EqualTo(Agent.Message.SSH_AGENT_SUCCESS));
       returnedKey = agent.GetAllKeys().First();
@@ -404,9 +404,9 @@ namespace dlech.SshAgentLibTests
       builder.AddByte((byte)Agent.KeyConstraintType.SSH_AGENT_CONSTRAIN_CONFIRM);
       builder.InsertHeader(Agent.Message.SSH1_AGENTC_ADD_RSA_ID_CONSTRAINED);
       PrepareMessage(builder);
-      agent.AnswerMessage(mStream);
+      agent.AnswerMessage(stream);
       RewindStream();
-      header = mParser.ReadHeader();
+      header = parser.ReadHeader();
       Assert.That(header.BlobLength, Is.EqualTo(1));
       Assert.That(header.Message, Is.EqualTo(Agent.Message.SSH_AGENT_SUCCESS));
       returnedKey = agent.GetAllKeys().First();
@@ -434,23 +434,23 @@ namespace dlech.SshAgentLibTests
 
       BlobBuilder builder = new BlobBuilder();
       RsaPrivateCrtKeyParameters rsaParameters =
-        (RsaPrivateCrtKeyParameters)mRsaKey.GetPrivateKeyParameters();
-      builder.AddStringBlob(mRsaKey.Algorithm.GetIdentifierString());
+        (RsaPrivateCrtKeyParameters)rsaKey.GetPrivateKeyParameters();
+      builder.AddStringBlob(rsaKey.Algorithm.GetIdentifierString());
       builder.AddBigIntBlob(rsaParameters.Modulus);
       builder.AddBigIntBlob(rsaParameters.PublicExponent);
       builder.AddBigIntBlob(rsaParameters.Exponent);
       builder.AddBigIntBlob(rsaParameters.QInv);
       builder.AddBigIntBlob(rsaParameters.P);
       builder.AddBigIntBlob(rsaParameters.Q);
-      builder.AddStringBlob(mRsaKey.Comment);
+      builder.AddStringBlob(rsaKey.Comment);
       //save blob so far so we don't have to repeat later.
       byte[] commonBlob = builder.GetBlob();
       builder.AddByte((byte)Agent.KeyConstraintType.SSH_AGENT_CONSTRAIN_CONFIRM);
       builder.InsertHeader(Agent.Message.SSH2_AGENTC_ADD_ID_CONSTRAINED);
       PrepareMessage(builder);
-      agent.AnswerMessage(mStream);
+      agent.AnswerMessage(stream);
       RewindStream();
-      Agent.BlobHeader header = mParser.ReadHeader();
+      Agent.BlobHeader header = parser.ReadHeader();
       Assert.That(header.BlobLength, Is.EqualTo(1));
       Assert.That(header.Message, Is.EqualTo(Agent.Message.SSH_AGENT_FAILURE));
 
@@ -459,9 +459,9 @@ namespace dlech.SshAgentLibTests
       agent = new TestAgent();
       agent.ConfirmUserPermissionCallback = confirmCallback;
       PrepareMessage(builder);
-      agent.AnswerMessage(mStream);
+      agent.AnswerMessage(stream);
       RewindStream();
-      header = mParser.ReadHeader();
+      header = parser.ReadHeader();
       Assert.That(header.BlobLength, Is.EqualTo(1));
       Assert.That(header.Message, Is.EqualTo(Agent.Message.SSH_AGENT_SUCCESS));
       ISshKey returnedKey = agent.GetAllKeys().First();
@@ -479,9 +479,9 @@ namespace dlech.SshAgentLibTests
       builder.AddInt(10);
       builder.InsertHeader(Agent.Message.SSH2_AGENTC_ADD_ID_CONSTRAINED);
       PrepareMessage(builder);
-      agent.AnswerMessage(mStream);
+      agent.AnswerMessage(stream);
       RewindStream();
-      header = mParser.ReadHeader();
+      header = parser.ReadHeader();
       Assert.That(header.BlobLength, Is.EqualTo(1));
       Assert.That(header.Message, Is.EqualTo(Agent.Message.SSH_AGENT_SUCCESS));
       returnedKey = agent.GetAllKeys().First();
@@ -503,9 +503,9 @@ namespace dlech.SshAgentLibTests
       builder.AddInt(10);
       builder.InsertHeader(Agent.Message.SSH2_AGENTC_ADD_ID_CONSTRAINED);
       PrepareMessage(builder);
-      agent.AnswerMessage(mStream);
+      agent.AnswerMessage(stream);
       RewindStream();
-      header = mParser.ReadHeader();
+      header = parser.ReadHeader();
       Assert.That(header.BlobLength, Is.EqualTo(1));
       Assert.That(header.Message, Is.EqualTo(Agent.Message.SSH_AGENT_SUCCESS));
       returnedKey = agent.GetAllKeys().First();
@@ -528,9 +528,9 @@ namespace dlech.SshAgentLibTests
       builder.AddByte((byte)Agent.KeyConstraintType.SSH_AGENT_CONSTRAIN_CONFIRM);
       builder.InsertHeader(Agent.Message.SSH2_AGENTC_ADD_ID_CONSTRAINED);
       PrepareMessage(builder);
-      agent.AnswerMessage(mStream);
+      agent.AnswerMessage(stream);
       RewindStream();
-      header = mParser.ReadHeader();
+      header = parser.ReadHeader();
       Assert.That(header.BlobLength, Is.EqualTo(1));
       Assert.That(header.Message, Is.EqualTo(Agent.Message.SSH_AGENT_SUCCESS));
       returnedKey = agent.GetAllKeys().First();
@@ -546,20 +546,20 @@ namespace dlech.SshAgentLibTests
     [Test()]
     public void TestAnswerSSH1_AGENTC_REQUEST_RSA_IDENTITIES()
     {
-      Agent agent = new TestAgent(mAllKeys);
+      Agent agent = new TestAgent(allKeys);
 
       /* send request for SSH1 identities */
       PrepareSimpleMessage(Agent.Message.SSH1_AGENTC_REQUEST_RSA_IDENTITIES);
-      agent.AnswerMessage(mStream);
+      agent.AnswerMessage(stream);
       RewindStream();
 
       /* check that we received proper response type */
-      Agent.BlobHeader header = mParser.ReadHeader();
+      Agent.BlobHeader header = parser.ReadHeader();
       Assert.That(header.Message,
         Is.EqualTo(Agent.Message.SSH1_AGENT_RSA_IDENTITIES_ANSWER));
 
       /* check that we received the correct key count */
-      UInt32 actualKeyCount = mParser.ReadInt();
+      UInt32 actualKeyCount = parser.ReadInt();
       List<ISshKey> ssh1KeyList =
         agent.GetAllKeys().Where(key => key.Version == SshVersion.SSH1).ToList();
       int expectedSsh1KeyCount = ssh1KeyList.Count;
@@ -567,39 +567,39 @@ namespace dlech.SshAgentLibTests
 
       /* check that we have data for each key */
       for (int i = 0; i < actualKeyCount; i++) {
-        uint actualKeySizeBlob = mParser.ReadInt();
-        BigInteger actualExponentBlob = new BigInteger(1, mParser.ReadSsh1BigIntBlob());
-        BigInteger actualModulusBlob = new BigInteger(1, mParser.ReadSsh1BigIntBlob());
+        uint actualKeySizeBlob = parser.ReadInt();
+        BigInteger actualExponentBlob = new BigInteger(1, parser.ReadSsh1BigIntBlob());
+        BigInteger actualModulusBlob = new BigInteger(1, parser.ReadSsh1BigIntBlob());
 
         Assert.That(actualKeySizeBlob, Is.EqualTo(ssh1KeyList[i].Size));
         Assert.That(actualModulusBlob, Is.EqualTo((ssh1KeyList[i].GetPublicKeyParameters() as RsaKeyParameters).Modulus));
         Assert.That(actualExponentBlob, Is.EqualTo((ssh1KeyList[i].GetPublicKeyParameters() as RsaKeyParameters).Exponent));
 
-        string actualComment = mParser.ReadString();
+        string actualComment = parser.ReadString();
         string expectedComment = ssh1KeyList[i].Comment;
         Assert.That(actualComment, Is.EqualTo(expectedComment));
       }
       /* verify that the overall response length is correct */
-      Assert.That(header.BlobLength, Is.EqualTo(mStream.Position - 4));
+      Assert.That(header.BlobLength, Is.EqualTo(stream.Position - 4));
     }
 
     [Test()]
     public void TestAnswerSSH2_AGENTC_REQUEST_IDENTITIES()
     {
-      Agent agent = new TestAgent(mAllKeys);
+      Agent agent = new TestAgent(allKeys);
 
       /* send request for SSH2 identities */
       PrepareSimpleMessage(Agent.Message.SSH2_AGENTC_REQUEST_IDENTITIES);
-      agent.AnswerMessage(mStream);
+      agent.AnswerMessage(stream);
       RewindStream();
 
       /* check that we received proper response type */
-      Agent.BlobHeader header = mParser.ReadHeader();
+      Agent.BlobHeader header = parser.ReadHeader();
       Assert.That(header.Message,
         Is.EqualTo(Agent.Message.SSH2_AGENT_IDENTITIES_ANSWER));
 
       /* check that we received the correct key count */
-      UInt32 actualKeyCount = mParser.ReadInt();
+      UInt32 actualKeyCount = parser.ReadInt();
       List<ISshKey> ssh2KeyList =
         agent.GetAllKeys().Where(key => key.Version == SshVersion.SSH2).ToList();
       int expectedSsh2KeyCount = ssh2KeyList.Count;
@@ -607,29 +607,29 @@ namespace dlech.SshAgentLibTests
 
       /* check that we have data for each key */
       for (int i = 0; i < actualKeyCount; i++) {
-        byte[] actualPublicKeyBlob = mParser.ReadBlob();
+        byte[] actualPublicKeyBlob = parser.ReadBlob();
         byte[] expectedPublicKeyBlob =
           ssh2KeyList[i].GetPublicKeyBlob();
         Assert.That(actualPublicKeyBlob, Is.EqualTo(expectedPublicKeyBlob));
-        string actualComment = mParser.ReadString();
+        string actualComment = parser.ReadString();
         string expectedComment = ssh2KeyList[i].Comment;
         Assert.That(actualComment, Is.EqualTo(expectedComment));
       }
       /* verify that the overall response length is correct */
-      Assert.That(header.BlobLength, Is.EqualTo(mStream.Position - 4));
+      Assert.That(header.BlobLength, Is.EqualTo(stream.Position - 4));
     }
 
     [Test()]
     public void TestAnswerSSH1_AGENTC_RSA_CHALLENGE()
     {
-      Agent agent = new TestAgent(mAllKeys);
+      Agent agent = new TestAgent(allKeys);
 
       /* test answering to RSA challenge */
 
       BlobBuilder builder = new BlobBuilder();
       RsaPrivateCrtKeyParameters rsaParameters =
-        (RsaPrivateCrtKeyParameters)mRsa1Key.GetPrivateKeyParameters();
-      builder.AddInt(mRsa1Key.Size);
+        (RsaPrivateCrtKeyParameters)rsa1Key.GetPrivateKeyParameters();
+      builder.AddInt(rsa1Key.Size);
       builder.AddSsh1BigIntBlob(rsaParameters.PublicExponent);
       builder.AddSsh1BigIntBlob(rsaParameters.Modulus);
 
@@ -641,7 +641,7 @@ namespace dlech.SshAgentLibTests
       random.NextBytes(sessionId);
 
       IAsymmetricBlockCipher engine = new Pkcs1Encoding(new RsaEngine());
-      engine.Init(true, mRsa1Key.GetPublicKeyParameters());
+      engine.Init(true, rsa1Key.GetPublicKeyParameters());
 
       byte[] encryptedChallenge = engine.ProcessBlock(decryptedChallenge, 0,
         decryptedChallenge.Length);
@@ -653,10 +653,10 @@ namespace dlech.SshAgentLibTests
 
       builder.InsertHeader(Agent.Message.SSH1_AGENTC_RSA_CHALLENGE);
       PrepareMessage(builder);
-      agent.AnswerMessage(mStream);
+      agent.AnswerMessage(stream);
       RewindStream();
-      Agent.BlobHeader header = mParser.ReadHeader();
-      byte[] md5Received = mParser.ReadBytes(16);
+      Agent.BlobHeader header = parser.ReadHeader();
+      byte[] md5Received = parser.ReadBytes(16);
 
       /* check that proper response type was received */
       Assert.That(header.Message, Is.EqualTo(Agent.Message.SSH1_AGENT_RSA_RESPONSE));
@@ -682,7 +682,7 @@ namespace dlech.SshAgentLibTests
       byte[] signatureDataBytes = Encoding.UTF8.GetBytes(signatureData);
       BlobBuilder builder = new BlobBuilder();
 
-      Agent agent = new TestAgent(mAllKeys);
+      Agent agent = new TestAgent(allKeys);
       Agent.BlobHeader header;
       byte[] signatureBlob;
       BlobParser signatureParser;
@@ -695,20 +695,20 @@ namespace dlech.SshAgentLibTests
 
       /* test signatures */
 
-      foreach (ISshKey key in mAllKeys.Where(key => key.Version == SshVersion.SSH2)) {
+      foreach (ISshKey key in allKeys.Where(key => key.Version == SshVersion.SSH2)) {
         builder.Clear();
         builder.AddBlob(key.GetPublicKeyBlob());
         builder.AddStringBlob(signatureData);
         builder.InsertHeader(Agent.Message.SSH2_AGENTC_SIGN_REQUEST);
         PrepareMessage(builder);
-        agent.AnswerMessage(mStream);
+        agent.AnswerMessage(stream);
         RewindStream();
 
         /* check that proper response type was received */
-        header = mParser.ReadHeader();
+        header = parser.ReadHeader();
         Assert.That(header.Message,
                     Is.EqualTo(Agent.Message.SSH2_AGENT_SIGN_RESPONSE));
-        signatureBlob = mParser.ReadBlob();
+        signatureBlob = parser.ReadBlob();
         signatureParser = new BlobParser(signatureBlob);
         algorithm = signatureParser.ReadString();
         Assert.That(algorithm, Is.EqualTo(key.Algorithm.GetIdentifierString()));
@@ -726,34 +726,36 @@ namespace dlech.SshAgentLibTests
           key.Algorithm == PublicKeyAlgorithm.ECDSA_SHA2_NISTP521) {
           Assert.That(signature.Length, Is.AtLeast(key.Size / 4 + 8));
           Assert.That(signature.Length, Is.AtMost(key.Size / 4 + 10));
-          BlobParser parser = new BlobParser(signature);
-          r = new BigInteger(parser.ReadBlob());
-          s = new BigInteger(parser.ReadBlob());
+          BlobParser sigParser = new BlobParser(signature);
+          r = new BigInteger(sigParser.ReadBlob());
+          s = new BigInteger(sigParser.ReadBlob());
           seq = new DerSequence(new DerInteger(r), new DerInteger(s));
           signature = seq.GetDerEncoded();
+        } else if (key.Algorithm == PublicKeyAlgorithm.ED25519) {
+            Assert.That(signature.Length, Is.EqualTo(64));
         }
         signer = key.GetSigner();
         signer.Init(false, key.GetPublicKeyParameters());
         signer.BlockUpdate(signatureDataBytes, 0, signatureDataBytes.Length);
         signatureOk = signer.VerifySignature(signature);
         Assert.That(signatureOk, Is.True, "invalid signature");
-        Assert.That(header.BlobLength, Is.EqualTo(mStream.Position - 4));
+        Assert.That(header.BlobLength, Is.EqualTo(stream.Position - 4));
       }
 
       /* test DSA key old signature format */
 
       builder.Clear();
-      builder.AddBlob(mDsaKey.GetPublicKeyBlob());
+      builder.AddBlob(dsaKey.GetPublicKeyBlob());
       builder.AddStringBlob(signatureData);
       builder.AddInt((uint)Agent.SignRequestFlags.SSH_AGENT_OLD_SIGNATURE);
       builder.InsertHeader(Agent.Message.SSH2_AGENTC_SIGN_REQUEST);
       PrepareMessage(builder);
-      agent.AnswerMessage(mStream);
+      agent.AnswerMessage(stream);
       RewindStream();
-      header = mParser.ReadHeader();
+      header = parser.ReadHeader();
       Assert.That(header.Message,
                   Is.EqualTo(Agent.Message.SSH2_AGENT_SIGN_RESPONSE));
-      signatureBlob = mParser.ReadBlob();
+      signatureBlob = parser.ReadBlob();
       signatureParser = new BlobParser(signatureBlob);
       signature = signatureParser.ReadBlob();
       Assert.That(signature.Length == 40);
@@ -761,24 +763,24 @@ namespace dlech.SshAgentLibTests
       s = new BigInteger(1, signature, 20, 20);
       seq = new DerSequence(new DerInteger(r), new DerInteger(s));
       signature = seq.GetDerEncoded();
-      signer = mDsaKey.GetSigner();
-      signer.Init(false, mDsaKey.GetPublicKeyParameters());
+      signer = dsaKey.GetSigner();
+      signer.Init(false, dsaKey.GetPublicKeyParameters());
       signer.BlockUpdate(signatureDataBytes, 0, signatureDataBytes.Length);
       signatureOk = signer.VerifySignature(signature);
       Assert.That(signatureOk, Is.True, "invalid signature");
-      Assert.That(header.BlobLength, Is.EqualTo(mStream.Position - 4));
+      Assert.That(header.BlobLength, Is.EqualTo(stream.Position - 4));
 
       /* test key not found */
 
       agent = new TestAgent();
       builder.Clear();
-      builder.AddBlob(mDsaKey.GetPublicKeyBlob());
+      builder.AddBlob(dsaKey.GetPublicKeyBlob());
       builder.AddStringBlob(signatureData);
       builder.InsertHeader(Agent.Message.SSH2_AGENTC_SIGN_REQUEST);
       PrepareMessage(builder);
-      agent.AnswerMessage(mStream);
+      agent.AnswerMessage(stream);
       RewindStream();
-      Agent.BlobHeader header2 = mParser.ReadHeader();
+      Agent.BlobHeader header2 = parser.ReadHeader();
       Assert.That(header2.BlobLength, Is.EqualTo(1));
       Assert.That(header2.Message, Is.EqualTo(Agent.Message.SSH_AGENT_FAILURE));
 
@@ -787,7 +789,7 @@ namespace dlech.SshAgentLibTests
       agent = new TestAgent();
       Agent.KeyConstraint testConstraint = new Agent.KeyConstraint();
       testConstraint.Type = Agent.KeyConstraintType.SSH_AGENT_CONSTRAIN_CONFIRM;
-      SshKey testKey = mDsaKey.Clone();
+      SshKey testKey = dsaKey.Clone();
       bool confirmCallbackReturnValue = false;
       agent.ConfirmUserPermissionCallback = delegate(ISshKey aKey)
       {
@@ -796,20 +798,20 @@ namespace dlech.SshAgentLibTests
       testKey.AddConstraint(testConstraint);
       agent.AddKey(testKey);
       builder.Clear();
-      builder.AddBlob(mDsaKey.GetPublicKeyBlob());
+      builder.AddBlob(dsaKey.GetPublicKeyBlob());
       builder.AddStringBlob(signatureData);
       builder.InsertHeader(Agent.Message.SSH2_AGENTC_SIGN_REQUEST);
       PrepareMessage(builder);
-      agent.AnswerMessage(mStream);
+      agent.AnswerMessage(stream);
       RewindStream();
-      header2 = mParser.ReadHeader();
+      header2 = parser.ReadHeader();
       Assert.That(header2.BlobLength, Is.EqualTo(1));
       Assert.That(header2.Message, Is.EqualTo(Agent.Message.SSH_AGENT_FAILURE));
       confirmCallbackReturnValue = true;
       PrepareMessage(builder);
-      agent.AnswerMessage(mStream);
+      agent.AnswerMessage(stream);
       RewindStream();
-      header2 = mParser.ReadHeader();
+      header2 = parser.ReadHeader();
       Assert.That(header2.BlobLength, Is.Not.EqualTo(1));
       Assert.That(header2.Message, Is.EqualTo(Agent.Message.SSH2_AGENT_SIGN_RESPONSE));
     }
@@ -817,29 +819,29 @@ namespace dlech.SshAgentLibTests
     [Test()]
     public void TestAnswerSSH1_AGENTC_REMOVE_RSA_IDENTITY()
     {
-      Agent agent = new TestAgent(mAllKeys);
+      Agent agent = new TestAgent(allKeys);
       BlobBuilder builder = new BlobBuilder();
 
       /* test remove key returns success when key is removed */
 
-      builder.AddBytes(mRsa1Key.GetPublicKeyBlob());
+      builder.AddBytes(rsa1Key.GetPublicKeyBlob());
       builder.InsertHeader(Agent.Message.SSH1_AGENTC_REMOVE_RSA_IDENTITY);
       PrepareMessage(builder);
-      agent.AnswerMessage(mStream);
+      agent.AnswerMessage(stream);
       RewindStream();
-      Agent.BlobHeader header = mParser.ReadHeader();
+      Agent.BlobHeader header = parser.ReadHeader();
       Assert.That(header.BlobLength, Is.EqualTo(1));
       Assert.That(header.Message, Is.EqualTo(Agent.Message.SSH_AGENT_SUCCESS));
       Assert.That(agent.GetAllKeys()
-        .SequenceEqual(mAllKeys.Where(key => key != mRsa1Key)));
+        .SequenceEqual(allKeys.Where(key => key != rsa1Key)));
 
       /* test remove key returns failure when key does not exist */
 
       int startCount = agent.GetAllKeys().Count();
       PrepareMessage(builder);
-      agent.AnswerMessage(mStream);
+      agent.AnswerMessage(stream);
       RewindStream();
-      header = mParser.ReadHeader();
+      header = parser.ReadHeader();
       Assert.That(header.BlobLength, Is.EqualTo(1));
       Assert.That(header.Message, Is.EqualTo(Agent.Message.SSH_AGENT_FAILURE));
       Assert.That(agent.GetAllKeys().Count(), Is.EqualTo(startCount));
@@ -848,12 +850,12 @@ namespace dlech.SshAgentLibTests
 
       agent.Lock(new byte[0]);
       startCount = agent.GetAllKeys().Count();
-      builder.AddBlob(mDsaKey.GetPublicKeyBlob());
+      builder.AddBlob(dsaKey.GetPublicKeyBlob());
       builder.InsertHeader(Agent.Message.SSH2_AGENTC_REMOVE_IDENTITY);
       PrepareMessage(builder);
-      agent.AnswerMessage(mStream);
+      agent.AnswerMessage(stream);
       RewindStream();
-      header = mParser.ReadHeader();
+      header = parser.ReadHeader();
       Assert.That(header.BlobLength, Is.EqualTo(1));
       Assert.That(header.Message, Is.EqualTo(Agent.Message.SSH_AGENT_FAILURE));
       Assert.That(agent.GetAllKeys().Count(), Is.EqualTo(startCount));
@@ -862,29 +864,29 @@ namespace dlech.SshAgentLibTests
     [Test()]
     public void TestAnswerSSH2_AGENTC_REMOVE_IDENTITY()
     {
-      Agent agent = new TestAgent(mAllKeys);
+      Agent agent = new TestAgent(allKeys);
       BlobBuilder builder = new BlobBuilder();
 
       /* test remove key returns success when key is removed */
 
-      builder.AddBlob(mRsaKey.GetPublicKeyBlob());
+      builder.AddBlob(rsaKey.GetPublicKeyBlob());
       builder.InsertHeader(Agent.Message.SSH2_AGENTC_REMOVE_IDENTITY);
       PrepareMessage(builder);
-      agent.AnswerMessage(mStream);
+      agent.AnswerMessage(stream);
       RewindStream();
-      Agent.BlobHeader header = mParser.ReadHeader();
+      Agent.BlobHeader header = parser.ReadHeader();
       Assert.That(header.BlobLength, Is.EqualTo(1));
       Assert.That(header.Message, Is.EqualTo(Agent.Message.SSH_AGENT_SUCCESS));
       Assert.That(agent.GetAllKeys()
-        .SequenceEqual(mAllKeys.Where(key => key != mRsaKey)));
+        .SequenceEqual(allKeys.Where(key => key != rsaKey)));
 
       /* test remove key returns failure when key does not exist */
 
       int startCount = agent.GetAllKeys().Count();
       PrepareMessage(builder);
-      agent.AnswerMessage(mStream);
+      agent.AnswerMessage(stream);
       RewindStream();
-      header = mParser.ReadHeader();
+      header = parser.ReadHeader();
       Assert.That(header.BlobLength, Is.EqualTo(1));
       Assert.That(header.Message, Is.EqualTo(Agent.Message.SSH_AGENT_FAILURE));
       Assert.That(agent.GetAllKeys().Count(), Is.EqualTo(startCount));
@@ -893,12 +895,12 @@ namespace dlech.SshAgentLibTests
 
       agent.Lock(new byte[0]);
       startCount = agent.GetAllKeys().Count();
-      builder.AddBlob(mDsaKey.GetPublicKeyBlob());
+      builder.AddBlob(dsaKey.GetPublicKeyBlob());
       builder.InsertHeader(Agent.Message.SSH2_AGENTC_REMOVE_IDENTITY);
       PrepareMessage(builder);
-      agent.AnswerMessage(mStream);
+      agent.AnswerMessage(stream);
       RewindStream();
-      header = mParser.ReadHeader();
+      header = parser.ReadHeader();
       Assert.That(header.BlobLength, Is.EqualTo(1));
       Assert.That(header.Message, Is.EqualTo(Agent.Message.SSH_AGENT_FAILURE));
       Assert.That(agent.GetAllKeys().Count(), Is.EqualTo(startCount));
@@ -907,36 +909,36 @@ namespace dlech.SshAgentLibTests
     [Test()]
     public void TestAnswerSSH2_AGENTC_REMOVE_ALL_IDENTITIES()
     {
-      Agent agent = new TestAgent(mAllKeys);
+      Agent agent = new TestAgent(allKeys);
 
       /* test that remove all keys removes keys */
 
       PrepareSimpleMessage(Agent.Message.SSH2_AGENTC_REMOVE_ALL_IDENTITIES);
-      agent.AnswerMessage(mStream);
+      agent.AnswerMessage(stream);
       RewindStream();
-      Agent.BlobHeader header = mParser.ReadHeader();
+      Agent.BlobHeader header = parser.ReadHeader();
       Assert.That(header.BlobLength, Is.EqualTo(1));
       Assert.That(header.Message, Is.EqualTo(Agent.Message.SSH_AGENT_SUCCESS));
       int actualKeyCount = agent.GetAllKeys()
         .Count(key => key.Version != SshVersion.SSH2);
-      int expectedKeyCount = mAllKeys.Count(key => key.Version != SshVersion.SSH2);
+      int expectedKeyCount = allKeys.Count(key => key.Version != SshVersion.SSH2);
       Assert.That(actualKeyCount, Is.EqualTo(expectedKeyCount));
 
       /* test that remove all keys returns success even when there are no keys */
       agent = new TestAgent();
       PrepareSimpleMessage(Agent.Message.SSH2_AGENTC_REMOVE_ALL_IDENTITIES);
-      agent.AnswerMessage(mStream);
+      agent.AnswerMessage(stream);
       RewindStream();
-      header = mParser.ReadHeader();
+      header = parser.ReadHeader();
       Assert.That(header.BlobLength, Is.EqualTo(1));
       Assert.That(header.Message, Is.EqualTo(Agent.Message.SSH_AGENT_SUCCESS));
 
       /* test that returns failure when locked */
       agent.Lock(new byte[0]);
       PrepareSimpleMessage(Agent.Message.SSH2_AGENTC_REMOVE_ALL_IDENTITIES);
-      agent.AnswerMessage(mStream);
+      agent.AnswerMessage(stream);
       RewindStream();
-      header = mParser.ReadHeader();
+      header = parser.ReadHeader();
       Assert.That(header.BlobLength, Is.EqualTo(1));
       Assert.That(header.Message, Is.EqualTo(Agent.Message.SSH_AGENT_FAILURE));
     }
@@ -967,9 +969,9 @@ namespace dlech.SshAgentLibTests
 
       PrepareLockMessage(false, password);
       agentLockedCalled = false;
-      agent.AnswerMessage(mStream);
+      agent.AnswerMessage(stream);
       RewindStream();
-      replyHeader = mParser.ReadHeader();
+      replyHeader = parser.ReadHeader();
       Assert.That(replyHeader.Message,
         Is.EqualTo(Agent.Message.SSH_AGENT_FAILURE),
         "Unlock should have failed because agent was already unlocked");
@@ -981,9 +983,9 @@ namespace dlech.SshAgentLibTests
 
       PrepareLockMessage(true, password);
       agentLockedCalled = false;
-      agent.AnswerMessage(mStream);
+      agent.AnswerMessage(stream);
       RewindStream();
-      replyHeader = mParser.ReadHeader();
+      replyHeader = parser.ReadHeader();
       Assert.That(replyHeader.Message,
         Is.EqualTo(Agent.Message.SSH_AGENT_SUCCESS),
         "Locking should have succeeded");
@@ -996,9 +998,9 @@ namespace dlech.SshAgentLibTests
 
       PrepareLockMessage(true, password);
       agentLockedCalled = false;
-      agent.AnswerMessage(mStream);
+      agent.AnswerMessage(stream);
       RewindStream();
-      replyHeader = mParser.ReadHeader();
+      replyHeader = parser.ReadHeader();
       Assert.That(replyHeader.Message,
         Is.EqualTo(Agent.Message.SSH_AGENT_FAILURE),
         "Unlock should have failed because agent was already unlocked");
@@ -1010,9 +1012,9 @@ namespace dlech.SshAgentLibTests
 
       PrepareLockMessage(false, password + "x");
       agentLockedCalled = false;
-      agent.AnswerMessage(mStream);
+      agent.AnswerMessage(stream);
       RewindStream();
-      replyHeader = mParser.ReadHeader();
+      replyHeader = parser.ReadHeader();
       Assert.That(replyHeader.Message,
         Is.EqualTo(Agent.Message.SSH_AGENT_FAILURE),
         "Unlock should have failed because password was incorrect");
@@ -1024,9 +1026,9 @@ namespace dlech.SshAgentLibTests
 
       PrepareLockMessage(false, password);
       agentLockedCalled = false;
-      agent.AnswerMessage(mStream);
+      agent.AnswerMessage(stream);
       RewindStream();
-      replyHeader = mParser.ReadHeader();
+      replyHeader = parser.ReadHeader();
       Assert.That(replyHeader.Message,
         Is.EqualTo(Agent.Message.SSH_AGENT_SUCCESS),
         "Unlock should have succeeded");
@@ -1046,8 +1048,8 @@ namespace dlech.SshAgentLibTests
        * after lifetime expires */
 
       AsymmetricCipherKeyPair keyPair =
-        new AsymmetricCipherKeyPair(mRsaKey.GetPublicKeyParameters(),
-          mRsaKey.GetPrivateKeyParameters());
+        new AsymmetricCipherKeyPair(rsaKey.GetPublicKeyParameters(),
+          rsaKey.GetPrivateKeyParameters());
       ISshKey key = new SshKey(SshVersion.SSH2, keyPair);
       Agent.KeyConstraint constraint = new Agent.KeyConstraint();
       constraint.Type = Agent.KeyConstraintType.SSH_AGENT_CONSTRAIN_LIFETIME;
@@ -1068,7 +1070,7 @@ namespace dlech.SshAgentLibTests
     private void PrepareMessage(BlobBuilder aBuilder)
     {
       ResetStream();
-      mStream.WriteBlob(aBuilder);
+      stream.WriteBlob(aBuilder);
       RewindStream();
     }
 
@@ -1099,13 +1101,13 @@ namespace dlech.SshAgentLibTests
 
     private void ResetStream()
     {
-      Array.Clear(mBuffer, 0, mBuffer.Length);
+      Array.Clear(buffer, 0, buffer.Length);
       RewindStream();
     }
 
     private void RewindStream()
     {
-      mStream.Position = 0;
+      stream.Position = 0;
     }
   }
 

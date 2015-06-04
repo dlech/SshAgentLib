@@ -3,7 +3,7 @@
 //
 // Author(s): David Lechner <david@lechnology.com>
 //
-// Copyright (c) 2012-2013 David Lechner
+// Copyright (c) 2012-2013,2015 David Lechner
 //
 // Permission is hereby granted, free of charge, to any person obtaining a copy
 // of this software and associated documentation files (the "Software"), to deal
@@ -32,49 +32,50 @@ using Org.BouncyCastle.Crypto.Generators;
 using Org.BouncyCastle.Crypto.Parameters;
 using Org.BouncyCastle.Security;
 using dlech.SshAgentLib.Crypto;
+using Chaos.NaCl;
 
 namespace dlech.SshAgentLibTests
 {
   public static class KeyGenerator
   {
-    private static SecureRandom mSecureRandom;
+    private static SecureRandom secureRandom;
 
     static KeyGenerator()
     {
-      mSecureRandom = new SecureRandom();
+      secureRandom = new SecureRandom();
     }
 
-    public static SshKey CreateKey(SshVersion aVersion,
-      PublicKeyAlgorithm aAlgorithm, string aComment = "")
+    public static SshKey CreateKey(SshVersion version,
+      PublicKeyAlgorithm algorithm, string comment = "")
     {      
-      if (aVersion == SshVersion.SSH1 && 
-        aAlgorithm != PublicKeyAlgorithm.SSH_RSA) {
+      if (version == SshVersion.SSH1 && 
+        algorithm != PublicKeyAlgorithm.SSH_RSA) {
         throw new Exception("unsupported version/algorithm combination");
       }
 
-      switch (aAlgorithm) {
+      switch (algorithm) {
         case PublicKeyAlgorithm.SSH_RSA:
           KeyGenerationParameters keyGenParam =
-            new KeyGenerationParameters(mSecureRandom, 512);
+            new KeyGenerationParameters(secureRandom, 512);
 
           RsaKeyPairGenerator rsaKeyPairGen = new RsaKeyPairGenerator();
           rsaKeyPairGen.Init(keyGenParam);
           AsymmetricCipherKeyPair keyPair = rsaKeyPairGen.GenerateKeyPair();
-          var rsaKey = new SshKey(aVersion, keyPair);
-          rsaKey.Comment = aComment;
+          var rsaKey = new SshKey(version, keyPair);
+          rsaKey.Comment = comment;
           return rsaKey;
 
         case PublicKeyAlgorithm.SSH_DSS:
           DsaParametersGenerator dsaParamGen = new DsaParametersGenerator();
-          dsaParamGen.Init(512, 10, mSecureRandom);
+          dsaParamGen.Init(512, 10, secureRandom);
           DsaParameters dsaParam = dsaParamGen.GenerateParameters();
           DsaKeyGenerationParameters dsaKeyGenParam =
-            new DsaKeyGenerationParameters(mSecureRandom, dsaParam);
+            new DsaKeyGenerationParameters(secureRandom, dsaParam);
           DsaKeyPairGenerator dsaKeyPairGen = new DsaKeyPairGenerator();
           dsaKeyPairGen.Init(dsaKeyGenParam);
           keyPair = dsaKeyPairGen.GenerateKeyPair();
           var dsaKey = new SshKey(SshVersion.SSH2, keyPair);
-          dsaKey.Comment = aComment;
+          dsaKey.Comment = comment;
           return dsaKey;
 
         case PublicKeyAlgorithm.ECDSA_SHA2_NISTP256:
@@ -84,12 +85,12 @@ namespace dlech.SshAgentLibTests
             new ECDomainParameters(ecdsa256X9Params.Curve, ecdsa256X9Params.G,
               ecdsa256X9Params.N, ecdsa256X9Params.H);
           ECKeyGenerationParameters ecdsa256GenParams =
-            new ECKeyGenerationParameters(ecdsa256DomainParams, mSecureRandom);
+            new ECKeyGenerationParameters(ecdsa256DomainParams, secureRandom);
           ECKeyPairGenerator ecdsa256Gen = new ECKeyPairGenerator();
           ecdsa256Gen.Init(ecdsa256GenParams);
           keyPair = ecdsa256Gen.GenerateKeyPair();
           var ecdsa256Key = new SshKey(SshVersion.SSH2, keyPair);
-          ecdsa256Key.Comment = aComment;
+          ecdsa256Key.Comment = comment;
           return ecdsa256Key;
 
         case PublicKeyAlgorithm.ECDSA_SHA2_NISTP384:
@@ -99,12 +100,12 @@ namespace dlech.SshAgentLibTests
             new ECDomainParameters(ecdsa384X9Params.Curve, ecdsa384X9Params.G,
               ecdsa384X9Params.N, ecdsa384X9Params.H);
           ECKeyGenerationParameters ecdsa384GenParams =
-            new ECKeyGenerationParameters(ecdsa384DomainParams, mSecureRandom);
+            new ECKeyGenerationParameters(ecdsa384DomainParams, secureRandom);
           ECKeyPairGenerator ecdsa384Gen = new ECKeyPairGenerator();
           ecdsa384Gen.Init(ecdsa384GenParams);
           keyPair = ecdsa384Gen.GenerateKeyPair();
           var ecdsa384Key = new SshKey(SshVersion.SSH2, keyPair);
-          ecdsa384Key.Comment = aComment;
+          ecdsa384Key.Comment = comment;
           return ecdsa384Key;
 
         case PublicKeyAlgorithm.ECDSA_SHA2_NISTP521:
@@ -114,13 +115,23 @@ namespace dlech.SshAgentLibTests
             new ECDomainParameters(ecdsa521X9Params.Curve, ecdsa521X9Params.G,
               ecdsa521X9Params.N, ecdsa521X9Params.H);
           ECKeyGenerationParameters ecdsa521GenParams =
-            new ECKeyGenerationParameters(ecdsa521DomainParams, mSecureRandom);
+            new ECKeyGenerationParameters(ecdsa521DomainParams, secureRandom);
           ECKeyPairGenerator ecdsa521Gen = new ECKeyPairGenerator();
           ecdsa521Gen.Init(ecdsa521GenParams);
           keyPair = ecdsa521Gen.GenerateKeyPair();
           var ecdsa521Key = new SshKey(SshVersion.SSH2, keyPair);
-          ecdsa521Key.Comment = aComment;
+          ecdsa521Key.Comment = comment;
           return ecdsa521Key;
+
+        case PublicKeyAlgorithm.ED25519:
+          var privateKeySeed = secureRandom.GenerateSeed(Ed25519.PrivateKeySeedSizeInBytes);
+          var publicKeyBytes = new byte[Ed25519.PublicKeySizeInBytes];
+          var privateKeyBytes = new byte[Ed25519.ExpandedPrivateKeySizeInBytes];
+          Ed25519.KeyPairFromSeed(out publicKeyBytes, out privateKeyBytes, privateKeySeed);
+          var publicKey = new Ed25519PublicKeyParameter(publicKeyBytes);
+          var privateKey = new Ed25519PrivateKeyParameter(privateKeyBytes);
+          var ed25519Key = new SshKey(SshVersion.SSH2, publicKey, privateKey, comment);
+          return ed25519Key;
 
         default:
           throw new Exception("unsupported algorithm");

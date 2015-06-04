@@ -591,7 +591,7 @@ namespace dlech.SshAgentLib
               Message.SSH2_AGENTC_ADD_ID_CONSTRAINED);
 
           try {
-            var publicKeyParams = messageParser.ReadSsh2PublicKeyData(true);
+            var publicKeyParams = messageParser.ReadSsh2PublicKeyData();
             var keyPair = messageParser.ReadSsh2KeyData(publicKeyParams);
             SshKey key = new SshKey(SshVersion.SSH2, keyPair);
             key.Comment = messageParser.ReadString();

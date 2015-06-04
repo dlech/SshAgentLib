@@ -4,7 +4,7 @@
 // Author(s): David Lechner <david@lechnology.com>
 //            Max Laverse
 //
-// Copyright (c) 2012-2014 David Lechner
+// Copyright (c) 2012-2015 David Lechner
 //
 // Permission is hereby granted, free of charge, to any person obtaining a copy
 // of this software and associated documentation files (the "Software"), to deal
@@ -30,6 +30,7 @@ using System.Collections.ObjectModel;
 using Org.BouncyCastle.Crypto;
 using Org.BouncyCastle.Crypto.Parameters;
 using dlech.SshAgentLib.Crypto;
+using Chaos.NaCl;
 
 namespace dlech.SshAgentLib
 {
@@ -82,6 +83,8 @@ namespace dlech.SshAgentLib
             case 521:
               return PublicKeyAlgorithm.ECDSA_SHA2_NISTP521;
           }
+        } else if (publicKeyParameter is Ed25519PublicKeyParameter) {
+            return PublicKeyAlgorithm.ED25519;
         }
         throw new Exception("Unknown algorithm");
       }
@@ -105,6 +108,8 @@ namespace dlech.SshAgentLib
           ECPublicKeyParameters ecdsaParameters =
             (ECPublicKeyParameters)publicKeyParameter;
           return ecdsaParameters.Q.Curve.FieldSize;
+        } else if (publicKeyParameter is Ed25519PublicKeyParameter) {
+            return Ed25519.PublicKeySizeInBytes * 8;
         }
         // TODO need a better exception here
         throw new Exception("Not Defined");

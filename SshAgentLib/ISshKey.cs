@@ -3,7 +3,7 @@
 //
 // Author(s): David Lechner <david@lechnology.com>
 //
-// Copyright (c) 2012-2014 David Lechner
+// Copyright (c) 2012-2015 David Lechner
 //
 // Permission is hereby granted, free of charge, to any person obtaining a copy
 // of this software and associated documentation files (the "Software"), to deal
@@ -191,6 +191,9 @@ namespace dlech.SshAgentLib
           string.Empty);
         builder.AddStringBlob(algorithm);
         builder.AddBlob(ecdsaParameters.Q.GetEncoded());
+      } else if (parameters is Ed25519PublicKeyParameter) {
+          builder.AddStringBlob(PublicKeyAlgorithm.ED25519.GetIdentifierString());
+          builder.AddBlob(((Ed25519PublicKeyParameter)parameters).Key);
       } else {
         throw new ArgumentException(parameters.GetType() + " is not supported");
       }
@@ -255,12 +258,12 @@ namespace dlech.SshAgentLib
       return aKey.Constraints.Count(c => c.Type == aType) > 0;
     }
 
-    public static byte[] FormatSignature(this ISshKey aKey, byte[] aSignature)
+    public static byte[] FormatSignature(this ISshKey key, byte[] signature)
     {
-      AsymmetricKeyParameter publicKey = aKey.GetPublicKeyParameters();
+      AsymmetricKeyParameter publicKey = key.GetPublicKeyParameters();
       if (publicKey is DsaPublicKeyParameters ||
         publicKey is ECPublicKeyParameters) {
-        Asn1Sequence seq = (Asn1Sequence)Asn1Object.FromByteArray(aSignature);
+        Asn1Sequence seq = (Asn1Sequence)Asn1Object.FromByteArray(signature);
         BigInteger r = ((DerInteger)seq[0]).PositiveValue;
         BigInteger s = ((DerInteger)seq[1]).PositiveValue;
         BlobBuilder formatedSignature = new BlobBuilder();
@@ -284,15 +287,15 @@ namespace dlech.SshAgentLib
           formatedSignature.AddBytes(bytes.ToArray());
         }
         return formatedSignature.GetBlob();
-      } else if (publicKey is RsaKeyParameters) {
-        return aSignature;
+      } else if (publicKey is RsaKeyParameters || publicKey is Ed25519PublicKeyParameter) {
+        return signature;
       }
       throw new Exception("Unsupported algorithm");
     }
 
-    public static ISigner GetSigner(this ISshKey aKey)
+    public static ISigner GetSigner(this ISshKey key)
     {
-      AsymmetricKeyParameter publicKey = aKey.GetPublicKeyParameters();
+      AsymmetricKeyParameter publicKey = key.GetPublicKeyParameters();
       if (publicKey is DsaPublicKeyParameters) {
         return SignerUtilities.GetSigner(X9ObjectIdentifiers.IdDsaWithSha1);
       } else if (publicKey is RsaKeyParameters) {
@@ -307,6 +310,8 @@ namespace dlech.SshAgentLib
         } else if (ecdsaFieldSize > 384) {
           return SignerUtilities.GetSigner(X9ObjectIdentifiers.ECDsaWithSha512);
         }
+      } else if (publicKey is Ed25519PublicKeyParameter) {
+          return new Ed25519Signer();
       }
       throw new Exception("Unsupported algorithm");
     }

@@ -3,7 +3,7 @@
 //
 // Author(s): David Lechner <david@lechnology.com>
 //
-// Copyright (c) 2012 David Lechner
+// Copyright (c) 2012,2015 David Lechner
 //
 // Permission is hereby granted, free of charge, to any person obtaining a copy
 // of this software and associated documentation files (the "Software"), to deal
@@ -42,7 +42,8 @@ namespace dlech.SshAgentLib
     SSH_DSS,
     ECDSA_SHA2_NISTP256,
     ECDSA_SHA2_NISTP384,
-    ECDSA_SHA2_NISTP521
+    ECDSA_SHA2_NISTP521,
+    ED25519,
   }
 
   public static class PublicKeyAlgorithmExt
@@ -77,7 +78,10 @@ namespace dlech.SshAgentLib
       ALGORITHM_ECDSA_SHA2_PREFIX + EC_ALGORITHM_NISTP384 + OPENSSH_CERT_V01_SUFFIX;
     public const string ALGORITHM_ECDSA_SHA2_NISTP521_CERT =
       ALGORITHM_ECDSA_SHA2_PREFIX + EC_ALGORITHM_NISTP521 + OPENSSH_CERT_V01_SUFFIX;
-    
+
+    // not in PROTOCOL.agent...yet
+    public const string ALGORITHM_ED25519 = "ssh-ed25519";
+    public const string ALGORITHM_ED25519_CERT = ALGORITHM_ED25519 + OPENSSH_CERT_V01_SUFFIX;
 
     public static string GetIdentifierString(this PublicKeyAlgorithm aPublicKeyAlgorithm)
     {
@@ -92,6 +96,8 @@ namespace dlech.SshAgentLib
           return ALGORITHM_ECDSA_SHA2_NISTP384_KEY;
         case PublicKeyAlgorithm.ECDSA_SHA2_NISTP521:
           return ALGORITHM_ECDSA_SHA2_NISTP521_KEY;
+        case PublicKeyAlgorithm.ED25519:
+          return ALGORITHM_ED25519;
         default:
           Debug.Fail("Unknown algorithm");
           throw new Exception("Unknown algorithm");
@@ -111,6 +117,8 @@ namespace dlech.SshAgentLib
           return SignerUtilities.GetSigner(X9ObjectIdentifiers.ECDsaWithSha384.Id);
         case PublicKeyAlgorithm.ECDSA_SHA2_NISTP521:
           return SignerUtilities.GetSigner(X9ObjectIdentifiers.ECDsaWithSha512.Id);
+        case PublicKeyAlgorithm.ED25519:
+          return new Ed25519Signer();
         default:
           Debug.Fail("Unknown algorithm");
           throw new Exception("Unknown algorithm");

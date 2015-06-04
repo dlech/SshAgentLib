@@ -4,7 +4,7 @@
 // Author(s): David Lechner <david@lechnology.com>
 //            Max Laverse
 //
-// Copyright (c) 2012-2014 David Lechner
+// Copyright (c) 2012-2015 David Lechner
 //
 // Permission is hereby granted, free of charge, to any person obtaining a copy
 // of this software and associated documentation files (the "Software"), to deal
@@ -27,10 +27,12 @@
 using System;
 using System.IO;
 using System.Text;
+
 using Org.BouncyCastle.Asn1.Sec;
 using Org.BouncyCastle.Crypto;
 using Org.BouncyCastle.Crypto.Parameters;
 using Org.BouncyCastle.Math;
+using dlech.SshAgentLib.Crypto;
 
 namespace dlech.SshAgentLib
 {
@@ -129,21 +131,18 @@ namespace dlech.SshAgentLib
     /// reads OpenSSH formatted public key blob and creates
     /// an AsymmetricKeyParameter object
     /// </summary>
-    /// <param name="reverseRsaParameters">
-    /// Set to true to read RSA modulus first. Normally exponent is read first.
-    /// Has no effect on other algorithms
-    /// </param>
     /// <returns>AsymmetricKeyParameter containing the public key</returns>
-    public AsymmetricKeyParameter ReadSsh2PublicKeyData(
-      bool reverseRsaParameters = false)
+    public AsymmetricKeyParameter ReadSsh2PublicKeyData()
     {
       var algorithm = Encoding.UTF8.GetString(ReadBlob());
 
       switch (algorithm) {
         case PublicKeyAlgorithmExt.ALGORITHM_RSA_KEY:
-          var rsaE = new BigInteger(1, ReadBlob()); // exponent
           var rsaN = new BigInteger(1, ReadBlob()); // modulus
-          if (reverseRsaParameters) {
+          var rsaE = new BigInteger(1, ReadBlob()); // exponent
+          if (rsaN.BitLength < rsaE.BitLength) {
+            // In some cases, the modulus is first. We can always tell because
+            // it is significantly larget than the exponent.
             return new RsaKeyParameters(false, rsaE, rsaN);
           }
           return new RsaKeyParameters(false, rsaN, rsaE);
@@ -182,6 +181,10 @@ namespace dlech.SshAgentLib
             ecdsaX9Params.G, ecdsaX9Params.N, ecdsaX9Params.H);
           var ecdsaPoint = ecdsaX9Params.Curve.DecodePoint(ecdsaPublicKey);
           return new ECPublicKeyParameters(ecdsaPoint, ecdsaDomainParams);
+
+        case PublicKeyAlgorithmExt.ALGORITHM_ED25519:
+            var ed25519PublicKey = ReadBlob();
+            return new Ed25519PublicKeyParameter(ed25519PublicKey);
 
         default:
           // unsupported encryption algorithm
@@ -232,6 +235,10 @@ namespace dlech.SshAgentLib
           new ECPrivateKeyParameters(ecdsaPrivate, ecPublicKeyParams.Parameters);
 
         return new AsymmetricCipherKeyPair(ecPublicKeyParams, ecPrivateKeyParams);
+      } else if (publicKeyParameter is Ed25519PublicKeyParameter) {
+        var ed25519Signature = ReadBlob();
+        var ed25519PrivateKey = new Ed25519PrivateKeyParameter(ed25519Signature);
+        return new AsymmetricCipherKeyPair(publicKeyParameter, ed25519PrivateKey);
       } else {
         // unsupported encryption algorithm
         throw new Exception("Unsupported algorithm");
