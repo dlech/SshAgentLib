@@ -1,8 +1,15 @@
-Copyright (c) 2012-2013 David Lechner
+* (any files not otherwise listed here or in other license files)
+Copyright (c) 2012-2015 David Lechner
 
-lib/BouncyCastle/BouncyCastle.dll
+packages/BouncyCastle*/*
 Copyright (c) 2000 - 2011 The Legion Of The Bouncy Castle
 (http://www.bouncycastle.org)
+
+SshAgentLib/Crypto/BCrypt.cs
+Copyright (c) 2006 Damien Miller <djm@mindrot.org>
+Copyright (c) 2013 Ryan D. Emerle
+Copyright (c) 2013 Ted Unangst <tedu@openbsd.org>
+Copyright (c) 2015 David Lechner <david@lechnology.com>
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
