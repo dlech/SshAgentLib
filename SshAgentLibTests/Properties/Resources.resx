@@ -124,12 +124,6 @@
   <data name="non_standard_length_ppk" type="System.Resources.ResXFileRef, System.Windows.Forms">
     <value>../Resources/non-standard-length.ppk;System.Byte[], mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </data>
-  <data name="ssh1_rsa_no_passphrase_ppk" type="System.Resources.ResXFileRef, System.Windows.Forms">
-    <value>../Resources/ssh1-rsa-no-passphrase.ppk;System.Byte[], mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
-  </data>
-  <data name="ssh1_rsa_ppk" type="System.Resources.ResXFileRef, System.Windows.Forms">
-    <value>../Resources/ssh1-rsa.ppk;System.Byte[], mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
-  </data>
   <data name="ssh2_dsa_no_passphrase_ppk" type="System.Resources.ResXFileRef, System.Windows.Forms">
     <value>../Resources/ssh2-dsa-no-passphrase.ppk;System.Byte[], mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </data>
@@ -145,65 +139,29 @@
   <data name="ssh2_rsa_ppk" type="System.Resources.ResXFileRef, System.Windows.Forms">
     <value>../Resources/ssh2-rsa.ppk;System.Byte[], mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </data>
-  <data name="dsa_no_passphrase" type="System.Resources.ResXFileRef, System.Windows.Forms">
-    <value>../Resources/dsa_no_passphrase;System.Byte[], mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
-  </data>
-  <data name="dsa_no_passphrase_pub" type="System.Resources.ResXFileRef, System.Windows.Forms">
-    <value>../Resources/dsa_no_passphrase.pub;System.Byte[], mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
-  </data>
-  <data name="dsa_with_passphrase" type="System.Resources.ResXFileRef, System.Windows.Forms">
-    <value>../Resources/dsa_with_passphrase;System.Byte[], mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
-  </data>
-  <data name="dsa_with_passphrase_pub" type="System.Resources.ResXFileRef, System.Windows.Forms">
-    <value>../Resources/dsa_with_passphrase.pub;System.Byte[], mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
-  </data>
-  <data name="ecdsa_no_passphrase" type="System.Resources.ResXFileRef, System.Windows.Forms">
-    <value>../Resources/ecdsa_no_passphrase;System.Byte[], mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
-  </data>
-  <data name="ecdsa_no_passphrase_pub" type="System.Resources.ResXFileRef, System.Windows.Forms">
-    <value>../Resources/ecdsa_no_passphrase.pub;System.Byte[], mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
-  </data>
-  <data name="ecdsa_with_passphrase" type="System.Resources.ResXFileRef, System.Windows.Forms">
-    <value>../Resources/ecdsa_with_passphrase;System.Byte[], mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
-  </data>
-  <data name="ecdsa_with_passphrase_pub" type="System.Resources.ResXFileRef, System.Windows.Forms">
-    <value>../Resources/ecdsa_with_passphrase.pub;System.Byte[], mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
-  </data>
-  <data name="rsa_no_passphrase" type="System.Resources.ResXFileRef, System.Windows.Forms">
-    <value>../Resources/rsa_no_passphrase;System.Byte[], mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
-  </data>
-  <data name="rsa_no_passphrase_pub" type="System.Resources.ResXFileRef, System.Windows.Forms">
-    <value>../Resources/rsa_no_passphrase.pub;System.Byte[], mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
-  </data>
-  <data name="rsa_with_passphrase" type="System.Resources.ResXFileRef, System.Windows.Forms">
-    <value>../Resources/rsa_with_passphrase;System.Byte[], mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
-  </data>
-  <data name="rsa_with_passphrase_pub" type="System.Resources.ResXFileRef, System.Windows.Forms">
-    <value>../Resources/rsa_with_passphrase.pub;System.Byte[], mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
-  </data>
   <data name="dsa_1" type="System.Resources.ResXFileRef, System.Windows.Forms">
     <value>..\Resources\dsa_1;System.Byte[], mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </data>
   <data name="dsa_1_cert_fp" type="System.Resources.ResXFileRef, System.Windows.Forms">
-    <value>..\Resources\dsa_1-cert.fp;System.Byte[], mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+    <value>..\Resources\dsa_1-cert.fp;System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089;utf-8</value>
   </data>
   <data name="dsa_1_cert_pub" type="System.Resources.ResXFileRef, System.Windows.Forms">
     <value>..\Resources\dsa_1-cert.pub;System.Byte[], mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </data>
   <data name="dsa_1_fp" type="System.Resources.ResXFileRef, System.Windows.Forms">
-    <value>..\Resources\dsa_1.fp;System.Byte[], mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+    <value>..\Resources\dsa_1.fp;System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089;utf-8</value>
   </data>
   <data name="dsa_1_fp_bb" type="System.Resources.ResXFileRef, System.Windows.Forms">
-    <value>..\Resources\dsa_1.fp.bb;System.Byte[], mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+    <value>..\Resources\dsa_1.fp.bb;System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089;utf-8</value>
   </data>
   <data name="dsa_1_param_g" type="System.Resources.ResXFileRef, System.Windows.Forms">
-    <value>..\Resources\dsa_1.param.g;System.Byte[], mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+    <value>..\Resources\dsa_1.param.g;System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089;utf-8</value>
   </data>
   <data name="dsa_1_param_priv" type="System.Resources.ResXFileRef, System.Windows.Forms">
-    <value>..\Resources\dsa_1.param.priv;System.Byte[], mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+    <value>..\Resources\dsa_1.param.priv;System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089;utf-8</value>
   </data>
   <data name="dsa_1_param_pub" type="System.Resources.ResXFileRef, System.Windows.Forms">
-    <value>..\Resources\dsa_1.param.pub;System.Byte[], mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+    <value>..\Resources\dsa_1.param.pub;System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089;utf-8</value>
   </data>
   <data name="dsa_1_pub" type="System.Resources.ResXFileRef, System.Windows.Forms">
     <value>..\Resources\dsa_1.pub;System.Byte[], mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
@@ -215,10 +173,10 @@
     <value>..\Resources\dsa_2;System.Byte[], mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </data>
   <data name="dsa_2_fp" type="System.Resources.ResXFileRef, System.Windows.Forms">
-    <value>..\Resources\dsa_2.fp;System.Byte[], mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+    <value>..\Resources\dsa_2.fp;System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089;utf-8</value>
   </data>
   <data name="dsa_2_fp_bb" type="System.Resources.ResXFileRef, System.Windows.Forms">
-    <value>..\Resources\dsa_2.fp.bb;System.Byte[], mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+    <value>..\Resources\dsa_2.fp.bb;System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089;utf-8</value>
   </data>
   <data name="dsa_2_pub" type="System.Resources.ResXFileRef, System.Windows.Forms">
     <value>..\Resources\dsa_2.pub;System.Byte[], mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
@@ -233,25 +191,25 @@
     <value>..\Resources\ecdsa_1;System.Byte[], mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </data>
   <data name="ecdsa_1_cert_fp" type="System.Resources.ResXFileRef, System.Windows.Forms">
-    <value>..\Resources\ecdsa_1-cert.fp;System.Byte[], mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+    <value>..\Resources\ecdsa_1-cert.fp;System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089;utf-8</value>
   </data>
   <data name="ecdsa_1_cert_pub" type="System.Resources.ResXFileRef, System.Windows.Forms">
     <value>..\Resources\ecdsa_1-cert.pub;System.Byte[], mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </data>
   <data name="ecdsa_1_fp" type="System.Resources.ResXFileRef, System.Windows.Forms">
-    <value>..\Resources\ecdsa_1.fp;System.Byte[], mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+    <value>..\Resources\ecdsa_1.fp;System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089;utf-8</value>
   </data>
   <data name="ecdsa_1_fp_bb" type="System.Resources.ResXFileRef, System.Windows.Forms">
-    <value>..\Resources\ecdsa_1.fp.bb;System.Byte[], mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+    <value>..\Resources\ecdsa_1.fp.bb;System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089;utf-8</value>
   </data>
   <data name="ecdsa_1_param_curve" type="System.Resources.ResXFileRef, System.Windows.Forms">
-    <value>..\Resources\ecdsa_1.param.curve;System.Byte[], mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+    <value>..\Resources\ecdsa_1.param.curve;System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089;utf-8</value>
   </data>
   <data name="ecdsa_1_param_priv" type="System.Resources.ResXFileRef, System.Windows.Forms">
-    <value>..\Resources\ecdsa_1.param.priv;System.Byte[], mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+    <value>..\Resources\ecdsa_1.param.priv;System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089;utf-8</value>
   </data>
   <data name="ecdsa_1_param_pub" type="System.Resources.ResXFileRef, System.Windows.Forms">
-    <value>..\Resources\ecdsa_1.param.pub;System.Byte[], mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+    <value>..\Resources\ecdsa_1.param.pub;System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089;utf-8</value>
   </data>
   <data name="ecdsa_1_pub" type="System.Resources.ResXFileRef, System.Windows.Forms">
     <value>..\Resources\ecdsa_1.pub;System.Byte[], mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
@@ -263,19 +221,19 @@
     <value>..\Resources\ecdsa_2;System.Byte[], mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </data>
   <data name="ecdsa_2_fp" type="System.Resources.ResXFileRef, System.Windows.Forms">
-    <value>..\Resources\ecdsa_2.fp;System.Byte[], mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+    <value>..\Resources\ecdsa_2.fp;System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089;utf-8</value>
   </data>
   <data name="ecdsa_2_fp_bb" type="System.Resources.ResXFileRef, System.Windows.Forms">
-    <value>..\Resources\ecdsa_2.fp.bb;System.Byte[], mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+    <value>..\Resources\ecdsa_2.fp.bb;System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089;utf-8</value>
   </data>
   <data name="ecdsa_2_param_curve" type="System.Resources.ResXFileRef, System.Windows.Forms">
-    <value>..\Resources\ecdsa_2.param.curve;System.Byte[], mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+    <value>..\Resources\ecdsa_2.param.curve;System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089;utf-8</value>
   </data>
   <data name="ecdsa_2_param_priv" type="System.Resources.ResXFileRef, System.Windows.Forms">
-    <value>..\Resources\ecdsa_2.param.priv;System.Byte[], mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+    <value>..\Resources\ecdsa_2.param.priv;System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089;utf-8</value>
   </data>
   <data name="ecdsa_2_param_pub" type="System.Resources.ResXFileRef, System.Windows.Forms">
-    <value>..\Resources\ecdsa_2.param.pub;System.Byte[], mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+    <value>..\Resources\ecdsa_2.param.pub;System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089;utf-8</value>
   </data>
   <data name="ecdsa_2_pub" type="System.Resources.ResXFileRef, System.Windows.Forms">
     <value>..\Resources\ecdsa_2.pub;System.Byte[], mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
@@ -290,16 +248,16 @@
     <value>..\Resources\ed25519_1;System.Byte[], mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </data>
   <data name="ed25519_1_cert_fp" type="System.Resources.ResXFileRef, System.Windows.Forms">
-    <value>..\Resources\ed25519_1-cert.fp;System.Byte[], mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+    <value>..\Resources\ed25519_1-cert.fp;System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089;utf-8</value>
   </data>
   <data name="ed25519_1_cert_pub" type="System.Resources.ResXFileRef, System.Windows.Forms">
     <value>..\Resources\ed25519_1-cert.pub;System.Byte[], mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </data>
   <data name="ed25519_1_fp" type="System.Resources.ResXFileRef, System.Windows.Forms">
-    <value>..\Resources\ed25519_1.fp;System.Byte[], mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+    <value>..\Resources\ed25519_1.fp;System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089;utf-8</value>
   </data>
   <data name="ed25519_1_fp_bb" type="System.Resources.ResXFileRef, System.Windows.Forms">
-    <value>..\Resources\ed25519_1.fp.bb;System.Byte[], mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+    <value>..\Resources\ed25519_1.fp.bb;System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089;utf-8</value>
   </data>
   <data name="ed25519_1_pub" type="System.Resources.ResXFileRef, System.Windows.Forms">
     <value>..\Resources\ed25519_1.pub;System.Byte[], mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
@@ -311,28 +269,28 @@
     <value>..\Resources\ed25519_2;System.Byte[], mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </data>
   <data name="ed25519_2_fp" type="System.Resources.ResXFileRef, System.Windows.Forms">
-    <value>..\Resources\ed25519_2.fp;System.Byte[], mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+    <value>..\Resources\ed25519_2.fp;System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089;utf-8</value>
   </data>
   <data name="ed25519_2_fp_bb" type="System.Resources.ResXFileRef, System.Windows.Forms">
-    <value>..\Resources\ed25519_2.fp.bb;System.Byte[], mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+    <value>..\Resources\ed25519_2.fp.bb;System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089;utf-8</value>
   </data>
   <data name="ed25519_2_pub" type="System.Resources.ResXFileRef, System.Windows.Forms">
     <value>..\Resources\ed25519_2.pub;System.Byte[], mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </data>
   <data name="pw" type="System.Resources.ResXFileRef, System.Windows.Forms">
-    <value>..\Resources\pw;System.Byte[], mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+    <value>..\Resources\pw;System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089;utf-8</value>
   </data>
   <data name="rsa1_1" type="System.Resources.ResXFileRef, System.Windows.Forms">
     <value>..\Resources\rsa1_1;System.Byte[], mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </data>
   <data name="rsa1_1_fp" type="System.Resources.ResXFileRef, System.Windows.Forms">
-    <value>..\Resources\rsa1_1.fp;System.Byte[], mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+    <value>..\Resources\rsa1_1.fp;System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089;utf-8</value>
   </data>
   <data name="rsa1_1_fp_bb" type="System.Resources.ResXFileRef, System.Windows.Forms">
-    <value>..\Resources\rsa1_1.fp.bb;System.Byte[], mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+    <value>..\Resources\rsa1_1.fp.bb;System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089;utf-8</value>
   </data>
   <data name="rsa1_1_param_n" type="System.Resources.ResXFileRef, System.Windows.Forms">
-    <value>..\Resources\rsa1_1.param.n;System.Byte[], mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+    <value>..\Resources\rsa1_1.param.n;System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089;utf-8</value>
   </data>
   <data name="rsa1_1_pub" type="System.Resources.ResXFileRef, System.Windows.Forms">
     <value>..\Resources\rsa1_1.pub;System.Byte[], mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
@@ -344,13 +302,13 @@
     <value>..\Resources\rsa1_2;System.Byte[], mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </data>
   <data name="rsa1_2_fp" type="System.Resources.ResXFileRef, System.Windows.Forms">
-    <value>..\Resources\rsa1_2.fp;System.Byte[], mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+    <value>..\Resources\rsa1_2.fp;System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089;utf-8</value>
   </data>
   <data name="rsa1_2_fp_bb" type="System.Resources.ResXFileRef, System.Windows.Forms">
-    <value>..\Resources\rsa1_2.fp.bb;System.Byte[], mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+    <value>..\Resources\rsa1_2.fp.bb;System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089;utf-8</value>
   </data>
   <data name="rsa1_2_param_n" type="System.Resources.ResXFileRef, System.Windows.Forms">
-    <value>..\Resources\rsa1_2.param.n;System.Byte[], mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+    <value>..\Resources\rsa1_2.param.n;System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089;utf-8</value>
   </data>
   <data name="rsa1_2_pub" type="System.Resources.ResXFileRef, System.Windows.Forms">
     <value>..\Resources\rsa1_2.pub;System.Byte[], mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
@@ -358,29 +316,29 @@
   <data name="rsa_1" type="System.Resources.ResXFileRef, System.Windows.Forms">
     <value>..\Resources\rsa_1;System.Byte[], mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </data>
-  <data name="rsa_11_fp" type="System.Resources.ResXFileRef, System.Windows.Forms">
-    <value>..\Resources\rsa_1.fp;System.Byte[], mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  <data name="rsa_1_fp" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\Resources\rsa_1.fp;System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089;utf-8</value>
   </data>
-  <data name="rsa_12_pub" type="System.Resources.ResXFileRef, System.Windows.Forms">
+  <data name="rsa_1_pub" type="System.Resources.ResXFileRef, System.Windows.Forms">
     <value>..\Resources\rsa_1.pub;System.Byte[], mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </data>
   <data name="rsa_1_cert_fp" type="System.Resources.ResXFileRef, System.Windows.Forms">
-    <value>..\Resources\rsa_1-cert.fp;System.Byte[], mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+    <value>..\Resources\rsa_1-cert.fp;System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089;utf-8</value>
   </data>
   <data name="rsa_1_cert_pub" type="System.Resources.ResXFileRef, System.Windows.Forms">
     <value>..\Resources\rsa_1-cert.pub;System.Byte[], mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </data>
   <data name="rsa_1_fp_bb" type="System.Resources.ResXFileRef, System.Windows.Forms">
-    <value>..\Resources\rsa_1.fp.bb;System.Byte[], mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+    <value>..\Resources\rsa_1.fp.bb;System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089;utf-8</value>
   </data>
   <data name="rsa_1_param_n" type="System.Resources.ResXFileRef, System.Windows.Forms">
-    <value>..\Resources\rsa_1.param.n;System.Byte[], mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+    <value>..\Resources\rsa_1.param.n;System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089;utf-8</value>
   </data>
   <data name="rsa_1_param_p" type="System.Resources.ResXFileRef, System.Windows.Forms">
-    <value>..\Resources\rsa_1.param.p;System.Byte[], mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+    <value>..\Resources\rsa_1.param.p;System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089;utf-8</value>
   </data>
   <data name="rsa_1_param_q" type="System.Resources.ResXFileRef, System.Windows.Forms">
-    <value>..\Resources\rsa_1.param.q;System.Byte[], mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+    <value>..\Resources\rsa_1.param.q;System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089;utf-8</value>
   </data>
   <data name="rsa_1_pw" type="System.Resources.ResXFileRef, System.Windows.Forms">
     <value>..\Resources\rsa_1_pw;System.Byte[], mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
@@ -398,13 +356,13 @@
     <value>..\Resources\rsa_2.fp.bb;System.Byte[], mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </data>
   <data name="rsa_2_param_n" type="System.Resources.ResXFileRef, System.Windows.Forms">
-    <value>..\Resources\rsa_2.param.n;System.Byte[], mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+    <value>..\Resources\rsa_2.param.n;System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089;utf-8</value>
   </data>
   <data name="rsa_2_param_p" type="System.Resources.ResXFileRef, System.Windows.Forms">
-    <value>..\Resources\rsa_2.param.p;System.Byte[], mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+    <value>..\Resources\rsa_2.param.p;System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089;utf-8</value>
   </data>
   <data name="rsa_2_param_q" type="System.Resources.ResXFileRef, System.Windows.Forms">
-    <value>..\Resources\rsa_2.param.q;System.Byte[], mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+    <value>..\Resources\rsa_2.param.q;System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089;utf-8</value>
   </data>
   <data name="rsa_n" type="System.Resources.ResXFileRef, System.Windows.Forms">
     <value>..\Resources\rsa_n;System.Byte[], mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>

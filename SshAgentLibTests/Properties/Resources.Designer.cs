@@ -71,12 +71,12 @@ namespace dlech.SshAgentLibTests.Properties {
         }
         
         /// <summary>
-        ///   Looks up a localized resource of type System.Byte[].
+        ///   Looks up a localized string similar to MD5:5a:4a:41:8c:4e:fa:4c:52:19:f9:39:49:31:fb:fd:74
+        ///.
         /// </summary>
-        internal static byte[] dsa_1_cert_fp {
+        internal static string dsa_1_cert_fp {
             get {
-                object obj = ResourceManager.GetObject("dsa_1_cert_fp", resourceCulture);
-                return ((byte[])(obj));
+                return ResourceManager.GetString("dsa_1_cert_fp", resourceCulture);
             }
         }
         
@@ -91,52 +91,52 @@ namespace dlech.SshAgentLibTests.Properties {
         }
         
         /// <summary>
-        ///   Looks up a localized resource of type System.Byte[].
+        ///   Looks up a localized string similar to MD5:5a:4a:41:8c:4e:fa:4c:52:19:f9:39:49:31:fb:fd:74
+        ///.
         /// </summary>
-        internal static byte[] dsa_1_fp {
+        internal static string dsa_1_fp {
             get {
-                object obj = ResourceManager.GetObject("dsa_1_fp", resourceCulture);
-                return ((byte[])(obj));
+                return ResourceManager.GetString("dsa_1_fp", resourceCulture);
             }
         }
         
         /// <summary>
-        ///   Looks up a localized resource of type System.Byte[].
+        ///   Looks up a localized string similar to xosat-baneh-gocad-relek-kepur-mibip-motog-bykyb-hisug-mysus-tuxix
+        ///.
         /// </summary>
-        internal static byte[] dsa_1_fp_bb {
+        internal static string dsa_1_fp_bb {
             get {
-                object obj = ResourceManager.GetObject("dsa_1_fp_bb", resourceCulture);
-                return ((byte[])(obj));
+                return ResourceManager.GetString("dsa_1_fp_bb", resourceCulture);
             }
         }
         
         /// <summary>
-        ///   Looks up a localized resource of type System.Byte[].
+        ///   Looks up a localized string similar to 456f9e7b0653bf5128b31bf700d2b1dfbda97f9f9f40ac275a2cc88f9cff198df0df1a1b4423fd1622f82b7362a7616f1cb4c6a51ae57e6d7d45660083bed5b0d833b42e15f42f10aca59c589764524a10a59dd5a0edb9aced7786621e9646a5de898a085e1913f79d785dddd81f0397362cd1a05c8d308c0ebb9bfc22482dc6
+        ///.
         /// </summary>
-        internal static byte[] dsa_1_param_g {
+        internal static string dsa_1_param_g {
             get {
-                object obj = ResourceManager.GetObject("dsa_1_param_g", resourceCulture);
-                return ((byte[])(obj));
+                return ResourceManager.GetString("dsa_1_param_g", resourceCulture);
             }
         }
         
         /// <summary>
-        ///   Looks up a localized resource of type System.Byte[].
+        ///   Looks up a localized string similar to 197b2dce958664e24ee84b5e3a11742652fe9fe6
+        ///.
         /// </summary>
-        internal static byte[] dsa_1_param_priv {
+        internal static string dsa_1_param_priv {
             get {
-                object obj = ResourceManager.GetObject("dsa_1_param_priv", resourceCulture);
-                return ((byte[])(obj));
+                return ResourceManager.GetString("dsa_1_param_priv", resourceCulture);
             }
         }
         
         /// <summary>
-        ///   Looks up a localized resource of type System.Byte[].
+        ///   Looks up a localized string similar to 00809b7d8de7c6422e1297917c8778d8a39d8bca013cb0d632bab12530a566ca1152289d487e2f63e21369da3673bbb8e96568589dd5283da1ba81b441edf2f7a79927951a373f60f39ddeaee8d01d86b003596f895fd9f5fc430a52fd21f2b44523fddbf516351d55730501fb577b0d27a89e907f09a8ecb596208c68cca5c388
+        ///.
         /// </summary>
-        internal static byte[] dsa_1_param_pub {
+        internal static string dsa_1_param_pub {
             get {
-                object obj = ResourceManager.GetObject("dsa_1_param_pub", resourceCulture);
-                return ((byte[])(obj));
+                return ResourceManager.GetString("dsa_1_param_pub", resourceCulture);
             }
         }
         
@@ -171,22 +171,22 @@ namespace dlech.SshAgentLibTests.Properties {
         }
         
         /// <summary>
-        ///   Looks up a localized resource of type System.Byte[].
+        ///   Looks up a localized string similar to MD5:72:5f:50:6b:e5:64:c5:62:21:92:3f:8b:10:9b:9f:1a
+        ///.
         /// </summary>
-        internal static byte[] dsa_2_fp {
+        internal static string dsa_2_fp {
             get {
-                object obj = ResourceManager.GetObject("dsa_2_fp", resourceCulture);
-                return ((byte[])(obj));
+                return ResourceManager.GetString("dsa_2_fp", resourceCulture);
             }
         }
         
         /// <summary>
-        ///   Looks up a localized resource of type System.Byte[].
+        ///   Looks up a localized string similar to xesoh-mebaf-feced-lenuz-sicam-pevok-bosak-nogaz-ligen-fekef-fixex
+        ///.
         /// </summary>
-        internal static byte[] dsa_2_fp_bb {
+        internal static string dsa_2_fp_bb {
             get {
-                object obj = ResourceManager.GetObject("dsa_2_fp_bb", resourceCulture);
-                return ((byte[])(obj));
+                return ResourceManager.GetString("dsa_2_fp_bb", resourceCulture);
             }
         }
         
@@ -223,46 +223,6 @@ namespace dlech.SshAgentLibTests.Properties {
         /// <summary>
         ///   Looks up a localized resource of type System.Byte[].
         /// </summary>
-        internal static byte[] dsa_no_passphrase {
-            get {
-                object obj = ResourceManager.GetObject("dsa_no_passphrase", resourceCulture);
-                return ((byte[])(obj));
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized resource of type System.Byte[].
-        /// </summary>
-        internal static byte[] dsa_no_passphrase_pub {
-            get {
-                object obj = ResourceManager.GetObject("dsa_no_passphrase_pub", resourceCulture);
-                return ((byte[])(obj));
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized resource of type System.Byte[].
-        /// </summary>
-        internal static byte[] dsa_with_passphrase {
-            get {
-                object obj = ResourceManager.GetObject("dsa_with_passphrase", resourceCulture);
-                return ((byte[])(obj));
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized resource of type System.Byte[].
-        /// </summary>
-        internal static byte[] dsa_with_passphrase_pub {
-            get {
-                object obj = ResourceManager.GetObject("dsa_with_passphrase_pub", resourceCulture);
-                return ((byte[])(obj));
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized resource of type System.Byte[].
-        /// </summary>
         internal static byte[] ecdsa_1 {
             get {
                 object obj = ResourceManager.GetObject("ecdsa_1", resourceCulture);
@@ -271,12 +231,12 @@ namespace dlech.SshAgentLibTests.Properties {
         }
         
         /// <summary>
-        ///   Looks up a localized resource of type System.Byte[].
+        ///   Looks up a localized string similar to MD5:f7:be:4c:02:65:ed:4c:11:af:ab:a8:dd:0a:92:e7:44
+        ///.
         /// </summary>
-        internal static byte[] ecdsa_1_cert_fp {
+        internal static string ecdsa_1_cert_fp {
             get {
-                object obj = ResourceManager.GetObject("ecdsa_1_cert_fp", resourceCulture);
-                return ((byte[])(obj));
+                return ResourceManager.GetString("ecdsa_1_cert_fp", resourceCulture);
             }
         }
         
@@ -291,52 +251,52 @@ namespace dlech.SshAgentLibTests.Properties {
         }
         
         /// <summary>
-        ///   Looks up a localized resource of type System.Byte[].
+        ///   Looks up a localized string similar to MD5:f7:be:4c:02:65:ed:4c:11:af:ab:a8:dd:0a:92:e7:44
+        ///.
         /// </summary>
-        internal static byte[] ecdsa_1_fp {
+        internal static string ecdsa_1_fp {
             get {
-                object obj = ResourceManager.GetObject("ecdsa_1_fp", resourceCulture);
-                return ((byte[])(obj));
+                return ResourceManager.GetString("ecdsa_1_fp", resourceCulture);
             }
         }
         
         /// <summary>
-        ///   Looks up a localized resource of type System.Byte[].
+        ///   Looks up a localized string similar to xotah-hecal-zibyb-nadug-romuc-hator-venum-hobip-ruluh-ripus-naxix
+        ///.
         /// </summary>
-        internal static byte[] ecdsa_1_fp_bb {
+        internal static string ecdsa_1_fp_bb {
             get {
-                object obj = ResourceManager.GetObject("ecdsa_1_fp_bb", resourceCulture);
-                return ((byte[])(obj));
+                return ResourceManager.GetString("ecdsa_1_fp_bb", resourceCulture);
             }
         }
         
         /// <summary>
-        ///   Looks up a localized resource of type System.Byte[].
+        ///   Looks up a localized string similar to prime256v1
+        ///.
         /// </summary>
-        internal static byte[] ecdsa_1_param_curve {
+        internal static string ecdsa_1_param_curve {
             get {
-                object obj = ResourceManager.GetObject("ecdsa_1_param_curve", resourceCulture);
-                return ((byte[])(obj));
+                return ResourceManager.GetString("ecdsa_1_param_curve", resourceCulture);
             }
         }
         
         /// <summary>
-        ///   Looks up a localized resource of type System.Byte[].
+        ///   Looks up a localized string similar to 5821b054752bde6dcfca8e977fad5fa7eff1afcee807cd6f13921595f78a1c68
+        ///.
         /// </summary>
-        internal static byte[] ecdsa_1_param_priv {
+        internal static string ecdsa_1_param_priv {
             get {
-                object obj = ResourceManager.GetObject("ecdsa_1_param_priv", resourceCulture);
-                return ((byte[])(obj));
+                return ResourceManager.GetString("ecdsa_1_param_priv", resourceCulture);
             }
         }
         
         /// <summary>
-        ///   Looks up a localized resource of type System.Byte[].
+        ///   Looks up a localized string similar to 046a5a603f404e78f1ed4f0d0fbace2d7614dbf0ff72594665baf2dfd43f2fac72264fe1b8bebfd6c68e625c629054489fb945722e4016da40ebabc27fb3379189
+        ///.
         /// </summary>
-        internal static byte[] ecdsa_1_param_pub {
+        internal static string ecdsa_1_param_pub {
             get {
-                object obj = ResourceManager.GetObject("ecdsa_1_param_pub", resourceCulture);
-                return ((byte[])(obj));
+                return ResourceManager.GetString("ecdsa_1_param_pub", resourceCulture);
             }
         }
         
@@ -371,52 +331,52 @@ namespace dlech.SshAgentLibTests.Properties {
         }
         
         /// <summary>
-        ///   Looks up a localized resource of type System.Byte[].
+        ///   Looks up a localized string similar to MD5:51:bd:ff:2b:6d:26:9b:90:f9:e1:4a:ca:a0:29:8e:70
+        ///.
         /// </summary>
-        internal static byte[] ecdsa_2_fp {
+        internal static string ecdsa_2_fp {
             get {
-                object obj = ResourceManager.GetObject("ecdsa_2_fp", resourceCulture);
-                return ((byte[])(obj));
+                return ResourceManager.GetString("ecdsa_2_fp", resourceCulture);
             }
         }
         
         /// <summary>
-        ///   Looks up a localized resource of type System.Byte[].
+        ///   Looks up a localized string similar to xuzaz-zuzuk-virop-vypah-zumel-gylak-selih-fevad-varag-zynif-haxox
+        ///.
         /// </summary>
-        internal static byte[] ecdsa_2_fp_bb {
+        internal static string ecdsa_2_fp_bb {
             get {
-                object obj = ResourceManager.GetObject("ecdsa_2_fp_bb", resourceCulture);
-                return ((byte[])(obj));
+                return ResourceManager.GetString("ecdsa_2_fp_bb", resourceCulture);
             }
         }
         
         /// <summary>
-        ///   Looks up a localized resource of type System.Byte[].
+        ///   Looks up a localized string similar to secp521r1
+        ///.
         /// </summary>
-        internal static byte[] ecdsa_2_param_curve {
+        internal static string ecdsa_2_param_curve {
             get {
-                object obj = ResourceManager.GetObject("ecdsa_2_param_curve", resourceCulture);
-                return ((byte[])(obj));
+                return ResourceManager.GetString("ecdsa_2_param_curve", resourceCulture);
             }
         }
         
         /// <summary>
-        ///   Looks up a localized resource of type System.Byte[].
+        ///   Looks up a localized string similar to 01838915c547e8a3f444ffbf3f40146a1ba3d9b8767cd9e2e7866655cc16bb5d111489823f270eeb430a781530557d72fbe8fb7903204c7fee7669578e5252d11114
+        ///.
         /// </summary>
-        internal static byte[] ecdsa_2_param_priv {
+        internal static string ecdsa_2_param_priv {
             get {
-                object obj = ResourceManager.GetObject("ecdsa_2_param_priv", resourceCulture);
-                return ((byte[])(obj));
+                return ResourceManager.GetString("ecdsa_2_param_priv", resourceCulture);
             }
         }
         
         /// <summary>
-        ///   Looks up a localized resource of type System.Byte[].
+        ///   Looks up a localized string similar to 04008d4c9e4eb8da3974d8084112c7cca53dd66ee29a62858aeb49e819436e44642abf849ef8f5dc9e873a062f3939b49fb48f94a1d2493678fd3dfa77faf340e01b2301276dbc03f47323e88cc4e161fd949cc7ed9cbb4dccaee9d38cf0bee73b10a9dc35241776809cf4852610fb34dd23056385b03eaecb53a66939253df4409c2b7531
+        ///.
         /// </summary>
-        internal static byte[] ecdsa_2_param_pub {
+        internal static string ecdsa_2_param_pub {
             get {
-                object obj = ResourceManager.GetObject("ecdsa_2_param_pub", resourceCulture);
-                return ((byte[])(obj));
+                return ResourceManager.GetString("ecdsa_2_param_pub", resourceCulture);
             }
         }
         
@@ -453,46 +413,6 @@ namespace dlech.SshAgentLibTests.Properties {
         /// <summary>
         ///   Looks up a localized resource of type System.Byte[].
         /// </summary>
-        internal static byte[] ecdsa_no_passphrase {
-            get {
-                object obj = ResourceManager.GetObject("ecdsa_no_passphrase", resourceCulture);
-                return ((byte[])(obj));
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized resource of type System.Byte[].
-        /// </summary>
-        internal static byte[] ecdsa_no_passphrase_pub {
-            get {
-                object obj = ResourceManager.GetObject("ecdsa_no_passphrase_pub", resourceCulture);
-                return ((byte[])(obj));
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized resource of type System.Byte[].
-        /// </summary>
-        internal static byte[] ecdsa_with_passphrase {
-            get {
-                object obj = ResourceManager.GetObject("ecdsa_with_passphrase", resourceCulture);
-                return ((byte[])(obj));
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized resource of type System.Byte[].
-        /// </summary>
-        internal static byte[] ecdsa_with_passphrase_pub {
-            get {
-                object obj = ResourceManager.GetObject("ecdsa_with_passphrase_pub", resourceCulture);
-                return ((byte[])(obj));
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized resource of type System.Byte[].
-        /// </summary>
         internal static byte[] ed25519_1 {
             get {
                 object obj = ResourceManager.GetObject("ed25519_1", resourceCulture);
@@ -501,12 +421,12 @@ namespace dlech.SshAgentLibTests.Properties {
         }
         
         /// <summary>
-        ///   Looks up a localized resource of type System.Byte[].
+        ///   Looks up a localized string similar to MD5:19:08:8e:7e:4d:e5:de:86:2a:09:47:65:eb:0a:51:2f
+        ///.
         /// </summary>
-        internal static byte[] ed25519_1_cert_fp {
+        internal static string ed25519_1_cert_fp {
             get {
-                object obj = ResourceManager.GetObject("ed25519_1_cert_fp", resourceCulture);
-                return ((byte[])(obj));
+                return ResourceManager.GetString("ed25519_1_cert_fp", resourceCulture);
             }
         }
         
@@ -521,22 +441,22 @@ namespace dlech.SshAgentLibTests.Properties {
         }
         
         /// <summary>
-        ///   Looks up a localized resource of type System.Byte[].
+        ///   Looks up a localized string similar to MD5:19:08:8e:7e:4d:e5:de:86:2a:09:47:65:eb:0a:51:2f
+        ///.
         /// </summary>
-        internal static byte[] ed25519_1_fp {
+        internal static string ed25519_1_fp {
             get {
-                object obj = ResourceManager.GetObject("ed25519_1_fp", resourceCulture);
-                return ((byte[])(obj));
+                return ResourceManager.GetString("ed25519_1_fp", resourceCulture);
             }
         }
         
         /// <summary>
-        ///   Looks up a localized resource of type System.Byte[].
+        ///   Looks up a localized string similar to xofip-nuhoh-botam-cypeg-panig-tunef-bimav-numeb-nikic-gocyf-paxax
+        ///.
         /// </summary>
-        internal static byte[] ed25519_1_fp_bb {
+        internal static string ed25519_1_fp_bb {
             get {
-                object obj = ResourceManager.GetObject("ed25519_1_fp_bb", resourceCulture);
-                return ((byte[])(obj));
+                return ResourceManager.GetString("ed25519_1_fp_bb", resourceCulture);
             }
         }
         
@@ -571,22 +491,22 @@ namespace dlech.SshAgentLibTests.Properties {
         }
         
         /// <summary>
-        ///   Looks up a localized resource of type System.Byte[].
+        ///   Looks up a localized string similar to MD5:5c:c9:ae:a3:0c:aa:28:29:b8:fc:7c:64:ba:6e:e9:c9
+        ///.
         /// </summary>
-        internal static byte[] ed25519_2_fp {
+        internal static string ed25519_2_fp {
             get {
-                object obj = ResourceManager.GetObject("ed25519_2_fp", resourceCulture);
-                return ((byte[])(obj));
+                return ResourceManager.GetString("ed25519_2_fp", resourceCulture);
             }
         }
         
         /// <summary>
-        ///   Looks up a localized resource of type System.Byte[].
+        ///   Looks up a localized string similar to xenoz-tovup-zecyt-hohar-motam-sugid-fecyz-tutyk-gosom-ginar-kixux
+        ///.
         /// </summary>
-        internal static byte[] ed25519_2_fp_bb {
+        internal static string ed25519_2_fp_bb {
             get {
-                object obj = ResourceManager.GetObject("ed25519_2_fp_bb", resourceCulture);
-                return ((byte[])(obj));
+                return ResourceManager.GetString("ed25519_2_fp_bb", resourceCulture);
             }
         }
         
@@ -621,12 +541,12 @@ namespace dlech.SshAgentLibTests.Properties {
         }
         
         /// <summary>
-        ///   Looks up a localized resource of type System.Byte[].
+        ///   Looks up a localized string similar to mekmitasdigoat
+        ///.
         /// </summary>
-        internal static byte[] pw {
+        internal static string pw {
             get {
-                object obj = ResourceManager.GetObject("pw", resourceCulture);
-                return ((byte[])(obj));
+                return ResourceManager.GetString("pw", resourceCulture);
             }
         }
         
@@ -641,12 +561,12 @@ namespace dlech.SshAgentLibTests.Properties {
         }
         
         /// <summary>
-        ///   Looks up a localized resource of type System.Byte[].
+        ///   Looks up a localized string similar to MD5:be:27:4c:16:27:f5:04:03:62:a8:b7:91:df:a5:b1:3b
+        ///.
         /// </summary>
-        internal static byte[] rsa_1_cert_fp {
+        internal static string rsa_1_cert_fp {
             get {
-                object obj = ResourceManager.GetObject("rsa_1_cert_fp", resourceCulture);
-                return ((byte[])(obj));
+                return ResourceManager.GetString("rsa_1_cert_fp", resourceCulture);
             }
         }
         
@@ -661,41 +581,61 @@ namespace dlech.SshAgentLibTests.Properties {
         }
         
         /// <summary>
-        ///   Looks up a localized resource of type System.Byte[].
+        ///   Looks up a localized string similar to MD5:be:27:4c:16:27:f5:04:03:62:a8:b7:91:df:a5:b1:3b
+        ///.
         /// </summary>
-        internal static byte[] rsa_1_fp_bb {
+        internal static string rsa_1_fp {
             get {
-                object obj = ResourceManager.GetObject("rsa_1_fp_bb", resourceCulture);
-                return ((byte[])(obj));
+                return ResourceManager.GetString("rsa_1_fp", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to xetif-zuvul-nylyc-vykor-lumac-gyhyv-bacih-cimyk-sycen-gikym-pixax
+        ///.
+        /// </summary>
+        internal static string rsa_1_fp_bb {
+            get {
+                return ResourceManager.GetString("rsa_1_fp_bb", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to 00cffa303995566fee350999a4e72d86800080c0d483b1b81fa64b2f23c485ba0a681047bc877065d0e607ed0b0dfdc3d5a597c94776fe90a40b2b22073a9dff9db7cc0ce363b1dacaa2fa03de3403128105b58b9fe5fa8b6c8947b753398924e9
+        ///.
+        /// </summary>
+        internal static string rsa_1_param_n {
+            get {
+                return ResourceManager.GetString("rsa_1_param_n", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to 00fb9ec951780c70cff01dfbe0025ecc1f260d65db0510d60240df38778e59fa6b8b37695d73c5b2a5227f22a81bf40599
+        ///.
+        /// </summary>
+        internal static string rsa_1_param_p {
+            get {
+                return ResourceManager.GetString("rsa_1_param_p", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to 00d398ee16ab23678a7ef75c266cd035aeec6b1f72e687f109c3c2a3e3260adc95365779dc4791ea8eda8c995b898b0bd1
+        ///.
+        /// </summary>
+        internal static string rsa_1_param_q {
+            get {
+                return ResourceManager.GetString("rsa_1_param_q", resourceCulture);
             }
         }
         
         /// <summary>
         ///   Looks up a localized resource of type System.Byte[].
         /// </summary>
-        internal static byte[] rsa_1_param_n {
+        internal static byte[] rsa_1_pub {
             get {
-                object obj = ResourceManager.GetObject("rsa_1_param_n", resourceCulture);
-                return ((byte[])(obj));
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized resource of type System.Byte[].
-        /// </summary>
-        internal static byte[] rsa_1_param_p {
-            get {
-                object obj = ResourceManager.GetObject("rsa_1_param_p", resourceCulture);
-                return ((byte[])(obj));
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized resource of type System.Byte[].
-        /// </summary>
-        internal static byte[] rsa_1_param_q {
-            get {
-                object obj = ResourceManager.GetObject("rsa_1_param_q", resourceCulture);
+                object obj = ResourceManager.GetObject("rsa_1_pub", resourceCulture);
                 return ((byte[])(obj));
             }
         }
@@ -706,26 +646,6 @@ namespace dlech.SshAgentLibTests.Properties {
         internal static byte[] rsa_1_pw {
             get {
                 object obj = ResourceManager.GetObject("rsa_1_pw", resourceCulture);
-                return ((byte[])(obj));
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized resource of type System.Byte[].
-        /// </summary>
-        internal static byte[] rsa_11_fp {
-            get {
-                object obj = ResourceManager.GetObject("rsa_11_fp", resourceCulture);
-                return ((byte[])(obj));
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized resource of type System.Byte[].
-        /// </summary>
-        internal static byte[] rsa_12_pub {
-            get {
-                object obj = ResourceManager.GetObject("rsa_12_pub", resourceCulture);
                 return ((byte[])(obj));
             }
         }
@@ -751,32 +671,31 @@ namespace dlech.SshAgentLibTests.Properties {
         }
         
         /// <summary>
-        ///   Looks up a localized resource of type System.Byte[].
+        ///   Looks up a localized string similar to 009434bfca07857ec47f9a164afd730753f83346880fb8c408614775ed60e3329ac0e9d41b7244c3acd9bf9ab7f4f48e980218e0a2810bd7aa16335cfa71eb031342b0689b32eae4e65c530b3be1dae26b451e19aeb62c89710f4c28aaf4bc2eb8dfce16419ca0664d0e955cfbc7d5923e2197cda979333b17e1362ae41d39a3609bf9ea401712b473c71d6190f44b2e7b816469440df226ae3387f864b3df23ce7d170371c0240dfd30a8541b9b5fe5eeb3e4178f622e45bdd9c343d59c6ac46212f9261db839f696e083f2dbb25e8e81942bb92f212a2277601011b767ae0827a0eea00529b5d147d4ccc1fa611f7022e0e8bfc3a1cf44085daf0a2803f80a [rest of string was truncated]&quot;;.
         /// </summary>
-        internal static byte[] rsa_2_param_n {
+        internal static string rsa_2_param_n {
             get {
-                object obj = ResourceManager.GetObject("rsa_2_param_n", resourceCulture);
-                return ((byte[])(obj));
+                return ResourceManager.GetString("rsa_2_param_n", resourceCulture);
             }
         }
         
         /// <summary>
-        ///   Looks up a localized resource of type System.Byte[].
+        ///   Looks up a localized string similar to 00c455d4a04d5eae8eafa7d6a4bd1fe6c3de246235c4fd83b3d728b429391952cea051173c2b3b26333944677d6b9e7804e23407600bee3c47e2a9c9d4832956dd0b9ebcc828da108b60eeda1b90b47e4f1378e8aebe7ac560f3bcad225693f06076b3edceee393fb8e65ac8e41e7fb2fadf1c2afab5b19638d2c9f662022160af
+        ///.
         /// </summary>
-        internal static byte[] rsa_2_param_p {
+        internal static string rsa_2_param_p {
             get {
-                object obj = ResourceManager.GetObject("rsa_2_param_p", resourceCulture);
-                return ((byte[])(obj));
+                return ResourceManager.GetString("rsa_2_param_p", resourceCulture);
             }
         }
         
         /// <summary>
-        ///   Looks up a localized resource of type System.Byte[].
+        ///   Looks up a localized string similar to 00c13ea3e6d45e23ab31a4796d3d46ef39da43d3878bea080100ac336f9681a1afc38feb14d73839bb263c7628204041339e50568964d09a699fcb579ff62e9803036e66f78a3ab57034c71db9b409d97dba5e816b980e7d3e3b1b2edaf56dd51bd36833e8fe71ea9730e6acc4ab499d760bc7894dd184bdb8c5d7352d6f2798bf
+        ///.
         /// </summary>
-        internal static byte[] rsa_2_param_q {
+        internal static string rsa_2_param_q {
             get {
-                object obj = ResourceManager.GetObject("rsa_2_param_q", resourceCulture);
-                return ((byte[])(obj));
+                return ResourceManager.GetString("rsa_2_param_q", resourceCulture);
             }
         }
         
@@ -823,46 +742,6 @@ namespace dlech.SshAgentLibTests.Properties {
         /// <summary>
         ///   Looks up a localized resource of type System.Byte[].
         /// </summary>
-        internal static byte[] rsa_no_passphrase {
-            get {
-                object obj = ResourceManager.GetObject("rsa_no_passphrase", resourceCulture);
-                return ((byte[])(obj));
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized resource of type System.Byte[].
-        /// </summary>
-        internal static byte[] rsa_no_passphrase_pub {
-            get {
-                object obj = ResourceManager.GetObject("rsa_no_passphrase_pub", resourceCulture);
-                return ((byte[])(obj));
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized resource of type System.Byte[].
-        /// </summary>
-        internal static byte[] rsa_with_passphrase {
-            get {
-                object obj = ResourceManager.GetObject("rsa_with_passphrase", resourceCulture);
-                return ((byte[])(obj));
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized resource of type System.Byte[].
-        /// </summary>
-        internal static byte[] rsa_with_passphrase_pub {
-            get {
-                object obj = ResourceManager.GetObject("rsa_with_passphrase_pub", resourceCulture);
-                return ((byte[])(obj));
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized resource of type System.Byte[].
-        /// </summary>
         internal static byte[] rsa1_1 {
             get {
                 object obj = ResourceManager.GetObject("rsa1_1", resourceCulture);
@@ -871,32 +750,32 @@ namespace dlech.SshAgentLibTests.Properties {
         }
         
         /// <summary>
-        ///   Looks up a localized resource of type System.Byte[].
+        ///   Looks up a localized string similar to MD5:a8:82:9b:98:c5:e6:19:d6:83:39:9f:4d:3a:8f:7c:80
+        ///.
         /// </summary>
-        internal static byte[] rsa1_1_fp {
+        internal static string rsa1_1_fp {
             get {
-                object obj = ResourceManager.GetObject("rsa1_1_fp", resourceCulture);
-                return ((byte[])(obj));
+                return ResourceManager.GetString("rsa1_1_fp", resourceCulture);
             }
         }
         
         /// <summary>
-        ///   Looks up a localized resource of type System.Byte[].
+        ///   Looks up a localized string similar to xukib-cymuf-mylib-kecih-rogyb-sorid-belys-kytem-dinin-cicil-kyxex
+        ///.
         /// </summary>
-        internal static byte[] rsa1_1_fp_bb {
+        internal static string rsa1_1_fp_bb {
             get {
-                object obj = ResourceManager.GetObject("rsa1_1_fp_bb", resourceCulture);
-                return ((byte[])(obj));
+                return ResourceManager.GetString("rsa1_1_fp_bb", resourceCulture);
             }
         }
         
         /// <summary>
-        ///   Looks up a localized resource of type System.Byte[].
+        ///   Looks up a localized string similar to 00cf68059e5c7743318d740d3ebb55eb577891c9c3098817703f4c3157285055c2daa50102509ebdcade324e541c965e2931fd3459052fe65d013722da805d7ec8ef5b97cc006789d0566c5578b23e7aaa5be2b055d85798030cdead2eb2cc4eb3
+        ///.
         /// </summary>
-        internal static byte[] rsa1_1_param_n {
+        internal static string rsa1_1_param_n {
             get {
-                object obj = ResourceManager.GetObject("rsa1_1_param_n", resourceCulture);
-                return ((byte[])(obj));
+                return ResourceManager.GetString("rsa1_1_param_n", resourceCulture);
             }
         }
         
@@ -931,32 +810,31 @@ namespace dlech.SshAgentLibTests.Properties {
         }
         
         /// <summary>
-        ///   Looks up a localized resource of type System.Byte[].
+        ///   Looks up a localized string similar to MD5:c0:83:1c:97:5f:32:77:7e:e4:e3:e9:29:b9:eb:76:9c
+        ///.
         /// </summary>
-        internal static byte[] rsa1_2_fp {
+        internal static string rsa1_2_fp {
             get {
-                object obj = ResourceManager.GetObject("rsa1_2_fp", resourceCulture);
-                return ((byte[])(obj));
+                return ResourceManager.GetString("rsa1_2_fp", resourceCulture);
             }
         }
         
         /// <summary>
-        ///   Looks up a localized resource of type System.Byte[].
+        ///   Looks up a localized string similar to xifad-vevot-sozyl-fapeb-meryf-kylut-cydiv-firik-gavyb-lanad-kaxox
+        ///.
         /// </summary>
-        internal static byte[] rsa1_2_fp_bb {
+        internal static string rsa1_2_fp_bb {
             get {
-                object obj = ResourceManager.GetObject("rsa1_2_fp_bb", resourceCulture);
-                return ((byte[])(obj));
+                return ResourceManager.GetString("rsa1_2_fp_bb", resourceCulture);
             }
         }
         
         /// <summary>
-        ///   Looks up a localized resource of type System.Byte[].
+        ///   Looks up a localized string similar to 00b08a9fa386aceaab2ec3e9cdc7e6cb4eac9e98620279eed6762e1f513739a417ac8a86231fad3b8727a9de994973a7aae674a132547341984ade91aa1c22f01d2f0204ea7fa121969c367a5d04bda384066cf94e0b56d1efc47f50ca28e90603547df41c0676550d82d369f699b457d4f0f077999d9e76ab679fbf4206d418dbabed1823f14e4ddf3aac987686e6b006f8a23ea6af13b4c0e5b1fb5b1eb4db2f47b229422c450574cae9c64db5dcfce050836b6bdfa8fb541b4d426444a5ea20ad51a25d3048414ced2e199da2997968273e8beb10f3a351e98a57b00dadfa8f00a39bb55be94dae898fda6021d728f32b2ec93edd16e51073be3ac7511e50 [rest of string was truncated]&quot;;.
         /// </summary>
-        internal static byte[] rsa1_2_param_n {
+        internal static string rsa1_2_param_n {
             get {
-                object obj = ResourceManager.GetObject("rsa1_2_param_n", resourceCulture);
-                return ((byte[])(obj));
+                return ResourceManager.GetString("rsa1_2_param_n", resourceCulture);
             }
         }
         
@@ -966,26 +844,6 @@ namespace dlech.SshAgentLibTests.Properties {
         internal static byte[] rsa1_2_pub {
             get {
                 object obj = ResourceManager.GetObject("rsa1_2_pub", resourceCulture);
-                return ((byte[])(obj));
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized resource of type System.Byte[].
-        /// </summary>
-        internal static byte[] ssh1_rsa_no_passphrase_ppk {
-            get {
-                object obj = ResourceManager.GetObject("ssh1_rsa_no_passphrase_ppk", resourceCulture);
-                return ((byte[])(obj));
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized resource of type System.Byte[].
-        /// </summary>
-        internal static byte[] ssh1_rsa_ppk {
-            get {
-                object obj = ResourceManager.GetObject("ssh1_rsa_ppk", resourceCulture);
                 return ((byte[])(obj));
             }
         }

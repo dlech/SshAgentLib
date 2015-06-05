@@ -25,63 +25,147 @@
 
 using System.IO;
 using System.Security;
+
+using NUnit.Framework;
+using Org.BouncyCastle.Asn1.X9;
+using Org.BouncyCastle.Crypto.Parameters;
+using Org.BouncyCastle.Math;
 using dlech.SshAgentLib;
 using dlech.SshAgentLibTests.Properties;
-using NUnit.Framework;
 
 namespace dlech.SshAgentLibTests
 {
-
-  /// <summary>
-  ///This is a test class for PemKeyFormatter and is intended
-  ///to contain all PemKeyFormatter Unit Tests
-  ///</summary>
-  [TestFixture()]
-  public class PemKeyFormatterTest
-  {
-
-    private KeyFormatter.GetPassphraseCallback passphraseCallback;
-
-    [TestFixtureSetUp()]
-    public void SetupFixture()
+    /// <summary>
+    ///This is a test class for PemKeyFormatter and is intended
+    ///to contain all PemKeyFormatter Unit Tests
+    ///</summary>
+    ///<remarks>
+    ///Tests based on /src/regress/usr.bin/ssh/untistests/sshkey/test_file.c
+    ///from OpenBSD source code.
+    /// </remarks>
+    [TestFixture]
+    public class PemKeyFormatterTest
     {
-      passphraseCallback = delegate(string comment)
-      {
-        SecureString passphrase = new SecureString();
-        foreach (char c in "passphrase") {
-          passphrase.AppendChar(c);
+        KeyFormatter.GetPassphraseCallback passphraseCallback;
+
+        [TestFixtureSetUp]
+        public void SetupFixture()
+        {
+            passphraseCallback = delegate(string comment)
+            {
+                SecureString passphrase = new SecureString();
+                foreach (char c in Resources.pw.Trim()) {
+                    passphrase.AppendChar(c);
+                }
+                return passphrase;
+            };
         }
-        return passphrase;
-      };
-    }
 
-    [Test()]
-    public void TestDeserialize_RSA()
-    {
-        TestDeserialize(Resources.rsa_no_passphrase, PublicKeyAlgorithm.SSH_RSA);
-        TestDeserialize(Resources.rsa_with_passphrase, PublicKeyAlgorithm.SSH_RSA);
-    }
+        [Test]
+        public void TestDeserializeRsaFromPrivate()
+        {
+            var formatter = new PemKeyFormatter();
+            var key = formatter.Deserialize(Resources.rsa_1);
+            Assert.That(key.Version, Is.EqualTo(SshVersion.SSH2));
+            Assert.That(key.Algorithm, Is.EqualTo(PublicKeyAlgorithm.SSH_RSA));
+            var publicKey = (RsaKeyParameters)key.GetPublicKeyParameters();
+            var privateKey = (RsaPrivateCrtKeyParameters)key.GetPrivateKeyParameters();
+            var param_n = new BigInteger(Resources.rsa_1_param_n.Trim(), 16);
+            var param_p = new BigInteger(Resources.rsa_1_param_p.Trim(), 16);
+            var param_q = new BigInteger(Resources.rsa_1_param_q.Trim(), 16);
+            Assert.That(publicKey.Modulus, Is.EqualTo(param_n));
+            Assert.That(privateKey.P, Is.EqualTo(param_p));
+            Assert.That(privateKey.Q, Is.EqualTo(param_q));
+        }
 
-    [Test()]
-    public void TestDeserialize_DSA()
-    {
-        TestDeserialize(Resources.dsa_no_passphrase, PublicKeyAlgorithm.SSH_DSS);
-        TestDeserialize(Resources.dsa_with_passphrase, PublicKeyAlgorithm.SSH_DSS);
-    }
+        [Test]
+        public void TestDeserializeRsaFromPrivateWithPassphrase()
+        {
+            var formatter = new PemKeyFormatter();
+            formatter.GetPassphraseCallbackMethod = passphraseCallback;
+            var key = formatter.Deserialize(Resources.rsa_1_pw);
+            Assert.That(key.Version, Is.EqualTo(SshVersion.SSH2));
+            Assert.That(key.Algorithm, Is.EqualTo(PublicKeyAlgorithm.SSH_RSA));
+            var publicKey = (RsaKeyParameters)key.GetPublicKeyParameters();
+            var privateKey = (RsaPrivateCrtKeyParameters)key.GetPrivateKeyParameters();
+            var param_n = new BigInteger(Resources.rsa_1_param_n.Trim(), 16);
+            var param_p = new BigInteger(Resources.rsa_1_param_p.Trim(), 16);
+            var param_q = new BigInteger(Resources.rsa_1_param_q.Trim(), 16);
+            Assert.That(publicKey.Modulus, Is.EqualTo(param_n));
+            Assert.That(privateKey.P, Is.EqualTo(param_p));
+            Assert.That(privateKey.Q, Is.EqualTo(param_q));
+        }
 
-    [Test()]
-    public void TestDeserialize_ECDSA()
-    {
-        TestDeserialize(Resources.ecdsa_no_passphrase, PublicKeyAlgorithm.ECDSA_SHA2_NISTP256);
-        TestDeserialize(Resources.ecdsa_with_passphrase, PublicKeyAlgorithm.ECDSA_SHA2_NISTP256);
-    }
+        [Test]
+        public void TestDeserializeDsaFromPrivate()
+        {
+            var formatter = new PemKeyFormatter();
+            var key = formatter.Deserialize(Resources.dsa_1);
+            Assert.That(key.Version, Is.EqualTo(SshVersion.SSH2));
+            Assert.That(key.Algorithm, Is.EqualTo(PublicKeyAlgorithm.SSH_DSS));
+            var publicKey = (DsaPublicKeyParameters)key.GetPublicKeyParameters();
+            var privateKey = (DsaPrivateKeyParameters)key.GetPrivateKeyParameters();
+            var param_g = new BigInteger(Resources.dsa_1_param_g.Trim(), 16);
+            var param_priv = new BigInteger(Resources.dsa_1_param_priv.Trim(), 16);
+            var param_pub = new BigInteger(Resources.dsa_1_param_pub.Trim(), 16);
+            Assert.That(privateKey.Parameters.G, Is.EqualTo(param_g));
+            Assert.That(privateKey.X, Is.EqualTo(param_priv));
+            Assert.That(publicKey.Y, Is.EqualTo(param_pub));
+        }
 
-    void TestDeserialize(byte[] data, PublicKeyAlgorithm alg)
-    {
-        var formatter = new PemKeyFormatter();
-        formatter.GetPassphraseCallbackMethod = passphraseCallback;
-        var key = formatter.Deserialize(data);
-        Assert.That(key.Algorithm, Is.EqualTo(alg));
+        [Test]
+        public void TestDeserializeDsaFromPrivateWithPassphrase()
+        {
+            var formatter = new PemKeyFormatter();
+            formatter.GetPassphraseCallbackMethod = passphraseCallback;
+            var key = formatter.Deserialize(Resources.dsa_1_pw);
+            Assert.That(key.Version, Is.EqualTo(SshVersion.SSH2));
+            Assert.That(key.Algorithm, Is.EqualTo(PublicKeyAlgorithm.SSH_DSS));
+            var publicKey = (DsaPublicKeyParameters)key.GetPublicKeyParameters();
+            var privateKey = (DsaPrivateKeyParameters)key.GetPrivateKeyParameters();
+            var param_g = new BigInteger(Resources.dsa_1_param_g.Trim(), 16);
+            var param_priv = new BigInteger(Resources.dsa_1_param_priv.Trim(), 16);
+            var param_pub = new BigInteger(Resources.dsa_1_param_pub.Trim(), 16);
+            Assert.That(privateKey.Parameters.G, Is.EqualTo(param_g));
+            Assert.That(privateKey.X, Is.EqualTo(param_priv));
+            Assert.That(publicKey.Y, Is.EqualTo(param_pub));
+        }
+
+        [Test]
+        public void TestDeserializeEcdsaFromPrivate()
+        {
+            var formatter = new PemKeyFormatter();
+            var key = formatter.Deserialize(Resources.ecdsa_1);
+            Assert.That(key.Version, Is.EqualTo(SshVersion.SSH2));
+            Assert.That(key.Algorithm, Is.EqualTo(PublicKeyAlgorithm.ECDSA_SHA2_NISTP256));
+            var publicKey = (ECPublicKeyParameters)key.GetPublicKeyParameters();
+            var privateKey = (ECPrivateKeyParameters)key.GetPrivateKeyParameters();
+            var param_curve = X962NamedCurves.GetByName(Resources.ecdsa_1_param_curve.Trim());
+            var param_priv = new BigInteger(Resources.ecdsa_1_param_priv.Trim(), 16);
+            var param_pub = new BigInteger(Resources.ecdsa_1_param_pub.Trim(), 16);
+            Assert.That(privateKey.Parameters.Curve, Is.EqualTo(param_curve.Curve));
+            Assert.That(privateKey.D, Is.EqualTo(param_priv));
+            // TODO: figure out how to convert public key to BigInteger that matches param_pub
+            //Assert.That(publicKey.Q, Is.EqualTo(param_pub));
+        }
+
+        [Test]
+        public void TestDeserializeEcdsaFromPrivateWithPassphrase()
+        {
+            var formatter = new PemKeyFormatter();
+            formatter.GetPassphraseCallbackMethod = passphraseCallback;
+            var key = formatter.Deserialize(Resources.ecdsa_1_pw);
+            Assert.That(key.Version, Is.EqualTo(SshVersion.SSH2));
+            Assert.That(key.Algorithm, Is.EqualTo(PublicKeyAlgorithm.ECDSA_SHA2_NISTP256));
+            var publicKey = (ECPublicKeyParameters)key.GetPublicKeyParameters();
+            var privateKey = (ECPrivateKeyParameters)key.GetPrivateKeyParameters();
+            var param_curve = X962NamedCurves.GetByName(Resources.ecdsa_1_param_curve.Trim());
+            var param_priv = new BigInteger(Resources.ecdsa_1_param_priv.Trim(), 16);
+            var param_pub = new BigInteger(Resources.ecdsa_1_param_pub.Trim(), 16);
+            Assert.That(privateKey.Parameters.Curve, Is.EqualTo(param_curve.Curve));
+            Assert.That(privateKey.D, Is.EqualTo(param_priv));
+            // TODO: figure out how to convert public key to BigInteger that matches param_pub
+            //Assert.That(publicKey.Q, Is.EqualTo(param_pub));
+        }
     }
-  }
 }

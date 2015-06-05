@@ -135,11 +135,7 @@
     <None Include="Resources\dsa_2.fp.bb" />
     <None Include="Resources\dsa_2.pub" />
     <None Include="Resources\dsa_n" />
-    <None Include="Resources\dsa_no_passphrase" />
-    <None Include="Resources\dsa_no_passphrase.pub" />
     <None Include="Resources\dsa_n_pw" />
-    <None Include="Resources\dsa_with_passphrase" />
-    <None Include="Resources\dsa_with_passphrase.pub" />
     <None Include="Resources\ecdsa_1" />
     <None Include="Resources\ecdsa_1-cert.fp" />
     <None Include="Resources\ecdsa_1-cert.pub" />
@@ -158,11 +154,7 @@
     <None Include="Resources\ecdsa_2.param.pub" />
     <None Include="Resources\ecdsa_2.pub" />
     <None Include="Resources\ecdsa_n" />
-    <None Include="Resources\ecdsa_no_passphrase" />
-    <None Include="Resources\ecdsa_no_passphrase.pub" />
     <None Include="Resources\ecdsa_n_pw" />
-    <None Include="Resources\ecdsa_with_passphrase" />
-    <None Include="Resources\ecdsa_with_passphrase.pub" />
     <None Include="Resources\ed25519_1" />
     <None Include="Resources\ed25519_1-cert.fp" />
     <None Include="Resources\ed25519_1-cert.pub" />
@@ -206,13 +198,7 @@
     <None Include="Resources\rsa_2.param.q" />
     <None Include="Resources\rsa_2.pub" />
     <None Include="Resources\rsa_n" />
-    <None Include="Resources\rsa_no_passphrase" />
-    <None Include="Resources\rsa_no_passphrase.pub" />
     <None Include="Resources\rsa_n_pw" />
-    <None Include="Resources\rsa_with_passphrase" />
-    <None Include="Resources\rsa_with_passphrase.pub" />
-    <None Include="Resources\ssh1-rsa-no-passphrase.ppk" />
-    <None Include="Resources\ssh1-rsa.ppk" />
     <None Include="Resources\ssh2-dsa-no-passphrase.ppk" />
     <None Include="Resources\ssh2-dsa.ppk" />
     <None Include="Resources\ssh2-rsa-no-passphrase.ppk" />
