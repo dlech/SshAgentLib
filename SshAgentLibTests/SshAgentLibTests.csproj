@@ -92,6 +92,7 @@
     <Compile Include="BCryptTest.cs" />
     <Compile Include="BlobBuilderTest.cs" />
     <Compile Include="KeyGenerator.cs" />
+    <Compile Include="OpensshKeyFormatterTest.cs" />
     <Compile Include="PageantClientTest.cs" />
     <Compile Include="Ssh1KeyFormatterTest.cs" />
     <Compile Include="PemKeyFormatterTest.cs" />

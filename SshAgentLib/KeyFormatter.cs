@@ -1,10 +1,10 @@
 ﻿//
-// BlobParser.cs
+// KeyFormatter.cs
 //
 // Author(s): David Lechner <david@lechnology.com>
 //            Max Laverse
 //
-// Copyright (c) 2012-2014 David Lechner
+// Copyright (c) 2012-2014,2015 David Lechner
 //
 // Permission is hereby granted, free of charge, to any person obtaining a copy
 // of this software and associated documentation files (the "Software"), to deal
@@ -138,26 +138,28 @@ namespace dlech.SshAgentLib
     /// Attempts to return a Formatter that can deserialize data given the
     /// specified first line
     /// </summary>
-    /// <param name="aFirstLine">first line of data to be deserialized</param>
+    /// <param name="firstLine">first line of data to be deserialized</param>
     /// <returns>
     /// KeyFormatter that should be able to deserialize the data
     /// </returns>
     /// <exception cref="KeyFormatterException">
     /// The file format was not recognized
     /// </exception>
-    public static KeyFormatter GetFormatter (string aFirstLine)
+    public static KeyFormatter GetFormatter (string firstLine)
     {
       // PuTTY Private key format
       var ppkRegex = new Regex ("PuTTY-User-Key-File-[12]");
       // OpenSSH private key format
       var pemPrivateKeyRegex = new Regex ("-----BEGIN .* PRIVATE KEY-----");
 
-      if (!string.IsNullOrWhiteSpace (aFirstLine)) {
-        if (ppkRegex.IsMatch (aFirstLine)) {
+      if (!string.IsNullOrWhiteSpace (firstLine)) {
+        if (ppkRegex.IsMatch (firstLine)) {
           return new PpkFormatter ();
-        } else if (pemPrivateKeyRegex.IsMatch (aFirstLine)) {
+        } else if (OpensshKeyFormatter.MARK_BEGIN == firstLine) {
+          return new OpensshKeyFormatter();
+        } else if (pemPrivateKeyRegex.IsMatch(firstLine)) {
           return new PemKeyFormatter ();
-        } else if (Ssh1KeyFormatter.FILE_HEADER_LINE.Equals (aFirstLine)) {
+        } else if (Ssh1KeyFormatter.FILE_HEADER_LINE == firstLine) {
           return new Ssh1KeyFormatter ();
         }
       }
