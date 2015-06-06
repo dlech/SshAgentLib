@@ -3,7 +3,7 @@
 //
 // Author(s): David Lechner <david@lechnology.com>
 //
-// Copyright (c) 2013 David Lechner
+// Copyright (c) 2013,2015 David Lechner
 //
 // Permission is hereby granted, free of charge, to any person obtaining a copy
 // of this software and associated documentation files (the "Software"), to deal
@@ -23,26 +23,30 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 // THE SOFTWARE.
 
+using System.Diagnostics;
 using System.Windows.Forms;
 
 namespace dlech.SshAgentLib.WinForms
 {
-  /// <summary>
-  /// Default implementation of delegate methods
-  /// </summary>
-  public static class Default
-  {
-    public static bool ConfirmCallback(ISshKey key)
+    /// <summary>
+    /// Default implementation of delegate methods
+    /// </summary>
+    public static class Default
     {
-      var result = MessageBox.Show(
-        string.Format(Strings.askConfirmKey, key.Comment, key.GetMD5Fingerprint().ToHexString()),
-        Util.AssemblyTitle, MessageBoxButtons.YesNo, MessageBoxIcon.Question,
-        MessageBoxDefaultButton.Button2
-      );
-      if (result == DialogResult.Yes) {
-        return true;
-      }
-      return false;
+        public static bool ConfirmCallback(ISshKey key, Process process)
+        {
+            var programName = Strings.askConfirmKeyUnknownProcess;
+            if (process != null) {
+                programName = string.Format("{0} ({1})", process.MainWindowTitle,
+                    process.ProcessName);
+            }
+            var result = MessageBox.Show(
+                string.Format(Strings.askConfirmKey, programName, key.Comment,
+                key.GetMD5Fingerprint().ToHexString()), Util.AssemblyTitle,
+                MessageBoxButtons.YesNo, MessageBoxIcon.Question,
+                MessageBoxDefaultButton.Button2
+            );
+            return (result == DialogResult.Yes);
+        }
     }
-  }
 }

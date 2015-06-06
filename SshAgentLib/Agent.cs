@@ -4,7 +4,7 @@
 // Author(s): David Lechner <david@lechnology.com>
 //            Max Laverse
 //
-// Copyright (c) 2012-2014 David Lechner
+// Copyright (c) 2012-2015 David Lechner
 //
 // Permission is hereby granted, free of charge, to any person obtaining a copy
 // of this software and associated documentation files (the "Software"), to deal
@@ -210,11 +210,14 @@ namespace dlech.SshAgentLib
 
     public class KeyUsedEventArgs : EventArgs
     {
-      public KeyUsedEventArgs(ISshKey aKey)
-      {
-        Key = aKey;
-      }
       public ISshKey Key { get; private set; }
+      public Process OtherProcess { get; private set; }
+
+      public KeyUsedEventArgs(ISshKey key, Process otherProcess)
+      {
+        Key = key;
+        OtherProcess = otherProcess;
+      }
     }
 
     public delegate void KeyUsedEventHandler(object aSender,
@@ -224,10 +227,12 @@ namespace dlech.SshAgentLib
     /// Requests user for permission to use specified key.
     /// </summary>
     /// <param name="key">The key that will be used</param>
+    /// <param name="process">The calling process or <c>null</c> if the
+    /// process could not be obtained.</param>
     /// <returns>
     /// true if user grants permission, false if user denies permission
     /// </returns>
-    public delegate bool ConfirmUserPermissionDelegate(ISshKey key);
+    public delegate bool ConfirmUserPermissionDelegate(ISshKey key, Process process);
 
 
 
@@ -375,11 +380,11 @@ namespace dlech.SshAgentLib
     /// <summary>
     /// Answers the message.
     /// </summary>
-    /// <param name='messageStream'>
-    /// Message stream.
-    /// </param>
+    /// <param name='messageStream'>Message stream.</param>
+    /// <param name="process">The calling process or <c>null</c> if the process
+    /// could not be obtained.</param>
     /// <remarks>code based on winpgnt.c from PuTTY source code</remarks>
-    public void AnswerMessage(Stream messageStream)
+    public void AnswerMessage(Stream messageStream, Process process = null)
     {
       BlobParser messageParser = new BlobParser(messageStream);
       BlobBuilder responseBuilder = new BlobBuilder();
@@ -501,7 +506,7 @@ namespace dlech.SshAgentLib
               .Where(constraint => constraint.Type ==
                 KeyConstraintType.SSH_AGENT_CONSTRAIN_CONFIRM);
             if (confirmConstraints.Count() > 0) {
-              if (!ConfirmUserPermissionCallback.Invoke(matchingKey)) {
+              if (!ConfirmUserPermissionCallback.Invoke(matchingKey, process)) {
                 goto default;
               }
             }
@@ -522,7 +527,7 @@ namespace dlech.SshAgentLib
             responseBuilder.AddBlob(signatureBuilder.GetBlob());
             responseBuilder.InsertHeader(Message.SSH2_AGENT_SIGN_RESPONSE);
             try {
-              KeyUsed(this, new KeyUsedEventArgs(signKey));
+              KeyUsed(this, new KeyUsedEventArgs(signKey, process));
             } catch { }
             break; // succeeded
           } catch (InvalidOperationException) {

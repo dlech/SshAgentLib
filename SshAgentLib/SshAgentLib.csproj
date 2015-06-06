@@ -111,6 +111,7 @@
     <Compile Include="Microsoft\SocketAsyncEventArgPool.cs" />
     <Compile Include="UnixClient.cs" />
     <Compile Include="PinnedArray.cs" />
+    <Compile Include="WinInternals.cs" />
   </ItemGroup>
   <ItemGroup>
     <Reference Include="Mono.Posix">

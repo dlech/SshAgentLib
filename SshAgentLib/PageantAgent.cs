@@ -1,9 +1,9 @@
 //
-// BlobParser.cs
+// PageantAgent.cs
 //
 // Author(s): David Lechner <david@lechnology.com>
 //
-// Copyright (c) 2012-2014 David Lechner
+// Copyright (c) 2012-2015 David Lechner
 //
 // Permission is hereby granted, free of charge, to any person obtaining a copy
 // of this software and associated documentation files (the "Software"), to deal
@@ -381,9 +381,16 @@ namespace dlech.SshAgentLib
           // see http://www.chiark.greenend.org.uk/~sgtatham/putty/wishlist/pageant-backwards-compatibility.html
           var procOwnerSid = GetProcessOwnerSID(Process.GetCurrentProcess().Id);
 
+          Process otherProcess = null;
+          try {
+              otherProcess = WinInternals.FindProcessWithMatchingHandle(fileMap);
+          } catch (Exception ex) {
+              Debug.Fail(ex.ToString());
+          }
+
           if (userSid == mapOwner || procOwnerSid == mapOwner) {
             using (MemoryMappedViewStream stream = fileMap.CreateViewStream()) {
-              AnswerMessage(stream);
+              AnswerMessage(stream, otherProcess);
             }
             result = new IntPtr(1);
             return result; // success

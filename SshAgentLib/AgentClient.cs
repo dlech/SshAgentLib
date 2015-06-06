@@ -88,7 +88,7 @@ namespace dlech.SshAgentLib
     /// <param name="key">the key to add</param>
     /// <param name="aConstraints">constraints to apply</param>
     /// <returns>true if operation was successful</returns>
-    /// <remarks>ignores constraints in aKey.Constraints</remarks>
+    /// <remarks>ignores constraints in key.Constraints</remarks>
     public void AddKey(ISshKey key, ICollection<Agent.KeyConstraint> aConstraints)
     {
       var builder = CreatePrivateKeyBlob(key);

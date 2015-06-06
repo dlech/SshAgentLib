@@ -118,8 +118,14 @@
     <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </resheader>
   <data name="askConfirmKey" xml:space="preserve">
-    <value>A client has requested to use the SSH key '{0}' with fingerprint {1}</value>
-    <comment>{0} is key comment, {1} is fingerprint</comment>
+    <value>{0} has requested to use the SSH key '{1}' with fingerprint {2}.
+
+Do you want to allow this?</value>
+    <comment>{0} is the program name, {1} is key comment, {2} is fingerprint</comment>
+  </data>
+  <data name="askConfirmKeyUnknownProcess" xml:space="preserve">
+    <value>Another application</value>
+    <comment>Used to replace {0} in askConfirmKey when the program is not known.</comment>
   </data>
   <data name="errAddKeyFailed" xml:space="preserve">
     <value>Agent failure</value>
