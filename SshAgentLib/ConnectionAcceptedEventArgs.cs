@@ -3,7 +3,7 @@
 //
 // Author(s): David Lechner <david@lechnology.com>
 //
-// Copyright (c) 2014 David Lechner
+// Copyright (c) 2014-2015 David Lechner
 //
 // Permission is hereby granted, free of charge, to any person obtaining a copy
 // of this software and associated documentation files (the "Software"), to deal
@@ -24,6 +24,7 @@
 // THE SOFTWARE.
 
 using System;
+using System.Diagnostics;
 using System.IO;
 
 namespace dlech.SshAgentLib
@@ -31,10 +32,12 @@ namespace dlech.SshAgentLib
   public class ConnectionAcceptedEventArgs : EventArgs
   {
     public Stream Stream { get; private set; }
+    public Process Process { get; private set; }
 
-    public ConnectionAcceptedEventArgs(Stream stream)
+    public ConnectionAcceptedEventArgs(Stream stream, Process process)
     {
       Stream = stream;
+      Process = process;
     }
   }
 

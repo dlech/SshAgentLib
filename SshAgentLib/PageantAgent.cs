@@ -412,8 +412,9 @@ namespace dlech.SshAgentLib
     private void OnSocketConnectionAccepted(object sender, ConnectionAcceptedEventArgs e)
     {
       try {
-        while (true)
-          AnswerMessage(e.Stream);
+          while (true) {
+              AnswerMessage(e.Stream, e.Process);
+          }
       } catch (Exception ex) {
         if (ex is IOException && ex.InnerException is SocketException) {
           // expected error

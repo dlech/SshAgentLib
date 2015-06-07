@@ -26,9 +26,11 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO.MemoryMappedFiles;
 using System.Linq;
+using System.Net;
 using System.Runtime.InteropServices;
 using System.Text;
 
+using BOOL = System.Boolean;
 using BYTE = System.Byte;
 using DWORD = System.UInt32;
 using PVOID = System.IntPtr;
@@ -39,6 +41,124 @@ namespace dlech.SshAgentLib
 {
     public static class WinInternals
     {
+        const uint NO_ERROR = 0;
+        const uint ERROR_NOT_SUPPORTED = 50;
+        const uint ERROR_INVALID_PARAMETER = 87;
+        const uint ERROR_INSUFFICIENT_BUFFER = 122;
+
+        const uint AF_INET = 2;
+        const uint AF_INET6 = 23;
+
+        enum TCP_CONNECTION_OFFLOAD_STATE
+        { 
+            TcpConnectionOffloadStateInHost      = 0,
+            TcpConnectionOffloadStateOffloading  = 1,
+            TcpConnectionOffloadStateOffloaded   = 2,
+            TcpConnectionOffloadStateUploading   = 3,
+            TcpConnectionOffloadStateMax         = 4
+        }
+
+        enum MIB_TCP_STATE
+        {
+            MIB_TCP_STATE_CLOSED = 1,
+            MIB_TCP_STATE_LISTEN = 2,
+            MIB_TCP_STATE_SYN_SENT = 3,
+            MIB_TCP_STATE_SYN_RCVD = 4,
+            MIB_TCP_STATE_ESTAB = 5,
+            MIB_TCP_STATE_FIN_WAIT1 = 6,
+            MIB_TCP_STATE_FIN_WAIT2 = 7,
+            MIB_TCP_STATE_CLOSE_WAIT = 8,
+            MIB_TCP_STATE_CLOSING = 9,
+            MIB_TCP_STATE_LAST_ACK = 10,
+            MIB_TCP_STATE_TIME_WAIT = 11,
+            MIB_TCP_STATE_DELETE_TCB = 12,
+        }
+
+        enum TCP_TABLE_CLASS
+        { 
+          TCP_TABLE_BASIC_LISTENER,
+          TCP_TABLE_BASIC_CONNECTIONS,
+          TCP_TABLE_BASIC_ALL,
+          TCP_TABLE_OWNER_PID_LISTENER,
+          TCP_TABLE_OWNER_PID_CONNECTIONS,
+          TCP_TABLE_OWNER_PID_ALL,
+          TCP_TABLE_OWNER_MODULE_LISTENER,
+          TCP_TABLE_OWNER_MODULE_CONNECTIONS,
+          TCP_TABLE_OWNER_MODULE_ALL
+        }
+
+        struct MIB_TCPROW_OWNER_PID
+        {
+            public MIB_TCP_STATE dwState;
+            public DWORD dwLocalAddr;
+            public DWORD dwLocalPort;
+            public DWORD dwRemoteAddr;
+            public DWORD dwRemotePort;
+            public DWORD dwOwningPid;
+        }
+
+        [DllImport("Iphlpapi.dll")]
+        static extern DWORD GetExtendedTcpTable(
+          PVOID pTcpTable,
+          ref DWORD pdwSize,
+          BOOL bOrder,
+          ULONG ulAf,
+          TCP_TABLE_CLASS TableClass,
+          ULONG Reserved = 0
+        );
+
+        /// <summary>
+        /// Searches all current TCP connections (IPv4 only) for the matching
+        /// port (local port of the connection).
+        /// </summary>
+        /// <param name="port">The TCP port to look for.</param>
+        /// <returns>The process that owns this connection.</returns>
+        public static Process GetProcessForTcpPort(int port)
+        {
+            // The MIB_TCPROW_OWNER_PID struct stores ports in network byte
+            // order, so we have to swap the port to match.
+            port = (ushort)IPAddress.HostToNetworkOrder((short)port);
+
+            // first find out the size needed to get the data
+
+            var buf = IntPtr.Zero;
+            var bufSize = 0U;
+            var result = GetExtendedTcpTable(buf, ref bufSize, false, AF_INET,
+                TCP_TABLE_CLASS.TCP_TABLE_OWNER_PID_CONNECTIONS);
+            if (result != ERROR_INSUFFICIENT_BUFFER) {
+                throw new Exception(string.Format("Error: {0}", result));
+            }
+
+            // then alloc some memory so we can acutally get the data
+            buf = Marshal.AllocHGlobal((int)bufSize);
+            try {
+                result = GetExtendedTcpTable(buf, ref bufSize, false, AF_INET,
+                    TCP_TABLE_CLASS.TCP_TABLE_OWNER_PID_CONNECTIONS);
+                if (result != NO_ERROR) {
+                    throw new Exception(string.Format("Error: {0}", result));
+                }
+                var count = Marshal.ReadInt32(buf);
+                var tablePtr = buf + sizeof(int);
+                var rowSize = Marshal.SizeOf(typeof(MIB_TCPROW_OWNER_PID));
+                var match = (MIB_TCPROW_OWNER_PID?)null;
+                for (int i = 0; i < count; i++) {
+                    var row = (MIB_TCPROW_OWNER_PID)Marshal.PtrToStructure(
+                        tablePtr, typeof(MIB_TCPROW_OWNER_PID));
+                    if (port == row.dwLocalPort) {
+                        match = row;
+                        break;
+                    }
+                    tablePtr += rowSize;
+                }
+                if (!match.HasValue) {
+                    throw new Exception("Match not found.");
+                }
+                return Process.GetProcessById((int)match.Value.dwOwningPid);;
+            } finally {
+                Marshal.FreeHGlobal(buf);
+            }
+        }
+
         [StructLayout(LayoutKind.Sequential)]
         struct SYSTEM_HANDLE_ENTRY {
             public ULONG OwnerPid;

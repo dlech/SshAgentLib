@@ -3,7 +3,7 @@
 //
 // Author(s): David Lechner <david@lechnology.com>
 //
-// Copyright (c) 2014 David Lechner
+// Copyright (c) 2014-2015 David Lechner
 //
 // Inspired by CCygSock and CCygSockChannel from PuttyAgent plugin for KeePass 1
 // Copyright (C) 2014 Nikolaus Hammler <nikolaus@hammler.net>
@@ -140,12 +140,22 @@ namespace dlech.SshAgentLib
             var pid = BitConverter.ToInt32(buffer, 0);
             var gid = BitConverter.ToInt32(buffer, 4);
             var uid = BitConverter.ToInt32(buffer, 8);
+            // FIXME: This should be a cygwin pid, not a windows pid
+            // seems to work fine though
             pid = Process.GetCurrentProcess().Id;
             Array.Copy(BitConverter.GetBytes(pid), buffer, 4);
             stream.Write(buffer, 0, 12);
             stream.Flush();
-            if (ConnectionAccepted != null)
-              ConnectionAccepted(this, new ConnectionAcceptedEventArgs(stream));
+            Process proc = null;
+            try {
+              proc = WinInternals.GetProcessForTcpPort(
+                ((IPEndPoint)clientSocket.RemoteEndPoint).Port);
+            } catch (Exception ex) {
+              Debug.Fail(ex.ToString());
+            }
+            if (ConnectionAccepted != null) {
+              ConnectionAccepted(this, new ConnectionAcceptedEventArgs(stream, proc));
+            }
           }
         } catch (Exception ex) {
           Debug.Assert(disposed, ex.ToString());
