@@ -27,6 +27,7 @@ using System.Diagnostics;
 using System.IO.MemoryMappedFiles;
 using System.Linq;
 using System.Net;
+using System.Net.Sockets;
 using System.Runtime.InteropServices;
 using System.Text;
 
@@ -113,11 +114,34 @@ namespace dlech.SshAgentLib
         /// </summary>
         /// <param name="port">The TCP port to look for.</param>
         /// <returns>The process that owns this connection.</returns>
-        public static Process GetProcessForTcpPort(int port)
+        public static Process GetProcessForTcpPort(IPEndPoint localEndpoint, IPEndPoint remoteEndpoint)
         {
+            if (localEndpoint == null) {
+                throw new ArgumentNullException("localEndpoint");
+            }
+            if (remoteEndpoint == null) {
+                throw new ArgumentNullException("remoteEndpoint");
+            }
+            if (localEndpoint.AddressFamily != AddressFamily.InterNetwork) {
+                throw new ArgumentException("Must be IPv4 address.", "localEndpoint");
+            }
+            if (remoteEndpoint.AddressFamily != AddressFamily.InterNetwork) {
+                throw new ArgumentException("Must be IPv4 address.", "remoteEndpoint");
+            }
+
+            // The MIB_TCPROW_OWNER_PID struct stores address as integers in
+            // network byte order, so we fixup the address to match.
+            var localAddressBytes = localEndpoint.Address.GetAddressBytes();
+            var localAddress = localAddressBytes[0] + (localAddressBytes[1] << 8)
+                + (localAddressBytes[2] << 16) + (localAddressBytes[3] << 24);
+            var remoteAddressBytes = localEndpoint.Address.GetAddressBytes();
+            var remoteAddress = remoteAddressBytes[0] + (remoteAddressBytes[1] << 8)
+                + (remoteAddressBytes[2] << 16) + (remoteAddressBytes[3] << 24);
+
             // The MIB_TCPROW_OWNER_PID struct stores ports in network byte
             // order, so we have to swap the port to match.
-            port = (ushort)IPAddress.HostToNetworkOrder((short)port);
+            var localPort = (ushort)IPAddress.HostToNetworkOrder((short)localEndpoint.Port);
+            var remotePort = (ushort)IPAddress.HostToNetworkOrder((short)remoteEndpoint.Port);
 
             // first find out the size needed to get the data
 
@@ -144,7 +168,9 @@ namespace dlech.SshAgentLib
                 for (int i = 0; i < count; i++) {
                     var row = (MIB_TCPROW_OWNER_PID)Marshal.PtrToStructure(
                         tablePtr, typeof(MIB_TCPROW_OWNER_PID));
-                    if (port == row.dwLocalPort) {
+                    if (localAddress == row.dwLocalAddr && localPort == row.dwLocalPort
+                        && remoteAddress == row.dwRemoteAddr && remotePort == row.dwRemotePort)
+                    {
                         match = row;
                         break;
                     }

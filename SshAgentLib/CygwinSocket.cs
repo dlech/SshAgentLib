@@ -148,8 +148,10 @@ namespace dlech.SshAgentLib
             stream.Flush();
             Process proc = null;
             try {
+              // remote and local are swapped because we are doing reverse lookup
               proc = WinInternals.GetProcessForTcpPort(
-                ((IPEndPoint)clientSocket.RemoteEndPoint).Port);
+                  (IPEndPoint)clientSocket.RemoteEndPoint,
+                  (IPEndPoint)clientSocket.LocalEndPoint);
             } catch (Exception ex) {
               Debug.Fail(ex.ToString());
             }
