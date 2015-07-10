@@ -26,6 +26,7 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Security.Cryptography;
@@ -101,7 +102,7 @@ namespace dlech.SshAgentLibTests
     {
       var agentClient = new TestAgentClient();
       agentClient.Agent.ConfirmUserPermissionCallback =
-        delegate(ISshKey aKey) { return true; };
+        delegate(ISshKey k, Process p) { return true; };
       Agent.KeyConstraint constraint;
       List<Agent.KeyConstraint> constraints = new List<Agent.KeyConstraint>();
 

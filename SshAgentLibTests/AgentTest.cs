@@ -27,6 +27,7 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Security.Cryptography;
@@ -302,7 +303,7 @@ namespace dlech.SshAgentLibTests
        * need to test the differences */
 
       Agent.ConfirmUserPermissionDelegate confirmCallback =
-        delegate(ISshKey key) { return true; };
+        delegate(ISshKey k, Process p) { return true; };
 
       Agent agent = new TestAgent();
 
@@ -426,7 +427,7 @@ namespace dlech.SshAgentLibTests
        * need to test the differences */
 
       Agent.ConfirmUserPermissionDelegate confirmCallback =
-        delegate(ISshKey key) { return true; };
+        delegate(ISshKey k, Process p) { return true; };
 
       Agent agent = new TestAgent();
 
@@ -791,7 +792,7 @@ namespace dlech.SshAgentLibTests
       testConstraint.Type = Agent.KeyConstraintType.SSH_AGENT_CONSTRAIN_CONFIRM;
       SshKey testKey = dsaKey.Clone();
       bool confirmCallbackReturnValue = false;
-      agent.ConfirmUserPermissionCallback = delegate(ISshKey aKey)
+      agent.ConfirmUserPermissionCallback = delegate(ISshKey k, Process p)
       {
         return confirmCallbackReturnValue;
       };
