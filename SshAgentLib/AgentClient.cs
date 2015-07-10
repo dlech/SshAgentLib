@@ -3,7 +3,7 @@
 //
 // Author(s): David Lechner <david@lechnology.com>
 //
-// Copyright (c) 2012-2013 David Lechner
+// Copyright (c) 2012-2013,2015 David Lechner
 //
 // Permission is hereby granted, free of charge, to any person obtaining a copy
 // of this software and associated documentation files (the "Software"), to deal
@@ -28,10 +28,13 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Security.Cryptography;
 using System.Text;
+
 using Org.BouncyCastle.Crypto.Encodings;
 using Org.BouncyCastle.Crypto.Engines;
 using Org.BouncyCastle.Crypto.Parameters;
 using Org.BouncyCastle.Math;
+
+using dlech.SshAgentLib.Crypto;
 
 namespace dlech.SshAgentLib
 {
@@ -329,14 +332,14 @@ namespace dlech.SshAgentLib
       }
     }
 
-    private BlobBuilder CreatePrivateKeyBlob(ISshKey aKey)
+    BlobBuilder CreatePrivateKeyBlob(ISshKey key)
     {
       var builder = new BlobBuilder();
-      switch (aKey.Version) {
+      switch (key.Version) {
         case SshVersion.SSH1:
           var privateKeyParams =
-            aKey.GetPrivateKeyParameters() as RsaPrivateCrtKeyParameters;
-          builder.AddInt(aKey.Size);
+            key.GetPrivateKeyParameters() as RsaPrivateCrtKeyParameters;
+          builder.AddInt(key.Size);
           builder.AddSsh1BigIntBlob(privateKeyParams.Modulus);
           builder.AddSsh1BigIntBlob(privateKeyParams.PublicExponent);
           builder.AddSsh1BigIntBlob(privateKeyParams.Exponent);
@@ -345,12 +348,12 @@ namespace dlech.SshAgentLib
           builder.AddSsh1BigIntBlob(privateKeyParams.P);
           break;
         case SshVersion.SSH2:
-          builder.AddStringBlob(aKey.Algorithm.GetIdentifierString());
-          switch (aKey.Algorithm) {
+          builder.AddStringBlob(key.Algorithm.GetIdentifierString());
+          switch (key.Algorithm) {
             case PublicKeyAlgorithm.SSH_DSS:
-              var dsaPublicKeyParameters = aKey.GetPublicKeyParameters() as
+              var dsaPublicKeyParameters = key.GetPublicKeyParameters() as
                 DsaPublicKeyParameters;
-              var dsaPrivateKeyParamters = aKey.GetPrivateKeyParameters() as
+              var dsaPrivateKeyParamters = key.GetPrivateKeyParameters() as
                 DsaPrivateKeyParameters;
               builder.AddBigIntBlob(dsaPublicKeyParameters.Parameters.P);
               builder.AddBigIntBlob(dsaPublicKeyParameters.Parameters.Q);
@@ -361,18 +364,18 @@ namespace dlech.SshAgentLib
             case PublicKeyAlgorithm.ECDSA_SHA2_NISTP256:
             case PublicKeyAlgorithm.ECDSA_SHA2_NISTP384:
             case PublicKeyAlgorithm.ECDSA_SHA2_NISTP521:
-              var ecdsaPublicKeyParameters = aKey.GetPublicKeyParameters() as
+              var ecdsaPublicKeyParameters = key.GetPublicKeyParameters() as
                 ECPublicKeyParameters;
-              var ecdsaPrivateKeyParameters = aKey.GetPrivateKeyParameters() as
+              var ecdsaPrivateKeyParameters = key.GetPrivateKeyParameters() as
                 ECPrivateKeyParameters;
-              builder.AddStringBlob(aKey.Algorithm.GetIdentifierString()
+              builder.AddStringBlob(key.Algorithm.GetIdentifierString()
                 .Replace(PublicKeyAlgorithmExt.ALGORITHM_ECDSA_SHA2_PREFIX,
                          string.Empty));
               builder.AddBlob(ecdsaPublicKeyParameters.Q.GetEncoded());
               builder.AddBigIntBlob(ecdsaPrivateKeyParameters.D);
               break;
             case PublicKeyAlgorithm.SSH_RSA:
-              var rsaPrivateKeyParameters = aKey.GetPrivateKeyParameters() as
+              var rsaPrivateKeyParameters = key.GetPrivateKeyParameters() as
                 RsaPrivateCrtKeyParameters;
               builder.AddBigIntBlob(rsaPrivateKeyParameters.Modulus);
               builder.AddBigIntBlob(rsaPrivateKeyParameters.PublicExponent);
@@ -381,6 +384,14 @@ namespace dlech.SshAgentLib
               builder.AddBigIntBlob(rsaPrivateKeyParameters.P);
               builder.AddBigIntBlob(rsaPrivateKeyParameters.Q);
               break;
+            case PublicKeyAlgorithm.ED25519:
+              var ed25519PublicKeyParameters = key.GetPublicKeyParameters() as
+                Ed25519PublicKeyParameter;
+              var ed25519PrivateKeyParameters = key.GetPrivateKeyParameters() as
+                Ed25519PrivateKeyParameter;
+              builder.AddBlob(ed25519PublicKeyParameters.Key);
+              builder.AddBlob(ed25519PrivateKeyParameters.Signature);
+              break;
             default:
               throw new Exception("Unsupported algorithm");
           }
@@ -388,7 +399,7 @@ namespace dlech.SshAgentLib
         default:
           throw new Exception(cUnsupportedSshVersion);
       }
-      builder.AddStringBlob(aKey.Comment);
+      builder.AddStringBlob(key.Comment);
       return builder;
     }
 
