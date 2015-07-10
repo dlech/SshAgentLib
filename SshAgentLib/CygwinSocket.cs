@@ -38,11 +38,12 @@ using System.Net.Sockets;
 using System.Security.AccessControl;
 using System.Security.Principal;
 using System.Text;
+using System.Text.RegularExpressions;
 using System.Threading;
 
 namespace dlech.SshAgentLib
 {
-  class CygwinSocket : IDisposable
+  public class CygwinSocket : IDisposable
   {
     const string waitHandleNamePrefix = "cygwin.local_socket.secret";
 
@@ -104,6 +105,17 @@ namespace dlech.SshAgentLib
       }
     }
 
+    /// <summary>
+    /// Tests a file to see if it looks like a Cygwin socket file
+    /// </summary>
+    /// <param name="path">The path to the file.</param>
+    /// <returns><c>true</c> if the file contents look correct</returns>
+    public static bool TestFile(string path)
+    {
+      var test = new Regex(@"!<socket >\d+ s (?:[0-9A-Fa-f]{8}-?){4}");
+      return test.Match(File.ReadAllText(path)).Success;
+    }
+
     public void Dispose()
     {
       Dispose(true);
@@ -116,7 +128,7 @@ namespace dlech.SshAgentLib
         disposed = true;
         if (disposing) {
           // Dispose managed resources
-          socket.Close();
+          socket.Dispose();
           File.Delete(path);
         }
         // Dispose unmanaged resources

@@ -91,7 +91,9 @@
     <Compile Include="AgentTest.cs" />
     <Compile Include="BCryptTest.cs" />
     <Compile Include="BlobBuilderTest.cs" />
+    <Compile Include="CygwinSocketTest.cs" />
     <Compile Include="KeyGenerator.cs" />
+    <Compile Include="MsysSocketTest.cs" />
     <Compile Include="OpensshKeyFormatterTest.cs" />
     <Compile Include="PageantClientTest.cs" />
     <Compile Include="Ssh1KeyFormatterTest.cs" />

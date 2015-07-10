@@ -225,10 +225,18 @@ namespace dlech.SshAgentLib
     /// <param name="path">The path to the socket file that will be created.</param>
     public void StartCygwinSocket(string path)
     {
-      if (disposed)
+      if (disposed) {
         throw new ObjectDisposedException("PagentAgent");
-      if (cygwinSocket != null)
+      }
+      if (cygwinSocket != null) {
         return;
+      }
+      // only overwrite a file if it looks like a CygwinSocket file.
+      // TODO: Might be good to test that there are not network sockets using
+      // the port specified in this file.
+      if (File.Exists(path) && CygwinSocket.TestFile(path)) {
+        File.Delete(path);
+      }
       cygwinSocket = new CygwinSocket(path);
       cygwinSocket.ConnectionAccepted += OnSocketConnectionAccepted;
     }
@@ -250,10 +258,18 @@ namespace dlech.SshAgentLib
     /// <param name="path">The path to the socket file that will be created.</param>
     public void StartMsysSocket(string path)
     {
-      if (disposed)
+      if (disposed) {
         throw new ObjectDisposedException("PagentAgent");
-      if (msysSocket != null)
+      }
+      if (msysSocket != null) {
         return;
+      }
+      // only overwrite a file if it looks like a MsysSocket file.
+      // TODO: Might be good to test that there are not network sockets using
+      // the port specified in this file.
+      if (File.Exists(path) && MsysSocket.TestFile(path)) {
+        File.Delete(path);
+      }
       msysSocket = new MsysSocket(path);
       msysSocket.ConnectionAccepted += OnSocketConnectionAccepted;
     }
