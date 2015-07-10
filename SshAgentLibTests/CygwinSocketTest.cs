@@ -32,7 +32,7 @@ using dlech.SshAgentLib;
 
 namespace dlech.SshAgentLibTests
 {
-  [TestFixture]
+  [TestFixture, Platform("Win")]
   public class CygwinSocketTest
   {
     [Test]
