@@ -88,6 +88,8 @@ namespace dlech.SshAgentLib
           TCP_TABLE_OWNER_MODULE_ALL
         }
 
+// compiler complains about unused fields
+#pragma warning disable 0649
         struct MIB_TCPROW_OWNER_PID
         {
             public MIB_TCP_STATE dwState;
@@ -97,6 +99,7 @@ namespace dlech.SshAgentLib
             public DWORD dwRemotePort;
             public DWORD dwOwningPid;
         }
+#pragma warning restore 0649
 
         [DllImport("Iphlpapi.dll")]
         static extern DWORD GetExtendedTcpTable(
