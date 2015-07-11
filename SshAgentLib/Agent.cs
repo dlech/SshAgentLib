@@ -234,7 +234,13 @@ namespace dlech.SshAgentLib
     /// </returns>
     public delegate bool ConfirmUserPermissionDelegate(ISshKey key, Process process);
 
-
+    /// <summary>
+    /// Filters the list of keys that will be returned by the request identites
+    /// messages.
+    /// </summary>
+    /// <param name="keyList">The list of keys to filter.</param>
+    /// <returns>A filterd list of keys.</returns>
+    public delegate ICollection<ISshKey> FilterKeyListDelegate(ICollection<ISshKey> keyList);
 
     #endregion
 
@@ -248,6 +254,8 @@ namespace dlech.SshAgentLib
     public int KeyCount { get { return mKeyList.Count; } }
 
     public ConfirmUserPermissionDelegate ConfirmUserPermissionCallback { get; set; }
+
+    public FilterKeyListDelegate FilterKeyListCallback { get; set; }
 
     #endregion
 
@@ -405,6 +413,9 @@ namespace dlech.SshAgentLib
            */
           try {
             var keyList = ListKeys(SshVersion.SSH1);
+            if (FilterKeyListCallback != null) {
+              keyList = FilterKeyListCallback(keyList);
+            }
             foreach (SshKey key in keyList) {
               responseBuilder.AddBytes(key.GetPublicKeyBlob());
               responseBuilder.AddStringBlob(key.Comment);
@@ -424,6 +435,9 @@ namespace dlech.SshAgentLib
            */
           try {
             var keyList = ListKeys(SshVersion.SSH2);
+            if (FilterKeyListCallback != null) {
+              keyList = FilterKeyListCallback(keyList);
+            }
             foreach (SshKey key in keyList) {
               responseBuilder.AddBlob(key.GetPublicKeyBlob());
               responseBuilder.AddStringBlob(key.Comment);
