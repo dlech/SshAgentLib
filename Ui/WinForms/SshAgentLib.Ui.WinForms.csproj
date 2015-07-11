@@ -125,6 +125,12 @@
     <Compile Include="KeyManagerForm.Designer.cs">
       <DependentUpon>KeyManagerForm.cs</DependentUpon>
     </Compile>
+    <Compile Include="KeyPicker.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="KeyPicker.Designer.cs">
+      <DependentUpon>KeyPicker.cs</DependentUpon>
+    </Compile>
     <Compile Include="LifetimeConstraintControl.cs">
       <SubType>UserControl</SubType>
     </Compile>
@@ -297,6 +303,9 @@
     </EmbeddedResource>
     <EmbeddedResource Include="KeyManagerForm.resx">
       <DependentUpon>KeyManagerForm.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="KeyPicker.resx">
+      <DependentUpon>KeyPicker.cs</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="LifetimeConstraintControl.resx">
       <DependentUpon>LifetimeConstraintControl.cs</DependentUpon>
