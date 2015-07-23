@@ -72,7 +72,6 @@
     <Compile Include="BlobParser.cs" />
     <Compile Include="CallbackNullException.cs" />
     <Compile Include="AgentLockedException.cs" />
-    <Compile Include="ConnectionAcceptedEventArgs.cs" />
     <Compile Include="Crypto\BCrypt.cs" />
     <Compile Include="Crypto\Ed25519PrivateKeyParameter.cs" />
     <Compile Include="Crypto\Ed25519PublicKeyParameter.cs" />

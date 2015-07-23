@@ -30,6 +30,7 @@
 // THE SOFTWARE.
 
 using System;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
@@ -47,12 +48,17 @@ namespace dlech.SshAgentLib
   {
     const string waitHandleNamePrefix = "cygwin.local_socket.secret";
 
+    static int clientCount = 0;
+
     string path;
     Socket socket;
     Guid guid;
     bool disposed;
+    List<Socket> clientSockets = new List<Socket>();
+    object clientSocketsLock = new object();
 
-    public event ConnectionAcceptedEventHandler ConnectionAccepted;
+    public delegate void ConnectionHandlerFunc(Stream stream, Process process);
+    public ConnectionHandlerFunc ConnectionHandler { get; set; }
 
     /// <summary>
     /// Create new "unix domain" socket for use with Cygwin
@@ -128,6 +134,9 @@ namespace dlech.SshAgentLib
         disposed = true;
         if (disposing) {
           // Dispose managed resources
+          foreach (var clientSocket in clientSockets) {
+            clientSocket.Dispose();
+          }
           socket.Dispose();
           File.Delete(path);
         }
@@ -140,36 +149,50 @@ namespace dlech.SshAgentLib
       var buffer = new byte[16];
       while (true) {
         try {
-          using (var clientSocket = socket.Accept())
-          using (var stream = new NetworkStream(clientSocket)) {
-            stream.Read(buffer, 0, 16);
-            var incomingGuid = new Guid(buffer);
-            if (incomingGuid != guid)
-              continue;
-            stream.Write(buffer, 0, 16);
-            stream.Flush();
-            stream.Read(buffer, 0, 12);
-            var pid = BitConverter.ToInt32(buffer, 0);
-            var gid = BitConverter.ToInt32(buffer, 4);
-            var uid = BitConverter.ToInt32(buffer, 8);
-            // FIXME: This should be a cygwin pid, not a windows pid
-            // seems to work fine though
-            pid = Process.GetCurrentProcess().Id;
-            Array.Copy(BitConverter.GetBytes(pid), buffer, 4);
-            stream.Write(buffer, 0, 12);
-            stream.Flush();
-            Process proc = null;
+          var clientSocket = socket.Accept();
+          var clientThread = new Thread(() => {
             try {
-              // remote and local are swapped because we are doing reverse lookup
-              proc = WinInternals.GetProcessForTcpPort(
-                  (IPEndPoint)clientSocket.RemoteEndPoint,
-                  (IPEndPoint)clientSocket.LocalEndPoint);
-            } catch (Exception ex) {
-              Debug.Fail(ex.ToString());
+              using (var stream = new NetworkStream(clientSocket)) {
+                stream.Read(buffer, 0, 16);
+                var incomingGuid = new Guid(buffer);
+                if (incomingGuid != guid) {
+                  return;
+                }
+                stream.Write(buffer, 0, 16);
+                stream.Flush();
+                stream.Read(buffer, 0, 12);
+                var pid = BitConverter.ToInt32(buffer, 0);
+                var gid = BitConverter.ToInt32(buffer, 4);
+                var uid = BitConverter.ToInt32(buffer, 8);
+                // FIXME: This should be a cygwin pid, not a windows pid
+                // seems to work fine though
+                pid = Process.GetCurrentProcess().Id;
+                Array.Copy(BitConverter.GetBytes(pid), buffer, 4);
+                stream.Write(buffer, 0, 12);
+                stream.Flush();
+                Process proc = null;
+                try {
+                  // remote and local are swapped because we are doing reverse lookup
+                  proc = WinInternals.GetProcessForTcpPort(
+                      (IPEndPoint)clientSocket.RemoteEndPoint,
+                      (IPEndPoint)clientSocket.LocalEndPoint);
+                } catch (Exception ex) {
+                  Debug.Fail(ex.ToString());
+                }
+                if (ConnectionHandler != null) {
+                  ConnectionHandler(stream, proc);
+                }
+              }
+            } finally {
+              lock (clientSocketsLock) {
+                clientSockets.Remove(clientSocket);
+              }
             }
-            if (ConnectionAccepted != null) {
-              ConnectionAccepted(this, new ConnectionAcceptedEventArgs(stream, proc));
-            }
+          });
+          clientThread.Name = string.Format("CygwinClient{0}", clientCount++);
+          clientThread.Start();
+          lock (clientSocketsLock) {
+            clientSockets.Add(clientSocket);
           }
         } catch (Exception ex) {
           Debug.Assert(disposed, ex.ToString());

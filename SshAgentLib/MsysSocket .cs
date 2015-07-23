@@ -30,6 +30,7 @@
 // THE SOFTWARE.
 
 using System;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
@@ -47,14 +48,19 @@ namespace dlech.SshAgentLib
   {
     const string waitHandleNamePrefix = "cygwin.local_socket.secret";
 
+    static int clientCount = 0;
+
     string path;
     Socket socket;
     Guid guid;
     string guidString;
     bool disposed;
     EventWaitHandle serverWaitHandle;
+    List<Socket> clientSockets = new List<Socket>();
+    object clientSocketsLock = new object();
 
-    public event ConnectionAcceptedEventHandler ConnectionAccepted;
+    public delegate void ConnectionHandlerFunc(Stream stream, Process process);
+    public ConnectionHandlerFunc ConnectionHandler { get; set; }
 
     /// <summary>
     /// Create new "unix domain" socket for use with MSYS
@@ -136,6 +142,9 @@ namespace dlech.SshAgentLib
         disposed = true;
         if (disposing) {
           // Dispose managed resources
+          foreach (var clientSocket in clientSockets) {
+            clientSocket.Dispose();
+          }
           socket.Dispose();
           File.Delete(path);
         }
@@ -148,30 +157,45 @@ namespace dlech.SshAgentLib
       var buffer = new byte[16];
       while (true) {
         try {
-          using (var clientSocket = socket.Accept())
-          using (var stream = new NetworkStream(clientSocket)) {
+          var clientSocket = socket.Accept();
+          var clientThread = new Thread(() =>
+          {
             try {
-              var clientPort = ((IPEndPoint)clientSocket.RemoteEndPoint).Port;
-              var clientWaitHandleName = string.Format("{0}.{1}.{2}",
-                waitHandleNamePrefix, (UInt16)IPAddress.HostToNetworkOrder((Int16)clientPort), guidString);
-              var clientWaitHandle = EventWaitHandle.OpenExisting(clientWaitHandleName);
-              if (!EventWaitHandle.SignalAndWait(serverWaitHandle, clientWaitHandle, 10000, false))
-                continue;
-            } catch (Exception ex) {
-              Debug.Fail(ex.ToString());
+              using (var stream = new NetworkStream(clientSocket)) {
+                try {
+                  var clientPort = ((IPEndPoint)clientSocket.RemoteEndPoint).Port;
+                  var clientWaitHandleName = string.Format("{0}.{1}.{2}",
+                    waitHandleNamePrefix, (UInt16)IPAddress.HostToNetworkOrder((Int16)clientPort), guidString);
+                  var clientWaitHandle = EventWaitHandle.OpenExisting(clientWaitHandleName);
+                  if (!EventWaitHandle.SignalAndWait(serverWaitHandle, clientWaitHandle, 10000, false)) {
+                    return;
+                  }
+                } catch (Exception ex) {
+                  Debug.Fail(ex.ToString());
+                }
+                Process proc = null;
+                try {
+                  // remote and local are swapped because we are doing reverse lookup
+                  proc = WinInternals.GetProcessForTcpPort(
+                    (IPEndPoint)clientSocket.RemoteEndPoint,
+                    (IPEndPoint)clientSocket.LocalEndPoint);
+                } catch (Exception ex) {
+                  Debug.Fail(ex.ToString());
+                }
+                if (ConnectionHandler != null) {
+                  ConnectionHandler(stream, proc);
+                }
+              }
+            } finally {
+              lock (clientSocketsLock) {
+                clientSockets.Remove(clientSocket);
+              }
             }
-            Process proc = null;
-            try {
-              // remote and local are swapped because we are doing reverse lookup
-              proc = WinInternals.GetProcessForTcpPort(
-                (IPEndPoint)clientSocket.RemoteEndPoint,
-                (IPEndPoint)clientSocket.LocalEndPoint);
-            } catch (Exception ex) {
-              Debug.Fail(ex.ToString());
-            }
-            if (ConnectionAccepted != null) {
-              ConnectionAccepted(this, new ConnectionAcceptedEventArgs(stream, proc));
-            }
+          });
+          clientThread.Name = string.Format("MsysClient{0}", clientCount++);
+          clientThread.Start();
+          lock (clientSocketsLock) {
+            clientSockets.Add(clientSocket);
           }
         } catch (Exception ex) {
           Debug.Assert(disposed, ex.ToString());

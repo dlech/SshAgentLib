@@ -238,7 +238,7 @@ namespace dlech.SshAgentLib
         File.Delete(path);
       }
       cygwinSocket = new CygwinSocket(path);
-      cygwinSocket.ConnectionAccepted += OnSocketConnectionAccepted;
+      cygwinSocket.ConnectionHandler = connectionHandler;
     }
 
     public void StopCygwinSocket()
@@ -271,7 +271,7 @@ namespace dlech.SshAgentLib
         File.Delete(path);
       }
       msysSocket = new MsysSocket(path);
-      msysSocket.ConnectionAccepted += OnSocketConnectionAccepted;
+      msysSocket.ConnectionHandler = connectionHandler;
     }
 
     public void StopMsysSocket()
@@ -425,11 +425,11 @@ namespace dlech.SshAgentLib
       }
     }
 
-    private void OnSocketConnectionAccepted(object sender, ConnectionAcceptedEventArgs e)
+    void connectionHandler(Stream stream, Process process)
     {
       try {
           while (true) {
-              AnswerMessage(e.Stream, e.Process);
+              AnswerMessage(stream, process);
           }
       } catch (Exception ex) {
         if (ex is IOException && ex.InnerException is SocketException) {
@@ -437,7 +437,7 @@ namespace dlech.SshAgentLib
           if (((SocketException)ex.InnerException).ErrorCode == WSAECONNABORTED)
             return;
         }
-        Debug.Fail(ex.ToString());
+        throw;
       }
     }
 
