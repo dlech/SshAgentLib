@@ -660,6 +660,18 @@ namespace dlech.SshAgentLib
         case PublicKeyAlgorithmExt.ALGORITHM_DSA_KEY:
           aAlgorithm = PublicKeyAlgorithm.SSH_DSS;
           return true;
+        case PublicKeyAlgorithmExt.ALGORITHM_ECDSA_SHA2_NISTP256_KEY:
+          aAlgorithm = PublicKeyAlgorithm.ECDSA_SHA2_NISTP256;
+          return true;
+        case PublicKeyAlgorithmExt.ALGORITHM_ECDSA_SHA2_NISTP384_KEY:
+          aAlgorithm = PublicKeyAlgorithm.ECDSA_SHA2_NISTP384;
+          return true;
+        case PublicKeyAlgorithmExt.ALGORITHM_ECDSA_SHA2_NISTP521_KEY:
+          aAlgorithm = PublicKeyAlgorithm.ECDSA_SHA2_NISTP521;
+          return true;
+        case PublicKeyAlgorithmExt.ALGORITHM_ED25519:
+          aAlgorithm = PublicKeyAlgorithm.ED25519;
+          return true;
         default:
           return false;
       }
