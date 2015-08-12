@@ -31,6 +31,9 @@ using System.Runtime.InteropServices;
 using System.Security;
 using System.Security.Cryptography;
 using System.Text;
+using dlech.SshAgentLib.Crypto;
+using Org.BouncyCastle.Asn1.Sec;
+using Org.BouncyCastle.Asn1.X9;
 using Org.BouncyCastle.Crypto;
 using Org.BouncyCastle.Crypto.Parameters;
 using Org.BouncyCastle.Math;
@@ -581,6 +584,23 @@ namespace dlech.SshAgentLib
 
           return new AsymmetricCipherKeyPair(dsaPublicKeyParams,
             dsaPrivateKeyParams);
+        case PublicKeyAlgorithm.ED25519:
+          BlobParser privateParser = new BlobParser(aPrivateKeyBlob);
+          byte[] pubBlob = parser.ReadBlob();
+          byte[] privBlob = privateParser.ReadBlob();
+          byte[] privSig = new byte[64];
+          // OpenSSH's "private key" is actually the private key with the public key tacked on ...
+          Buffer.BlockCopy(privBlob, 0, privSig, 0, 32);
+          Buffer.BlockCopy(pubBlob, 0, privSig, 32, 32);
+          return new AsymmetricCipherKeyPair(new Ed25519PublicKeyParameter(pubBlob), new Ed25519PrivateKeyParameter(privSig));
+        case PublicKeyAlgorithm.ECDSA_SHA2_NISTP256:
+        case PublicKeyAlgorithm.ECDSA_SHA2_NISTP384:
+        case PublicKeyAlgorithm.ECDSA_SHA2_NISTP521:
+          var ecdsaPrivate = new BigInteger(1, aPrivateKeyBlob);
+          parser.Stream.Seek(0, SeekOrigin.Begin);
+          ECPublicKeyParameters ecPublicKeyParams = (ECPublicKeyParameters) parser.ReadSsh2PublicKeyData();
+          ECPrivateKeyParameters ecPrivateKeyParams = new ECPrivateKeyParameters(ecdsaPrivate, ecPublicKeyParams.Parameters);
+          return new AsymmetricCipherKeyPair(ecPublicKeyParams, ecPrivateKeyParams);
         default:
           // unsupported encryption algorithm
           throw new PpkFormatterException(PpkFormatterException.PpkErrorType.PublicKeyEncryption);
