@@ -28,6 +28,7 @@ using System.IO;
 using System.Security;
 using System.Text;
 using dlech.SshAgentLib;
+using dlech.SshAgentLib.Crypto;
 using NUnit.Framework;
 
 namespace dlech.SshAgentLibTests
@@ -70,6 +71,32 @@ namespace dlech.SshAgentLibTests
       key = formatter.DeserializeFile(
         "../../Resources/ssh2-rsa-non-ascii-passphrase.ppk");
       Assert.AreEqual(expectedComment, key.Comment);
+    }
+
+    /// <summary>
+    /// Tests Ed25519 ppk file parsing.
+    /// </summary>
+    [Test]
+    public void Ed25519SigTest() {
+      ISshKey target;
+
+      PpkFormatter formatter = new PpkFormatter() { GetPassphraseCallbackMethod = _ =>
+        {
+          SecureString result = new SecureString();
+          foreach (char c in "PageantSharp")
+          {
+            result.AppendChar(c);
+          }
+          return result;
+        }
+      };
+      string[] keys = {"../../Resources/ssh2-ed25519.ppk", "../../Resources/ssh2-ed25519-no-passphrase.ppk"};
+      string[] sig = { "01:38:67:b5:b9:cc:a6:a9:9c:cd:38:76:0d:81:66:45:cf:ed:a3:ec:55:ad:40:36:01:ca:13:77:3c:41:4e:8e:49:3d:d6:e5:d9:9c:b1:1f:24:de:a9:4c:a5:bd:3c:08:0a:10:f5:25:c0:ef:bd:4b:4f:17:e2:54:fe:13:ac:74", "01:08:c6:d4:1b:3e:51:9c:39:3f:7c:25:a4:fb:13:0f:3c:74:69:67:df:e3:bf:e4:06:fc:4a:1b:da:e3:0b:1f:5d:df:37:6a:d1:1d:b3:31:39:60:20:61:b7:ac:bd:a1:e4:39:fc:b1:b0:a3:4c:9c:8c:02:f2:e1:2d:1c:9e:c8"};
+      for (int i = 0; i < keys.Length; ++i)
+      {
+        target = (ISshKey)formatter.DeserializeFile(keys[i]);
+        Assert.That(((Ed25519PrivateKeyParameter)target.GetPrivateKeyParameters()).Signature.ToHexString(), Is.EqualTo(sig[i]), keys[i]);
+      }
     }
 
     /// <summary>
@@ -291,6 +318,43 @@ namespace dlech.SshAgentLibTests
       target = (ISshKey)formatter.Deserialize(modifiedFileContentsStream);
       Assert.AreEqual(expectedSsh2DsaWithPassComment, target.Comment);
       Assert.AreEqual(expectedKeySize, target.Size);
+
+      /* test ECDSA and ED25519 keys */
+
+      string[] keys = {
+        "../../Resources/ecdsa-sha2-nistp256.ppk", "../../Resources/ecdsa-sha2-nistp256-no-passphrase.ppk",
+        "../../Resources/ecdsa-sha2-nistp384.ppk", "../../Resources/ecdsa-sha2-nistp384-no-passphrase.ppk",
+        "../../Resources/ecdsa-sha2-nistp521.ppk", "../../Resources/ecdsa-sha2-nistp521-no-passphrase.ppk",
+        "../../Resources/ssh2-ed25519.ppk", "../../Resources/ssh2-ed25519-no-passphrase.ppk"
+      };
+      string[] fps = {
+        "7c:7b:9b:45:ca:dd:d5:d3:9f:25:e7:68:ec:13:7d:79", "80:a9:6e:a1:e4:70:b7:85:ac:e5:df:06:19:95:ce:7d",
+        "13:cc:91:2a:1c:d4:e9:38:cc:df:49:a1:23:fa:38:f2", "e4:c5:a0:c6:b0:b9:fc:9f:0c:7b:6d:98:70:ce:7a:1c",
+        "21:17:40:2e:2a:16:03:f3:ca:79:a2:73:23:f5:ea:d1", "ae:a0:a6:e0:6e:2a:1c:c0:fa:2e:3d:47:15:b3:2b:cb",
+        "5a:b8:a8:f7:1f:06:d6:3b:30:60:a6:41:a0:1f:88:e5", "e4:41:53:cb:04:83:13:b3:58:98:ac:a7:c5:c8:0c:00"
+      };
+      PublicKeyAlgorithm[] algs = {
+        PublicKeyAlgorithm.ECDSA_SHA2_NISTP256, PublicKeyAlgorithm.ECDSA_SHA2_NISTP256,
+        PublicKeyAlgorithm.ECDSA_SHA2_NISTP384, PublicKeyAlgorithm.ECDSA_SHA2_NISTP384,
+        PublicKeyAlgorithm.ECDSA_SHA2_NISTP521, PublicKeyAlgorithm.ECDSA_SHA2_NISTP521,
+        PublicKeyAlgorithm.ED25519, PublicKeyAlgorithm.ED25519
+      };
+      string[] comments = {
+        "PageantSharp ecdsa-sha2-nistp256, with passphrase", "PageantSharp ecdsa-sha2-nistp256, no passphrase",
+        "PageantSharp ecdsa-sha2-nistp384, with passphrase", "PageantSharp ecdsa-sha2-nistp384, no passphrase",
+        "PageantSharp ecdsa-sha2-nistp521, with passphrase", "PageantSharp ecdsa-sha2-nistp521, no passphrase",
+        "PageantSharp ssh2-ed25519, with passphrase", "PageantSharp ssh2-ed25519, no passphrase"
+      };
+      int[] sizes = { 256, 256, 384, 384, 521, 521, 256, 256 };
+      formatter.GetPassphraseCallbackMethod = getPassphrase;
+      formatter.WarnOldFileFormatCallbackMethod = warnOldFileNotExpected;
+      for (int i = 0; i < keys.Length; ++i) {
+        target = (ISshKey) formatter.DeserializeFile(keys[i]);
+        Assert.That(target.Size, Is.EqualTo(sizes[i]));
+        Assert.That(target.Algorithm, Is.EqualTo(algs[i]));
+        Assert.That(target.GetMD5Fingerprint().ToHexString(), Is.EqualTo(fps[i]));
+        Assert.That(target.Comment, Is.EqualTo(comments[i]));
+      }
     }
   }
 }
