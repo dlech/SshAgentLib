@@ -529,6 +529,7 @@ namespace dlech.SshAgentLib
       BigInteger /* p, q, */ g, y, x; // DSA params
 
       BlobParser parser = new BlobParser(aPublicKeyBlob);
+      BlobParser privateParser = new BlobParser(aPrivateKeyBlob);
       string algorithm = parser.ReadString();
       if (algorithm != aAlgorithm.GetIdentifierString()) {
         throw new InvalidOperationException("public key is not " +
@@ -585,7 +586,6 @@ namespace dlech.SshAgentLib
           return new AsymmetricCipherKeyPair(dsaPublicKeyParams,
             dsaPrivateKeyParams);
         case PublicKeyAlgorithm.ED25519:
-          BlobParser privateParser = new BlobParser(aPrivateKeyBlob);
           byte[] pubBlob = parser.ReadBlob();
           byte[] privBlob = privateParser.ReadBlob();
           byte[] privSig = new byte[64];
@@ -596,7 +596,7 @@ namespace dlech.SshAgentLib
         case PublicKeyAlgorithm.ECDSA_SHA2_NISTP256:
         case PublicKeyAlgorithm.ECDSA_SHA2_NISTP384:
         case PublicKeyAlgorithm.ECDSA_SHA2_NISTP521:
-          var ecdsaPrivate = new BigInteger(1, aPrivateKeyBlob);
+          var ecdsaPrivate = new BigInteger(1, privateParser.ReadBlob());
           parser.Stream.Seek(0, SeekOrigin.Begin);
           ECPublicKeyParameters ecPublicKeyParams = (ECPublicKeyParameters) parser.ReadSsh2PublicKeyData();
           ECPrivateKeyParameters ecPrivateKeyParams = new ECPrivateKeyParameters(ecdsaPrivate, ecPublicKeyParams.Parameters);
