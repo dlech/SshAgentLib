@@ -25,11 +25,14 @@
 
 using System;
 using System.IO;
+using System.Linq;
 using System.Security;
 using System.Text;
 using dlech.SshAgentLib;
 using dlech.SshAgentLib.Crypto;
 using NUnit.Framework;
+using Org.BouncyCastle.Crypto.Parameters;
+using Org.BouncyCastle.Math;
 
 namespace dlech.SshAgentLibTests
 {
@@ -96,6 +99,43 @@ namespace dlech.SshAgentLibTests
       {
         target = (ISshKey)formatter.DeserializeFile(keys[i]);
         Assert.That(((Ed25519PrivateKeyParameter)target.GetPrivateKeyParameters()).Signature.ToHexString(), Is.EqualTo(sig[i]), keys[i]);
+      }
+    }
+
+    [Test]
+    public void EcdsaSigTest() {
+      ISshKey target;
+
+      PpkFormatter formatter = new PpkFormatter()
+      {
+        GetPassphraseCallbackMethod = _ =>
+        {
+          SecureString result = new SecureString();
+          foreach (char c in "PageantSharp")
+          {
+            result.AppendChar(c);
+          }
+          return result;
+        }
+      };
+
+      string[] keys = {
+        "../../Resources/ecdsa-sha2-nistp256.ppk", "../../Resources/ecdsa-sha2-nistp256-no-passphrase.ppk",
+        "../../Resources/ecdsa-sha2-nistp384.ppk", "../../Resources/ecdsa-sha2-nistp384-no-passphrase.ppk",
+        "../../Resources/ecdsa-sha2-nistp521.ppk", "../../Resources/ecdsa-sha2-nistp521-no-passphrase.ppk"
+      };
+      string[] d = {
+        "569f23328522cf93694b0cca6bafd7236cf8bea6a9aab098491e915b5d02f2e5",
+        "9d4c19af9d289a8aa67d3b636504cd473e054be3373d334b5469e93e0a06be21",
+        "200fcb19f9d72b2c0e163ff3869b05beda93536d862bedb5748ba2b6174d4af2aea731dfb8884ae956f4dcf7b138489d",
+        "31a122fbf5c674ddbddbc03f96d4f26c534fd5df7eae896a8890c7bdd3de8c5324f06b1efe836870318f23c5a66a2495",
+        "14904fd2a509104e86cd9247cf081088caffa124c263caf43ec7cdf5d6ee14a907de16d30561ed14155fbf651ecc5b66a7d329ffa949aa3dcbdd8efe9ea492a7001",
+        "ef41441bc21c20ee38a8169855b618e5c76f34b067d8bbd85276de982aec60fc90114acad5fc599e83c8d6fc535fb36c5244908577b1138ff4eed7d7b6c9eb2d01"
+      };
+      for (int i = 0; i < keys.Length; ++i) {
+        target = formatter.DeserializeFile(keys[i]);
+        var priKeyParam = (ECPrivateKeyParameters) target.GetPrivateKeyParameters();
+        Assert.That(priKeyParam.D.ToString(16), Is.EqualTo(d[i]));
       }
     }
 
