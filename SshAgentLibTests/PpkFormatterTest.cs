@@ -3,7 +3,7 @@
 //
 // Author(s): David Lechner <david@lechnology.com>
 //
-// Copyright (c) 2012-2013 David Lechner
+// Copyright (c) 2012-2013,2015 David Lechner
 //
 // Permission is hereby granted, free of charge, to any person obtaining a copy
 // of this software and associated documentation files (the "Software"), to deal
@@ -93,12 +93,23 @@ namespace dlech.SshAgentLibTests
           return result;
         }
       };
-      string[] keys = {"../../Resources/ssh2-ed25519.ppk", "../../Resources/ssh2-ed25519-no-passphrase.ppk"};
-      string[] sig = { "01:38:67:b5:b9:cc:a6:a9:9c:cd:38:76:0d:81:66:45:cf:ed:a3:ec:55:ad:40:36:01:ca:13:77:3c:41:4e:8e:49:3d:d6:e5:d9:9c:b1:1f:24:de:a9:4c:a5:bd:3c:08:0a:10:f5:25:c0:ef:bd:4b:4f:17:e2:54:fe:13:ac:74", "01:08:c6:d4:1b:3e:51:9c:39:3f:7c:25:a4:fb:13:0f:3c:74:69:67:df:e3:bf:e4:06:fc:4a:1b:da:e3:0b:1f:5d:df:37:6a:d1:1d:b3:31:39:60:20:61:b7:ac:bd:a1:e4:39:fc:b1:b0:a3:4c:9c:8c:02:f2:e1:2d:1c:9e:c8"};
+      string[] keys = {
+        "../../Resources/ssh2-ed25519.ppk",
+        "../../Resources/ssh2-ed25519-no-passphrase.ppk"
+      };
+      string[] sig = {
+        "01:38:67:b5:b9:cc:a6:a9:9c:cd:38:76:0d:81:66:45:cf:ed:a3:ec:55:ad:" +
+        "40:36:01:ca:13:77:3c:41:4e:8e:49:3d:d6:e5:d9:9c:b1:1f:24:de:a9:4c:" +
+        "a5:bd:3c:08:0a:10:f5:25:c0:ef:bd:4b:4f:17:e2:54:fe:13:ac:74",
+        "01:08:c6:d4:1b:3e:51:9c:39:3f:7c:25:a4:fb:13:0f:3c:74:69:67:df:e3:" +
+        "bf:e4:06:fc:4a:1b:da:e3:0b:1f:5d:df:37:6a:d1:1d:b3:31:39:60:20:61:" +
+        "b7:ac:bd:a1:e4:39:fc:b1:b0:a3:4c:9c:8c:02:f2:e1:2d:1c:9e:c8"
+      };
       for (int i = 0; i < keys.Length; ++i)
       {
         target = (ISshKey)formatter.DeserializeFile(keys[i]);
-        Assert.That(((Ed25519PrivateKeyParameter)target.GetPrivateKeyParameters()).Signature.ToHexString(), Is.EqualTo(sig[i]), keys[i]);
+        Assert.That(((Ed25519PrivateKeyParameter)target.GetPrivateKeyParameters()).Signature.ToHexString(),
+            Is.EqualTo(sig[i]), keys[i]);
       }
     }
 
@@ -120,17 +131,22 @@ namespace dlech.SshAgentLibTests
       };
 
       string[] keys = {
-        "../../Resources/ecdsa-sha2-nistp256.ppk", "../../Resources/ecdsa-sha2-nistp256-no-passphrase.ppk",
-        "../../Resources/ecdsa-sha2-nistp384.ppk", "../../Resources/ecdsa-sha2-nistp384-no-passphrase.ppk",
-        "../../Resources/ecdsa-sha2-nistp521.ppk", "../../Resources/ecdsa-sha2-nistp521-no-passphrase.ppk"
+        "../../Resources/ecdsa-sha2-nistp256.ppk",
+        "../../Resources/ecdsa-sha2-nistp256-no-passphrase.ppk",
+        "../../Resources/ecdsa-sha2-nistp384.ppk",
+        "../../Resources/ecdsa-sha2-nistp384-no-passphrase.ppk",
+        "../../Resources/ecdsa-sha2-nistp521.ppk",
+        "../../Resources/ecdsa-sha2-nistp521-no-passphrase.ppk"
       };
       string[] d = {
         "569f23328522cf93694b0cca6bafd7236cf8bea6a9aab098491e915b5d02f2e5",
         "9d4c19af9d289a8aa67d3b636504cd473e054be3373d334b5469e93e0a06be21",
         "200fcb19f9d72b2c0e163ff3869b05beda93536d862bedb5748ba2b6174d4af2aea731dfb8884ae956f4dcf7b138489d",
         "31a122fbf5c674ddbddbc03f96d4f26c534fd5df7eae896a8890c7bdd3de8c5324f06b1efe836870318f23c5a66a2495",
-        "14904fd2a509104e86cd9247cf081088caffa124c263caf43ec7cdf5d6ee14a907de16d30561ed14155fbf651ecc5b66a7d329ffa949aa3dcbdd8efe9ea492a7001",
-        "ef41441bc21c20ee38a8169855b618e5c76f34b067d8bbd85276de982aec60fc90114acad5fc599e83c8d6fc535fb36c5244908577b1138ff4eed7d7b6c9eb2d01"
+        "14904fd2a509104e86cd9247cf081088caffa124c263caf43ec7cdf5d6ee14a90" +
+        "7de16d30561ed14155fbf651ecc5b66a7d329ffa949aa3dcbdd8efe9ea492a7001",
+        "ef41441bc21c20ee38a8169855b618e5c76f34b067d8bbd85276de982aec60fc9" +
+        "0114acad5fc599e83c8d6fc535fb36c5244908577b1138ff4eed7d7b6c9eb2d01"
       };
       for (int i = 0; i < keys.Length; ++i) {
         target = formatter.DeserializeFile(keys[i]);
