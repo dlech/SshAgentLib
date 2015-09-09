@@ -3,7 +3,7 @@
 //
 // Author(s): David Lechner <david@lechnology.com>
 //
-// Copyright (c) 2012-2013 David Lechner
+// Copyright (c) 2012-2013,2015 David Lechner
 //
 // Permission is hereby granted, free of charge, to any person obtaining a copy
 // of this software and associated documentation files (the "Software"), to deal
@@ -522,84 +522,62 @@ namespace dlech.SshAgentLib
     }
 
     private static AsymmetricCipherKeyPair CreateCipherKeyPair(
-      PublicKeyAlgorithm aAlgorithm,
-      byte[] aPublicKeyBlob, byte[] aPrivateKeyBlob)
+      PublicKeyAlgorithm algorithm,
+      byte[] publicKeyBlob, byte[] privateKeyBlob)
     {
-      BigInteger exponent, modulus, d, p, q, inverseQ, dp, dq; // RSA params
-      BigInteger /* p, q, */ g, y, x; // DSA params
+      var parser = new BlobParser(publicKeyBlob);
+      var publicKey = parser.ReadSsh2PublicKeyData();
+      parser = new BlobParser(privateKeyBlob);
 
-      BlobParser parser = new BlobParser(aPublicKeyBlob);
-      BlobParser privateParser = new BlobParser(aPrivateKeyBlob);
-      string algorithm = parser.ReadString();
-      if (algorithm != aAlgorithm.GetIdentifierString()) {
-        throw new InvalidOperationException("public key is not " +
-          aAlgorithm.GetIdentifierString());
-      }
-
-      switch (aAlgorithm) {
+      switch (algorithm) {
         case PublicKeyAlgorithm.SSH_RSA:
+          var rsaPublicKeyParams = (RsaKeyParameters)publicKey;
 
-          /* read parameters that were stored in file */
-
-          exponent = new BigInteger(1, parser.ReadBlob());
-          modulus = new BigInteger(1, parser.ReadBlob());
-
-          parser = new BlobParser(aPrivateKeyBlob);
-          d = new BigInteger(1, parser.ReadBlob());
-          p = new BigInteger(1, parser.ReadBlob());
-          q = new BigInteger(1, parser.ReadBlob());
-          inverseQ = new BigInteger(1, parser.ReadBlob());
-          //parser.MoveNext();
+          var d = new BigInteger(1, parser.ReadBlob());
+          var p = new BigInteger(1, parser.ReadBlob());
+          var q = new BigInteger(1, parser.ReadBlob());
+          var inverseQ = new BigInteger(1, parser.ReadBlob());
 
           /* compute missing parameters */
-          dp = d.Remainder(p.Subtract(BigInteger.One));
-          dq = d.Remainder(q.Subtract(BigInteger.One));
+          var dp = d.Remainder(p.Subtract(BigInteger.One));
+          var dq = d.Remainder(q.Subtract(BigInteger.One));
 
-          RsaKeyParameters rsaPublicKeyParams =
-            new RsaKeyParameters(false, modulus, exponent);
           RsaPrivateCrtKeyParameters rsaPrivateKeyParams =
-            new RsaPrivateCrtKeyParameters(modulus, exponent, d, p, q, dp, dq,
-              inverseQ);
+            new RsaPrivateCrtKeyParameters(rsaPublicKeyParams.Modulus,
+              rsaPublicKeyParams.Exponent, d, p, q, dp, dq, inverseQ);
 
           return new AsymmetricCipherKeyPair(rsaPublicKeyParams,
             rsaPrivateKeyParams);
 
         case PublicKeyAlgorithm.SSH_DSS:
+          var dsaPublicKeyParams = (DsaPublicKeyParameters)publicKey;
 
-          /* read parameters that were stored in file */
-
-          p = new BigInteger(1, parser.ReadBlob());
-          q = new BigInteger(1, parser.ReadBlob());
-          g = new BigInteger(1, parser.ReadBlob());
-          y = new BigInteger(1, parser.ReadBlob());
-          //parser.MoveNext();
-
-          parser = new BlobParser(aPrivateKeyBlob);
-          x = new BigInteger(1, parser.ReadBlob());
-
-          DsaParameters commonParams = new DsaParameters(p, q, g);
-          DsaPublicKeyParameters dsaPublicKeyParams =
-            new DsaPublicKeyParameters(y, commonParams);
+          var x = new BigInteger(1, parser.ReadBlob());
           DsaPrivateKeyParameters dsaPrivateKeyParams =
-            new DsaPrivateKeyParameters(x, commonParams);
+            new DsaPrivateKeyParameters(x, dsaPublicKeyParams.Parameters);
 
           return new AsymmetricCipherKeyPair(dsaPublicKeyParams,
             dsaPrivateKeyParams);
         case PublicKeyAlgorithm.ED25519:
-          byte[] pubBlob = parser.ReadBlob();
-          byte[] privBlob = privateParser.ReadBlob();
+          var ed25596PublicKey = (Ed25519PublicKeyParameter)publicKey;
+
+          byte[] privBlob = parser.ReadBlob();
           byte[] privSig = new byte[64];
           // OpenSSH's "private key" is actually the private key with the public key tacked on ...
-          Buffer.BlockCopy(privBlob, 0, privSig, 0, 32);
-          Buffer.BlockCopy(pubBlob, 0, privSig, 32, 32);
-          return new AsymmetricCipherKeyPair(new Ed25519PublicKeyParameter(pubBlob), new Ed25519PrivateKeyParameter(privSig));
+          Array.Copy(privBlob, 0, privSig, 0, 32);
+          Array.Copy(ed25596PublicKey.Key, 0, privSig, 32, 32);
+          var ed25596PrivateKey = new Ed25519PrivateKeyParameter(privSig);
+
+          return new AsymmetricCipherKeyPair(ed25596PublicKey, ed25596PrivateKey);
         case PublicKeyAlgorithm.ECDSA_SHA2_NISTP256:
         case PublicKeyAlgorithm.ECDSA_SHA2_NISTP384:
         case PublicKeyAlgorithm.ECDSA_SHA2_NISTP521:
-          var ecdsaPrivate = new BigInteger(1, privateParser.ReadBlob());
-          parser.Stream.Seek(0, SeekOrigin.Begin);
-          ECPublicKeyParameters ecPublicKeyParams = (ECPublicKeyParameters) parser.ReadSsh2PublicKeyData();
-          ECPrivateKeyParameters ecPrivateKeyParams = new ECPrivateKeyParameters(ecdsaPrivate, ecPublicKeyParams.Parameters);
+          var ecPublicKeyParams = (ECPublicKeyParameters)publicKey;
+
+          var ecdsaPrivate = new BigInteger(1, parser.ReadBlob());
+          ECPrivateKeyParameters ecPrivateKeyParams =
+            new ECPrivateKeyParameters(ecdsaPrivate, ecPublicKeyParams.Parameters);
+
           return new AsymmetricCipherKeyPair(ecPublicKeyParams, ecPrivateKeyParams);
         default:
           // unsupported encryption algorithm
