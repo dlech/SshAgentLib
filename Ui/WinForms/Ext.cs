@@ -3,7 +3,7 @@
 //
 // Author(s): David Lechner <david@lechnology.com>
 //
-// Copyright (c) 2013 David Lechner
+// Copyright (c) 2013,2015 David Lechner
 //
 // Permission is hereby granted, free of charge, to any person obtaining a copy
 // of this software and associated documentation files (the "Software"), to deal
@@ -35,21 +35,25 @@ namespace dlech.SshAgentLib.WinForms
   /// </summary>
   public static class Ext
   {
-    public static void AddKeysFromFiles(this IAgent aAgent, string[] aFileNames,
-      ICollection<Agent.KeyConstraint> aConstraints = null)
+    public static void AddKeysFromFiles(this IAgent agent, string[] fileNames,
+      ICollection<Agent.KeyConstraint> constraints = null)
     {
-      foreach (var fileName in aFileNames) {
+      foreach (var fileName in fileNames) {
         try {
-          aAgent.AddKeyFromFile(fileName, aConstraints);
+          agent.AddKeyFromFile(fileName, constraints);
         } catch (PpkFormatterException) {
           MessageBox.Show(string.Format(
-            "Error opening file '{0}'\n" + 
+            "Error opening file '{0}'\n" +
             "Possible causes:\n" +
             "\n" +
             "- Passphrase was entered incorrectly\n" +
             "- File is corrupt",
             fileName), Util.AssemblyTitle, MessageBoxButtons.OK,
             MessageBoxIcon.Error);
+        } catch (AgentNotRunningException) { 
+          MessageBox.Show ("Could not add key because no SSH agent was found." +
+            " Please make sure your SSH agent program is running (e.g. Pageant).",
+            Util.AssemblyTitle, MessageBoxButtons.OK, MessageBoxIcon.Error);
         } catch (Exception ex) {
           MessageBox.Show(string.Format(Strings.errFileOpenFailed,
             fileName, ex.Message), Util.AssemblyTitle, MessageBoxButtons.OK,
