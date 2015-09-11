@@ -69,6 +69,7 @@
       this.keyDataGridView.SelectionMode = System.Windows.Forms.DataGridViewSelectionMode.FullRowSelect;
       this.keyDataGridView.Size = new System.Drawing.Size(642, 183);
       this.keyDataGridView.TabIndex = 3;
+      this.keyDataGridView.CellDoubleClick += new System.Windows.Forms.DataGridViewCellEventHandler(this.keyDataGridView_CellDoubleClick);
       // 
       // KeyPicker
       // 

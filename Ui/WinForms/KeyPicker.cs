@@ -66,5 +66,11 @@ namespace dlech.SshAgentLib.WinForms
         e.Column.Visible = false;
       }
     }
+
+    private void keyDataGridView_CellDoubleClick(object sender, DataGridViewCellEventArgs e)
+    {
+      keyDataGridView.Rows[e.RowIndex].Selected = true;
+      AcceptButton.PerformClick();
+    }
   }
 }
