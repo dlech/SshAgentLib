@@ -179,9 +179,10 @@ namespace dlech.SshAgentLib.WinForms
         // need / can't use constraints
 
         using (var openFileDialog = new OpenFileDialog()) {
+          openFileDialog.Multiselect = true;
           openFileDialog.Filter = string.Join ("|",
             Strings.filterPuttyPrivateKeyFiles, "*.ppk",
-             Strings.filterAllFiles, "*.*");
+            Strings.filterAllFiles, "*.*");
 
           var result = openFileDialog.ShowDialog ();
           if (result != DialogResult.OK) {
@@ -293,6 +294,7 @@ namespace dlech.SshAgentLib.WinForms
       } else {
         using (var openFileDialog = new OpenFileDialog())
         {
+          openFileDialog.Multiselect = true;
           openFileDialog.Filter = string.Join ("|",
             Strings.filterPuttyPrivateKeyFiles, "*.ppk",
              Strings.filterAllFiles, "*.*");
