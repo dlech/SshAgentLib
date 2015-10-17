@@ -37,32 +37,23 @@ namespace dlech.SshAgentLib
   /// </remarks>
   public class UnixClient : AgentClient
   {
-    /* constants */
-
-    /* Name of the environment variable containing the pathname of the
-     * authentication socket. */
-    public static string SSH_AUTHSOCKET_ENV_NAME = "SSH_AUTH_SOCK";
-    public static int cBufferSize = 4096;
-
-
-    /* constructor */
-
-    public UnixClient()
-    {
-
-    }
+    /// <summary>
+    /// Name of the environment variable containing the path name of the
+    /// authentication socket.
+    /// </summary>
+    public const string SshAuthSockName = "SSH_AUTH_SOCK";
+    public const int BufferSize = 4096;
 
     public override byte[] SendMessage(byte[] aMessage)
     {
-      var socketPath =
-        Environment.GetEnvironmentVariable(SSH_AUTHSOCKET_ENV_NAME);
+      var socketPath = Environment.GetEnvironmentVariable(SshAuthSockName);
       if (!File.Exists(socketPath)) {
         throw new AgentNotRunningException();
       }
       using (var client = new Mono.Unix.UnixClient (socketPath)) {
         using (var stream = client.GetStream()) {
           stream.Write(aMessage, 0, aMessage.Length);
-          byte[] reply = new byte[cBufferSize];
+          byte[] reply = new byte[BufferSize];
           stream.Read(reply, 0, reply.Length);
           return reply;
         }

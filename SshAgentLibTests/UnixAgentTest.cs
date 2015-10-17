@@ -33,100 +33,83 @@ using NUnit.Framework;
 
 namespace dlech.SshAgentLibTests
 {
-  [TestFixture()]
+  [TestFixture]
   [Platform(Exclude="Win")]
   public class UnixAgentTest
   {
     /// <summary>
-    /// Tests that the temp dir is deleted on Dispose/Finalize.
+    /// Tests that the socket file is deleted on Dispose.
     /// </summary>
-    [Test()]
-    public void TestUnixAgent()
+    [Test]
+    public void TestUnixAgentDispose()
     {
-      string socketDir;
-      string socketPathEnv;
-      string pidEnv;
-      using (UnixAgent agent = new UnixAgent()) {
-        socketDir = GetField<string>(agent, "socketDir");
-        int pid = UnixProcess.GetCurrentProcessId();
-        socketPathEnv = Environment
-        .GetEnvironmentVariable(UnixAgent.SSH_AUTHSOCKET_ENV_NAME);
-        pidEnv = Environment
-        .GetEnvironmentVariable(UnixAgent.SSH_AGENTPID_ENV_NAME);
+      const string socketFileName = "test1.socket";
 
-        Assert.That(socketPathEnv.Contains(socketDir), Is.True,
-          "Failed to set environment variable " +
-          UnixAgent.SSH_AUTHSOCKET_ENV_NAME
-        );
-        Assert.That(pidEnv, Is.EqualTo(pid.ToString()),
-          "Failed to set environment variable " +
-          UnixAgent.SSH_AGENTPID_ENV_NAME
-        );
+      if (File.Exists (socketFileName)) {
+        File.Delete(socketFileName);
+      }
 
-        using (Mono.Unix.UnixClient client =
-               new Mono.Unix.UnixClient (socketPathEnv)) {
-          using (NetworkStream stream = client.GetStream ()) {
-            stream.Write(new byte[] { 0 }, 0, 1); // send garbage
-            byte[] reply = new byte[5];
-            stream.Read(reply, 0, 5);
-            byte[] expected = { 0, 0, 0, 1,
-              (byte)Agent.Message.SSH_AGENT_FAILURE };
-            Assert.That(reply, Is.EqualTo(expected));
-          }
-        }
-
+      using (var agent = new UnixAgent(socketFileName)) {
+        Assert.That(File.Exists(socketFileName), Is.True,
+          "Failed to create socket file");
       }
       // check that temporary directory was cleaned up after dispose
-      Assert.That(Directory.Exists(socketDir), Is.False,
-        "Temporary directory was not deleted");
-
-      // check that environment vars are cleared
-      socketPathEnv = Environment
-        .GetEnvironmentVariable(UnixAgent.SSH_AUTHSOCKET_ENV_NAME);
-      pidEnv = Environment
-        .GetEnvironmentVariable(UnixAgent.SSH_AGENTPID_ENV_NAME);
-      Assert.That(socketPathEnv, Is.Null,
-                    "Failed to unset environment variable " +
-        UnixAgent.SSH_AUTHSOCKET_ENV_NAME
-      );
-      Assert.That(pidEnv, Is.Null,
-                    "Failed to unset environment variable " +
-        UnixAgent.SSH_AGENTPID_ENV_NAME
-      );
+      Assert.That(File.Exists(socketFileName), Is.False,
+        "Socket file was not deleted");
     }
 
-
-    /* helper methods */
-
-    private T GetField<T>(Object instance, string name)
+    [Test]
+    public void TestUnixAgentBadMessage()
     {
-      Type t = instance.GetType();
-      FieldInfo f = t.GetField(name, BindingFlags.Instance |
-        BindingFlags.NonPublic | BindingFlags.Public
-      );
+      const string socketFileName = "test2.socket";
 
-      return (T)f.GetValue(instance);
-    }
-
-    private T ExecuteMethod<T>(object instance, String name,
-      params object[] paramList)
-    {
-      Type t = instance.GetType();
-      Type[] paramTypes;
-      if (paramList != null) {
-        paramTypes = new Type[paramList.Length];
-
-        for (int i = 0; i < paramList.Length; i++)
-          paramTypes[i] = paramList[i].GetType();
-      } else {
-        paramTypes = new Type[0];
+      if (File.Exists (socketFileName)) {
+        File.Delete(socketFileName);
       }
-      MethodInfo m = t.GetMethod(name, BindingFlags.Instance |
-        BindingFlags.NonPublic | BindingFlags.Public,
-        null, paramTypes, null);
 
-      return (T)m.Invoke(instance, paramList);
+      using (var agent = new UnixAgent(socketFileName))
+      using (var client = new Mono.Unix.UnixClient(socketFileName))
+      using (var stream = client.GetStream ()) {
+        var message = new byte[] { 0, 0, 0, 0 };
+        stream.Write(message, 0, message.Length); // send garbage
+        stream.Flush();
+        var reply = new byte[5];
+        stream.Read(reply, 0, reply.Length);
+        var expected = new byte [] {
+          0, 0, 0, 1,
+          (byte)Agent.Message.SSH_AGENT_FAILURE,
+        };
+        Assert.That(reply, Is.EqualTo(expected));
+      }
+    }
+
+    [Test]
+    public void TestUnixAgentGoodMessage()
+    {
+      const string socketFileName = "test3.socket";
+
+      if (File.Exists(socketFileName)) {
+        File.Delete(socketFileName);
+      }
+
+      using (var agent = new UnixAgent(socketFileName))
+      using (var client = new Mono.Unix.UnixClient(socketFileName))
+      using (var stream = client.GetStream()) {
+        var message = new byte[] {
+          0, 0, 0, 1,
+          (byte)Agent.Message.SSH1_AGENTC_REQUEST_RSA_IDENTITIES,
+        };
+        stream.Write(message, 0, message.Length); // send message
+        stream.Flush();
+        var reply = new byte[9];
+        stream.Read(reply, 0, reply.Length);
+        var expected = new byte[] {
+          0, 0, 0, 5,
+          (byte)Agent.Message.SSH1_AGENT_RSA_IDENTITIES_ANSWER,
+          0, 0, 0, 0,
+        };
+        Assert.That(reply, Is.EqualTo(expected));
+      }
     }
   }
 }
-

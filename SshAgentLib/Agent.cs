@@ -122,7 +122,9 @@ namespace dlech.SshAgentLib
 
       /* Replies from agent to client for protocol 2 key operations */
       SSH2_AGENT_IDENTITIES_ANSWER = 12,
-      SSH2_AGENT_SIGN_RESPONSE = 14
+      SSH2_AGENT_SIGN_RESPONSE = 14,
+
+      UNKNOWN = 255
     }
 
     public enum KeyConstraintType : byte
@@ -261,7 +263,7 @@ namespace dlech.SshAgentLib
 
     #region Constructors
 
-    public Agent()
+    protected Agent()
     {
       mKeyList = new List<ISshKey>();
     }
@@ -394,16 +396,27 @@ namespace dlech.SshAgentLib
     /// <remarks>code based on winpgnt.c from PuTTY source code</remarks>
     public void AnswerMessage(Stream messageStream, Process process = null)
     {
-      BlobParser messageParser = new BlobParser(messageStream);
-      BlobBuilder responseBuilder = new BlobBuilder();
-      BlobHeader header = messageParser.ReadHeader();
+      if (messageStream.CanTimeout) {
+        messageStream.ReadTimeout = 2000;
+      }
+      var messageParser = new BlobParser(messageStream);
+      var responseBuilder = new BlobBuilder();
+      BlobHeader header;
+      try {
+        header = messageParser.ReadHeader();
 
-      if (MessageReceived != null) {
-        var eventArgs = new MessageReceivedEventArgs(header);
-        MessageReceived(this, eventArgs);
-        if (eventArgs.Fail) {
-          header.Message = unchecked((Message)(-1));
+        if (MessageReceived != null) {
+          var eventArgs = new MessageReceivedEventArgs(header);
+          MessageReceived(this, eventArgs);
+          if (eventArgs.Fail) {
+            throw new Exception ();
+          }
         }
+      } catch (Exception) {
+        header = new BlobHeader();
+        header.Message = Message.UNKNOWN;
+        // this will cause the switch statement below to use the default case
+        // which returns an error to the stream.
       }
 
       switch (header.Message) {

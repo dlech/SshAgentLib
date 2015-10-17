@@ -122,8 +122,7 @@ namespace dlech.SshAgentLibTests
     {
       Agent agent = new TestAgent();
 
-      byte unknownMessage = 0xFF;
-      Assert.That(Enum.IsDefined(typeof(Agent.Message), unknownMessage), Is.False);
+      var unknownMessage = (byte)Agent.Message.UNKNOWN;
       Assert.That(unknownMessage, Is.Not.EqualTo(Agent.Message.SSH_AGENT_FAILURE));
       PrepareSimpleMessage(unchecked((Agent.Message)(unknownMessage)));
       agent.AnswerMessage(stream);
