@@ -3,13 +3,13 @@
   <PropertyGroup>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
-    <ProductVersion>10.0.0</ProductVersion>
+    <ProductVersion>8.0.30703</ProductVersion>
     <SchemaVersion>2.0</SchemaVersion>
     <ProjectGuid>{4C052A55-5F53-4756-AC2C-103EE602E60F}</ProjectGuid>
     <OutputType>Library</OutputType>
     <RootNamespace>dlech.SshAgentLibTests</RootNamespace>
     <AssemblyName>SshAgentLibTests</AssemblyName>
-    <ReleaseVersion>0.4.2</ReleaseVersion>
+    <ReleaseVersion>0.7.7</ReleaseVersion>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <DebugSymbols>True</DebugSymbols>
@@ -114,7 +114,7 @@
   <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
   <ItemGroup>
     <ProjectReference Include="..\Chaos.NaCl\Chaos.NaCl\Chaos.NaCl.csproj">
-      <Project>{ae28fd14-7985-4707-a963-c94b8597ae50}</Project>
+      <Project>{AE28FD14-7985-4707-A963-C94B8597AE50}</Project>
       <Name>Chaos.NaCl</Name>
     </ProjectReference>
     <ProjectReference Include="..\SshAgentLib\SshAgentLib.csproj">

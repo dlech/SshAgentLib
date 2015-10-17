@@ -48,6 +48,10 @@ Global
 		{9163B6B6-0603-4C6E-BC67-7111ED8CDDE1}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{9163B6B6-0603-4C6E-BC67-7111ED8CDDE1}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{9163B6B6-0603-4C6E-BC67-7111ED8CDDE1}.Release|Any CPU.Build.0 = Release|Any CPU
+		{AE28FD14-7985-4707-A963-C94B8597AE50}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{AE28FD14-7985-4707-A963-C94B8597AE50}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{AE28FD14-7985-4707-A963-C94B8597AE50}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{AE28FD14-7985-4707-A963-C94B8597AE50}.Release|Any CPU.Build.0 = Release|Any CPU
 		{BB935336-BEB1-4AE2-9929-CF7E6BBA53EE}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{BB935336-BEB1-4AE2-9929-CF7E6BBA53EE}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{BB935336-BEB1-4AE2-9929-CF7E6BBA53EE}.Release|Any CPU.ActiveCfg = Release|Any CPU
@@ -56,15 +60,10 @@ Global
 		{D9797E08-73FA-4F41-AB34-789F1BB68F07}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{D9797E08-73FA-4F41-AB34-789F1BB68F07}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{D9797E08-73FA-4F41-AB34-789F1BB68F07}.Release|Any CPU.Build.0 = Release|Any CPU
-		{AE28FD14-7985-4707-A963-C94B8597AE50}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{AE28FD14-7985-4707-A963-C94B8597AE50}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{AE28FD14-7985-4707-A963-C94B8597AE50}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{AE28FD14-7985-4707-A963-C94B8597AE50}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(NestedProjects) = preSolution
 	EndGlobalSection
 	GlobalSection(MonoDevelopProperties) = preSolution
-		StartupItem = Ui\Qt.Demo\SshAgentLib.Ui.Qt.Demo.csproj
 		Policies = $0
 		$0.DotNetNamingPolicy = $1
 		$1.DirectoryNamespaceAssociation = None
@@ -74,7 +73,6 @@ Global
 		$2.scope = text/x-csharp
 		$0.CSharpFormattingPolicy = $3
 		$3.IndentSwitchBody = True
-		$3.ElseIfNewLinePlacement = SameLine
 		$3.BeforeMethodDeclarationParentheses = False
 		$3.BeforeMethodCallParentheses = False
 		$3.BeforeConstructorDeclarationParentheses = False
@@ -121,7 +119,8 @@ Global
 		$0.TextStylePolicy = $13
 		$13.inheritsSet = null
 		$13.scope = application/x-desktop
-		version = 0.4.2
+		version = 0.7.7
+		StartupItem = Ui\Qt.Demo\SshAgentLib.Ui.Qt.Demo.csproj
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

@@ -9,8 +9,9 @@
     <RootNamespace>dlech.SshAgentLib.WinForms</RootNamespace>
     <AssemblyName>SshAgentLib.WinForms</AssemblyName>
     <FileAlignment>512</FileAlignment>
-    <SynchReleaseVersion>False</SynchReleaseVersion>
-    <ReleaseVersion>0.4.1</ReleaseVersion>
+    <ReleaseVersion>0.7.7</ReleaseVersion>
+    <ProductVersion>8.0.30703</ProductVersion>
+    <SchemaVersion>2.0</SchemaVersion>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <DebugSymbols>True</DebugSymbols>
