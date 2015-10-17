@@ -127,12 +127,17 @@ namespace dlech.SshAgentLib
           // work around mono bug. listener.Dispose() should delete file, but it
           // fails because there are null chars appended to the end of the filename
           // for some reason.
-          var socketPath = ((UnixEndPoint)listener.LocalEndpoint).Filename.Replace("\0", "");
+          // See: https://bugzilla.xamarin.com/show_bug.cgi?id=35004
+          var socketPath = ((UnixEndPoint)listener.LocalEndpoint).Filename;
+          var nullTerminatorIndex = socketPath.IndexOf ('\0');
           listener.Dispose();
-          try {
-            File.Delete (socketPath);
-          } catch {
-            // can't throw in Dispose.
+          if (nullTerminatorIndex > 0) {
+            try {
+              socketPath = socketPath.Remove (nullTerminatorIndex);
+              File.Delete (socketPath);
+            } catch {
+              // can't throw in Dispose.
+            }
           }
         }
       }
