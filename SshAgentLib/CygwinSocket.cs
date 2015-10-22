@@ -183,6 +183,8 @@ namespace dlech.SshAgentLib
                   ConnectionHandler(stream, proc);
                 }
               }
+            } catch {
+              // can throw if remote closes the connection at a bad time
             } finally {
               lock (clientSocketsLock) {
                 clientSockets.Remove(clientSocket);
