@@ -52,15 +52,13 @@ namespace dlech.SshAgentLib
     Thread connectionThread;
     bool isDisposed;
 
-    public UnixAgent(string socketPath)
+    public void StartUnixSocket(string socketPath)
     {
+      if (socketPath == null) {
+        throw new ArgumentNullException("socketPath");
+      }
       try {
-        if (socketPath.StartsWith("~/", StringComparison.Ordinal)) {
-          socketPath = Path.Combine("%HOME%", socketPath.Substring (2));
-        }
-        socketPath = Environment.ExpandEnvironmentVariables(socketPath);
         socketPath = Path.GetFullPath(socketPath);
-
         if (File.Exists(socketPath)) {
           var info = UnixFileSystemInfo.GetFileSystemEntry(socketPath);
           if (info.IsSocket) {
@@ -94,6 +92,25 @@ namespace dlech.SshAgentLib
       }
     }
 
+    public void StopUnixSocket()
+    {
+      // work around mono bug. listener.Dispose() should delete file, but it
+      // fails because there are null chars appended to the end of the filename
+      // for some reason.
+      // See: https://bugzilla.xamarin.com/show_bug.cgi?id=35004
+      var socketPath = ((UnixEndPoint)listener.LocalEndpoint).Filename;
+      var nullTerminatorIndex = socketPath.IndexOf('\0');
+      listener.Dispose();
+      if (nullTerminatorIndex > 0) {
+        try {
+          socketPath = socketPath.Remove(nullTerminatorIndex);
+          File.Delete(socketPath);
+        } catch {
+          // well, we tried
+        }
+      }
+    }
+
     void AcceptConnections()
     {
       while (true) {
@@ -124,21 +141,7 @@ namespace dlech.SshAgentLib
     {
       if (!isDisposed) {
         if (disposing) {
-          // work around mono bug. listener.Dispose() should delete file, but it
-          // fails because there are null chars appended to the end of the filename
-          // for some reason.
-          // See: https://bugzilla.xamarin.com/show_bug.cgi?id=35004
-          var socketPath = ((UnixEndPoint)listener.LocalEndpoint).Filename;
-          var nullTerminatorIndex = socketPath.IndexOf ('\0');
-          listener.Dispose();
-          if (nullTerminatorIndex > 0) {
-            try {
-              socketPath = socketPath.Remove (nullTerminatorIndex);
-              File.Delete (socketPath);
-            } catch {
-              // can't throw in Dispose.
-            }
-          }
+          StopUnixSocket();
         }
       }
       isDisposed = true;
