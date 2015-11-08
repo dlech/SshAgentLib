@@ -425,6 +425,13 @@ namespace dlech.SshAgentLib
            * Reply with SSH1_AGENT_RSA_IDENTITIES_ANSWER.
            */
           try {
+            if (header.BlobLength > 1) {
+              // ruby net-ssh tries to send a SSH2_AGENT_REQUEST_VERSION message
+              // which has the same id number as SSH1_AGENTC_REQUEST_RSA_IDENTITIES
+              // with a string tacked on. We need to read the string from the
+              // stream, but it is not used for anything.
+              messageParser.ReadString ();
+            }
             var keyList = ListKeys(SshVersion.SSH1);
             if (FilterKeyListCallback != null) {
               keyList = FilterKeyListCallback(keyList);
