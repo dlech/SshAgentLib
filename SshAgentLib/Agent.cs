@@ -397,7 +397,7 @@ namespace dlech.SshAgentLib
     public void AnswerMessage(Stream messageStream, Process process = null)
     {
       if (messageStream.CanTimeout) {
-        messageStream.ReadTimeout = 2000;
+        messageStream.ReadTimeout = 5000;
       }
       var messageParser = new BlobParser(messageStream);
       var responseBuilder = new BlobBuilder();
