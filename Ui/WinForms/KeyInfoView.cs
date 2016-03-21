@@ -163,8 +163,15 @@ namespace dlech.SshAgentLib.WinForms
       }
 
       for (int i = 0; i < buttonTableLayoutPanel.ColumnCount; i++) {
-        buttonTableLayoutPanel.ColumnStyles[i] =
-          new ColumnStyle(SizeType.Percent, 100F / buttonTableLayoutPanel.ColumnCount);
+        if (Type.GetType ("Mono.Runtime") == null) {
+          buttonTableLayoutPanel.ColumnStyles [i] =
+            new ColumnStyle (SizeType.Percent, 100F / buttonTableLayoutPanel.ColumnCount);
+        } else {
+          // Mono doens't do automatic layouts correctly, so use fixed width
+          buttonTableLayoutPanel.ColumnStyles [i] =
+            new ColumnStyle (SizeType.Absolute,
+              buttonTableLayoutPanel.Width / buttonTableLayoutPanel.ColumnCount);
+        }
       }
 
       ReloadKeyListView();
