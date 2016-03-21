@@ -24,11 +24,12 @@
 // THE SOFTWARE.
 
 using System;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Net.Sockets;
 using System.Threading;
-using AsyncSocketSample;
+
 using Mono.Unix;
 using Mono.Unix.Native;
 
@@ -48,8 +49,12 @@ namespace dlech.SshAgentLib
     const int maxNumConnections = 10;
     const int receiveBufferSize = 4096;
 
+    static int clientCount = 0;
+
     UnixListener listener;
     Thread connectionThread;
+    List<Mono.Unix.UnixClient> activeClients = new List<Mono.Unix.UnixClient>();
+    object activeClientsLock = new object();
     bool isDisposed;
 
     public void StartUnixSocket(string socketPath)
@@ -113,21 +118,33 @@ namespace dlech.SshAgentLib
 
     void AcceptConnections()
     {
-      while (true) {
-        try {
-          using (var client = listener.AcceptUnixClient())
-          using (var stream = client.GetStream()) {
-            try {
-              while (true) {
-                AnswerMessage(stream);
+      try {
+        while (true) {
+          var client = listener.AcceptUnixClient();
+          var clientThread = new Thread(() =>
+            {
+              try {
+                using (var stream = client.GetStream()) {
+                  while (true) {
+                    AnswerMessage(stream);
+                  }
+                }
+              } catch (Exception) {
+                // client will throw when connection is closed
+              } finally {
+                lock (activeClientsLock) {
+                  activeClients.Remove(client);
+                }
               }
-            } catch (Exception) {
-              // happens when client closes connection
-            }
+            });
+          lock (activeClientsLock) {
+            activeClients.Add(client);
           }
-        } catch (Exception) {
-          break;
+          clientThread.Name = string.Format("UnixClient{0}", clientCount++);
+          clientThread.Start ();
         }
+      } catch (Exception ex) {
+        Debug.Fail (ex.Message);
       }
     }
 
@@ -141,6 +158,9 @@ namespace dlech.SshAgentLib
     {
       if (!isDisposed) {
         if (disposing) {
+          foreach (var clientSocket in activeClients) {
+            clientSocket.Dispose();
+          }
           StopUnixSocket();
         }
       }
