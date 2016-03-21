@@ -191,11 +191,11 @@ namespace dlech.SshAgentLib
               }
             }
           });
-          clientThread.Name = string.Format("CygwinClient{0}", clientCount++);
-          clientThread.Start();
           lock (clientSocketsLock) {
             clientSockets.Add(clientSocket);
           }
+          clientThread.Name = string.Format("CygwinClient{0}", clientCount++);
+          clientThread.Start();
         } catch (Exception ex) {
           Debug.Assert(disposed, ex.ToString());
           break;
