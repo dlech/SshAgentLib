@@ -72,5 +72,13 @@ namespace dlech.SshAgentLib.WinForms
       keyDataGridView.Rows[e.RowIndex].Selected = true;
       AcceptButton.PerformClick();
     }
+
+    private void keyDataGridView_KeyDown(object sender, KeyEventArgs e)
+    {
+      if (e.KeyCode == Keys.Enter) {
+        AcceptButton.PerformClick();
+        e.Handled = true;
+      }
+    }
   }
 }

@@ -68,8 +68,9 @@
       this.keyDataGridView.ReadOnly = true;
       this.keyDataGridView.SelectionMode = System.Windows.Forms.DataGridViewSelectionMode.FullRowSelect;
       this.keyDataGridView.Size = new System.Drawing.Size(642, 183);
-      this.keyDataGridView.TabIndex = 3;
+      this.keyDataGridView.TabIndex = 1;
       this.keyDataGridView.CellDoubleClick += new System.Windows.Forms.DataGridViewCellEventHandler(this.keyDataGridView_CellDoubleClick);
+      this.keyDataGridView.KeyDown += new System.Windows.Forms.KeyEventHandler(this.keyDataGridView_KeyDown);
       // 
       // KeyPicker
       // 
