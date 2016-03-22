@@ -13,7 +13,7 @@ using System.Runtime.InteropServices;
 [assembly: AssemblyConfiguration("")]
 [assembly: AssemblyCompany("David Lechner")]
 
-[assembly: AssemblyCopyright("2012-2015")]
+[assembly: AssemblyCopyright("2012-2016")]
 [assembly: AssemblyTrademark("")]
 [assembly: AssemblyCulture("")]
 
@@ -32,5 +32,5 @@ using System.Runtime.InteropServices;
 //      Build Number
 //      Revision
 //
-[assembly: AssemblyVersion("0.7.11.0")]
-[assembly: AssemblyFileVersion("0.7.11.0")]
+[assembly: AssemblyVersion("0.7.12.0")]
+[assembly: AssemblyFileVersion("0.7.12.0")]
