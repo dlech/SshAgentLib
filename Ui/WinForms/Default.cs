@@ -33,6 +33,14 @@ namespace dlech.SshAgentLib.WinForms
     /// </summary>
     public static class Default
     {
+        /**
+        * MessageBox options for topmost and focus from:
+        * https://msdn.microsoft.com/en-us/library/windows/desktop/ms645505(v=vs.85).aspx
+        */
+        const MessageBoxOptions TopMost = (MessageBoxOptions)0x00040000;
+        const MessageBoxOptions SetForeground = (MessageBoxOptions)0x00010000;
+        const MessageBoxOptions SystemModal = (MessageBoxOptions)0x00001000;
+
         public static bool ConfirmCallback(ISshKey key, Process process)
         {
             var programName = Strings.askConfirmKeyUnknownProcess;
@@ -44,7 +52,7 @@ namespace dlech.SshAgentLib.WinForms
                 string.Format(Strings.askConfirmKey, programName, key.Comment,
                 key.GetMD5Fingerprint().ToHexString()), Util.AssemblyTitle,
                 MessageBoxButtons.YesNo, MessageBoxIcon.Question,
-                MessageBoxDefaultButton.Button2
+                MessageBoxDefaultButton.Button2, TopMost | SetForeground | SystemModal
             );
             return (result == DialogResult.Yes);
         }
