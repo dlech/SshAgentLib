@@ -40,11 +40,17 @@ namespace dlech.SshAgentLib.WinForms
                 programName = string.Format("{0} ({1})", process.MainWindowTitle,
                     process.ProcessName);
             }
-            var result = MessageBox.Show(
+
+            /**
+             * MessageBox options for topmost and focus from:
+             * https://msdn.microsoft.com/en-us/library/windows/desktop/ms645505(v=vs.85).aspx
+             */
+
+            DialogResult result = MessageBox.Show(
                 string.Format(Strings.askConfirmKey, programName, key.Comment,
                 key.GetMD5Fingerprint().ToHexString()), Util.AssemblyTitle,
                 MessageBoxButtons.YesNo, MessageBoxIcon.Question,
-                MessageBoxDefaultButton.Button2
+                MessageBoxDefaultButton.Button2, (MessageBoxOptions)0x51000
             );
             return (result == DialogResult.Yes);
         }
