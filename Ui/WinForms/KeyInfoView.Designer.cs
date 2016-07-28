@@ -30,6 +30,14 @@
       this.components = new System.ComponentModel.Container();
       this.messageLabel = new System.Windows.Forms.Label();
       this.dataGridView = new System.Windows.Forms.DataGridView();
+      this.confirmDataGridViewCheckBoxColumn = new System.Windows.Forms.DataGridViewCheckBoxColumn();
+      this.lifetimeDataGridViewCheckBoxColumn = new System.Windows.Forms.DataGridViewCheckBoxColumn();
+      this.typeDataGridViewTextBoxColumn = new System.Windows.Forms.DataGridViewTextBoxColumn();
+      this.sizeDataGridViewTextBoxColumn = new System.Windows.Forms.DataGridViewTextBoxColumn();
+      this.fingerprintDataGridViewTextBoxColumn = new System.Windows.Forms.DataGridViewTextBoxColumn();
+      this.commentDataGridViewTextBoxColumn = new System.Windows.Forms.DataGridViewTextBoxColumn();
+      this.sourceDataGridViewTextBoxColumn = new System.Windows.Forms.DataGridViewTextBoxColumn();
+      this.keyWrapperBindingSource = new System.Windows.Forms.BindingSource(this.components);
       this.mainTableLayoutPanel = new System.Windows.Forms.TableLayoutPanel();
       this.dataGridViewPanel = new System.Windows.Forms.Panel();
       this.buttonTableLayoutPanel = new System.Windows.Forms.TableLayoutPanel();
@@ -38,20 +46,12 @@
       this.removeKeyButton = new System.Windows.Forms.Button();
       this.removeAllButton = new System.Windows.Forms.Button();
       this.refreshButton = new System.Windows.Forms.Button();
-      this.keyWrapperBindingSource = new System.Windows.Forms.BindingSource(this.components);
       this.addKeyButton = new wyDay.Controls.SplitButton();
-      this.confirmDataGridViewCheckBoxColumn = new System.Windows.Forms.DataGridViewCheckBoxColumn();
-      this.lifetimeDataGridViewCheckBoxColumn = new System.Windows.Forms.DataGridViewCheckBoxColumn();
-      this.typeDataGridViewTextBoxColumn = new System.Windows.Forms.DataGridViewTextBoxColumn();
-      this.sizeDataGridViewTextBoxColumn = new System.Windows.Forms.DataGridViewTextBoxColumn();
-      this.fingerprintDataGridViewTextBoxColumn = new System.Windows.Forms.DataGridViewTextBoxColumn();
-      this.commentDataGridViewTextBoxColumn = new System.Windows.Forms.DataGridViewTextBoxColumn();
-      this.sourceDataGridViewTextBoxColumn = new System.Windows.Forms.DataGridViewTextBoxColumn();
       ((System.ComponentModel.ISupportInitialize)(this.dataGridView)).BeginInit();
+      ((System.ComponentModel.ISupportInitialize)(this.keyWrapperBindingSource)).BeginInit();
       this.mainTableLayoutPanel.SuspendLayout();
       this.dataGridViewPanel.SuspendLayout();
       this.buttonTableLayoutPanel.SuspendLayout();
-      ((System.ComponentModel.ISupportInitialize)(this.keyWrapperBindingSource)).BeginInit();
       this.SuspendLayout();
       // 
       // messageLabel
@@ -97,134 +97,6 @@
       this.dataGridView.SelectionChanged += new System.EventHandler(this.dataGridView_SelectionChanged);
       this.dataGridView.DragDrop += new System.Windows.Forms.DragEventHandler(this.dataGridView_DragDrop);
       this.dataGridView.DragEnter += new System.Windows.Forms.DragEventHandler(this.dataGridView_DragEnter);
-      // 
-      // mainTableLayoutPanel
-      // 
-      this.mainTableLayoutPanel.ColumnCount = 1;
-      this.mainTableLayoutPanel.ColumnStyles.Add(new System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Percent, 50F));
-      this.mainTableLayoutPanel.ColumnStyles.Add(new System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Percent, 50F));
-      this.mainTableLayoutPanel.Controls.Add(this.dataGridViewPanel, 0, 0);
-      this.mainTableLayoutPanel.Controls.Add(this.buttonTableLayoutPanel, 0, 1);
-      this.mainTableLayoutPanel.Dock = System.Windows.Forms.DockStyle.Fill;
-      this.mainTableLayoutPanel.Location = new System.Drawing.Point(0, 0);
-      this.mainTableLayoutPanel.Name = "mainTableLayoutPanel";
-      this.mainTableLayoutPanel.RowCount = 2;
-      this.mainTableLayoutPanel.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Percent, 100F));
-      this.mainTableLayoutPanel.RowStyles.Add(new System.Windows.Forms.RowStyle());
-      this.mainTableLayoutPanel.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 22F));
-      this.mainTableLayoutPanel.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 20F));
-      this.mainTableLayoutPanel.Size = new System.Drawing.Size(553, 257);
-      this.mainTableLayoutPanel.TabIndex = 0;
-      // 
-      // dataGridViewPanel
-      // 
-      this.dataGridViewPanel.Controls.Add(this.dataGridView);
-      this.dataGridViewPanel.Controls.Add(this.messageLabel);
-      this.dataGridViewPanel.Dock = System.Windows.Forms.DockStyle.Fill;
-      this.dataGridViewPanel.Location = new System.Drawing.Point(3, 3);
-      this.dataGridViewPanel.Name = "dataGridViewPanel";
-      this.dataGridViewPanel.Size = new System.Drawing.Size(547, 216);
-      this.dataGridViewPanel.TabIndex = 9;
-      // 
-      // buttonTableLayoutPanel
-      // 
-      this.buttonTableLayoutPanel.Anchor = System.Windows.Forms.AnchorStyles.Bottom;
-      this.buttonTableLayoutPanel.AutoSize = true;
-      this.buttonTableLayoutPanel.ColumnCount = 6;
-      this.buttonTableLayoutPanel.ColumnStyles.Add(new System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Percent, 16.66667F));
-      this.buttonTableLayoutPanel.ColumnStyles.Add(new System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Percent, 16.66667F));
-      this.buttonTableLayoutPanel.ColumnStyles.Add(new System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Percent, 16.66667F));
-      this.buttonTableLayoutPanel.ColumnStyles.Add(new System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Percent, 16.66667F));
-      this.buttonTableLayoutPanel.ColumnStyles.Add(new System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Percent, 16.66667F));
-      this.buttonTableLayoutPanel.ColumnStyles.Add(new System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Percent, 16.66667F));
-      this.buttonTableLayoutPanel.Controls.Add(this.lockButton, 0, 0);
-      this.buttonTableLayoutPanel.Controls.Add(this.unlockButton, 1, 0);
-      this.buttonTableLayoutPanel.Controls.Add(this.addKeyButton, 2, 0);
-      this.buttonTableLayoutPanel.Controls.Add(this.removeKeyButton, 3, 0);
-      this.buttonTableLayoutPanel.Controls.Add(this.removeAllButton, 4, 0);
-      this.buttonTableLayoutPanel.Controls.Add(this.refreshButton, 5, 0);
-      this.buttonTableLayoutPanel.Location = new System.Drawing.Point(3, 225);
-      this.buttonTableLayoutPanel.Name = "buttonTableLayoutPanel";
-      this.buttonTableLayoutPanel.RowCount = 1;
-      this.buttonTableLayoutPanel.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Percent, 100F));
-      this.buttonTableLayoutPanel.Size = new System.Drawing.Size(547, 29);
-      this.buttonTableLayoutPanel.TabIndex = 0;
-      // 
-      // lockButton
-      // 
-      this.lockButton.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Left | System.Windows.Forms.AnchorStyles.Right)));
-      this.lockButton.AutoSize = true;
-      this.lockButton.Location = new System.Drawing.Point(3, 3);
-      this.lockButton.Name = "lockButton";
-      this.lockButton.Size = new System.Drawing.Size(85, 23);
-      this.lockButton.TabIndex = 0;
-      this.lockButton.Text = "&Lock";
-      this.lockButton.UseVisualStyleBackColor = true;
-      this.lockButton.Click += new System.EventHandler(this.lockButton_Click);
-      // 
-      // unlockButton
-      // 
-      this.unlockButton.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Left | System.Windows.Forms.AnchorStyles.Right)));
-      this.unlockButton.AutoSize = true;
-      this.unlockButton.Location = new System.Drawing.Point(94, 3);
-      this.unlockButton.Name = "unlockButton";
-      this.unlockButton.Size = new System.Drawing.Size(85, 23);
-      this.unlockButton.TabIndex = 1;
-      this.unlockButton.Text = "&Unlock";
-      this.unlockButton.UseVisualStyleBackColor = true;
-      this.unlockButton.Click += new System.EventHandler(this.unlockButton_Click);
-      // 
-      // removeKeyButton
-      // 
-      this.removeKeyButton.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Left | System.Windows.Forms.AnchorStyles.Right)));
-      this.removeKeyButton.AutoSize = true;
-      this.removeKeyButton.Location = new System.Drawing.Point(276, 3);
-      this.removeKeyButton.Name = "removeKeyButton";
-      this.removeKeyButton.Size = new System.Drawing.Size(85, 23);
-      this.removeKeyButton.TabIndex = 3;
-      this.removeKeyButton.Text = "&Remove";
-      this.removeKeyButton.UseVisualStyleBackColor = true;
-      this.removeKeyButton.Click += new System.EventHandler(this.removeButton_Click);
-      // 
-      // removeAllButton
-      // 
-      this.removeAllButton.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Left | System.Windows.Forms.AnchorStyles.Right)));
-      this.removeAllButton.AutoSize = true;
-      this.removeAllButton.Location = new System.Drawing.Point(367, 3);
-      this.removeAllButton.Name = "removeAllButton";
-      this.removeAllButton.Size = new System.Drawing.Size(85, 23);
-      this.removeAllButton.TabIndex = 4;
-      this.removeAllButton.Text = "R&emove All";
-      this.removeAllButton.UseVisualStyleBackColor = true;
-      this.removeAllButton.Click += new System.EventHandler(this.removeAllButton_Click);
-      // 
-      // refreshButton
-      // 
-      this.refreshButton.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Left | System.Windows.Forms.AnchorStyles.Right)));
-      this.refreshButton.AutoSize = true;
-      this.refreshButton.Location = new System.Drawing.Point(458, 3);
-      this.refreshButton.Name = "refreshButton";
-      this.refreshButton.Size = new System.Drawing.Size(86, 23);
-      this.refreshButton.TabIndex = 5;
-      this.refreshButton.Text = "Re&fresh";
-      this.refreshButton.UseVisualStyleBackColor = true;
-      this.refreshButton.Click += new System.EventHandler(this.refreshButton_Click);
-      // 
-      // keyWrapperBindingSource
-      // 
-      this.keyWrapperBindingSource.DataSource = typeof(dlech.SshAgentLib.KeyWrapper);
-      // 
-      // addKeyButton
-      // 
-      this.addKeyButton.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Left | System.Windows.Forms.AnchorStyles.Right)));
-      this.addKeyButton.AutoSize = true;
-      this.addKeyButton.Location = new System.Drawing.Point(185, 3);
-      this.addKeyButton.Name = "addKeyButton";
-      this.addKeyButton.Size = new System.Drawing.Size(85, 23);
-      this.addKeyButton.TabIndex = 2;
-      this.addKeyButton.Text = "&Add...";
-      this.addKeyButton.UseVisualStyleBackColor = true;
-      this.addKeyButton.Click += new System.EventHandler(this.addKeyButton_Click);
       // 
       // confirmDataGridViewCheckBoxColumn
       // 
@@ -291,6 +163,135 @@
       this.sourceDataGridViewTextBoxColumn.ReadOnly = true;
       this.sourceDataGridViewTextBoxColumn.Width = 66;
       // 
+      // keyWrapperBindingSource
+      // 
+      this.keyWrapperBindingSource.DataSource = typeof(dlech.SshAgentLib.KeyWrapper);
+      // 
+      // mainTableLayoutPanel
+      // 
+      this.mainTableLayoutPanel.ColumnCount = 1;
+      this.mainTableLayoutPanel.ColumnStyles.Add(new System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Percent, 50F));
+      this.mainTableLayoutPanel.ColumnStyles.Add(new System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Percent, 50F));
+      this.mainTableLayoutPanel.Controls.Add(this.dataGridViewPanel, 0, 0);
+      this.mainTableLayoutPanel.Controls.Add(this.buttonTableLayoutPanel, 0, 1);
+      this.mainTableLayoutPanel.Dock = System.Windows.Forms.DockStyle.Fill;
+      this.mainTableLayoutPanel.Location = new System.Drawing.Point(0, 0);
+      this.mainTableLayoutPanel.Name = "mainTableLayoutPanel";
+      this.mainTableLayoutPanel.RowCount = 2;
+      this.mainTableLayoutPanel.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Percent, 100F));
+      this.mainTableLayoutPanel.RowStyles.Add(new System.Windows.Forms.RowStyle());
+      this.mainTableLayoutPanel.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 22F));
+      this.mainTableLayoutPanel.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 20F));
+      this.mainTableLayoutPanel.Size = new System.Drawing.Size(553, 257);
+      this.mainTableLayoutPanel.TabIndex = 0;
+      // 
+      // dataGridViewPanel
+      // 
+      this.dataGridViewPanel.Controls.Add(this.dataGridView);
+      this.dataGridViewPanel.Controls.Add(this.messageLabel);
+      this.dataGridViewPanel.Dock = System.Windows.Forms.DockStyle.Fill;
+      this.dataGridViewPanel.Location = new System.Drawing.Point(3, 3);
+      this.dataGridViewPanel.Name = "dataGridViewPanel";
+      this.dataGridViewPanel.Size = new System.Drawing.Size(547, 216);
+      this.dataGridViewPanel.TabIndex = 9;
+      // 
+      // buttonTableLayoutPanel
+      // 
+      this.buttonTableLayoutPanel.Anchor = System.Windows.Forms.AnchorStyles.Bottom;
+      this.buttonTableLayoutPanel.AutoSize = true;
+      this.buttonTableLayoutPanel.ColumnCount = 6;
+      this.buttonTableLayoutPanel.ColumnStyles.Add(new System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Percent, 16.66667F));
+      this.buttonTableLayoutPanel.ColumnStyles.Add(new System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Percent, 16.66667F));
+      this.buttonTableLayoutPanel.ColumnStyles.Add(new System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Percent, 16.66667F));
+      this.buttonTableLayoutPanel.ColumnStyles.Add(new System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Percent, 16.66667F));
+      this.buttonTableLayoutPanel.ColumnStyles.Add(new System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Percent, 16.66667F));
+      this.buttonTableLayoutPanel.ColumnStyles.Add(new System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Percent, 16.66667F));
+      this.buttonTableLayoutPanel.Controls.Add(this.lockButton, 0, 0);
+      this.buttonTableLayoutPanel.Controls.Add(this.unlockButton, 1, 0);
+      this.buttonTableLayoutPanel.Controls.Add(this.addKeyButton, 2, 0);
+      this.buttonTableLayoutPanel.Controls.Add(this.removeKeyButton, 3, 0);
+      this.buttonTableLayoutPanel.Controls.Add(this.removeAllButton, 4, 0);
+      this.buttonTableLayoutPanel.Controls.Add(this.refreshButton, 5, 0);
+      this.buttonTableLayoutPanel.Location = new System.Drawing.Point(0, 228);
+      this.buttonTableLayoutPanel.Margin = new System.Windows.Forms.Padding(0, 6, 0, 0);
+      this.buttonTableLayoutPanel.Name = "buttonTableLayoutPanel";
+      this.buttonTableLayoutPanel.RowCount = 1;
+      this.buttonTableLayoutPanel.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Percent, 100F));
+      this.buttonTableLayoutPanel.Size = new System.Drawing.Size(553, 29);
+      this.buttonTableLayoutPanel.TabIndex = 0;
+      // 
+      // lockButton
+      // 
+      this.lockButton.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Left | System.Windows.Forms.AnchorStyles.Right)));
+      this.lockButton.AutoSize = true;
+      this.lockButton.Location = new System.Drawing.Point(3, 3);
+      this.lockButton.Name = "lockButton";
+      this.lockButton.Size = new System.Drawing.Size(86, 23);
+      this.lockButton.TabIndex = 0;
+      this.lockButton.Text = "&Lock";
+      this.lockButton.UseVisualStyleBackColor = true;
+      this.lockButton.Click += new System.EventHandler(this.lockButton_Click);
+      // 
+      // unlockButton
+      // 
+      this.unlockButton.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Left | System.Windows.Forms.AnchorStyles.Right)));
+      this.unlockButton.AutoSize = true;
+      this.unlockButton.Location = new System.Drawing.Point(95, 3);
+      this.unlockButton.Name = "unlockButton";
+      this.unlockButton.Size = new System.Drawing.Size(86, 23);
+      this.unlockButton.TabIndex = 1;
+      this.unlockButton.Text = "&Unlock";
+      this.unlockButton.UseVisualStyleBackColor = true;
+      this.unlockButton.Click += new System.EventHandler(this.unlockButton_Click);
+      // 
+      // removeKeyButton
+      // 
+      this.removeKeyButton.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Left | System.Windows.Forms.AnchorStyles.Right)));
+      this.removeKeyButton.AutoSize = true;
+      this.removeKeyButton.Location = new System.Drawing.Point(279, 3);
+      this.removeKeyButton.Name = "removeKeyButton";
+      this.removeKeyButton.Size = new System.Drawing.Size(86, 23);
+      this.removeKeyButton.TabIndex = 3;
+      this.removeKeyButton.Text = "&Remove";
+      this.removeKeyButton.UseVisualStyleBackColor = true;
+      this.removeKeyButton.Click += new System.EventHandler(this.removeButton_Click);
+      // 
+      // removeAllButton
+      // 
+      this.removeAllButton.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Left | System.Windows.Forms.AnchorStyles.Right)));
+      this.removeAllButton.AutoSize = true;
+      this.removeAllButton.Location = new System.Drawing.Point(371, 3);
+      this.removeAllButton.Name = "removeAllButton";
+      this.removeAllButton.Size = new System.Drawing.Size(86, 23);
+      this.removeAllButton.TabIndex = 4;
+      this.removeAllButton.Text = "R&emove All";
+      this.removeAllButton.UseVisualStyleBackColor = true;
+      this.removeAllButton.Click += new System.EventHandler(this.removeAllButton_Click);
+      // 
+      // refreshButton
+      // 
+      this.refreshButton.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Left | System.Windows.Forms.AnchorStyles.Right)));
+      this.refreshButton.AutoSize = true;
+      this.refreshButton.Location = new System.Drawing.Point(463, 3);
+      this.refreshButton.Name = "refreshButton";
+      this.refreshButton.Size = new System.Drawing.Size(87, 23);
+      this.refreshButton.TabIndex = 5;
+      this.refreshButton.Text = "Re&fresh";
+      this.refreshButton.UseVisualStyleBackColor = true;
+      this.refreshButton.Click += new System.EventHandler(this.refreshButton_Click);
+      // 
+      // addKeyButton
+      // 
+      this.addKeyButton.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Left | System.Windows.Forms.AnchorStyles.Right)));
+      this.addKeyButton.AutoSize = true;
+      this.addKeyButton.Location = new System.Drawing.Point(187, 3);
+      this.addKeyButton.Name = "addKeyButton";
+      this.addKeyButton.Size = new System.Drawing.Size(86, 23);
+      this.addKeyButton.TabIndex = 2;
+      this.addKeyButton.Text = "&Add...";
+      this.addKeyButton.UseVisualStyleBackColor = true;
+      this.addKeyButton.Click += new System.EventHandler(this.addKeyButton_Click);
+      // 
       // KeyInfoView
       // 
       this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
@@ -299,12 +300,12 @@
       this.Name = "KeyInfoView";
       this.Size = new System.Drawing.Size(553, 257);
       ((System.ComponentModel.ISupportInitialize)(this.dataGridView)).EndInit();
+      ((System.ComponentModel.ISupportInitialize)(this.keyWrapperBindingSource)).EndInit();
       this.mainTableLayoutPanel.ResumeLayout(false);
       this.mainTableLayoutPanel.PerformLayout();
       this.dataGridViewPanel.ResumeLayout(false);
       this.buttonTableLayoutPanel.ResumeLayout(false);
       this.buttonTableLayoutPanel.PerformLayout();
-      ((System.ComponentModel.ISupportInitialize)(this.keyWrapperBindingSource)).EndInit();
       this.ResumeLayout(false);
 
     }
