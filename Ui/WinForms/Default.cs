@@ -43,7 +43,6 @@ namespace dlech.SshAgentLib.WinForms
 
         public static bool ConfirmCallback(ISshKey key, Process process)
         {
-            
             var programName = Strings.askConfirmKeyUnknownProcess;
             if (process != null) {
                 programName = string.Format("{0} ({1})", process.MainWindowTitle,
