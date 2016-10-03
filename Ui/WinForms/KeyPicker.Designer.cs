@@ -37,9 +37,10 @@
       // 
       this.selectButton.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Right)));
       this.selectButton.DialogResult = System.Windows.Forms.DialogResult.OK;
-      this.selectButton.Location = new System.Drawing.Point(498, 201);
+      this.selectButton.Location = new System.Drawing.Point(996, 387);
+      this.selectButton.Margin = new System.Windows.Forms.Padding(6, 6, 6, 6);
       this.selectButton.Name = "selectButton";
-      this.selectButton.Size = new System.Drawing.Size(75, 23);
+      this.selectButton.Size = new System.Drawing.Size(150, 44);
       this.selectButton.TabIndex = 1;
       this.selectButton.Text = "&Select";
       this.selectButton.UseVisualStyleBackColor = true;
@@ -48,9 +49,10 @@
       // 
       this.cancelButton.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Right)));
       this.cancelButton.DialogResult = System.Windows.Forms.DialogResult.Cancel;
-      this.cancelButton.Location = new System.Drawing.Point(579, 201);
+      this.cancelButton.Location = new System.Drawing.Point(1158, 387);
+      this.cancelButton.Margin = new System.Windows.Forms.Padding(6, 6, 6, 6);
       this.cancelButton.Name = "cancelButton";
-      this.cancelButton.Size = new System.Drawing.Size(75, 23);
+      this.cancelButton.Size = new System.Drawing.Size(150, 44);
       this.cancelButton.TabIndex = 2;
       this.cancelButton.Text = "&Cancel";
       this.cancelButton.UseVisualStyleBackColor = true;
@@ -59,15 +61,13 @@
       // 
       this.keyDataGridView.AllowUserToAddRows = false;
       this.keyDataGridView.AllowUserToDeleteRows = false;
-      this.keyDataGridView.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
-            | System.Windows.Forms.AnchorStyles.Left) 
-            | System.Windows.Forms.AnchorStyles.Right)));
       this.keyDataGridView.ColumnHeadersHeightSizeMode = System.Windows.Forms.DataGridViewColumnHeadersHeightSizeMode.AutoSize;
-      this.keyDataGridView.Location = new System.Drawing.Point(12, 12);
+      this.keyDataGridView.Location = new System.Drawing.Point(24, 23);
+      this.keyDataGridView.Margin = new System.Windows.Forms.Padding(6, 6, 6, 6);
       this.keyDataGridView.Name = "keyDataGridView";
       this.keyDataGridView.ReadOnly = true;
       this.keyDataGridView.SelectionMode = System.Windows.Forms.DataGridViewSelectionMode.FullRowSelect;
-      this.keyDataGridView.Size = new System.Drawing.Size(642, 183);
+      this.keyDataGridView.Size = new System.Drawing.Size(1284, 352);
       this.keyDataGridView.TabIndex = 1;
       this.keyDataGridView.CellDoubleClick += new System.Windows.Forms.DataGridViewCellEventHandler(this.keyDataGridView_CellDoubleClick);
       this.keyDataGridView.KeyDown += new System.Windows.Forms.KeyEventHandler(this.keyDataGridView_KeyDown);
@@ -75,14 +75,15 @@
       // KeyPicker
       // 
       this.AcceptButton = this.selectButton;
-      this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
+      this.AutoScaleDimensions = new System.Drawing.SizeF(12F, 25F);
       this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
       this.CancelButton = this.cancelButton;
-      this.ClientSize = new System.Drawing.Size(666, 236);
+      this.ClientSize = new System.Drawing.Size(1332, 454);
       this.Controls.Add(this.keyDataGridView);
       this.Controls.Add(this.cancelButton);
       this.Controls.Add(this.selectButton);
       this.FormBorderStyle = System.Windows.Forms.FormBorderStyle.FixedDialog;
+      this.Margin = new System.Windows.Forms.Padding(6, 6, 6, 6);
       this.MaximizeBox = false;
       this.MinimizeBox = false;
       this.Name = "KeyPicker";

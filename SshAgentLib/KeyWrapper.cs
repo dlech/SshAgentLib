@@ -45,6 +45,22 @@ namespace dlech.SshAgentLib
       }
     }
 
+    public string Comment
+    {
+      get
+      {
+        return key.Comment;
+      }
+    }
+
+    public string Source
+    {
+      get
+      {
+        return key.Source;
+      }
+    }
+
     public string Type
     {
       get
@@ -69,22 +85,6 @@ namespace dlech.SshAgentLib
       }
     }
 
-    public string Comment
-    {
-      get
-      {
-        return key.Comment;
-      }
-    }
-
-    public string Source
-    {
-      get
-      {
-        return key.Source;
-      }
-    }
-    
     public KeyWrapper(ISshKey key)
     {
       this.key = key;
