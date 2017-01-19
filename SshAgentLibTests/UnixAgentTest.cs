@@ -49,7 +49,7 @@ namespace dlech.SshAgentLibTests
         File.Delete(socketFileName);
       }
 
-      using (var agent = new UnixAgent(socketFileName)) {
+      using (var agent = new UnixAgent()) {
         Assert.That(File.Exists(socketFileName), Is.True,
           "Failed to create socket file");
       }
@@ -67,7 +67,7 @@ namespace dlech.SshAgentLibTests
         File.Delete(socketFileName);
       }
 
-      using (var agent = new UnixAgent(socketFileName))
+      using (var agent = new UnixAgent())
       using (var client = new Mono.Unix.UnixClient(socketFileName))
       using (var stream = client.GetStream ()) {
         var message = new byte[] { 0, 0, 0, 0 };
@@ -92,7 +92,7 @@ namespace dlech.SshAgentLibTests
         File.Delete(socketFileName);
       }
 
-      using (var agent = new UnixAgent(socketFileName))
+      using (var agent = new UnixAgent())
       using (var client = new Mono.Unix.UnixClient(socketFileName))
       using (var stream = client.GetStream()) {
         var message = new byte[] {

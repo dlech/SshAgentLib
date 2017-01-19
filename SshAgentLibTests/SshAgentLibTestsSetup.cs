@@ -32,7 +32,7 @@ namespace dlech.SshAgentLibTests
   [SetUpFixture()]
   public class SshAgentLibTestsSetup
   {
-    [SetUp]
+    [OneTimeSetUp]
     public void RunBeforeAnyTests()
     {
       // remove the debug listener so we don't get dialogs popping up
