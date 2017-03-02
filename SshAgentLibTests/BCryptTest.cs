@@ -22,7 +22,7 @@ using System.Linq;
 using NUnit.Framework;
 using dlech.SshAgentLib.Crypto;
 
-namespace dlech.SshAgentLibTest
+namespace dlech.SshAgentLibTests
 {
     /// <summary>
     /// BCrypt tests
