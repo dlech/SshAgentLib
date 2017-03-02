@@ -50,6 +50,7 @@ namespace dlech.SshAgentLibTests
       }
 
       using (var agent = new UnixAgent()) {
+        agent.StartUnixSocket (socketFileName);
         Assert.That(File.Exists(socketFileName), Is.True,
           "Failed to create socket file");
       }
@@ -67,19 +68,21 @@ namespace dlech.SshAgentLibTests
         File.Delete(socketFileName);
       }
 
-      using (var agent = new UnixAgent())
-      using (var client = new Mono.Unix.UnixClient(socketFileName))
-      using (var stream = client.GetStream ()) {
-        var message = new byte[] { 0, 0, 0, 0 };
-        stream.Write(message, 0, message.Length); // send garbage
-        stream.Flush();
-        var reply = new byte[5];
-        stream.Read(reply, 0, reply.Length);
-        var expected = new byte [] {
-          0, 0, 0, 1,
-          (byte)Agent.Message.SSH_AGENT_FAILURE,
-        };
-        Assert.That(reply, Is.EqualTo(expected));
+      using (var agent = new UnixAgent ()) {
+        agent.StartUnixSocket (socketFileName);
+        using (var client = new Mono.Unix.UnixClient (socketFileName))
+        using (var stream = client.GetStream ()) {
+          var message = new byte [] { 0, 0, 0, 0 };
+          stream.Write (message, 0, message.Length); // send garbage
+          stream.Flush ();
+          var reply = new byte [5];
+          stream.Read (reply, 0, reply.Length);
+          var expected = new byte [] {
+            0, 0, 0, 1,
+            (byte)Agent.Message.SSH_AGENT_FAILURE,
+          };
+          Assert.That (reply, Is.EqualTo (expected));
+        }
       }
     }
 
@@ -92,23 +95,25 @@ namespace dlech.SshAgentLibTests
         File.Delete(socketFileName);
       }
 
-      using (var agent = new UnixAgent())
-      using (var client = new Mono.Unix.UnixClient(socketFileName))
-      using (var stream = client.GetStream()) {
-        var message = new byte[] {
+      using (var agent = new UnixAgent ()) {
+        agent.StartUnixSocket (socketFileName);
+        using (var client = new Mono.Unix.UnixClient (socketFileName))
+        using (var stream = client.GetStream ()) {
+          var message = new byte [] {
           0, 0, 0, 1,
           (byte)Agent.Message.SSH1_AGENTC_REQUEST_RSA_IDENTITIES,
         };
-        stream.Write(message, 0, message.Length); // send message
-        stream.Flush();
-        var reply = new byte[9];
-        stream.Read(reply, 0, reply.Length);
-        var expected = new byte[] {
-          0, 0, 0, 5,
-          (byte)Agent.Message.SSH1_AGENT_RSA_IDENTITIES_ANSWER,
-          0, 0, 0, 0,
-        };
-        Assert.That(reply, Is.EqualTo(expected));
+          stream.Write (message, 0, message.Length); // send message
+          stream.Flush ();
+          var reply = new byte [9];
+          stream.Read (reply, 0, reply.Length);
+          var expected = new byte [] {
+            0, 0, 0, 5,
+            (byte)Agent.Message.SSH1_AGENT_RSA_IDENTITIES_ANSWER,
+            0, 0, 0, 0,
+          };
+          Assert.That (reply, Is.EqualTo(expected));
+        }
       }
     }
   }

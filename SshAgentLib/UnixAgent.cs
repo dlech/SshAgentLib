@@ -3,7 +3,7 @@
 //
 // Author(s): David Lechner <david@lechnology.com>
 //
-// Copyright (c) 2012-2013,2015-2016 David Lechner
+// Copyright (c) 2012-2013,2015-2017 David Lechner
 //
 // Permission is hereby granted, free of charge, to any person obtaining a copy
 // of this software and associated documentation files (the "Software"), to deal
@@ -120,29 +120,30 @@ namespace dlech.SshAgentLib
     {
       try {
         while (true) {
-          var client = listener.AcceptUnixClient();
-          var clientThread = new Thread(() =>
-            {
-              try {
-                using (var stream = client.GetStream()) {
-                  while (true) {
-                    AnswerMessage(stream);
-                  }
-                }
-              } catch (Exception) {
-                // client will throw when connection is closed
-              } finally {
-                lock (activeClientsLock) {
-                  activeClients.Remove(client);
+          var client = listener.AcceptUnixClient ();
+          var clientThread = new Thread (() => {
+            try {
+              using (var stream = client.GetStream ()) {
+                while (true) {
+                  AnswerMessage (stream);
                 }
               }
-            });
+            } catch (Exception) {
+              // client will throw when connection is closed
+            } finally {
+              lock (activeClientsLock) {
+                activeClients.Remove (client);
+              }
+            }
+          });
           lock (activeClientsLock) {
-            activeClients.Add(client);
+            activeClients.Add (client);
           }
-          clientThread.Name = string.Format("UnixClient{0}", clientCount++);
+          clientThread.Name = string.Format ("UnixClient{0}", clientCount++);
           clientThread.Start ();
         }
+      } catch (SocketException) {
+        // happens when listener is Disposed
       } catch (Exception ex) {
         Debug.Fail (ex.Message);
       }
@@ -158,7 +159,9 @@ namespace dlech.SshAgentLib
     {
       if (!isDisposed) {
         if (disposing) {
-          foreach (var clientSocket in activeClients) {
+          // clients can be removed from the list in background thread when
+          // disposed, so we make a copy of the list for iteration
+          foreach (var clientSocket in activeClients.ToArray()) {
             clientSocket.Dispose();
           }
           // listener will be null if constructor throws
