@@ -63,7 +63,7 @@ namespace dlech.SshAgentLib
       }
       var threadId = Thread.CurrentThread.ManagedThreadId;
       var mapName = String.Format("{0}{1:x8}", cMapNamePrefix, threadId);
-      using (var mappedFile = MemoryMappedFile.CreateNew(mapName, 4096)) {
+      using (var mappedFile = MemoryMappedFile.CreateNew(mapName, 8192)) {
         if (mappedFile.SafeMemoryMappedFileHandle.IsInvalid) {
           throw new Exception("Invalid mapped file handle");
         }
