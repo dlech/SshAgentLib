@@ -161,7 +161,10 @@ namespace dlech.SshAgentLib
           foreach (var clientSocket in activeClients) {
             clientSocket.Dispose();
           }
-          StopUnixSocket();
+          // listener will be null if constructor throws
+          if (listener != null) {
+            StopUnixSocket ();
+          }
         }
       }
       isDisposed = true;
