@@ -139,22 +139,20 @@ namespace dlech.SshAgentLib
     /// <summary>
     /// Gets OpenSsh formatted bytes from public key
     /// </summary>
-    /// <param name="Algorithm">AsymmetricAlgorithm to convert.</param>
+    /// <param name="key">The key.</param>
+    /// <param name="cert">When set to <c>true</c> and the key has a certificate, the certificate blob will be used.</param>
     /// <returns>byte array containing key information</returns>
-    /// <exception cref="ArgumentException">
-    /// AsymmetricAlgorithm is not supported
-    /// </exception>
-    /// <remarks>
-    /// Currently only supports RSA and DSA public keys
-    /// </remarks>
-    public static byte[] GetPublicKeyBlob(this ISshKey aKey)
+    public static byte[] GetPublicKeyBlob(this ISshKey key, bool cert = true)
     {
-      AsymmetricKeyParameter parameters = aKey.GetPublicKeyParameters();
+      if (cert && key.Certificate != null) {
+        return key.Certificate.Blob;
+      }
+      AsymmetricKeyParameter parameters = key.GetPublicKeyParameters();
       BlobBuilder builder = new BlobBuilder();
       if (parameters is RsaKeyParameters) {
         RsaKeyParameters rsaPublicKeyParameters = (RsaKeyParameters)parameters;
-        if (aKey.Version == SshVersion.SSH1) {
-          builder.AddInt(aKey.Size);
+        if (key.Version == SshVersion.SSH1) {
+          builder.AddInt(key.Size);
           builder.AddSsh1BigIntBlob(rsaPublicKeyParameters.Exponent);
           builder.AddSsh1BigIntBlob(rsaPublicKeyParameters.Modulus);
         } else {
@@ -233,12 +231,12 @@ namespace dlech.SshAgentLib
       return result;
     }
 
-    public static byte[] GetMD5Fingerprint(this ISshKey aKey)
+    public static byte[] GetMD5Fingerprint(this ISshKey key)
     {
       try {
         using (MD5 md5 = MD5.Create()) {
-          if (aKey.GetPublicKeyParameters() is RsaKeyParameters && aKey.Version == SshVersion.SSH1) {
-            var rsaKeyParameters = aKey.GetPublicKeyParameters() as RsaKeyParameters;
+          if (key.GetPublicKeyParameters() is RsaKeyParameters && key.Version == SshVersion.SSH1) {
+            var rsaKeyParameters = key.GetPublicKeyParameters() as RsaKeyParameters;
 
             int modSize = rsaKeyParameters.Modulus.ToByteArrayUnsigned().Length;
             int expSize = rsaKeyParameters.Exponent.ToByteArrayUnsigned().Length;
@@ -250,7 +248,7 @@ namespace dlech.SshAgentLib
             return md5.ComputeHash(md5Buffer);
           }
 
-          return md5.ComputeHash(aKey.GetPublicKeyBlob());
+          return md5.ComputeHash(key.GetPublicKeyBlob(false));
         }
       } catch (Exception) {
         return null;
