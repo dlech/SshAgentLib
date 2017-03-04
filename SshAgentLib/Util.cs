@@ -315,100 +315,6 @@ namespace dlech.SshAgentLib
     }
 
     /// <summary>
-    /// removes leading element from array if the value of that element is 0
-    /// </summary>
-    /// <param name="array"></param>
-    public static void TrimLeadingZero(PinnedArray<byte> array)
-    {
-      if (array != null && array.Data != null && array.Data.Length > 0) {
-        if (array.Data[0] == 0) {
-          PinnedArray<byte> arrayCopy = (PinnedArray<byte>)array.Clone();
-          array.Data = new byte[array.Data.Length - 1];
-          Array.Copy(arrayCopy.Data, 1, array.Data, 0, array.Data.Length);
-          arrayCopy.Dispose();
-        }
-      }
-    }
-
-
-    /// <summary>
-    /// Computes a % (b -1) of 2 large numbers
-    /// </summary>
-    /// <param name="a">variable a</param>
-    /// <param name="b">variable b</param>
-    /// <returns></returns>
-    public static PinnedArray<byte> ModMinusOne(PinnedArray<byte> a,
-                                              PinnedArray<byte> b)
-    {
-      using (PinnedArray<byte> bMinusOne = (PinnedArray<byte>)b.Clone()) {
-
-        PinnedArray<byte> result = (PinnedArray<byte>)a.Clone();
-        // shouldn't have to worry about borrowing because b should be prime and
-        // therefore not end in zero
-        bMinusOne.Data[bMinusOne.Data.Length - 1]--;
-        int bShift = a.Data.Length - b.Data.Length;
-
-        while (bShift >= 0) {
-          while (CompareBigInt(result.Data, bMinusOne.Data, bShift) >= 0) {
-            result.Data = SubtractBigInt(result.Data, bMinusOne.Data, bShift);
-            TrimLeadingZero(result);
-          }
-          bShift--;
-        }
-
-        return result;
-      }
-    }
-
-    /// <summary>
-    /// Compares to BigInts
-    /// </summary>
-    /// <param name="a">variable a</param>
-    /// <param name="b">variable b</param>
-    /// <param name="bShift">number of bytes to shift b to the left</param>
-    /// <returns>-1 if a &lt; b, 0 if a = b, 1 if a &gt; b</returns>
-    static int CompareBigInt(byte[] a, byte[] b, int bShift)
-    {
-      if (a.Length == b.Length + bShift) {
-        for (int i = 0; i < a.Length; i++) {
-          int result = a[i].CompareTo((i < b.Length) ? b[i] : (byte)0);
-          if (result != 0) {
-            return result;
-          }
-        }
-        return 0;
-      } else {
-        return a.Length.CompareTo(b.Length + bShift);
-      }
-    }
-
-    /// <summary>
-    /// Compute a - b, assumes that a &gt; b&lt;&lt;bShift
-    /// </summary>
-    /// <param name="a">variable a</param>
-    /// <param name="b">variable b</param>
-    /// <param name="bShift"> number of bytes to shift b to the left</param>
-    /// <returns>a - b</returns>
-    static byte[] SubtractBigInt(byte[] a, byte[] b, int bShift)
-    {
-      byte[] result = new byte[a.Length];
-      byte[] borrow = new byte[a.Length + 1];
-
-      int bOffset = a.Length - b.Length - bShift;
-
-      for (int i = a.Length - 1; i >= 0; i--) {
-        int diff = a[i] - (((i < bOffset) || (i >= b.Length + bOffset)) ?
-                           0 : b[i - bOffset]) - borrow[i + 1];
-        while (diff < 0) {
-          borrow[i] += 1;
-          diff += byte.MaxValue + 1;
-        }
-        result[i] = (byte)diff;
-      }
-      return result;
-    }
-
-    /// <summary>
     /// Unicode char to to ANSI char.
     /// </summary>
     /// <returns>
@@ -1854,6 +1760,5 @@ namespace dlech.SshAgentLib
         return assemblyTitle;
       }
     }
-
   }
 }

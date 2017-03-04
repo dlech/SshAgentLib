@@ -107,7 +107,6 @@
       <DesignTime>True</DesignTime>
       <DependentUpon>Resources.resx</DependentUpon>
     </Compile>
-    <Compile Include="UtilTest.cs" />
     <Compile Include="SshAgentLibTestsSetup.cs" />
     <Compile Include="SshKeyTest.cs" />
     <Compile Include="PageantAgentTest.cs" />
