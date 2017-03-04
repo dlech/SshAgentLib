@@ -44,8 +44,7 @@ namespace dlech.SshAgentLibTests
     {
         KeyFormatter.GetPassphraseCallback passphraseCallback;
 
-        [TestFixtureSetUp]
-        public void SetupFixture()
+        public OpensshPrivateKeyFormatterTest()
         {
             passphraseCallback = delegate(string comment)
             {

@@ -1,7 +1,7 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 15
-VisualStudioVersion = 15.0.26020.0
+VisualStudioVersion = 15.0.26206.0
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SshAgentLib", "SshAgentLib\SshAgentLib.csproj", "{9163B6B6-0603-4C6E-BC67-7111ED8CDDE1}"
 EndProject
@@ -16,11 +16,11 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SshAgentLib.Ui.Common", "Ui
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SshAgentLib.Ui.WinForms", "Ui\WinForms\SshAgentLib.Ui.WinForms.csproj", "{3BEB6FAE-B14D-4281-8168-DB2A4A0C5FC4}"
 EndProject
-Project("{9344BDBB-3E7F-41FC-A0DD-8665D75EE146}") = "SshAgentLib.Ui.GTK", "Ui\Gtk\SshAgentLib.Ui.GTK.csproj", "{1B18BA1F-D0D1-4CB0-9567-F13513632F8E}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SshAgentLib.Ui.GTK", "Ui\Gtk\SshAgentLib.Ui.GTK.csproj", "{D9797E08-73FA-4F41-AB34-789F1BB68F07}"
 EndProject
-Project("{9344BDBB-3E7F-41FC-A0DD-8665D75EE146}") = "SshAgentLib.Ui.Qt", "Ui\Qt\SshAgentLib.Ui.Qt.csproj", "{A74FA48F-5EA3-4BFD-90D6-E7FE4A9B3EF2}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SshAgentLib.Ui.Qt", "Ui\Qt\SshAgentLib.Ui.Qt.csproj", "{71DDF18D-2CA7-46E3-866C-6CC7294E0B69}"
 EndProject
-Project("{9344BDBB-3E7F-41FC-A0DD-8665D75EE146}") = "SshAgentLib.Ui.Qt.Demo", "Ui\Qt.Demo\SshAgentLib.Ui.Qt.Demo.csproj", "{9A44557B-5DE0-48D7-A777-20025B6A2462}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SshAgentLib.Ui.Qt.Demo", "Ui\Qt.Demo\SshAgentLib.Ui.Qt.Demo.csproj", "{703E9787-06B8-45EB-881B-6251F0AB845E}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -44,18 +44,18 @@ Global
 		{3BEB6FAE-B14D-4281-8168-DB2A4A0C5FC4}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{3BEB6FAE-B14D-4281-8168-DB2A4A0C5FC4}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{3BEB6FAE-B14D-4281-8168-DB2A4A0C5FC4}.Release|Any CPU.Build.0 = Release|Any CPU
-		{1B18BA1F-D0D1-4CB0-9567-F13513632F8E}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{1B18BA1F-D0D1-4CB0-9567-F13513632F8E}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{1B18BA1F-D0D1-4CB0-9567-F13513632F8E}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{1B18BA1F-D0D1-4CB0-9567-F13513632F8E}.Release|Any CPU.Build.0 = Release|Any CPU
-		{A74FA48F-5EA3-4BFD-90D6-E7FE4A9B3EF2}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{A74FA48F-5EA3-4BFD-90D6-E7FE4A9B3EF2}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{A74FA48F-5EA3-4BFD-90D6-E7FE4A9B3EF2}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{A74FA48F-5EA3-4BFD-90D6-E7FE4A9B3EF2}.Release|Any CPU.Build.0 = Release|Any CPU
-		{9A44557B-5DE0-48D7-A777-20025B6A2462}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{9A44557B-5DE0-48D7-A777-20025B6A2462}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{9A44557B-5DE0-48D7-A777-20025B6A2462}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{9A44557B-5DE0-48D7-A777-20025B6A2462}.Release|Any CPU.Build.0 = Release|Any CPU
+		{D9797E08-73FA-4F41-AB34-789F1BB68F07}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{D9797E08-73FA-4F41-AB34-789F1BB68F07}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{D9797E08-73FA-4F41-AB34-789F1BB68F07}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{D9797E08-73FA-4F41-AB34-789F1BB68F07}.Release|Any CPU.Build.0 = Release|Any CPU
+		{71DDF18D-2CA7-46E3-866C-6CC7294E0B69}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{71DDF18D-2CA7-46E3-866C-6CC7294E0B69}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{71DDF18D-2CA7-46E3-866C-6CC7294E0B69}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{71DDF18D-2CA7-46E3-866C-6CC7294E0B69}.Release|Any CPU.Build.0 = Release|Any CPU
+		{703E9787-06B8-45EB-881B-6251F0AB845E}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{703E9787-06B8-45EB-881B-6251F0AB845E}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{703E9787-06B8-45EB-881B-6251F0AB845E}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{703E9787-06B8-45EB-881B-6251F0AB845E}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
