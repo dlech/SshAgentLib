@@ -9,7 +9,7 @@
     <RootNamespace>dlech.SshAgentLib</RootNamespace>
     <AssemblyName>SshAgentLib</AssemblyName>
     <FileAlignment>512</FileAlignment>
-    <ReleaseVersion>0.7.11</ReleaseVersion>
+    <ReleaseVersion>0.7.7</ReleaseVersion>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|AnyCPU'">
     <DebugSymbols>True</DebugSymbols>
@@ -78,7 +78,7 @@
     <Compile Include="Crypto\SaltParseException.cs" />
     <Compile Include="MsysSocket .cs" />
     <Compile Include="CygwinSocket.cs" />
-    <Compile Include="OpensshKeyFormatter.cs" />
+    <Compile Include="OpensshPrivateKeyFormatter.cs" />
     <Compile Include="PassphraseException.cs" />
     <Compile Include="Crypto\DesSsh1Engine.cs" />
     <Compile Include="KeyFormatterException.cs" />
@@ -110,6 +110,8 @@
     <Compile Include="UnixClient.cs" />
     <Compile Include="PinnedArray.cs" />
     <Compile Include="WinInternals.cs" />
+    <Compile Include="OpensshPublicKeyFormatter.cs" />
+    <Compile Include="OpensshCertificate.cs" />
   </ItemGroup>
   <ItemGroup>
     <Reference Include="BouncyCastle.Crypto, Version=1.8.1.0, Culture=neutral, PublicKeyToken=0e99375e54769942">

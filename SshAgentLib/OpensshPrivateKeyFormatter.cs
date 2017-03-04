@@ -1,5 +1,5 @@
 ﻿//
-// OpensshKeyFormatter.cs
+// OpensshPrivateKeyFormatter.cs
 //
 // Copyright (c) 2015 David Lechner
 //
@@ -34,6 +34,7 @@ using Org.BouncyCastle.Crypto.Parameters;
 using Org.BouncyCastle.Security;
 
 using dlech.SshAgentLib.Crypto;
+using Org.BouncyCastle.Asn1.X509;
 
 namespace dlech.SshAgentLib
 {
@@ -43,7 +44,7 @@ namespace dlech.SshAgentLib
     /// <remarks>
     /// See PROTOCOL.key from the openssh project for more details.
     /// </remarks>
-    public class OpensshKeyFormatter : KeyFormatter
+    public class OpensshPrivateKeyFormatter : KeyFormatter
     {
         public const string MARK_BEGIN = "-----BEGIN OPENSSH PRIVATE KEY-----";
         public const string MARK_END = "-----END OPENSSH PRIVATE KEY-----";
@@ -183,7 +184,7 @@ namespace dlech.SshAgentLib
                 }
 
                 var kdfoptions = parser.ReadBlob();
-                var keyCount = parser.ReadInt();
+                var keyCount = parser.ReadUInt32();
                 if (keyCount != 1) {
                     throw new KeyFormatterException("Only one key allowed.");
                 }
@@ -208,7 +209,7 @@ namespace dlech.SshAgentLib
                     if (kdfname == KDFNAME_BCRYPT) {
                         var kdfOptionsParser = new BlobParser(kdfoptions);
                         var salt = kdfOptionsParser.ReadBlob();
-                        var rounds = kdfOptionsParser.ReadInt();
+                        var rounds = kdfOptionsParser.ReadUInt32();
 
                         var passphrase = GetPassphraseCallbackMethod(null);
                         var passphraseChars = new char[passphrase.Length];
@@ -236,17 +237,18 @@ namespace dlech.SshAgentLib
 
                 parser = new BlobParser(privateKeys);
                 
-                var checkint1 = parser.ReadInt();
-                var checkint2 = parser.ReadInt();
+                var checkint1 = parser.ReadUInt32();
+                var checkint2 = parser.ReadUInt32();
                 if (checkint1 != checkint2) {
                     throw new KeyFormatterException("checkint does not match in private key.");
                 }
                 var keys = new List<SshKey>();
                 for (int i = 0; i < keyCount; i++) {
-                    var publicKey = parser.ReadSsh2PublicKeyData();
+                    OpensshCertificate cert;
+                    var publicKey = parser.ReadSsh2PublicKeyData(out cert);
                     var keyPair = parser.ReadSsh2KeyData(publicKey);
                     var comment = parser.ReadString();
-                    var key = new SshKey(SshVersion.SSH2, keyPair, comment);
+                    var key = new SshKey(SshVersion.SSH2, keyPair, comment, cert);
                     keys.Add(key);
                 }
                 return keys[0];

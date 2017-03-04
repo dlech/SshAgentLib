@@ -53,7 +53,7 @@ namespace dlech.SshAgentLibTests
     {
       BlobBuilder builder = new BlobBuilder();
       UInt32 value = 12345;
-      builder.AddInt(value);
+      builder.AddUInt32(value);
       Assert.That(builder.GetBlob(), Is.EqualTo(value.ToBytes()));
     }
 

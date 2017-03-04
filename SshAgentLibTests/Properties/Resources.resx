@@ -259,6 +259,9 @@
   <data name="ed25519_1_fp_bb" type="System.Resources.ResXFileRef, System.Windows.Forms">
     <value>..\Resources\ed25519_1.fp.bb;System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089;utf-8</value>
   </data>
+  <data name="ed25519_1_param_pub" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\Resources\ed25519_1.param.pub;System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089;utf-8</value>
+  </data>
   <data name="ed25519_1_pub" type="System.Resources.ResXFileRef, System.Windows.Forms">
     <value>..\Resources\ed25519_1.pub;System.Byte[], mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </data>
@@ -273,6 +276,9 @@
   </data>
   <data name="ed25519_2_fp_bb" type="System.Resources.ResXFileRef, System.Windows.Forms">
     <value>..\Resources\ed25519_2.fp.bb;System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089;utf-8</value>
+  </data>
+  <data name="ed25519_2_param_pub" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\Resources\ed25519_2.param.pub;System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089;utf-8</value>
   </data>
   <data name="ed25519_2_pub" type="System.Resources.ResXFileRef, System.Windows.Forms">
     <value>..\Resources\ed25519_2.pub;System.Byte[], mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>

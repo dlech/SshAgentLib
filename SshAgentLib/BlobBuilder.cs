@@ -4,7 +4,7 @@
 // Author(s): David Lechner <david@lechnology.com>
 //            Max Laverse
 //
-// Copyright (c) 2012-2013 David Lechner
+// Copyright (c) 2012-2013,2017 David Lechner
 //
 // Permission is hereby granted, free of charge, to any person obtaining a copy
 // of this software and associated documentation files (the "Software"), to deal
@@ -39,7 +39,7 @@ namespace dlech.SshAgentLib
   public class BlobBuilder
   {
 
-    private List<byte> byteList;
+    List<byte> byteList;
 
     /// <summary>
     /// Gets current length of blob
@@ -69,59 +69,64 @@ namespace dlech.SshAgentLib
     /// <summary>
     /// Adds byte to the blob
     /// </summary>
-    public void AddByte(byte aByte)
+    public void AddUInt8(byte value)
     {
-      byteList.Add(aByte);
+      byteList.Add(value);
+    }
+
+    public void AddInt(int value)
+    {
+      AddUInt32((uint)value);
+    }
+
+    public void AddUInt32(uint value)
+    {
+      byteList.AddRange(value.ToBytes());
+    }
+
+    public void AddUInt64(ulong value)
+    {
+      byteList.AddRange(value.ToBytes());
     }
 
     /// <summary>
     /// Adds byte[] to the blob
     /// </summary>
-    /// <param name="aBytes"></param>
-    public void AddBytes(byte[] aBytes)
+    /// <param name="bytes"></param>
+    public void AddBytes(byte[] bytes)
     {
-      byteList.AddRange(aBytes);
-    }
-
-    public void AddInt(int aInt)
-    {
-      AddInt((UInt32)aInt);
-    }
-
-    public void AddInt(UInt32 aInt)
-    {
-      byteList.AddRange(aInt.ToBytes());
+      byteList.AddRange(bytes);
     }
 
     /// <summary>
     /// Adds a string to the blob
     /// </summary>
-    /// <param name="aString">the string to add</param>
-    public void AddStringBlob(string aString)
+    /// <param name="value">the string to add</param>
+    public void AddStringBlob(string value)
     {
-      AddBlob(Encoding.UTF8.GetBytes(aString));
+      AddBlob(Encoding.UTF8.GetBytes(value));
     }
 
     /// <summary>
     /// Adds BigInteger to builder prefixed with size
     /// </summary>
-    /// <param name="bigInt"></param>
-    public void AddBigIntBlob(BigInteger aBigInt)
+    /// <param name="value"></param>
+    public void AddBigIntBlob(BigInteger value)
     {
-      byte[] bytes = aBigInt.ToByteArray();
+      byte[] bytes = value.ToByteArray();
       AddBlob(bytes);
     }
 
     /// <summary>
     /// Adds byte[] to builder as Ssh1 sub-blob
     /// </summary>
-    /// <param name="blob"></param>
-    public void AddSsh1BigIntBlob(BigInteger aBigInt)
+    /// <param name="value"></param>
+    public void AddSsh1BigIntBlob(BigInteger value)
     {
-        ushort size = (ushort)(aBigInt.BitLength);
-        AddByte((byte)((size >> 8) & 0xFF));
-        AddByte((byte)(size & 0xFF));
-        byte[] bytes = aBigInt.ToByteArrayUnsigned();
+        ushort size = (ushort)(value.BitLength);
+        AddUInt8((byte)((size >> 8) & 0xFF));
+        AddUInt8((byte)(size & 0xFF));
+        byte[] bytes = value.ToByteArrayUnsigned();
         byteList.AddRange(bytes);
     }
 
@@ -134,25 +139,25 @@ namespace dlech.SshAgentLib
       byteList.AddRange(blob.Length.ToBytes());
       byteList.AddRange(blob);
     }
-    
+
     /// <summary>
     /// Prepends header 
     /// </summary>
-    /// <param name="aMessage">message number to include in header</param>
-    /// <param name="aHeaderData">data to include in header</param>
-    public void InsertHeader(Agent.Message aMessage, int aHeaderData)
+    /// <param name="message">message number to include in header</param>
+    /// <param name="headerData">data to include in header</param>
+    public void InsertHeader(Agent.Message message, int headerData)
     {
-      byteList.InsertRange(0, aHeaderData.ToBytes());
-      InsertHeader(aMessage);
+      byteList.InsertRange(0, headerData.ToBytes());
+      InsertHeader(message);
     }
 
     /// <summary>
     /// Prepends header 
     /// </summary>
-    /// <param name="aMessage">message number to include in header</param>
-    public void InsertHeader(Agent.Message aMessage)
+    /// <param name="message">message number to include in header</param>
+    public void InsertHeader(Agent.Message message)
     {
-      byteList.Insert(0, (byte)aMessage);
+      byteList.Insert(0, (byte)message);
       byte[] blobLength = byteList.Count.ToBytes();
       byteList.InsertRange(0, blobLength);
     }

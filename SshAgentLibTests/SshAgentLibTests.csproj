@@ -97,7 +97,7 @@
     <Compile Include="CygwinSocketTest.cs" />
     <Compile Include="KeyGenerator.cs" />
     <Compile Include="MsysSocketTest.cs" />
-    <Compile Include="OpensshKeyFormatterTest.cs" />
+    <Compile Include="OpensshPrivateKeyFormatterTest.cs" />
     <Compile Include="PageantClientTest.cs" />
     <Compile Include="Ssh1KeyFormatterTest.cs" />
     <Compile Include="PemKeyFormatterTest.cs" />
@@ -113,6 +113,7 @@
     <Compile Include="PageantAgentTest.cs" />
     <Compile Include="UnixAgentTest.cs" />
     <Compile Include="ISshKeyTest.cs" />
+    <Compile Include="OpensshPublicKeyFormatterTests.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
   <ItemGroup>

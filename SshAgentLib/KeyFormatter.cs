@@ -4,7 +4,7 @@
 // Author(s): David Lechner <david@lechnology.com>
 //            Max Laverse
 //
-// Copyright (c) 2012-2014,2015 David Lechner
+// Copyright (c) 2012-2014,2015,2017 David Lechner
 //
 // Permission is hereby granted, free of charge, to any person obtaining a copy
 // of this software and associated documentation files (the "Software"), to deal
@@ -155,8 +155,8 @@ namespace dlech.SshAgentLib
       if (!string.IsNullOrWhiteSpace (firstLine)) {
         if (ppkRegex.IsMatch (firstLine)) {
           return new PpkFormatter ();
-        } else if (OpensshKeyFormatter.MARK_BEGIN == firstLine) {
-          return new OpensshKeyFormatter();
+        } else if (OpensshPrivateKeyFormatter.MARK_BEGIN == firstLine) {
+          return new OpensshPrivateKeyFormatter();
         } else if (pemPrivateKeyRegex.IsMatch(firstLine)) {
           return new PemKeyFormatter ();
         } else if (Ssh1KeyFormatter.FILE_HEADER_LINE == firstLine) {

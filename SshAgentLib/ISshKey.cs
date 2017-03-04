@@ -3,7 +3,7 @@
 //
 // Author(s): David Lechner <david@lechnology.com>
 //
-// Copyright (c) 2012-2015 David Lechner
+// Copyright (c) 2012-2015,2017 David Lechner
 //
 // Permission is hereby granted, free of charge, to any person obtaining a copy
 // of this software and associated documentation files (the "Software"), to deal
@@ -50,6 +50,11 @@ namespace dlech.SshAgentLib
     /// The public key algorithm
     /// </summary>
     PublicKeyAlgorithm Algorithm { get; }
+
+    /// <summary>
+    /// The certificate for signed keys or <c>null</c> for unsigned keys
+    /// </summary>
+    OpensshCertificate Certificate { get; }
 
     /// <summary>
     /// returns true if key does not have private key parameters

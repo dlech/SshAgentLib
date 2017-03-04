@@ -1,10 +1,10 @@
 //
-// PublicKeyAlgorithm.cs
+// Util.cs
 //
 // Author(s): David Lechner <david@lechnology.com>
 //            Max Laverse
 //
-// Copyright (c) 2012-2013 David Lechner
+// Copyright (c) 2012-2013,2017 David Lechner
 //
 // Permission is hereby granted, free of charge, to any person obtaining a copy
 // of this software and associated documentation files (the "Software"), to deal
@@ -37,32 +37,32 @@ using System.Text.RegularExpressions;
 namespace dlech.SshAgentLib
 {
   /// <summary>
-  /// PageantSharp utility class.
+  /// SshAgentLib utility class.
   /// </summary>
   public static class Util
   {
 
-    private static string mAssemblyTitle;
+    static string assemblyTitle;
 
     /// <summary>
     /// Adds Agent.KeyConstraintType.SSH_AGENT_CONSTRAIN_CONFIRM constraint to key
     /// </summary>
-    public static void addConfirmConstraint(this ICollection<Agent.KeyConstraint> aKeyCollection)
+    public static void addConfirmConstraint(this ICollection<Agent.KeyConstraint> keyCollection)
     {
       var constraint = new Agent.KeyConstraint();
       constraint.Type = Agent.KeyConstraintType.SSH_AGENT_CONSTRAIN_CONFIRM;
-      aKeyCollection.Add(constraint);
+      keyCollection.Add(constraint);
     }
 
     /// <summary>
     /// Adds Agent.KeyConstraintType.SSH_AGENT_CONSTRAIN_LIFETIME constraint to key
     /// </summary>
-    public static void addLifetimeConstraint(this ICollection<Agent.KeyConstraint> aKeyCollection, uint aLifetime)
+    public static void addLifetimeConstraint(this ICollection<Agent.KeyConstraint> keyCollection, uint lifetime)
     {
       var constraint = new Agent.KeyConstraint();
       constraint.Type = Agent.KeyConstraintType.SSH_AGENT_CONSTRAIN_LIFETIME;
-      constraint.Data = aLifetime;
-      aKeyCollection.Add(constraint);
+      constraint.Data = lifetime;
+      keyCollection.Add(constraint);
     }    
 
     /// <summary>
@@ -76,7 +76,7 @@ namespace dlech.SshAgentLib
         case Agent.KeyConstraintType.SSH_AGENT_CONSTRAIN_CONFIRM:
           return null;
         case Agent.KeyConstraintType.SSH_AGENT_CONSTRAIN_LIFETIME:
-          return typeof(UInt32);
+          return typeof(uint);
         default:
           Debug.Fail("Unknown KeyConstraintType");
           throw new ArgumentException("Unknown KeyConstraintType");
@@ -96,51 +96,74 @@ namespace dlech.SshAgentLib
     /// <summary>
     /// Convert 32 bit integer to four bytes in BigEndian order
     /// </summary>
-    /// <param name="aInt">integer to convert</param>
+    /// <param name="n">integer to convert</param>
     /// <returns>four bytes</returns>
-    public static byte[] ToBytes(this int aInt)
+    public static byte[] ToBytes(this int n)
     {
-      return ((UInt32)aInt).ToBytes();
+      return ((uint)n).ToBytes();
     }
 
     /// <summary>
     /// Convert 32 bit integer to four bytes in BigEndian order
     /// </summary>
-    /// <param name="aInt">integer to convert</param>
+    /// <param name="n">integer to convert</param>
     /// <returns>four bytes</returns>
-    public static byte[] ToBytes(this UInt32 aInt)
+    public static byte[] ToBytes(this uint n)
     {
-      byte[] result = BitConverter.GetBytes(aInt);
+      byte[] result = BitConverter.GetBytes(n);
       if (BitConverter.IsLittleEndian) {
-        return result.Reverse().ToArray();
-      } else {
-        return result;
+        result = result.Reverse().ToArray();
       }
+      return result;
+    }
+
+    /// <summary>
+    /// Convert 64 bit integer to eight bytes in BigEndian order
+    /// </summary>
+    /// <param name="n">integer to convert</param>
+    /// <returns>eight bytes</returns>
+    public static byte[] ToBytes(this ulong n)
+    {
+      byte[] result = BitConverter.GetBytes(n);
+      if (BitConverter.IsLittleEndian) {
+        result = result.Reverse().ToArray();
+      }
+      return result;
+    }
+
+    /// <summary>
+    /// Convert 64 bit integer to eight bytes in BigEndian order
+    /// </summary>
+    /// <param name="n">integer to convert</param>
+    /// <returns>eight bytes</returns>
+    public static byte[] ToBytes(this long n)
+    {
+      return ((ulong)n).ToBytes();
     }
 
     /// <summary>
     /// Converts 4 bytes in BigEndian order to 32 bit integer
     /// </summary>
-    /// <param name="aBytes">array of bytes</param>
+    /// <param name="bytes">array of bytes</param>
     /// <returns>32 bit integer</returns>
-    public static UInt32 ToInt(this byte[] aBytes)
+    public static uint ToUInt32(this byte[] bytes)
     {
-      return aBytes.ToInt(0);
+      return bytes.ToUInt32(0);
     }
 
     /// <summary>
     /// Converts 4 bytes in BigEndian order to 32 bit integer
     /// </summary>
-    /// <param name="aBytes">array of bytes</param>
-    /// <param name="aOffset">the offset where to start reading the bytes</param>
+    /// <param name="bytes">array of bytes</param>
+    /// <param name="offset">the offset where to start reading the bytes</param>
     /// <returns>32 bit integer</returns>
-    public static UInt32 ToInt(this byte[] aBytes, int aOffset)
+    public static uint ToUInt32(this byte[] bytes, int offset)
     {
-      if (aBytes == null) {
+      if (bytes == null) {
         throw new ArgumentNullException("bytes");
       }
       byte[] wokingBytes = new byte[4];
-      Array.Copy(aBytes, aOffset, wokingBytes, 0, 4);
+      Array.Copy(bytes, offset, wokingBytes, 0, 4);
       if (BitConverter.IsLittleEndian) {
         wokingBytes = wokingBytes.Reverse().ToArray();
       }
@@ -153,7 +176,7 @@ namespace dlech.SshAgentLib
     /// </summary>
     /// <param name="base16String">the string to convert</param>
     /// <returns>array containing the converted bytes</returns>
-    /// <exception cref="NullArgumentException">thrown if base16String is null or empty</exception>
+    /// <exception cref="ArgumentNullException">thrown if base16String is null or empty</exception>
     /// <exception cref="ArgumentException">thrown if base16String does not contain an even number of characters
     /// or if the characters are not hexadecimal digits (0-9 and A-F or a-f)</exception>
     public static byte[] FromHex(string base16String)
@@ -168,7 +191,7 @@ namespace dlech.SshAgentLib
     /// <param name="base16String">the string to convert</param>
     /// <param name="delimeter">the delimiter that is present between each pair of digits</param>
     /// <returns>array containing the converted bytes</returns>
-    /// <exception cref="NullArgumentException">thrown if base16String is null or empty</exception>
+    /// <exception cref="ArgumentNullException">thrown if base16String is null or empty</exception>
     /// <exception cref="ArgumentException">thrown if base16String does not contain an even number of characters
     /// or if the characters are not hexadecimal digits (0-9 and A-F or a-f)</exception>
     public static byte[] FromHex(string base16String, string delimeter)
@@ -344,11 +367,11 @@ namespace dlech.SshAgentLib
     /// <param name="b">variable b</param>
     /// <param name="bShift">number of bytes to shift b to the left</param>
     /// <returns>-1 if a &lt; b, 0 if a = b, 1 if a &gt; b</returns>
-    private static int CompareBigInt(byte[] a, byte[] b, int bShift)
+    static int CompareBigInt(byte[] a, byte[] b, int bShift)
     {
       if (a.Length == b.Length + bShift) {
         for (int i = 0; i < a.Length; i++) {
-          int result = a[i].CompareTo((byte)((i < b.Length) ? b[i] : (byte)0));
+          int result = a[i].CompareTo((i < b.Length) ? b[i] : (byte)0);
           if (result != 0) {
             return result;
           }
@@ -366,7 +389,7 @@ namespace dlech.SshAgentLib
     /// <param name="b">variable b</param>
     /// <param name="bShift"> number of bytes to shift b to the left</param>
     /// <returns>a - b</returns>
-    private static byte[] SubtractBigInt(byte[] a, byte[] b, int bShift)
+    static byte[] SubtractBigInt(byte[] a, byte[] b, int bShift)
     {
       byte[] result = new byte[a.Length];
       byte[] borrow = new byte[a.Length + 1];
@@ -374,9 +397,8 @@ namespace dlech.SshAgentLib
       int bOffset = a.Length - b.Length - bShift;
 
       for (int i = a.Length - 1; i >= 0; i--) {
-        int diff = a[i] - (((i < bOffset) ||
-                            (i >= b.Length + bOffset)) ?
-                           (byte)0 : b[i - bOffset]) - borrow[i + 1];
+        int diff = a[i] - (((i < bOffset) || (i >= b.Length + bOffset)) ?
+                           0 : b[i - bOffset]) - borrow[i + 1];
         while (diff < 0) {
           borrow[i] += 1;
           diff += byte.MaxValue + 1;
@@ -1811,7 +1833,7 @@ namespace dlech.SshAgentLib
     {
       get
       {
-        if (mAssemblyTitle == null) {
+        if (assemblyTitle == null) {
           // Get all Title attributes on this assembly
           object[] attributes = Assembly.GetEntryAssembly()
             .GetCustomAttributes(typeof(AssemblyTitleAttribute), false);
@@ -1826,10 +1848,10 @@ namespace dlech.SshAgentLib
           }
           // If there was no Title attribute, or if the Title attribute was the
           // empty string, return the .exe name
-          mAssemblyTitle = System.IO.Path.GetFileNameWithoutExtension(
+          assemblyTitle = Path.GetFileNameWithoutExtension(
             Assembly.GetExecutingAssembly().CodeBase);
         }
-        return mAssemblyTitle;
+        return assemblyTitle;
       }
     }
 

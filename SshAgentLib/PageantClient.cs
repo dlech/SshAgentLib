@@ -88,7 +88,7 @@ namespace dlech.SshAgentLib
           }
           stream.Position = 0;
           var parser = new BlobParser(stream);
-          var replyLength = parser.ReadInt();
+          var replyLength = parser.ReadUInt32();
           stream.Position = 0;
           var reply = new byte[replyLength + 4];
           stream.Read(reply, 0, reply.Length);

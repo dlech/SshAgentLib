@@ -3,7 +3,7 @@
 //
 // Author(s): David Lechner <david@lechnology.com>
 //
-// Copyright (c) 2012-2013,2015 David Lechner
+// Copyright (c) 2012-2013,2015,2017 David Lechner
 //
 // Permission is hereby granted, free of charge, to any person obtaining a copy
 // of this software and associated documentation files (the "Software"), to deal
@@ -43,8 +43,9 @@ namespace dlech.SshAgentLibTests
   public class AgentClientTest
   {
 
-    static SshKey rsa1Key, rsaKey, dsaKey,
-      ecdsa256Key, ecdsa384Key, ecdsa521Key, ed25519Key;
+    static SshKey rsa1Key, rsaKey, rsaCert, dsaKey, dsaCert,
+      ecdsa256Key, ecdsa256Cert, ecdsa384Key, ecdsa384Cert, ecdsa521Key, ecdsa521Cert,
+      ed25519Key, ed25519Cert;
     static ReadOnlyCollection<SshKey> allKeys;
 
     class TestAgentClient : AgentClient
@@ -81,25 +82,43 @@ namespace dlech.SshAgentLibTests
         PublicKeyAlgorithm.SSH_RSA, "SSH1 RSA test key");
       rsaKey = KeyGenerator.CreateKey(SshVersion.SSH2,
         PublicKeyAlgorithm.SSH_RSA, "SSH2 RSA test key");
+      rsaCert = KeyGenerator.CreateKey (SshVersion.SSH2,
+        PublicKeyAlgorithm.SSH_RSA_CERT_V1, "SSH2 RSA test key + cert");
       dsaKey = KeyGenerator.CreateKey(SshVersion.SSH2,
         PublicKeyAlgorithm.SSH_DSS, "SSH2 DSA test key");
+      dsaCert = KeyGenerator.CreateKey (SshVersion.SSH2,
+        PublicKeyAlgorithm.SSH_DSS_CERT_V1, "SSH2 DSA test key + cert");
       ecdsa256Key = KeyGenerator.CreateKey(SshVersion.SSH2,
         PublicKeyAlgorithm.ECDSA_SHA2_NISTP256, "SSH2 ECDSA 256 test key");
+      ecdsa256Cert = KeyGenerator.CreateKey (SshVersion.SSH2,
+        PublicKeyAlgorithm.ECDSA_SHA2_NISTP256_CERT_V1, "SSH2 ECDSA 256 test key + cert");
       ecdsa384Key = KeyGenerator.CreateKey(SshVersion.SSH2,
         PublicKeyAlgorithm.ECDSA_SHA2_NISTP384, "SSH2 ECDSA 384 test key");
+      ecdsa384Cert = KeyGenerator.CreateKey (SshVersion.SSH2,
+        PublicKeyAlgorithm.ECDSA_SHA2_NISTP384_CERT_V1, "SSH2 ECDSA 384 test key + cert");
       ecdsa521Key = KeyGenerator.CreateKey(SshVersion.SSH2,
         PublicKeyAlgorithm.ECDSA_SHA2_NISTP521, "SSH2 ECDSA 521 test key");
+      ecdsa521Cert = KeyGenerator.CreateKey (SshVersion.SSH2,
+        PublicKeyAlgorithm.ECDSA_SHA2_NISTP521_CERT_V1, "SSH2 ECDSA 521 test key + cert");
       ed25519Key = KeyGenerator.CreateKey(SshVersion.SSH2,
         PublicKeyAlgorithm.ED25519, "SSH2 Ed25519 test key");
+      ed25519Cert = KeyGenerator.CreateKey (SshVersion.SSH2,
+        PublicKeyAlgorithm.ED25519_CERT_V1, "SSH2 Ed25519 test key + cert");
 
       List<SshKey> keyList = new List<SshKey>();
       keyList.Add(rsa1Key);
       keyList.Add(rsaKey);
+      keyList.Add(rsaCert);
       keyList.Add(dsaKey);
+      keyList.Add(dsaCert);
       keyList.Add(ecdsa256Key);
+      keyList.Add(ecdsa256Cert);
       keyList.Add(ecdsa384Key);
+      keyList.Add(ecdsa384Cert);
       keyList.Add(ecdsa521Key);
+      keyList.Add(ecdsa521Cert);
       keyList.Add(ed25519Key);
+      keyList.Add(ed25519Cert);
       allKeys = keyList.AsReadOnly();
     }
 

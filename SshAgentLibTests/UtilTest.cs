@@ -55,7 +55,7 @@ namespace dlech.SshAgentLibTests
     /// <summary>
     ///A test for ModMinusOne
     ///</summary>
-    [Test()]
+    [Test, Repeat(100)]
     public void ModMinusOneTest()
     {
       RSAParameters p;

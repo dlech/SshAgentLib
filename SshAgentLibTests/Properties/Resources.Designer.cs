@@ -459,6 +459,16 @@ namespace dlech.SshAgentLibTests.Properties {
                 return ResourceManager.GetString("ed25519_1_fp_bb", resourceCulture);
             }
         }
+
+        /// <summary>
+        ///   Looks up a localized string similar to xofip-nuhoh-botam-cypeg-panig-tunef-bimav-numeb-nikic-gocyf-paxax
+        ///.
+        /// </summary>
+        internal static string ed25519_1_param_pub {
+            get {
+                return ResourceManager.GetString("ed25519_1_param_pub", resourceCulture);
+            }
+        }
         
         /// <summary>
         ///   Looks up a localized resource of type System.Byte[].
@@ -507,6 +517,16 @@ namespace dlech.SshAgentLibTests.Properties {
         internal static string ed25519_2_fp_bb {
             get {
                 return ResourceManager.GetString("ed25519_2_fp_bb", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to xofip-nuhoh-botam-cypeg-panig-tunef-bimav-numeb-nikic-gocyf-paxax
+        ///.
+        /// </summary>
+        internal static string ed25519_2_param_pub {
+            get {
+                return ResourceManager.GetString("ed25519_2_param_pub", resourceCulture);
             }
         }
         

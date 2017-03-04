@@ -4,7 +4,7 @@
 // Author(s): David Lechner <david@lechnology.com>
 //            Max Laverse
 //
-// Copyright (c) 2012-2015 David Lechner
+// Copyright (c) 2012-2015,2017 David Lechner
 //
 // Permission is hereby granted, free of charge, to any person obtaining a copy
 // of this software and associated documentation files (the "Software"), to deal
@@ -491,7 +491,7 @@ namespace dlech.SshAgentLib
             var sessionId = messageParser.ReadBytes(16);
 
             //Checking responseType field
-            if (messageParser.ReadInt() != 1) {
+            if (messageParser.ReadUInt32() != 1) {
               goto default; //responseType !=1  is not longer supported
             }
 
@@ -530,7 +530,7 @@ namespace dlech.SshAgentLib
             var flags = new SignRequestFlags();
             try {
               // usually, there are no flags, so parser will throw
-              flags = (SignRequestFlags)messageParser.ReadInt();
+              flags = (SignRequestFlags)messageParser.ReadUInt32();
             } catch { }
 
             var matchingKey =
@@ -595,10 +595,10 @@ namespace dlech.SshAgentLib
             if (ssh1constrained) {
               while (messageStream.Position < header.BlobLength + 4) {
                 KeyConstraint constraint = new KeyConstraint();
-                constraint.Type = (KeyConstraintType)messageParser.ReadByte();
+                constraint.Type = (KeyConstraintType)messageParser.ReadUInt8();
                 if (constraint.Type ==
                   KeyConstraintType.SSH_AGENT_CONSTRAIN_LIFETIME) {
-                  constraint.Data = messageParser.ReadInt();
+                  constraint.Data = messageParser.ReadUInt32();
                 }
                 key.AddConstraint(constraint);
               }
@@ -630,9 +630,10 @@ namespace dlech.SshAgentLib
               Message.SSH2_AGENTC_ADD_ID_CONSTRAINED);
 
           try {
-            var publicKeyParams = messageParser.ReadSsh2PublicKeyData();
+            OpensshCertificate cert;
+            var publicKeyParams = messageParser.ReadSsh2PublicKeyData(out cert);
             var keyPair = messageParser.ReadSsh2KeyData(publicKeyParams);
-            SshKey key = new SshKey(SshVersion.SSH2, keyPair);
+            SshKey key = new SshKey(SshVersion.SSH2, keyPair, null, cert);
             key.Comment = messageParser.ReadString();
             key.Source = "External client";
 
@@ -640,10 +641,10 @@ namespace dlech.SshAgentLib
               while (messageStream.Position < header.BlobLength + 4) {
                 KeyConstraint constraint = new KeyConstraint();
                 constraint.Type =
-                  (KeyConstraintType)messageParser.ReadByte();
+                  (KeyConstraintType)messageParser.ReadUInt8();
                 if (constraint.Type ==
                   KeyConstraintType.SSH_AGENT_CONSTRAIN_LIFETIME) {
-                  constraint.Data = messageParser.ReadInt();
+                  constraint.Data = messageParser.ReadUInt32();
                 }
                 key.AddConstraint(constraint);
               }

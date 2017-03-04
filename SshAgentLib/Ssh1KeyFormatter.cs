@@ -87,8 +87,8 @@ namespace dlech.SshAgentLib
 
       /* writing info headers */
       builder.AddBytes(Encoding.ASCII.GetBytes(FILE_HEADER_LINE + "\n"));
-      builder.AddByte(0);          //end of string
-      builder.AddByte(cipherType); //cipher
+      builder.AddUInt8(0);          //end of string
+      builder.AddUInt8(cipherType); //cipher
       builder.AddInt(0);           //reserved
 
       /* writing public key */
@@ -105,10 +105,10 @@ namespace dlech.SshAgentLib
       byte[] resultCheck = new byte[2];
       random.NextBytes(resultCheck);
 
-      privateKeyBuilder.AddByte(resultCheck[0]);
-      privateKeyBuilder.AddByte(resultCheck[1]);
-      privateKeyBuilder.AddByte(resultCheck[0]);
-      privateKeyBuilder.AddByte(resultCheck[1]);
+      privateKeyBuilder.AddUInt8(resultCheck[0]);
+      privateKeyBuilder.AddUInt8(resultCheck[1]);
+      privateKeyBuilder.AddUInt8(resultCheck[0]);
+      privateKeyBuilder.AddUInt8(resultCheck[1]);
       privateKeyBuilder.AddSsh1BigIntBlob(privateKeyParams.Exponent);
       privateKeyBuilder.AddSsh1BigIntBlob(privateKeyParams.DQ);
       privateKeyBuilder.AddSsh1BigIntBlob(privateKeyParams.P);
@@ -154,13 +154,13 @@ namespace dlech.SshAgentLib
 
       parser.ReadBytes((uint)FILE_HEADER_LINE.Length + 2);  //Skipping header line
 
-      byte cipherType = parser.ReadByte();
+      byte cipherType = parser.ReadUInt8();
       if (cipherType != SSH_CIPHER_3DES && cipherType != SSH_CIPHER_NONE) {
         //TripleDes is the only encryption supported
         throw new KeyFormatterException("Unsupported cypherType: " + cipherType);
       }
 
-      parser.ReadInt(); //reserved
+      parser.ReadUInt32(); //reserved
 
       /* reading public key */
       AsymmetricKeyParameter aPublicKeyParameter =

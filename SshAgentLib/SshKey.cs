@@ -4,7 +4,7 @@
 // Author(s): David Lechner <david@lechnology.com>
 //            Max Laverse
 //
-// Copyright (c) 2012-2015 David Lechner
+// Copyright (c) 2012-2015,2017 David Lechner
 //
 // Permission is hereby granted, free of charge, to any person obtaining a copy
 // of this software and associated documentation files (the "Software"), to deal
@@ -45,7 +45,8 @@ namespace dlech.SshAgentLib
     private AsymmetricKeyParameter privateKeyParameter;
 
     public SshKey(SshVersion version, AsymmetricKeyParameter publicKeyParameter,
-      AsymmetricKeyParameter privateKeyParameter = null, string comment = "")
+      AsymmetricKeyParameter privateKeyParameter = null, string comment = "",
+      OpensshCertificate certificate = null)
     {
       if (publicKeyParameter == null) {
         throw new ArgumentNullException("publicKeyParameter");
@@ -54,13 +55,16 @@ namespace dlech.SshAgentLib
       Version = version;
       this.publicKeyParameter = publicKeyParameter;
       this.privateKeyParameter = privateKeyParameter;
+      Certificate = certificate;
       Comment = comment;
       keyConstraints = new List<Agent.KeyConstraint>();
     }
 
     public SshKey(SshVersion version, AsymmetricCipherKeyPair cipherKeyPair,
-      string comment = "")
-      : this(version, cipherKeyPair.Public, cipherKeyPair.Private, comment) { }
+                  string comment = "", OpensshCertificate certificate = null)
+      : this(version, cipherKeyPair.Public, cipherKeyPair.Private, comment, certificate)
+    {
+    }
     
     public SshVersion Version { get; private set; }
 
@@ -69,26 +73,46 @@ namespace dlech.SshAgentLib
       get
       {
         if (publicKeyParameter is RsaKeyParameters) {
+          if (Certificate != null) {
+            return PublicKeyAlgorithm.SSH_RSA_CERT_V1;
+          }
           return PublicKeyAlgorithm.SSH_RSA;
         } else if (publicKeyParameter is DsaPublicKeyParameters) {
+          if (Certificate != null) {
+            return PublicKeyAlgorithm.SSH_DSS_CERT_V1;
+          }
           return PublicKeyAlgorithm.SSH_DSS;
         } else if (publicKeyParameter is ECPublicKeyParameters) {
           ECPublicKeyParameters ecdsaParameters =
             (ECPublicKeyParameters)publicKeyParameter;
           switch (ecdsaParameters.Q.Curve.FieldSize) {
             case 256:
+              if (Certificate != null) {
+                return PublicKeyAlgorithm.ECDSA_SHA2_NISTP256_CERT_V1;
+              }
               return PublicKeyAlgorithm.ECDSA_SHA2_NISTP256;
             case 384:
+              if (Certificate != null) {
+                return PublicKeyAlgorithm.ECDSA_SHA2_NISTP384_CERT_V1;
+              }
               return PublicKeyAlgorithm.ECDSA_SHA2_NISTP384;
             case 521:
+              if (Certificate != null) {
+                return PublicKeyAlgorithm.ECDSA_SHA2_NISTP521_CERT_V1;
+              }
               return PublicKeyAlgorithm.ECDSA_SHA2_NISTP521;
           }
         } else if (publicKeyParameter is Ed25519PublicKeyParameter) {
-            return PublicKeyAlgorithm.ED25519;
+          if (Certificate != null) {
+            return PublicKeyAlgorithm.ED25519_CERT_V1;
+          }
+           return PublicKeyAlgorithm.ED25519;
         }
         throw new Exception("Unknown algorithm");
       }
     }
+
+    public OpensshCertificate Certificate { get; private set; }
 
     public bool IsPublicOnly { get; private set; }
 

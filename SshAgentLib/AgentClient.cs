@@ -3,7 +3,7 @@
 //
 // Author(s): David Lechner <david@lechnology.com>
 //
-// Copyright (c) 2012-2013,2015 David Lechner
+// Copyright (c) 2012-2013,2015,2017 David Lechner
 //
 // Permission is hereby granted, free of charge, to any person obtaining a copy
 // of this software and associated documentation files (the "Software"), to deal
@@ -97,9 +97,9 @@ namespace dlech.SshAgentLib
       var builder = CreatePrivateKeyBlob(key);
       if (aConstraints != null && aConstraints.Count > 0) {
         foreach (var constraint in aConstraints) {
-          builder.AddByte((byte)constraint.Type);
+          builder.AddUInt8((byte)constraint.Type);
           if (constraint.Type.GetDataType() == typeof(uint)) {
-            builder.AddInt((uint)constraint.Data);
+            builder.AddUInt32((uint)constraint.Data);
           }
         }
         switch (key.Version) {
@@ -194,7 +194,7 @@ namespace dlech.SshAgentLib
           if (header.Message != Agent.Message.SSH1_AGENT_RSA_IDENTITIES_ANSWER) {
             throw new AgentFailureException();
           }
-          var ssh1KeyCount = replyParser.ReadInt();
+          var ssh1KeyCount = replyParser.ReadUInt32();
           for (var i = 0; i < ssh1KeyCount; i++) {
             var publicKeyParams = replyParser.ReadSsh1PublicKeyData(true);
             var comment = replyParser.ReadString();
@@ -206,14 +206,15 @@ namespace dlech.SshAgentLib
           if (header.Message != Agent.Message.SSH2_AGENT_IDENTITIES_ANSWER) {
             throw new AgentFailureException();
           }
-          var ssh2KeyCount = replyParser.ReadInt();
+          var ssh2KeyCount = replyParser.ReadUInt32();
           for (var i = 0; i < ssh2KeyCount; i++) {
             var publicKeyBlob = replyParser.ReadBlob();
             var publicKeyParser = new BlobParser(publicKeyBlob);
-            var publicKeyParams = publicKeyParser.ReadSsh2PublicKeyData();
+            OpensshCertificate cert;
+            var publicKeyParams = publicKeyParser.ReadSsh2PublicKeyData(out cert);
             var comment = replyParser.ReadString();
             keyCollection.Add(
-              new SshKey(SshVersion.SSH2, publicKeyParams, null, comment));
+              new SshKey(SshVersion.SSH2, publicKeyParams, null, comment, cert));
           }
           break;
         default:
@@ -254,7 +255,7 @@ namespace dlech.SshAgentLib
           }
           byte[] response = new byte[16];
           for (int i = 0; i < 16; i++) {
-            response[i] = replyParser.ReadByte();
+            response[i] = replyParser.ReadUInt8();
           }
           return response;
         case SshVersion.SSH2:

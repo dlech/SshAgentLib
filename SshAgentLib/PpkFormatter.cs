@@ -3,7 +3,7 @@
 //
 // Author(s): David Lechner <david@lechnology.com>
 //
-// Copyright (c) 2012-2013,2015 David Lechner
+// Copyright (c) 2012-2013,2015,2017 David Lechner
 //
 // Permission is hereby granted, free of charge, to any person obtaining a copy
 // of this software and associated documentation files (the "Software"), to deal
@@ -32,8 +32,6 @@ using System.Security;
 using System.Security.Cryptography;
 using System.Text;
 using dlech.SshAgentLib.Crypto;
-using Org.BouncyCastle.Asn1.Sec;
-using Org.BouncyCastle.Asn1.X9;
 using Org.BouncyCastle.Crypto;
 using Org.BouncyCastle.Crypto.Parameters;
 using Org.BouncyCastle.Math;
@@ -526,7 +524,8 @@ namespace dlech.SshAgentLib
       byte[] publicKeyBlob, byte[] privateKeyBlob)
     {
       var parser = new BlobParser(publicKeyBlob);
-      var publicKey = parser.ReadSsh2PublicKeyData();
+      OpensshCertificate cert;
+      var publicKey = parser.ReadSsh2PublicKeyData(out cert);
       parser = new BlobParser(privateKeyBlob);
 
       switch (algorithm) {
@@ -589,7 +588,7 @@ namespace dlech.SshAgentLib
 
   }
 
-  internal static class PpkFormatterExt
+  static class PpkFormatterExt
   {
     public static string GetIdentifierString(
       this PpkFormatter.PrivateKeyAlgorithm aAlgorithm)
@@ -633,48 +632,45 @@ namespace dlech.SshAgentLib
       }
     }
 
-    public static bool TryParseVersion(
-      this string aString, ref PpkFormatter.Version aVersion)
+    public static bool TryParseVersion(this string text, ref PpkFormatter.Version version)
     {
-      switch (aString) {
+      switch (text) {
         case "1":
-          aVersion = PpkFormatter.Version.V1;
+          version = PpkFormatter.Version.V1;
           return true;
         case "2":
-          aVersion = PpkFormatter.Version.V2;
+          version = PpkFormatter.Version.V2;
           return true;
         default:
           return false;
       }
     }
 
-    public static bool TryParsePublicKeyAlgorithm(this string aString,
-      ref PublicKeyAlgorithm aAlgorithm)
+    public static bool TryParsePublicKeyAlgorithm(this string text, ref PublicKeyAlgorithm algo)
     {
-      switch (aString) {
+      switch (text) {
         case PublicKeyAlgorithmExt.ALGORITHM_RSA_KEY:
-          aAlgorithm = PublicKeyAlgorithm.SSH_RSA;
+          algo = PublicKeyAlgorithm.SSH_RSA;
           return true;
         case PublicKeyAlgorithmExt.ALGORITHM_DSA_KEY:
-          aAlgorithm = PublicKeyAlgorithm.SSH_DSS;
+          algo = PublicKeyAlgorithm.SSH_DSS;
           return true;
         case PublicKeyAlgorithmExt.ALGORITHM_ECDSA_SHA2_NISTP256_KEY:
-          aAlgorithm = PublicKeyAlgorithm.ECDSA_SHA2_NISTP256;
+          algo = PublicKeyAlgorithm.ECDSA_SHA2_NISTP256;
           return true;
         case PublicKeyAlgorithmExt.ALGORITHM_ECDSA_SHA2_NISTP384_KEY:
-          aAlgorithm = PublicKeyAlgorithm.ECDSA_SHA2_NISTP384;
+          algo = PublicKeyAlgorithm.ECDSA_SHA2_NISTP384;
           return true;
         case PublicKeyAlgorithmExt.ALGORITHM_ECDSA_SHA2_NISTP521_KEY:
-          aAlgorithm = PublicKeyAlgorithm.ECDSA_SHA2_NISTP521;
+          algo = PublicKeyAlgorithm.ECDSA_SHA2_NISTP521;
           return true;
         case PublicKeyAlgorithmExt.ALGORITHM_ED25519:
-          aAlgorithm = PublicKeyAlgorithm.ED25519;
+          algo = PublicKeyAlgorithm.ED25519;
           return true;
         default:
           return false;
       }
     }
-
   }
 }
 

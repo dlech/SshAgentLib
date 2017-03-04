@@ -1,7 +1,7 @@
 ﻿//
-// OpensshKeyFormatterTest.cs
+// OpensshPrivateKeyFormatterTest.cs
 //
-// Copyright (c) 2015 David Lechner
+// Copyright (c) 2015,2017 David Lechner
 //
 // Permission is hereby granted, free of charge, to any person obtaining a copy
 // of this software and associated documentation files (the "Software"), to deal
@@ -40,7 +40,7 @@ namespace dlech.SshAgentLibTests
     ///to contain all PemKeyFormatter Unit Tests
     ///</summary>
     [TestFixture]
-    public class OpensshKeyFormatterTest
+    public class OpensshPrivateKeyFormatterTest
     {
         KeyFormatter.GetPassphraseCallback passphraseCallback;
 
@@ -78,7 +78,7 @@ namespace dlech.SshAgentLibTests
         [Test]
         public void TestDeserializeRsaFromNewForamtWithPassphrase()
         {
-            var formatter = new OpensshKeyFormatter();
+            var formatter = new OpensshPrivateKeyFormatter();
             formatter.GetPassphraseCallbackMethod = passphraseCallback;
             var key = formatter.Deserialize(Resources.rsa_n_pw);
             Assert.That(key.Version, Is.EqualTo(SshVersion.SSH2));
@@ -114,7 +114,7 @@ namespace dlech.SshAgentLibTests
         [Test]
         public void TestDeserializeDsaFromNewForamtWithPassphrase()
         {
-            var formatter = new OpensshKeyFormatter();
+            var formatter = new OpensshPrivateKeyFormatter();
             formatter.GetPassphraseCallbackMethod = passphraseCallback;
             var key = formatter.Deserialize(Resources.dsa_n_pw);
             Assert.That(key.Version, Is.EqualTo(SshVersion.SSH2));
@@ -144,14 +144,14 @@ namespace dlech.SshAgentLibTests
             var param_pub = new BigInteger(Resources.ecdsa_1_param_pub.Trim(), 16);
             Assert.That(privateKey.Parameters.Curve, Is.EqualTo(param_curve.Curve));
             Assert.That(privateKey.D, Is.EqualTo(param_priv));
-            // TODO: figure out how to convert public key to BigInteger that matches param_pub
-            //Assert.That(publicKey.Q, Is.EqualTo(param_pub));
+            var q = new BigInteger(publicKey.Q.GetEncoded());
+            Assert.That(q, Is.EqualTo(param_pub));
         }
 
         [Test]
         public void TestDeserializeEcdsaFromNewFormatWithPassphrase()
         {
-            var formatter = new OpensshKeyFormatter();
+            var formatter = new OpensshPrivateKeyFormatter();
             formatter.GetPassphraseCallbackMethod = passphraseCallback;
             var key = formatter.Deserialize(Resources.ecdsa_n_pw);
             Assert.That(key.Version, Is.EqualTo(SshVersion.SSH2));
@@ -163,14 +163,14 @@ namespace dlech.SshAgentLibTests
             var param_pub = new BigInteger(Resources.ecdsa_1_param_pub.Trim(), 16);
             Assert.That(privateKey.Parameters.Curve, Is.EqualTo(param_curve.Curve));
             Assert.That(privateKey.D, Is.EqualTo(param_priv));
-            // TODO: figure out how to convert public key to BigInteger that matches param_pub
-            //Assert.That(publicKey.Q, Is.EqualTo(param_pub));
+            var q = new BigInteger(publicKey.Q.GetEncoded());
+            Assert.That(q, Is.EqualTo(param_pub));
         }
 
         [Test]
         public void TestDeserializeEd25519FromPrivate()
         {
-            var formatter = new OpensshKeyFormatter();
+            var formatter = new OpensshPrivateKeyFormatter();
             var key = formatter.Deserialize(Resources.ed25519_1);
             Assert.That(key.Version, Is.EqualTo(SshVersion.SSH2));
             Assert.That(key.Algorithm, Is.EqualTo(PublicKeyAlgorithm.ED25519));
@@ -181,7 +181,7 @@ namespace dlech.SshAgentLibTests
         [Test]
         public void TestDeserializeEd25519FromPrivateWithPassphrase()
         {
-            var formatter = new OpensshKeyFormatter();
+            var formatter = new OpensshPrivateKeyFormatter();
             formatter.GetPassphraseCallbackMethod = passphraseCallback;
             var key = formatter.Deserialize(Resources.ed25519_1_pw);
             Assert.That(key.Version, Is.EqualTo(SshVersion.SSH2));

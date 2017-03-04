@@ -33,6 +33,7 @@ using Org.BouncyCastle.Crypto.Parameters;
 using Org.BouncyCastle.Security;
 using dlech.SshAgentLib.Crypto;
 using Chaos.NaCl;
+using Org.BouncyCastle.Asn1;
 
 namespace dlech.SshAgentLibTests
 {
@@ -55,17 +56,18 @@ namespace dlech.SshAgentLibTests
 
       switch (algorithm) {
         case PublicKeyAlgorithm.SSH_RSA:
+        case PublicKeyAlgorithm.SSH_RSA_CERT_V1:
           KeyGenerationParameters keyGenParam =
             new KeyGenerationParameters(secureRandom, 512);
 
-          RsaKeyPairGenerator rsaKeyPairGen = new RsaKeyPairGenerator();
+          var rsaKeyPairGen = new RsaKeyPairGenerator();
           rsaKeyPairGen.Init(keyGenParam);
-          AsymmetricCipherKeyPair keyPair = rsaKeyPairGen.GenerateKeyPair();
-          var rsaKey = new SshKey(version, keyPair);
-          rsaKey.Comment = comment;
+          var keyPair = rsaKeyPairGen.GenerateKeyPair();
+          var rsaKey = new SshKey(version, keyPair, comment);
           return rsaKey;
 
         case PublicKeyAlgorithm.SSH_DSS:
+        case PublicKeyAlgorithm.SSH_DSS_CERT_V1:
           DsaParametersGenerator dsaParamGen = new DsaParametersGenerator();
           dsaParamGen.Init(512, 10, secureRandom);
           DsaParameters dsaParam = dsaParamGen.GenerateParameters();
@@ -79,6 +81,7 @@ namespace dlech.SshAgentLibTests
           return dsaKey;
 
         case PublicKeyAlgorithm.ECDSA_SHA2_NISTP256:
+        case PublicKeyAlgorithm.ECDSA_SHA2_NISTP256_CERT_V1:
           X9ECParameters ecdsa256X9Params =
             SecNamedCurves.GetByName("secp256r1");
           ECDomainParameters ecdsa256DomainParams =
@@ -94,6 +97,7 @@ namespace dlech.SshAgentLibTests
           return ecdsa256Key;
 
         case PublicKeyAlgorithm.ECDSA_SHA2_NISTP384:
+        case PublicKeyAlgorithm.ECDSA_SHA2_NISTP384_CERT_V1:
           X9ECParameters ecdsa384X9Params =
             SecNamedCurves.GetByName("secp384r1");
           ECDomainParameters ecdsa384DomainParams =
@@ -109,6 +113,7 @@ namespace dlech.SshAgentLibTests
           return ecdsa384Key;
 
         case PublicKeyAlgorithm.ECDSA_SHA2_NISTP521:
+        case PublicKeyAlgorithm.ECDSA_SHA2_NISTP521_CERT_V1:
           X9ECParameters ecdsa521X9Params =
             SecNamedCurves.GetByName("secp521r1");
           ECDomainParameters ecdsa521DomainParams =
@@ -124,6 +129,7 @@ namespace dlech.SshAgentLibTests
           return ecdsa521Key;
 
         case PublicKeyAlgorithm.ED25519:
+        case PublicKeyAlgorithm.ED25519_CERT_V1:
           var privateKeySeed = secureRandom.GenerateSeed(Ed25519.PrivateKeySeedSizeInBytes);
           var publicKeyBytes = new byte[Ed25519.PublicKeySizeInBytes];
           var privateKeyBytes = new byte[Ed25519.ExpandedPrivateKeySizeInBytes];
