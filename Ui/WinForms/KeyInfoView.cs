@@ -3,7 +3,7 @@
 //
 // Author(s): David Lechner <david@lechnology.com>
 //
-// Copyright (c) 2013-2014,2016 David Lechner
+// Copyright (c) 2013-2014,2016-2017 David Lechner
 //
 // Permission is hereby granted, free of charge, to any person obtaining a copy
 // of this software and associated documentation files (the "Software"), to deal
@@ -83,28 +83,27 @@ namespace dlech.SshAgentLib.WinForms
     public KeyInfoView()
     {
       mOpenFileDialogMap = new Dictionary<OpenFileDialog, XPOpenFileDialog>();
-      // workaround for mono bug
-      try
-      {
-        var monoRuntimeType = Type.GetType ("Mono.Runtime");
-        if (monoRuntimeType != null)
-        {
-          var getDisplayNameMethod = monoRuntimeType.GetMethod("GetDisplayName",
+      var monoRuntimeType = Type.GetType ("Mono.Runtime");
+      if (monoRuntimeType != null) {
+        // workaround for mono bug
+        try {
+          var getDisplayNameMethod = monoRuntimeType.GetMethod ("GetDisplayName",
                                      BindingFlags.NonPublic | BindingFlags.Static);
           var displayName = getDisplayNameMethod.Invoke (null, null) as string;
-          var versionRegex = new Regex(@"\d+\.\d+\.\d+(\.\d+)?");
-          var match = versionRegex.Match(displayName);
+          var versionRegex = new Regex (@"\d+\.\d+\.\d+(\.\d+)?");
+          var match = versionRegex.Match (displayName);
           var version = match.Value;
           mSelectionChangedBroken = Version.Parse (version) < Version.Parse ("2.11.2");
+        } catch (Exception ex) {
+          Debug.Fail (ex.ToString ());
         }
-      }
-      catch (Exception ex)
-      {
-        Debug.Fail (ex.ToString());
       }
 
       InitializeComponent();
       mButtonLayoutInitialColumnCount = buttonTableLayoutPanel.ColumnCount;
+      if (monoRuntimeType != null) {
+        buttonTableLayoutPanel.Margin = new Padding ();
+      }
     }
 
     public void SetAgent(IAgent aAgent)
