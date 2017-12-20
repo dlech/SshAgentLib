@@ -27,6 +27,7 @@ using System;
 using System.Diagnostics;
 using System.IO;
 using System.IO.MemoryMappedFiles;
+using System.IO.Pipes;
 using System.Net.Sockets;
 using System.Runtime.InteropServices;
 using System.Security.Principal;
@@ -69,6 +70,7 @@ namespace dlech.SshAgentLib
     object lockObject = new object();
     CygwinSocket cygwinSocket;
     MsysSocket msysSocket;
+    WindowsOpenSshPipe opensshPipe;
 
     #endregion
 
@@ -284,6 +286,30 @@ namespace dlech.SshAgentLib
       msysSocket = null;
     }
 
+    public void StartWindowsOpenSshPipe()
+    {
+      if (disposed) {
+        throw new ObjectDisposedException(null);
+      }
+      if (opensshPipe != null) {
+        return;
+      }
+      opensshPipe = new WindowsOpenSshPipe();
+      opensshPipe.ConnectionHandler = connectionHandler;
+    }
+
+    public void StopWindowsOpenSshPipe()
+    {
+      if (disposed) {
+        throw new ObjectDisposedException(null);
+      }
+      if (opensshPipe == null) {
+        return;
+      }
+      opensshPipe.Dispose();
+      opensshPipe = null;
+    }
+
     public override void Dispose()
     {
       Dispose(true);
@@ -325,6 +351,7 @@ namespace dlech.SshAgentLib
       // make sure socket files are cleaned up when we stop.
       StopCygwinSocket();
       StopMsysSocket();
+      StopWindowsOpenSshPipe();
 
       if (hwnd != IntPtr.Zero) {
         if (DestroyWindow(hwnd)) {
@@ -431,11 +458,15 @@ namespace dlech.SshAgentLib
           while (true) {
               AnswerMessage(stream, process);
           }
-      } catch (Exception ex) {
-        if (ex is IOException && ex.InnerException is SocketException) {
+      } catch (IOException ex) {
+        var socketException = ex.InnerException as SocketException;
+        if (socketException != null && socketException.ErrorCode == WSAECONNABORTED) {
           // expected error
-          if (((SocketException)ex.InnerException).ErrorCode == WSAECONNABORTED)
-            return;
+          return;
+        }
+        if (stream is PipeStream) {
+          // broken pipe is expected
+          return;
         }
         throw;
       }
