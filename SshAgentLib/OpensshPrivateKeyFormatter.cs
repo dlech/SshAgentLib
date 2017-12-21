@@ -51,6 +51,7 @@ namespace dlech.SshAgentLib
         const string AUTH_MAGIC = "openssh-key-v1\0";
         const string CIPHERNAME_NONE = "none";
         const string CIPHERNAME_AES256_CBC = "aes256-cbc";
+        const string CIPHERNAME_AES256_CTR = "aes256-ctr";
         const string KDFNAME_NONE = "none";
         const string KDFNAME_BCRYPT = "bcrypt";
 
@@ -171,7 +172,7 @@ namespace dlech.SshAgentLib
                 }
 
                 var ciphername = parser.ReadString();
-                if (ciphername != CIPHERNAME_AES256_CBC && ciphername != CIPHERNAME_NONE) {
+                if (!IsSupportCipher(ciphername)) {
                     throw new KeyFormatterException("Unsupported cyphername: " + ciphername);
                 }
 
@@ -195,44 +196,51 @@ namespace dlech.SshAgentLib
                 }
                 var privateKeys = parser.ReadBlob();
 
-                if (ciphername == CIPHERNAME_AES256_CBC) {
-                    Aes aes = Aes.Create();
+                var keyAndIV = new byte[32 + 16];
+                if (kdfname == KDFNAME_BCRYPT) {
+                    var kdfOptionsParser = new BlobParser(kdfoptions);
+                    var salt = kdfOptionsParser.ReadBlob();
+                    var rounds = kdfOptionsParser.ReadUInt32();
+
+                    var passphrase = GetPassphraseCallbackMethod(null);
+                    var passphraseChars = new char[passphrase.Length];
+                    var passphrasePtr = Marshal.SecureStringToGlobalAllocUnicode(passphrase);
+                    for (int i = 0; i < passphrase.Length; i++) {
+                        passphraseChars[i] = (char)Marshal.ReadInt16(passphrasePtr, i * 2);
+                    }
+                    Marshal.ZeroFreeGlobalAllocUnicode(passphrasePtr);
+                    BCrypt.HashUsingOpensshBCryptPbkdf(passphraseChars, salt, ref keyAndIV, rounds);
+                    Array.Clear(passphraseChars, 0, passphraseChars.Length);
+                }
+
+                var key = new byte[32];
+                Array.Copy(keyAndIV, key, key.Length);
+                var iv = new byte[16];
+                Array.Copy(keyAndIV, key.Length, iv, 0, iv.Length);
+
+                switch (ciphername) {
+                case CIPHERNAME_AES256_CBC:
+                    var aes = Aes.Create();
                     aes.KeySize = 256;
                     aes.Mode = CipherMode.CBC;
                     aes.Padding = PaddingMode.None;
+                    aes.Key = key;
+                    aes.IV = iv;
 
                     if (privateKeys.Length < aes.BlockSize / 8 || privateKeys.Length % (aes.BlockSize / 8) != 0) {
                         throw new KeyFormatterException("Bad private key encrypted length.");
                     }
 
-                    var keyAndIV = new byte[aes.Key.Length + aes.IV.Length];
-                    if (kdfname == KDFNAME_BCRYPT) {
-                        var kdfOptionsParser = new BlobParser(kdfoptions);
-                        var salt = kdfOptionsParser.ReadBlob();
-                        var rounds = kdfOptionsParser.ReadUInt32();
-
-                        var passphrase = GetPassphraseCallbackMethod(null);
-                        var passphraseChars = new char[passphrase.Length];
-                        IntPtr passphrasePtr = Marshal.SecureStringToGlobalAllocUnicode(passphrase);
-                        for (int i = 0; i < passphrase.Length; i++) {
-                            passphraseChars[i] = (char)Marshal.ReadInt16(passphrasePtr, i * 2);
-                        }
-                        Marshal.ZeroFreeGlobalAllocUnicode(passphrasePtr);
-                        BCrypt.HashUsingOpensshBCryptPbkdf(passphraseChars, salt, ref keyAndIV, rounds);
-                        Array.Clear(passphraseChars, 0, passphraseChars.Length);
-                    }
-
-                    // Array.Copy to aes.Key and aes.IV directly does not work!
-                    var key = new byte[aes.Key.Length];
-                    Array.Copy(keyAndIV, key, key.Length);
-                    aes.Key = key;
-                    var iv = new byte[aes.IV.Length];
-                    Array.Copy(keyAndIV, key.Length, iv, 0, iv.Length);
-                    aes.IV = iv;
                     using (ICryptoTransform decryptor = aes.CreateDecryptor()) {
                         privateKeys = Util.GenericTransform(decryptor, privateKeys);
                     }
                     aes.Clear();
+                    break;
+                case CIPHERNAME_AES256_CTR:
+                    var ctrCipher = CipherUtilities.GetCipher("AES/CTR/NoPadding");
+                    ctrCipher.Init(false, new ParametersWithIV(new KeyParameter(key), iv));
+                    privateKeys = ctrCipher.DoFinal(privateKeys);
+                    break;
                 }
 
                 parser = new BlobParser(privateKeys);
@@ -248,14 +256,25 @@ namespace dlech.SshAgentLib
                     var publicKey = parser.ReadSsh2PublicKeyData(out cert);
                     var keyPair = parser.ReadSsh2KeyData(publicKey);
                     var comment = parser.ReadString();
-                    var key = new SshKey(SshVersion.SSH2, keyPair, comment, cert);
-                    keys.Add(key);
+                    var sshKey = new SshKey(SshVersion.SSH2, keyPair, comment, cert);
+                    keys.Add(sshKey);
                 }
                 return keys[0];
             } catch (KeyFormatterException) {
                 throw;
             } catch (Exception ex) {
                 throw new KeyFormatterException("see inner exception", ex);
+            }
+        }
+
+        bool IsSupportCipher(string ciphername) {
+            switch (ciphername) {
+            case CIPHERNAME_NONE:
+            case CIPHERNAME_AES256_CBC:
+            case CIPHERNAME_AES256_CTR:
+                return true;
+            default:
+                return false;
             }
         }
     }
