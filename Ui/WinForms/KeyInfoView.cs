@@ -554,21 +554,25 @@ namespace dlech.SshAgentLib.WinForms
 
     }
 
+    private void removeRow(DataGridViewRow row)
+    {
+      var keyWrapper = row.DataBoundItem as KeyWrapper;
+      var key = keyWrapper.GetKey();
+      try {
+        mAgent.RemoveKey(key);
+      }
+      catch (Exception) {
+        MessageBox.Show(String.Format(Strings.errRemoveFailed,
+          key.GetMD5Fingerprint().ToHexString()), Util.AssemblyTitle,
+          MessageBoxButtons.OK, MessageBoxIcon.Error);
+      }
+    }
+
     private void removeButton_Click(object sender, EventArgs e)
     {
       foreach (DataGridViewRow row in dataGridView.SelectedRows)
       {
-        var keyWrapper = row.DataBoundItem as KeyWrapper;
-        var key = keyWrapper.GetKey();
-        try
-        {
-          mAgent.RemoveKey(key);
-        } catch (Exception)
-        {
-          MessageBox.Show(String.Format(Strings.errRemoveFailed,
-            key.GetMD5Fingerprint().ToHexString()), Util.AssemblyTitle,
-            MessageBoxButtons.OK, MessageBoxIcon.Error);
-        }
+        removeRow(row);
       }
       if (!(mAgent is Agent))
       {
@@ -827,5 +831,30 @@ namespace dlech.SshAgentLib.WinForms
     static extern IntPtr CallWindowProc(WndProcDelegate lpPrevWndFunc, IntPtr hWnd, uint Msg, IntPtr wParam, IntPtr lParam);
 
     delegate IntPtr WndProcDelegate(IntPtr hWnd, uint msg, IntPtr wParam, IntPtr lParam);
+
+    private void dataGridView_CellContextMenuStripNeeded(object sender, DataGridViewCellContextMenuStripNeededEventArgs e)
+    {
+      e.ContextMenuStrip = contextMenuStrip1;
+      contextMenuStrip1.Tag = dataGridView.Rows[e.RowIndex];
+    }
+
+    private void removeKeyToolStripMenuItem_Click(object sender, EventArgs e)
+    {
+      var row = contextMenuStrip1.Tag as DataGridViewRow;
+      Debug.Assert(row != null);
+      removeRow(row);
+      if (!(mAgent is Agent)) {
+        ReloadKeyListView();
+      }
+    }
+
+    private void toolStripMenuItemCopyAuthorizedKeys_Click(object sender, EventArgs e)
+    {
+      var row = contextMenuStrip1.Tag as DataGridViewRow;
+      Debug.Assert(row != null);
+      var keyWrapper = row.DataBoundItem as KeyWrapper;
+      var key = keyWrapper.GetKey();
+      Clipboard.SetText(key.GetAuthorizedKeyString());
+    }
   }
 }
