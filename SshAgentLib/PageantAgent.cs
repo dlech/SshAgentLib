@@ -95,6 +95,13 @@ namespace dlech.SshAgentLib
             public IntPtr lpData;
         }
 
+        private enum ChangeWindowMessageFilterExAction : uint
+        {
+            Reset = 0,
+            Allow = 1,
+            DisAllow = 2
+        };
+
         #endregion
 
 
@@ -137,6 +144,14 @@ namespace dlech.SshAgentLib
 
         [DllImport("user32.dll", SetLastError = true)]
         private static extern bool DestroyWindow(IntPtr hWnd);
+
+        [DllImport("user32.dll", SetLastError = true)]
+        private static extern bool ChangeWindowMessageFilterEx(
+            IntPtr hWnd,
+            uint message,
+            ChangeWindowMessageFilterExAction action,
+            IntPtr changeInfo
+        );
 
         #endregion
 
@@ -416,6 +431,22 @@ namespace dlech.SshAgentLib
                 if (hwnd == IntPtr.Zero)
                 {
                     Marshal.ThrowExceptionForHR(Marshal.GetHRForLastWin32Error());
+                }
+
+                // allow non-elevated processes to access the agent
+                if (
+                    !ChangeWindowMessageFilterEx(
+                        hwnd,
+                        WM_COPYDATA,
+                        ChangeWindowMessageFilterExAction.Allow,
+                        IntPtr.Zero
+                    )
+                )
+                {
+                    // non-fatal error, just debug message for now
+                    var err = Marshal.GetHRForLastWin32Error();
+                    var ex = Marshal.GetExceptionForHR(err);
+                    Debug.WriteLine($"ChangeWindowMessageFilterEx failed: {ex.Message}");
                 }
 
                 appContext = new ApplicationContext();
