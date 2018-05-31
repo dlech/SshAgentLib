@@ -334,10 +334,10 @@ namespace dlech.SshAgentLib.WinForms
               constraintDialog.ShowDialog ();
               if (constraintDialog.DialogResult == DialogResult.OK) {
                 if (constraintDialog.ConfirmConstraintChecked) {
-                  constraints.addConfirmConstraint ();
+                  constraints.AddConfirmConstraint ();
                 }
                 if (constraintDialog.LifetimeConstraintChecked) {
-                  constraints.addLifetimeConstraint (constraintDialog.LifetimeDuration);
+                  constraints.AddLifetimeConstraint (constraintDialog.LifetimeDuration);
                 }
               }
             }
@@ -345,10 +345,10 @@ namespace dlech.SshAgentLib.WinForms
             mOpenFileDialogMap.Remove (openFileDialog);
 
             if (xpOpenFileDialog.UseConfirmConstraintChecked) {
-              constraints.addConfirmConstraint ();
+              constraints.AddConfirmConstraint ();
             }
             if (xpOpenFileDialog.UseLifetimeConstraintChecked) {
-              constraints.addLifetimeConstraint
+              constraints.AddLifetimeConstraint
                 (xpOpenFileDialog.LifetimeConstraintDuration);
             }
           }
@@ -523,10 +523,10 @@ namespace dlech.SshAgentLib.WinForms
             dialog.ShowDialog();
             if (dialog.DialogResult == DialogResult.OK) {
               if (dialog.ConfirmConstraintChecked) {
-                constraints.addConfirmConstraint();
+                constraints.AddConfirmConstraint();
               }
               if (dialog.LifetimeConstraintChecked) {
-                constraints.addLifetimeConstraint(dialog.LifetimeDuration);
+                constraints.AddLifetimeConstraint(dialog.LifetimeDuration);
               }
             }
           }

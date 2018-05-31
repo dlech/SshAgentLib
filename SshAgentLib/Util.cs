@@ -47,7 +47,7 @@ namespace dlech.SshAgentLib
     /// <summary>
     /// Adds Agent.KeyConstraintType.SSH_AGENT_CONSTRAIN_CONFIRM constraint to key
     /// </summary>
-    public static void addConfirmConstraint(this ICollection<Agent.KeyConstraint> keyCollection)
+    public static void AddConfirmConstraint(this ICollection<Agent.KeyConstraint> keyCollection)
     {
       var constraint = new Agent.KeyConstraint();
       constraint.Type = Agent.KeyConstraintType.SSH_AGENT_CONSTRAIN_CONFIRM;
@@ -57,7 +57,7 @@ namespace dlech.SshAgentLib
     /// <summary>
     /// Adds Agent.KeyConstraintType.SSH_AGENT_CONSTRAIN_LIFETIME constraint to key
     /// </summary>
-    public static void addLifetimeConstraint(this ICollection<Agent.KeyConstraint> keyCollection, uint lifetime)
+    public static void AddLifetimeConstraint(this ICollection<Agent.KeyConstraint> keyCollection, uint lifetime)
     {
       var constraint = new Agent.KeyConstraint();
       constraint.Type = Agent.KeyConstraintType.SSH_AGENT_CONSTRAIN_LIFETIME;
