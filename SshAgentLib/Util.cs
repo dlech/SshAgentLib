@@ -315,6 +315,22 @@ namespace dlech.SshAgentLib
     }
 
     /// <summary>
+    /// Wrapper around Mono.Unix chmod.
+    /// </summary>
+    /// <param name="path">The file path.</param>
+    /// <param name="mode">The file mode.</param>
+    public static bool TryChmod(string path, int mode)
+    {
+      try {
+        var ret = Mono.Unix.Native.Syscall.chmod(path, (Mono.Unix.Native.FilePermissions)mode);
+        return ret == 0;
+      }
+      catch {
+        return false;
+      }
+    }
+
+    /// <summary>
     /// Unicode char to to ANSI char.
     /// </summary>
     /// <returns>
