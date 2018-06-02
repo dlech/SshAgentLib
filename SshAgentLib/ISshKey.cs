@@ -36,6 +36,7 @@ using Org.BouncyCastle.Crypto.Parameters;
 using Org.BouncyCastle.Math;
 using Org.BouncyCastle.Security;
 using dlech.SshAgentLib.Crypto;
+using SignRequestFlags = dlech.SshAgentLib.Agent.SignRequestFlags;
 
 namespace dlech.SshAgentLib
 {
@@ -296,27 +297,51 @@ namespace dlech.SshAgentLib
       throw new Exception("Unsupported algorithm");
     }
 
-    public static ISigner GetSigner(this ISshKey key)
+    /// <summary>
+    /// Get a signer for a key. The algorithm is determined by the type of the
+    /// key and in the case of RSA keys, the optional flags.
+    /// </summary>
+    /// <param name="key">A SSH key</param>
+    /// <param name="flags">Optional flags</param>
+    /// <returns>A Signer</returns>
+    public static ISigner GetSigner(this ISshKey key, SignRequestFlags flags = default(SignRequestFlags))
     {
-      AsymmetricKeyParameter publicKey = key.GetPublicKeyParameters();
+      var publicKey = key.GetPublicKeyParameters();
+
       if (publicKey is DsaPublicKeyParameters) {
         return SignerUtilities.GetSigner(X9ObjectIdentifiers.IdDsaWithSha1);
-      } else if (publicKey is RsaKeyParameters) {
+      }
+      else if (publicKey is RsaKeyParameters) {
+        // flags can influence hash type for RSA keys
+
+        if (flags.HasFlag(SignRequestFlags.SSH_AGENT_RSA_SHA2_512)) {
+          return SignerUtilities.GetSigner(PkcsObjectIdentifiers.Sha512WithRsaEncryption);
+        }
+
+        if (flags.HasFlag(SignRequestFlags.SSH_AGENT_RSA_SHA2_256)) {
+          return SignerUtilities.GetSigner(PkcsObjectIdentifiers.Sha256WithRsaEncryption);
+        }
+
         return SignerUtilities.GetSigner(PkcsObjectIdentifiers.Sha1WithRsaEncryption);
-      } else if (publicKey is ECPublicKeyParameters) {
-        int ecdsaFieldSize =
-         ((ECPublicKeyParameters)publicKey).Q.Curve.FieldSize;
+      }
+      else if (publicKey is ECPublicKeyParameters) {
+        var ecdsaFieldSize = ((ECPublicKeyParameters)publicKey).Q.Curve.FieldSize;
+        
         if (ecdsaFieldSize <= 256) {
           return SignerUtilities.GetSigner(X9ObjectIdentifiers.ECDsaWithSha256);
-        } else if (ecdsaFieldSize > 256 && ecdsaFieldSize <= 384) {
+        }
+        else if (ecdsaFieldSize > 256 && ecdsaFieldSize <= 384) {
           return SignerUtilities.GetSigner(X9ObjectIdentifiers.ECDsaWithSha384);
-        } else if (ecdsaFieldSize > 384) {
+        }
+        else if (ecdsaFieldSize > 384) {
           return SignerUtilities.GetSigner(X9ObjectIdentifiers.ECDsaWithSha512);
         }
-      } else if (publicKey is Ed25519PublicKeyParameter) {
+      }
+      else if (publicKey is Ed25519PublicKeyParameter) {
           return new Ed25519Signer();
       }
-      throw new Exception("Unsupported algorithm");
+
+      throw new ArgumentException("Unsupported algorithm", "key");
     }
   }
 }

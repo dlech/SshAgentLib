@@ -134,12 +134,14 @@ namespace dlech.SshAgentLib
       SSH_AGENT_CONSTRAIN_CONFIRM = 2
     }
 
-    [Flags()]
+    [Flags]
     public enum SignRequestFlags : uint
     {
-      SSH_AGENT_OLD_SIGNATURE = 1
+      SSH_AGENT_OLD_SIGNATURE = 0x01,
+      SSH_AGENT_RSA_SHA2_256 = 0x02,
+      SSH_AGENT_RSA_SHA2_512 = 0x04,
     }
-    
+
     #endregion
 
     #region Data Types
@@ -547,16 +549,27 @@ namespace dlech.SshAgentLib
 
             /* create signature */
             var signKey = matchingKey;
-            var signer = signKey.GetSigner();
-            var algName = signKey.Algorithm.GetIdentifierString();
+            var signer = signKey.GetSigner(flags);
             signer.Init(true, signKey.GetPrivateKeyParameters());
             signer.BlockUpdate(reqData, 0, reqData.Length);
             byte[] signature = signer.GenerateSignature();
             signature = signKey.FormatSignature(signature);
             BlobBuilder signatureBuilder = new BlobBuilder();
+
             if (!flags.HasFlag(SignRequestFlags.SSH_AGENT_OLD_SIGNATURE)) {
+              var algName = signKey.Algorithm.GetIdentifierString();
+
+              // handle possible overridden signer (because of flags)
+              if (signer.AlgorithmName == "SHA-512withRSA") {
+                algName = "rsa-sha2-512";
+              }
+              else if (signer.AlgorithmName == "SHA-256withRSA") {
+                algName = "rsa-sha2-256";
+              }
+
               signatureBuilder.AddStringBlob(algName);
             }
+
             signatureBuilder.AddBlob(signature);
             responseBuilder.AddBlob(signatureBuilder.GetBlob());
             responseBuilder.InsertHeader(Message.SSH2_AGENT_SIGN_RESPONSE);
