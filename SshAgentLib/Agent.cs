@@ -243,7 +243,7 @@ namespace dlech.SshAgentLib
     /// messages.
     /// </summary>
     /// <param name="keyList">The list of keys to filter.</param>
-    /// <returns>A filterd list of keys.</returns>
+    /// <returns>A filtered list of keys.</returns>
     public delegate ICollection<ISshKey> FilterKeyListDelegate(ICollection<ISshKey> keyList);
 
     #endregion
