@@ -124,6 +124,10 @@ namespace dlech.SshAgentLib
       SSH2_AGENT_IDENTITIES_ANSWER = 12,
       SSH2_AGENT_SIGN_RESPONSE = 14,
 
+      /* Extensions */
+      SSH_AGENTC_EXTENSION = 27,
+      SSH_AGENT_EXTENSION_FAILURE = 28,
+
       UNKNOWN = 255
     }
 
@@ -131,7 +135,8 @@ namespace dlech.SshAgentLib
     {
       /* Key constraint identifiers */
       SSH_AGENT_CONSTRAIN_LIFETIME = 1,
-      SSH_AGENT_CONSTRAIN_CONFIRM = 2
+      SSH_AGENT_CONSTRAIN_CONFIRM = 2,
+      SSH_AGENT_CONSTRAIN_EXTENSION = 3,
     }
 
     [Flags]
