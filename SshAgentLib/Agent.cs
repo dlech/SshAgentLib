@@ -190,9 +190,9 @@ namespace dlech.SshAgentLib
     /// <summary>
     /// Handles events when Agent is locked and unlocked
     /// </summary>
-    /// <param name="aSender"></param>
-    /// <param name="aEventArgs"></param>
-    public delegate void LockEventHandler(object aSender, LockEventArgs aEventArgs);
+    /// <param name="sender"></param>
+    /// <param name="e"></param>
+    public delegate void LockEventHandler(object sender, LockEventArgs e);
 
     public class MessageReceivedEventArgs : EventArgs
     {
@@ -214,8 +214,7 @@ namespace dlech.SshAgentLib
       public bool Fail { get; set; }
     }
 
-    public delegate void MessageReceivedEventHandler(object aSender,
-     MessageReceivedEventArgs aEventArgs);
+    public delegate void MessageReceivedEventHandler(object sender, MessageReceivedEventArgs e);
 
     public class KeyUsedEventArgs : EventArgs
     {
@@ -229,8 +228,7 @@ namespace dlech.SshAgentLib
       }
     }
 
-    public delegate void KeyUsedEventHandler(object aSender,
-      KeyUsedEventArgs aEventArgs);
+    public delegate void KeyUsedEventHandler(object sender, KeyUsedEventArgs e);
 
     /// <summary>
     /// Requests user for permission to use specified key.
@@ -244,7 +242,7 @@ namespace dlech.SshAgentLib
     public delegate bool ConfirmUserPermissionDelegate(ISshKey key, Process process);
 
     /// <summary>
-    /// Filters the list of keys that will be returned by the request identites
+    /// Filters the list of keys that will be returned by the request identities
     /// messages.
     /// </summary>
     /// <param name="keyList">The list of keys to filter.</param>
@@ -300,8 +298,7 @@ namespace dlech.SshAgentLib
           UInt32 lifetime = (UInt32)constraint.Data * 1000;
           Timer timer = new Timer(lifetime);
           ElapsedEventHandler onTimerElapsed = null;
-          onTimerElapsed =
-            delegate(object aSender, ElapsedEventArgs aEventArgs)
+          onTimerElapsed = (s, e) =>
             {
               timer.Elapsed -= onTimerElapsed;
               RemoveKey(key);

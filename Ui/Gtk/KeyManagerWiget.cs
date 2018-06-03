@@ -111,7 +111,7 @@ namespace SshAgentLib.GTK
       UpdateButtonStates();
     }
 
-    private void AgentLockHandler(object aSender, Agent.LockEventArgs aArgs)
+    private void AgentLockHandler(object sender, Agent.LockEventArgs e)
     {
 //      Invoke((MethodInvoker)delegate()
 //      {
@@ -120,24 +120,23 @@ namespace SshAgentLib.GTK
 //      });
     }
 
-    private void AgentKeyListChangeHandler(object aSender,
-      Agent.KeyListChangeEventArgs aArgs)
+    private void AgentKeyListChangeHandler(object sender, Agent.KeyListChangeEventArgs e)
     {
 //      if (IsDisposed) {
 //        return;
 //      }
-      switch (aArgs.Action) {
+      switch (e.Action) {
         case Agent.KeyListChangeEventAction.Add:
-          Gtk.Application.Invoke(delegate(object aSender1, EventArgs aEventArgs1)
+          Gtk.Application.Invoke(delegate(object sender1, EventArgs e1)
           {
-            mKeyCollection.AddNode(new KeyNode(aArgs.Key));
+            mKeyCollection.AddNode(new KeyNode(e.Key));
             UpdateVisibility();
           });
           break;
         case Agent.KeyListChangeEventAction.Remove:
-          Gtk.Application.Invoke(delegate(object aSender1, EventArgs aEventArgs1)
+          Gtk.Application.Invoke(delegate(object sender1, EventArgs e1)
           {
-            var matchFingerprint = aArgs.Key.GetMD5Fingerprint().ToHexString();
+            var matchFingerprint = e.Key.GetMD5Fingerprint().ToHexString();
 
             var matches = mKeyCollection.Cast<KeyNode>()
               .Where(k => k.Fingerprint == matchFingerprint);

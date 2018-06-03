@@ -140,8 +140,7 @@ namespace dlech.SshAgentLib.Ui.QtAgent
     }
 
     [Q_SLOT()]
-    private void mAgent_KeyListChanged(object aSender,
-      Agent.KeyListChangeEventArgs aEventArgs)
+    private void mAgent_KeyListChanged(object sender, Agent.KeyListChangeEventArgs e)
     {
       ReloadData();
     }
@@ -379,13 +378,13 @@ namespace dlech.SshAgentLib.Ui.QtAgent
       ReloadData ();
     }
 
-    void mAgent_Locked(object aSender, Agent.LockEventArgs aEventArgs)
+    void mAgent_Locked(object sender, Agent.LockEventArgs e)
     {
       // TODO figure out how to invoke Qt UI thread
       UpdateUIState ();
     }
 
-    void mAgent_KeyListChanged(object aSender, Agent.KeyListChangeEventArgs aEventArgs)
+    void mAgent_KeyListChanged(object sender, Agent.KeyListChangeEventArgs e)
     {
       // TODO figure out how to invoke Qt UI thread
       ReloadData ();

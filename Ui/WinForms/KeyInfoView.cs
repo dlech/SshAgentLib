@@ -213,8 +213,7 @@ namespace dlech.SshAgentLib.WinForms
         var lifetimeConstraintCheckBox =
           new CommonFileDialogCheckBox (cLifetimeConstraintCheckBox,
           "Set lifetime (in seconds)");
-        lifetimeConstraintCheckBox.CheckedChanged +=
-          delegate(object aSender, EventArgs aEventArgs) {
+        lifetimeConstraintCheckBox.CheckedChanged += (s, e) => {
           lifetimeConstraintTextBox.Visible =
               lifetimeConstraintCheckBox.IsChecked;
         };
@@ -433,13 +432,13 @@ namespace dlech.SshAgentLib.WinForms
         !isLocked;
     }
 
-    private void AgentLockHandler(object aSender, Agent.LockEventArgs aArgs)
+    private void AgentLockHandler(object sender, Agent.LockEventArgs e)
     {
       if (InvokeRequired)
       {
         Invoke((MethodInvoker)delegate()
         {
-          AgentLockHandler(aSender, aArgs);
+          AgentLockHandler(sender, e);
         });
         return;
       }

@@ -1214,8 +1214,7 @@ namespace dlech.SshAgentLibTests
       bool agentLockedCalled = false;
       Agent.BlobHeader replyHeader;
 
-      Agent.LockEventHandler agentLocked =
-        delegate(object aSender, Agent.LockEventArgs aEventArgs)
+      Agent.LockEventHandler agentLocked = (s, e) =>
         {
           Assert.That(agentLockedCalled, Is.False,
             "LockEvent fired without resetting agentLockedCalled");
