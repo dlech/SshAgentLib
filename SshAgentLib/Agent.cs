@@ -4,7 +4,7 @@
 // Author(s): David Lechner <david@lechnology.com>
 //            Max Laverse
 //
-// Copyright (c) 2012-2015,2017 David Lechner
+// Copyright (c) 2012-2015,2017-2018 David Lechner
 //
 // Permission is hereby granted, free of charge, to any person obtaining a copy
 // of this software and associated documentation files (the "Software"), to deal
