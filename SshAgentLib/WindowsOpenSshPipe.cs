@@ -47,6 +47,10 @@ namespace dlech.SshAgentLib
     public delegate void ConnectionHandlerFunc(Stream stream, Process process);
     public ConnectionHandlerFunc ConnectionHandler { get; set; }
     
+    public bool IsElevated { get {
+      return new WindowsPrincipal(WindowsIdentity.GetCurrent()).IsInRole(WindowsBuiltInRole.Administrator);
+    } }
+    
     public WindowsOpenSshPipe()
     {
       if (File.Exists(string.Format("//./pipe/{0}", agentPipeId))) {
@@ -65,9 +69,10 @@ namespace dlech.SshAgentLib
     void listenerThread()
     {
       try {
+        var pipeSecurity = makePipeSecurity();
         while (true) {
           var server = new NamedPipeServerStream(agentPipeId, PipeDirection.InOut, NamedPipeServerStream.MaxAllowedServerInstances,
-            PipeTransmissionMode.Byte, PipeOptions.WriteThrough, receiveBufferSize, receiveBufferSize);
+            PipeTransmissionMode.Byte, PipeOptions.WriteThrough, receiveBufferSize, receiveBufferSize, pipeSecurity);
           listeningServer = server;
           server.WaitForConnection();
           listeningServer = null;
@@ -81,6 +86,22 @@ namespace dlech.SshAgentLib
       catch (Exception) {
         // don't crash background thread
       }
+    }
+    
+    PipeSecurity makePipeSecurity()
+    {
+      var pipeSecurity = new PipeSecurity();
+      var admins = new SecurityIdentifier(WellKnownSidType.BuiltinAdministratorsSid, null);
+      var system = new SecurityIdentifier(WellKnownSidType.LocalSystemSid, null);
+      if (IsElevated) {
+        pipeSecurity.SetOwner(admins);
+        pipeSecurity.SetGroup(system);
+      }
+      pipeSecurity.AddAccessRule(new PipeAccessRule(admins, PipeAccessRights.FullControl, AccessControlType.Allow));
+      pipeSecurity.AddAccessRule(new PipeAccessRule(system, PipeAccessRights.FullControl, AccessControlType.Allow));
+      pipeSecurity.AddAccessRule(new PipeAccessRule(new SecurityIdentifier(WellKnownSidType.AuthenticatedUserSid, null),
+        PipeAccessRights.ReadWrite, AccessControlType.Allow));
+      return pipeSecurity;
     }
 
     void connectionThread(object obj)
