@@ -63,7 +63,7 @@ namespace dlech.SshAgentLib
       constraint.Type = Agent.KeyConstraintType.SSH_AGENT_CONSTRAIN_LIFETIME;
       constraint.Data = lifetime;
       keyCollection.Add(constraint);
-    }    
+    }
 
     /// <summary>
     /// Gets the Type of the Data object for a given Agent.KeyConstraintType
@@ -296,6 +296,13 @@ namespace dlech.SshAgentLib
       list.Clear();
     }
 
+    static int Chmod(string path, int mode)
+    {
+      // This has to be in a separate method because on Windows we will get
+      // a FileNotFoundException when the method is loaded if Mono is not present.
+      return Mono.Unix.Native.Syscall.chmod(path, (Mono.Unix.Native.FilePermissions)mode);
+    }
+
     /// <summary>
     /// Wrapper around Mono.Unix chmod.
     /// </summary>
@@ -304,7 +311,7 @@ namespace dlech.SshAgentLib
     public static bool TryChmod(string path, int mode)
     {
       try {
-        var ret = Mono.Unix.Native.Syscall.chmod(path, (Mono.Unix.Native.FilePermissions)mode);
+        var ret = Chmod(path, mode);
         return ret == 0;
       }
       catch {
