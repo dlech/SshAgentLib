@@ -53,6 +53,23 @@ namespace dlech.SshAgentLib
     const int ERROR_CLASS_ALREADY_EXISTS = 1410;
     const int WM_COPYDATA = 0x004A;
     const int WSAECONNABORTED = 10053;
+    
+    enum MessageFilterInfo : uint
+    {
+        None=0, AlreadyAllowed=1, AlreadyDisAllowed=2, AllowedHigher=3
+    };
+
+    enum ChangeWindowMessageFilterExAction : uint
+    {
+        Reset = 0, Allow = 1, DisAllow = 2
+    };
+
+    [StructLayout(LayoutKind.Sequential)]
+    struct CHANGEFILTERSTRUCT
+    {
+        public uint size;
+        public MessageFilterInfo info;
+    }
 
     /* From PuTTY source code */
 
@@ -147,6 +164,9 @@ namespace dlech.SshAgentLib
     [DllImport("user32.dll", SetLastError = true)]
     private static extern bool DestroyWindow(IntPtr hWnd);
 
+    [DllImport("user32.dll", SetLastError=true)]
+    private static extern bool ChangeWindowMessageFilterEx(IntPtr hWnd, uint message, ChangeWindowMessageFilterExAction action, [In, Out, Optional] ref CHANGEFILTERSTRUCT changeInfo);
+
     #endregion
 
 
@@ -160,7 +180,7 @@ namespace dlech.SshAgentLib
     /// Thrown when another instance of Pageant is running.
     /// </exception>
     /// <remarks>This window is not meant to be used for UI.</remarks>
-    public PageantAgent ()
+    public PageantAgent (bool AllowAccessFromNonElevatedProcess)
     {
       DoOSCheck();
 
@@ -183,7 +203,7 @@ namespace dlech.SshAgentLib
         throw new Exception("Could not register window class");
       }
 
-      Thread winThread = new Thread(RunWindowInNewAppcontext);
+      Thread winThread = new Thread(() => RunWindowInNewAppcontext(AllowAccessFromNonElevatedProcess));
       winThread.SetApartmentState(ApartmentState.STA);
       winThread.Name = "PageantWindow";
       lock (lockObject) {
@@ -321,7 +341,7 @@ namespace dlech.SshAgentLib
 
     #region /* private methods */
 
-    private void RunWindowInNewAppcontext()
+    private void RunWindowInNewAppcontext(bool AllowAccessFromNonElevatedProcess)
     {
       IntPtr hwnd;
       lock (lockObject) {
@@ -340,6 +360,13 @@ namespace dlech.SshAgentLib
             IntPtr.Zero, // hInstance
             IntPtr.Zero // lpParam
         );
+
+        if (AllowAccessFromNonElevatedProcess)
+        {
+            CHANGEFILTERSTRUCT filterStatus = new CHANGEFILTERSTRUCT();
+            filterStatus.size = (uint)Marshal.SizeOf(filterStatus);
+            bool b = ChangeWindowMessageFilterEx(hwnd, WM_COPYDATA, ChangeWindowMessageFilterExAction.Allow, ref filterStatus);
+        }
 
         appContext = new ApplicationContext();
         Monitor.Pulse(lockObject);
