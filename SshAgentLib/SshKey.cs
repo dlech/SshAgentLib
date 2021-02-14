@@ -112,7 +112,7 @@ namespace dlech.SshAgentLib
       }
     }
 
-    public OpensshCertificate Certificate { get; private set; }
+    public OpensshCertificate Certificate { get; set; }
 
     public bool IsPublicOnly { get; private set; }
 
