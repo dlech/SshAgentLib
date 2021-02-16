@@ -478,7 +478,8 @@ namespace dlech.SshAgentLib.WinForms
       var matches = mKeyCollection.Where(k =>
         k.Fingerprint == matchFingerprint).ToList();
       foreach (var key in matches) {
-        mKeyCollection.Remove(key);
+        if (key.GetKey().Certificate == e.Key.Certificate)
+          mKeyCollection.Remove(key);
       }
       UpdateVisibility();
       UpdateButtonStates();
