@@ -55,7 +55,7 @@ namespace dlech.SshAgentLib
     /// <summary>
     /// The certificate for signed keys or <c>null</c> for unsigned keys
     /// </summary>
-    OpensshCertificate Certificate { get; }
+    OpensshCertificate Certificate { get; set; }
 
     /// <summary>
     /// returns true if key does not have private key parameters
