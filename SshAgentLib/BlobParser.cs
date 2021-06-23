@@ -45,6 +45,7 @@ namespace dlech.SshAgentLib
     static readonly DateTime epoch = new DateTime(1970, 1, 1, 0, 0, 0, DateTimeKind.Utc);
 
     public Stream Stream { get; private set; }
+    public long Position { get; private set; }
 
     public BlobParser(byte[] blob) : this(new MemoryStream(blob)) { }
 
@@ -53,6 +54,7 @@ namespace dlech.SshAgentLib
       if (stream == null) {
         throw new ArgumentNullException("stream");
       }
+      Position = 0;
       Stream = stream;
     }
 
@@ -61,6 +63,7 @@ namespace dlech.SshAgentLib
       if (Stream.CanSeek && Stream.Length - Stream.Position < 1) {
         throw new Exception("Not enough data");
       }
+      Position += 1;
       return (byte)Stream.ReadByte();
     }
 
@@ -72,6 +75,7 @@ namespace dlech.SshAgentLib
             throw new Exception("Not enough data");
         }
         Stream.Read(dataLegthBytes, 0, dataLegthBytes.Length);
+        Position += dataLegthBytes.Length;
         return (ushort)((dataLegthBytes[0] << 8) | dataLegthBytes[1]);
     }
 
@@ -82,6 +86,7 @@ namespace dlech.SshAgentLib
         throw new Exception("Not enough data");
       }
       Stream.Read(dataLegthBytes, 0, dataLegthBytes.Length);
+      Position += dataLegthBytes.Length;
       return (uint)((dataLegthBytes[0] << 24) | (dataLegthBytes[1] << 16) | (dataLegthBytes[2] << 8) | dataLegthBytes[3]);
     }
 
@@ -92,6 +97,7 @@ namespace dlech.SshAgentLib
         throw new Exception("Not enough data");
       }
       Stream.Read(dataLegthBytes, 0, dataLegthBytes.Length);
+      Position += dataLegthBytes.Length;
       return (ulong)((dataLegthBytes[0] << 56) | (dataLegthBytes[1] << 48) | (dataLegthBytes[2] << 40) | (dataLegthBytes[3] << 32)
                      + (dataLegthBytes[4] << 24) | (dataLegthBytes[5] << 16) | (dataLegthBytes[6] << 8) | dataLegthBytes[7]);
     }
@@ -115,7 +121,8 @@ namespace dlech.SshAgentLib
 
     public byte[] ReadBlob()
     {
-        return ReadBytes(ReadUInt32());
+        uint blobLength = ReadUInt32();
+        return ReadBytes(blobLength);
     }
 
     public byte[] ReadSsh1BigIntBlob()
@@ -137,6 +144,7 @@ namespace dlech.SshAgentLib
         }
         var blob = new byte[(int)blobLength];
         Stream.Read(blob, 0, blob.Length);
+        Position += blob.Length;
         return blob;
     }
 
