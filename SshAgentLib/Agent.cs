@@ -608,7 +608,7 @@ namespace dlech.SshAgentLib
             key.Source = "External client";
 
             if (ssh1constrained) {
-              while (messageStream.Position < header.BlobLength + 4) {
+              while (messageParser.Position < header.BlobLength + 4) {
                 KeyConstraint constraint = new KeyConstraint();
                 constraint.Type = (KeyConstraintType)messageParser.ReadUInt8();
                 if (constraint.Type ==
@@ -653,7 +653,7 @@ namespace dlech.SshAgentLib
             key.Source = "External client";
 
             if (constrained) {
-              while (messageStream.Position < header.BlobLength + 4) {
+              while (messageParser.Position < header.BlobLength + 4) {
                 KeyConstraint constraint = new KeyConstraint();
                 constraint.Type =
                   (KeyConstraintType)messageParser.ReadUInt8();
