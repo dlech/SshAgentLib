@@ -70,6 +70,7 @@ namespace dlech.SshAgentLib
     object lockObject = new object();
     CygwinSocket cygwinSocket;
     MsysSocket msysSocket;
+    UnixSocket wslSocket;
     WindowsOpenSshPipe opensshPipe;
 
     #endregion
@@ -286,6 +287,39 @@ namespace dlech.SshAgentLib
       msysSocket = null;
     }
 
+    /// <summary>
+    /// Starts a wsl style socket that can be used by the ssh program
+    /// that comes with wsl.
+    /// </summary>
+    /// <param name="path">The path to the socket file that will be created.</param>
+    public void StartWslSocket(string path)
+    {
+      if (disposed) {
+        throw new ObjectDisposedException("PagentAgent");
+      }
+      if (wslSocket != null) {
+        return;
+      }
+      // only overwrite a file if it looks like a WslSocket file.
+      // TODO: Might be good to test that there are not network sockets using
+      // the port specified in this file.
+      if (File.Exists(path) && UnixSocket.TestFile(path)) {
+        File.Delete(path);
+      }
+      wslSocket = new UnixSocket(path);
+      wslSocket.ConnectionHandler = connectionHandler;
+    }
+
+    public void StopWslSocket()
+    {
+      if (disposed)
+        throw new ObjectDisposedException("PagentAgent");
+      if (wslSocket == null)
+        return;
+      wslSocket.Dispose();
+      wslSocket = null;
+    }
+
     public void StartWindowsOpenSshPipe()
     {
       if (disposed) {
@@ -351,6 +385,7 @@ namespace dlech.SshAgentLib
       // make sure socket files are cleaned up when we stop.
       StopCygwinSocket();
       StopMsysSocket();
+      StopWslSocket();
       StopWindowsOpenSshPipe();
 
       if (hwnd != IntPtr.Zero) {
