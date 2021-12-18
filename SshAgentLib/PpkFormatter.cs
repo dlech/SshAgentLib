@@ -70,13 +70,13 @@ namespace dlech.SshAgentLib
     private const string commentKey = "Comment";
 
     /// <summary>
-    /// Key that indicates that the public key follows on the next line 
+    /// Key that indicates that the public key follows on the next line
     /// and the length of the key in lines
     /// </summary>
     private const string publicKeyLinesKey = "Public-Lines";
 
     /// <summary>
-    /// Key that indicates that the private key follows on the next line 
+    /// Key that indicates that the private key follows on the next line
     /// and the length of the key in lines
     /// </summary>
     private const string privateKeyLinesKey = "Private-Lines";
@@ -109,7 +109,8 @@ namespace dlech.SshAgentLib
     internal enum Version
     {
       V1,
-      V2
+      V2,
+      V3
     }
 
     /// <summary>
@@ -132,7 +133,7 @@ namespace dlech.SshAgentLib
 
       /// <summary>
       /// File format version (one of FileVersions members)
-      /// Callers of this method should warn user 
+      /// Callers of this method should warn user
       /// that version 1 has security issue and should not be used
       /// </summary>
       public Version ppkFileVersion;
@@ -626,6 +627,8 @@ namespace dlech.SshAgentLib
           return "1";
         case PpkFormatter.Version.V2:
           return "2";
+        case PpkFormatter.Version.V3:
+          return "3";
         default:
           Debug.Fail("Unknown version");
           throw new Exception("Unknown version");
@@ -640,6 +643,9 @@ namespace dlech.SshAgentLib
           return true;
         case "2":
           version = PpkFormatter.Version.V2;
+          return true;
+        case "3":
+          version = PpkFormatter.Version.V3;
           return true;
         default:
           return false;
