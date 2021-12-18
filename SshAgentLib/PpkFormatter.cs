@@ -76,6 +76,32 @@ namespace dlech.SshAgentLib
     private const string publicKeyLinesKey = "Public-Lines";
 
     /// <summary>
+    /// Key that indicates the key derivation algorithm
+    /// </summary>
+    private const string keyDeriviationKey = "Key-Derivation";
+
+    /// <summary>
+    /// Argon2 memory
+    /// </summary>
+    private const string argonMemoryKey = "Argon2-Memory";
+
+    /// <summary>
+    /// Argon2 iterations
+    /// </summary>
+    private const string argonPassesKey = "Argon2-Passes";
+
+    /// <summary>
+    /// Argon2 parallelism
+    /// </summary>
+    private const string argonParallelismKey = "Argon2-Parallelism";
+
+    /// <summary>
+    /// Argon2 salt represented as a hex encoded byte[] is the ppk file
+    /// </summary>
+    private const string argonSaltKey = "Argon2-Salt";
+
+
+    /// <summary>
     /// Key that indicates that the private key follows on the next line
     /// and the length of the key in lines
     /// </summary>
