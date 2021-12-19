@@ -45,7 +45,7 @@ namespace dlech.SshAgentLib
   /// </summary>
   public class PpkFormatter : KeyFormatter
   {
-    public static readonly string legalVersions = string.Join("|", from v in Enum.GetNames(typeof(Version)) select v.Substring(1));
+    public static readonly string cLegalVersions = Util.EnumJoin<Version>("|").Replace("V", "");
 
     #region -- Constants --
 
@@ -289,7 +289,7 @@ namespace dlech.SshAgentLib
       try {
         /* read file version */
         line = reader.ReadLine();
-        m = MatchOrThrow(line, "^"+puttyUserKeyFileKey+"("+legalVersions+"): ?(.*)$");
+        m = MatchOrThrow(line, "^"+puttyUserKeyFileKey+"("+cLegalVersions+"): ?(.*)$");
 
         fileData.ppkFileVersion = (Version) Enum.Parse(typeof(Version), "V"+m.Groups[1].Value);
         if (fileData.ppkFileVersion == Version.V1) {
@@ -325,7 +325,7 @@ namespace dlech.SshAgentLib
         /* key derivation function */
         if (fileData.privateKeyAlgorithm != PrivateKeyAlgorithm.None) {
           line = reader.ReadLine();
-          string legal = string.Join("|", Enum.GetNames(typeof(KeyDerivation)));
+          string legal = Util.EnumJoin<KeyDerivation>("|");
           m = MatchOrThrow(line, "^"+keyDeriviationKey+": ?("+legal+")$");
 
           fileData.kdfAlgorithm = (KeyDerivation) Enum.Parse(typeof(KeyDerivation), m.Groups[1].Value);

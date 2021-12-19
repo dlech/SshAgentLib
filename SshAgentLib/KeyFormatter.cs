@@ -148,7 +148,7 @@ namespace dlech.SshAgentLib
     public static KeyFormatter GetFormatter (string firstLine)
     {
       // PuTTY Private key format
-      var ppkRegex = new Regex (PpkFormatter.puttyUserKeyFileKey+"("+PpkFormatter.legalVersions+")");
+      var ppkRegex = new Regex (PpkFormatter.puttyUserKeyFileKey+"("+PpkFormatter.cLegalVersions+")");
       // OpenSSH private key format
       var pemPrivateKeyRegex = new Regex ("-----BEGIN .* PRIVATE KEY-----");
 
