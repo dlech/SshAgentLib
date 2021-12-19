@@ -652,38 +652,6 @@ namespace dlech.SshAgentLib
       }
     }
 
-    // public static string GetName(this PpkFormatter.Version aVersion)
-    // {
-    //   switch (aVersion) {
-    //     case PpkFormatter.Version.V1:
-    //       return "1";
-    //     case PpkFormatter.Version.V2:
-    //       return "2";
-    //     case PpkFormatter.Version.V3:
-    //       return "3";
-    //     default:
-    //       Debug.Fail("Unknown version");
-    //       throw new Exception("Unknown version");
-    //   }
-    // }
-    //
-    // public static bool TryParseVersion(this string text, ref PpkFormatter.Version version)
-    // {
-    //   switch (text) {
-    //     case "1":
-    //       version = PpkFormatter.Version.V1;
-    //       return true;
-    //     case "2":
-    //       version = PpkFormatter.Version.V2;
-    //       return true;
-    //     case "3":
-    //       version = PpkFormatter.Version.V3;
-    //       return true;
-    //     default:
-    //       return false;
-    //   }
-    // }
-
     public static bool TryParsePublicKeyAlgorithm(this string text, ref PublicKeyAlgorithm algo)
     {
       switch (text) {
