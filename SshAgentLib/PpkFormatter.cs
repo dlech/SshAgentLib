@@ -151,6 +151,12 @@ namespace dlech.SshAgentLib
       AES256_CBC
     }
 
+    internal enum KeyDerivation
+    {
+      Argon2i,
+      Argon2d,
+      Argon2id
+    }
 
     #endregion -- Enums --
 
@@ -172,6 +178,18 @@ namespace dlech.SshAgentLib
       /// One of <see cref="PublicKeyAlgorithms"/>
       /// </summary>
       public PublicKeyAlgorithm publicKeyAlgorithm;
+
+      /// <summary>
+      /// Key Derivation algorithm usually Argon2
+      /// </summary>
+      public KeyDerivation kdfAlgorithm;
+
+      /// <summary>
+      /// key value pairs for various kdf algorithms
+      /// for Argon2 the parameters Argon2-Memory, Argon2-Passes, Argon2-Parallelism
+      /// will have an "int" type for their value and Argon2-Salt will have a "byte[]" type for it's value
+      /// </summary>
+      public Dictionary<string, object> kdfParameters;
 
       /// <summary>
       /// Private key encryption algorithm
@@ -205,7 +223,6 @@ namespace dlech.SshAgentLib
       /// </summary>
       public bool isHMAC;
       public SecureString passphrase;
-
     }
 
     #endregion -- structures --
@@ -315,6 +332,45 @@ namespace dlech.SshAgentLib
         lineCount = int.Parse(m.Groups[1].Value);
         string publicKeyString = string.Join("", from v in Enumerable.Range(0, lineCount) select reader.ReadLine());
         fileData.publicKeyBlob = Util.FromBase64(publicKeyString);
+
+        /* key derivation function */
+        if (fileData.privateKeyAlgorithm != PrivateKeyAlgorithm.None) {
+          line = reader.ReadLine();
+          string legal = string.Join("|", Enum.GetNames(typeof(KeyDerivation)));
+          regex = "^"+keyDeriviationKey+": ?("+legal+")$";
+          m = Regex.Match(line, regex);
+          if (!m.Success)
+            throw new PpkFormatterException(
+              PpkFormatterException.PpkErrorType.FileFormat, regex + " expected");
+
+          fileData.kdfAlgorithm = (KeyDerivation) Enum.Parse(typeof(KeyDerivation), m.Groups[1].Value);
+
+          string kdfName = Enum.GetName(typeof(KeyDerivation), fileData.kdfAlgorithm);
+          fileData.kdfParameters = new Dictionary<string, object>();
+          if (kdfName.StartsWith("Argon2")) {
+            foreach (var paramKey in new string[]{argonMemoryKey, argonPassesKey, argonParallelismKey}) {
+              line = reader.ReadLine();
+              regex = "^("+paramKey+"): 0*([1-9][0-9]{0,8})$";
+              m = Regex.Match(line, regex);
+              if (!m.Success)
+                throw new PpkFormatterException(
+                  PpkFormatterException.PpkErrorType.FileFormat, regex + " expected");
+              fileData.kdfParameters[m.Groups[1].Value] = int.Parse(m.Groups[2].Value);
+            }
+
+            line = reader.ReadLine();
+            regex = "^("+argonSaltKey+"): ([0-9a-fA-F]+)$";
+            m = Regex.Match(line, regex);
+            if (!m.Success)
+              throw new PpkFormatterException(
+                PpkFormatterException.PpkErrorType.FileFormat, regex + " expected");
+            fileData.kdfParameters[m.Groups[1].Value] = Util.FromHex(m.Groups[2].Value);
+          }
+          else {
+            throw new PpkFormatterException(
+              PpkFormatterException.PpkErrorType.FileFormat, "cannot get kdf parameters for algorithm: "+kdfName);
+          }
+        }
 
 
         /* read private key */
