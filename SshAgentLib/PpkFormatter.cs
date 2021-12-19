@@ -278,9 +278,7 @@ namespace dlech.SshAgentLib
             PpkFormatterException.PpkErrorType.FileFormat, regex);
         fileData.ppkFileVersion = (Version) Enum.Parse(typeof(Version), "V"+m.Groups[1].Value);
         if (fileData.ppkFileVersion == Version.V1) {
-          if (WarnOldFileFormatCallbackMethod != null) {
-            WarnOldFileFormatCallbackMethod.Invoke();
-          }
+          WarnOldFileFormatCallbackMethod?.Invoke();
         }
 
         /* read public key encryption algorithm type */
