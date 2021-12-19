@@ -291,7 +291,7 @@ namespace dlech.SshAgentLib
         line = reader.ReadLine();
         m = MatchOrThrow(line, "^"+puttyUserKeyFileKey+"("+cLegalVersions+"): ?(.*)$");
 
-        fileData.ppkFileVersion = (Version) Enum.Parse(typeof(Version), "V"+m.Groups[1].Value);
+        fileData.ppkFileVersion = Util.EnumParse<Version>("V"+m.Groups[1].Value);
         if (fileData.ppkFileVersion == Version.V1) {
           WarnOldFileFormatCallbackMethod?.Invoke();
         }
@@ -328,7 +328,7 @@ namespace dlech.SshAgentLib
           string legal = Util.EnumJoin<KeyDerivation>("|");
           m = MatchOrThrow(line, "^"+keyDeriviationKey+": ?("+legal+")$");
 
-          fileData.kdfAlgorithm = (KeyDerivation) Enum.Parse(typeof(KeyDerivation), m.Groups[1].Value);
+          fileData.kdfAlgorithm = Util.EnumParse<KeyDerivation>(m.Groups[1].Value);
 
           string kdfName = Enum.GetName(typeof(KeyDerivation), fileData.kdfAlgorithm);
           fileData.kdfParameters = new Dictionary<string, object>();

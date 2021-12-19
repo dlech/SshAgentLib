@@ -64,6 +64,11 @@ namespace dlech.SshAgentLib
       return string.Join(separator, Enum.GetNames(typeof(T)));
     }
 
+    public static T EnumParse<T>(string value)
+    {
+      return (T) Enum.Parse(typeof(T), value);
+    }
+
     /// <summary>
     /// Adds Agent.KeyConstraintType.SSH_AGENT_CONSTRAIN_LIFETIME constraint to key
     /// </summary>
