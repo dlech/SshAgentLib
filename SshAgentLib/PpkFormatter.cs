@@ -289,10 +289,8 @@ namespace dlech.SshAgentLib
       try {
         /* read file version */
         line = reader.ReadLine();
-        regex = "^"+puttyUserKeyFileKey+"("+legalVersions+"): ?(.*)$";
-        m = Regex.Match(line, regex);
-        if (!m.Success) throw new PpkFormatterException(
-            PpkFormatterException.PpkErrorType.FileFormat, regex);
+        m = MatchOrThrow(line, "^"+puttyUserKeyFileKey+"("+legalVersions+"): ?(.*)$");
+
         fileData.ppkFileVersion = (Version) Enum.Parse(typeof(Version), "V"+m.Groups[1].Value);
         if (fileData.ppkFileVersion == Version.V1) {
           WarnOldFileFormatCallbackMethod?.Invoke();
@@ -305,29 +303,20 @@ namespace dlech.SshAgentLib
 
         /* read private key encryption algorithm type */
         line = reader.ReadLine();
-        regex = "^"+privateKeyEncryptionKey+": ?(.*)$";
-        m = Regex.Match(line, regex);
-        if (!m.Success)
-          throw new PpkFormatterException(
-            PpkFormatterException.PpkErrorType.FileFormat, regex + " expected");
+        m = MatchOrThrow(line, "^"+privateKeyEncryptionKey+": ?(.*)$");
         if (!m.Groups[1].Value.TryParsePrivateKeyAlgorithm(ref fileData.privateKeyAlgorithm)) {
           throw new PpkFormatterException(PpkFormatterException.PpkErrorType.PrivateKeyEncryption);
         }
 
         /* read comment */
         line = reader.ReadLine();
-        regex = "^"+commentKey+": ?(.*)$";
-        m = Regex.Match(line, regex);
-        if (!m.Success) throw new PpkFormatterException(
-          PpkFormatterException.PpkErrorType.FileFormat, regex + " expected");
+        m = MatchOrThrow(line, "^"+commentKey+": ?(.*)$");
         fileData.comment = m.Groups[1].Value;
 
         /* read public key */
         line = reader.ReadLine();
-        regex = "^"+publicKeyLinesKey+": 0*([1-9][0-9]{0,4})$";  // match 1 <= N < 100000 and throw away leading zeros
-        m = Regex.Match(line, regex);
-        if (!m.Success) throw new PpkFormatterException(
-          PpkFormatterException.PpkErrorType.FileFormat, regex + " expected");
+        // match 1 <= N < 100000 and throw away leading zeros
+        m = MatchOrThrow(line, "^"+publicKeyLinesKey+": 0*([1-9][0-9]{0,4})$");
 
         lineCount = int.Parse(m.Groups[1].Value);
         string publicKeyString = string.Join("", from v in Enumerable.Range(0, lineCount) select reader.ReadLine());
@@ -337,11 +326,7 @@ namespace dlech.SshAgentLib
         if (fileData.privateKeyAlgorithm != PrivateKeyAlgorithm.None) {
           line = reader.ReadLine();
           string legal = string.Join("|", Enum.GetNames(typeof(KeyDerivation)));
-          regex = "^"+keyDeriviationKey+": ?("+legal+")$";
-          m = Regex.Match(line, regex);
-          if (!m.Success)
-            throw new PpkFormatterException(
-              PpkFormatterException.PpkErrorType.FileFormat, regex + " expected");
+          m = MatchOrThrow(line, "^"+keyDeriviationKey+": ?("+legal+")$");
 
           fileData.kdfAlgorithm = (KeyDerivation) Enum.Parse(typeof(KeyDerivation), m.Groups[1].Value);
 
@@ -350,20 +335,12 @@ namespace dlech.SshAgentLib
           if (kdfName.StartsWith("Argon2")) {
             foreach (var paramKey in new string[]{argonMemoryKey, argonPassesKey, argonParallelismKey}) {
               line = reader.ReadLine();
-              regex = "^("+paramKey+"): 0*([1-9][0-9]{0,8})$";
-              m = Regex.Match(line, regex);
-              if (!m.Success)
-                throw new PpkFormatterException(
-                  PpkFormatterException.PpkErrorType.FileFormat, regex + " expected");
+              m = MatchOrThrow(line, "^("+paramKey+"): 0*([1-9][0-9]{0,8})$");
               fileData.kdfParameters[m.Groups[1].Value] = int.Parse(m.Groups[2].Value);
             }
 
             line = reader.ReadLine();
-            regex = "^("+argonSaltKey+"): ([0-9a-fA-F]+)$";
-            m = Regex.Match(line, regex);
-            if (!m.Success)
-              throw new PpkFormatterException(
-                PpkFormatterException.PpkErrorType.FileFormat, regex + " expected");
+            m = MatchOrThrow(line, "^("+argonSaltKey+"): ([0-9a-fA-F]+)$");
             fileData.kdfParameters[m.Groups[1].Value] = Util.FromHex(m.Groups[2].Value);
           }
           else {
@@ -375,22 +352,15 @@ namespace dlech.SshAgentLib
 
         /* read private key */
         line = reader.ReadLine();
-        regex = "^"+privateKeyLinesKey+": 0*([1-9][0-9]{0,4})$";  // match 1 <= N < 100000 and throw away leading zeros
-        m = Regex.Match(line, regex);
-        if (!m.Success) throw new PpkFormatterException(
-          PpkFormatterException.PpkErrorType.FileFormat, regex + " expected");
-
+        // match 1 <= N < 100000 and throw away leading zeros
+        m = MatchOrThrow(line, "^"+privateKeyLinesKey+": 0*([1-9][0-9]{0,4})$");
         lineCount = int.Parse(m.Groups[1].Value);
         string privateKeyString = string.Join("", from v in Enumerable.Range(0, lineCount) select reader.ReadLine());
         fileData.privateKeyBlob = new PinnedArray<byte>(Util.FromBase64(privateKeyString));
 
         /* read MAC */
         line = reader.ReadLine();
-        regex = "^("+privateMACKey+"|"+privateHashKey+"): ?([0-9a-fA-F]+)$";
-        m = Regex.Match(line, regex);
-        if (!m.Success) throw new PpkFormatterException(PpkFormatterException.PpkErrorType.FileFormat, regex+" expected");
-
-        // pair = line.Split(delimArray, 2);
+        m = MatchOrThrow(line, "^("+privateMACKey+"|"+privateHashKey+"): ?([0-9a-fA-F]+)$");
         if (m.Groups[1].Value != privateMACKey) {
           fileData.isHMAC = false;
           if (m.Groups[1].Value != privateHashKey || fileData.ppkFileVersion != Version.V1) {
@@ -571,6 +541,15 @@ namespace dlech.SshAgentLib
       } finally {
         Array.Clear(computedHash, 0, computedHash.Length);
       }
+    }
+
+    private static Match MatchOrThrow(string line, string regex)
+    {
+      Match m = Regex.Match(line, regex);
+      if (!m.Success)
+        throw new PpkFormatterException(
+          PpkFormatterException.PpkErrorType.FileFormat, regex + " expected");
+      return m;
     }
 
     private static AsymmetricCipherKeyPair CreateCipherKeyPair(
