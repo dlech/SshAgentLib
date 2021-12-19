@@ -27,10 +27,12 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
+using System.Linq;
 using System.Runtime.InteropServices;
 using System.Security;
 using System.Security.Cryptography;
 using System.Text;
+using System.Text.RegularExpressions;
 using dlech.SshAgentLib.Crypto;
 using Org.BouncyCastle.Crypto;
 using Org.BouncyCastle.Crypto.Parameters;
@@ -43,6 +45,7 @@ namespace dlech.SshAgentLib
   /// </summary>
   public class PpkFormatter : KeyFormatter
   {
+    public static readonly string legalVersions = string.Join("|", from v in Enum.GetNames(typeof(Version)) select v.Substring(1));
 
     #region -- Constants --
 
@@ -57,7 +60,7 @@ namespace dlech.SshAgentLib
     /// It is the first thing in the file, so it can also be used as a signature
     /// for a quick and dirty file format test.
     /// </summary>
-    private const string puttyUserKeyFileKey = "PuTTY-User-Key-File-";
+    public const string puttyUserKeyFileKey = "PuTTY-User-Key-File-";
 
     /// <summary>
     /// Key that indicates the line containing the private key encryption algorithm
@@ -260,24 +263,20 @@ namespace dlech.SshAgentLib
       }
 
       string line;
-      string[] pair = new string[2];
-      int lineCount, i;
+      int lineCount;
+      string regex;
+      Match m;
 
       StreamReader reader = new StreamReader(aStream, Encoding.GetEncoding(1252));
-      char[] delimArray = { cDelimeter };
 
       try {
         /* read file version */
         line = reader.ReadLine();
-        pair = line.Split(delimArray, 2);
-        if (!pair[0].StartsWith(puttyUserKeyFileKey)) {
-          throw new PpkFormatterException(PpkFormatterException.PpkErrorType.FileFormat,
-                                          puttyUserKeyFileKey + " expected");
-        }
-        string ppkFileVersion = pair[0].Remove(0, puttyUserKeyFileKey.Length);
-        if (!ppkFileVersion.TryParseVersion(ref fileData.ppkFileVersion)) {
-          throw new PpkFormatterException(PpkFormatterException.PpkErrorType.FileVersion);
-        }
+        regex = "^"+puttyUserKeyFileKey+"("+legalVersions+"): ?(.*)$";
+        m = Regex.Match(line, regex);
+        if (!m.Success) throw new PpkFormatterException(
+            PpkFormatterException.PpkErrorType.FileFormat, regex);
+        fileData.ppkFileVersion = (Version) Enum.Parse(typeof(Version), "V"+m.Groups[1].Value);
         if (fileData.ppkFileVersion == Version.V1) {
           if (WarnOldFileFormatCallbackMethod != null) {
             WarnOldFileFormatCallbackMethod.Invoke();
@@ -285,80 +284,69 @@ namespace dlech.SshAgentLib
         }
 
         /* read public key encryption algorithm type */
-        string algorithm = pair[1].Trim();
-        if (!algorithm.TryParsePublicKeyAlgorithm(ref fileData.publicKeyAlgorithm)) {
+        if (!m.Groups[2].Value.TryParsePublicKeyAlgorithm(ref fileData.publicKeyAlgorithm)) {
           throw new PpkFormatterException(PpkFormatterException.PpkErrorType.PublicKeyEncryption);
         }
 
         /* read private key encryption algorithm type */
         line = reader.ReadLine();
-        pair = line.Split(delimArray, 2);
-        if (pair[0] != privateKeyEncryptionKey) {
-          throw new PpkFormatterException(PpkFormatterException.PpkErrorType.FileFormat,
-                                          privateKeyEncryptionKey + " expected");
-        }
-        algorithm = pair[1].Trim();
-        if (!algorithm.TryParsePrivateKeyAlgorithm(ref fileData.privateKeyAlgorithm)) {
+        regex = "^"+privateKeyEncryptionKey+": ?(.*)$";
+        m = Regex.Match(line, regex);
+        if (!m.Success)
+          throw new PpkFormatterException(
+            PpkFormatterException.PpkErrorType.FileFormat, regex + " expected");
+        if (!m.Groups[1].Value.TryParsePrivateKeyAlgorithm(ref fileData.privateKeyAlgorithm)) {
           throw new PpkFormatterException(PpkFormatterException.PpkErrorType.PrivateKeyEncryption);
         }
 
         /* read comment */
         line = reader.ReadLine();
-        pair = line.Split(delimArray, 2);
-        if (pair[0] != commentKey) {
-          throw new PpkFormatterException(PpkFormatterException.PpkErrorType.FileFormat,
-                                          commentKey + " expected");
-        }
-        fileData.comment = pair[1].Trim();
+        regex = "^"+commentKey+": ?(.*)$";
+        m = Regex.Match(line, regex);
+        if (!m.Success) throw new PpkFormatterException(
+          PpkFormatterException.PpkErrorType.FileFormat, regex + " expected");
+        fileData.comment = m.Groups[1].Value;
 
         /* read public key */
         line = reader.ReadLine();
-        pair = line.Split(delimArray, 2);
-        if (pair[0] != publicKeyLinesKey) {
-          throw new PpkFormatterException(PpkFormatterException.PpkErrorType.FileFormat,
-                                          publicKeyLinesKey + " expected");
-        }
-        if (!int.TryParse(pair[1], out lineCount)) {
-          throw new PpkFormatterException(PpkFormatterException.PpkErrorType.FileFormat,
-                                          "integer expected");
-        }
-        string publicKeyString = string.Empty;
-        for (i = 0; i < lineCount; i++) {
-          publicKeyString += reader.ReadLine();
-        }
+        regex = "^"+publicKeyLinesKey+": 0*([1-9][0-9]{0,4})$";  // match 1 <= N < 100000 and throw away leading zeros
+        m = Regex.Match(line, regex);
+        if (!m.Success) throw new PpkFormatterException(
+          PpkFormatterException.PpkErrorType.FileFormat, regex + " expected");
+
+        lineCount = int.Parse(m.Groups[1].Value);
+        string publicKeyString = string.Join("", from v in Enumerable.Range(0, lineCount) select reader.ReadLine());
         fileData.publicKeyBlob = Util.FromBase64(publicKeyString);
+
 
         /* read private key */
         line = reader.ReadLine();
-        pair = line.Split(delimArray, 2);
-        if (pair[0] != privateKeyLinesKey) {
-          throw new PpkFormatterException(PpkFormatterException.PpkErrorType.FileFormat,
-                                          privateKeyLinesKey + " expected");
-        }
-        if (!int.TryParse(pair[1], out lineCount)) {
-          throw new PpkFormatterException(PpkFormatterException.PpkErrorType.FileFormat,
-                                          "integer expected");
-        }
-        string privateKeyString = string.Empty;
-        for (i = 0; i < lineCount; i++) {
-          privateKeyString += reader.ReadLine();
-        }
-        fileData.privateKeyBlob =
-          new PinnedArray<byte>(Util.FromBase64(privateKeyString));
+        regex = "^"+privateKeyLinesKey+": 0*([1-9][0-9]{0,4})$";  // match 1 <= N < 100000 and throw away leading zeros
+        m = Regex.Match(line, regex);
+        if (!m.Success) throw new PpkFormatterException(
+          PpkFormatterException.PpkErrorType.FileFormat, regex + " expected");
+
+        lineCount = int.Parse(m.Groups[1].Value);
+        string privateKeyString = string.Join("", from v in Enumerable.Range(0, lineCount) select reader.ReadLine());
+        fileData.privateKeyBlob = new PinnedArray<byte>(Util.FromBase64(privateKeyString));
 
         /* read MAC */
         line = reader.ReadLine();
-        pair = line.Split(delimArray, 2);
-        if (pair[0] != privateMACKey) {
+        regex = "^("+privateMACKey+"|"+privateHashKey+"): ?([0-9a-fA-F]+)$";
+        m = Regex.Match(line, regex);
+        if (!m.Success) throw new PpkFormatterException(PpkFormatterException.PpkErrorType.FileFormat, regex+" expected");
+
+        // pair = line.Split(delimArray, 2);
+        if (m.Groups[1].Value != privateMACKey) {
           fileData.isHMAC = false;
-          if (pair[0] != privateHashKey || fileData.ppkFileVersion != Version.V1) {
+          if (m.Groups[1].Value != privateHashKey || fileData.ppkFileVersion != Version.V1) {
             throw new PpkFormatterException(PpkFormatterException.PpkErrorType.FileFormat,
                                             privateMACKey + " expected");
           }
         } else {
           fileData.isHMAC = true;
         }
-        string privateMACString = pair[1].Trim();
+        string privateMACString = m.Groups[2].Value;
         fileData.privateMAC = Util.FromHex(privateMACString);
 
 
@@ -646,37 +634,37 @@ namespace dlech.SshAgentLib
       }
     }
 
-    public static string GetName(this PpkFormatter.Version aVersion)
-    {
-      switch (aVersion) {
-        case PpkFormatter.Version.V1:
-          return "1";
-        case PpkFormatter.Version.V2:
-          return "2";
-        case PpkFormatter.Version.V3:
-          return "3";
-        default:
-          Debug.Fail("Unknown version");
-          throw new Exception("Unknown version");
-      }
-    }
-
-    public static bool TryParseVersion(this string text, ref PpkFormatter.Version version)
-    {
-      switch (text) {
-        case "1":
-          version = PpkFormatter.Version.V1;
-          return true;
-        case "2":
-          version = PpkFormatter.Version.V2;
-          return true;
-        case "3":
-          version = PpkFormatter.Version.V3;
-          return true;
-        default:
-          return false;
-      }
-    }
+    // public static string GetName(this PpkFormatter.Version aVersion)
+    // {
+    //   switch (aVersion) {
+    //     case PpkFormatter.Version.V1:
+    //       return "1";
+    //     case PpkFormatter.Version.V2:
+    //       return "2";
+    //     case PpkFormatter.Version.V3:
+    //       return "3";
+    //     default:
+    //       Debug.Fail("Unknown version");
+    //       throw new Exception("Unknown version");
+    //   }
+    // }
+    //
+    // public static bool TryParseVersion(this string text, ref PpkFormatter.Version version)
+    // {
+    //   switch (text) {
+    //     case "1":
+    //       version = PpkFormatter.Version.V1;
+    //       return true;
+    //     case "2":
+    //       version = PpkFormatter.Version.V2;
+    //       return true;
+    //     case "3":
+    //       version = PpkFormatter.Version.V3;
+    //       return true;
+    //     default:
+    //       return false;
+    //   }
+    // }
 
     public static bool TryParsePublicKeyAlgorithm(this string text, ref PublicKeyAlgorithm algo)
     {

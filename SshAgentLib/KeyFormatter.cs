@@ -148,13 +148,13 @@ namespace dlech.SshAgentLib
     public static KeyFormatter GetFormatter (string firstLine)
     {
       // PuTTY Private key format
-      var ppkRegex = new Regex ("PuTTY-User-Key-File-[12]");
+      var ppkRegex = new Regex (PpkFormatter.puttyUserKeyFileKey+"("+PpkFormatter.legalVersions+")");
       // OpenSSH private key format
       var pemPrivateKeyRegex = new Regex ("-----BEGIN .* PRIVATE KEY-----");
 
       if (!string.IsNullOrWhiteSpace (firstLine)) {
         if (ppkRegex.IsMatch (firstLine)) {
-          return new PpkFormatter ();
+          return new PpkFormatter();
         } else if (OpensshPrivateKeyFormatter.MARK_BEGIN == firstLine) {
           return new OpensshPrivateKeyFormatter();
         } else if (pemPrivateKeyRegex.IsMatch(firstLine)) {
