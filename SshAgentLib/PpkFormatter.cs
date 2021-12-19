@@ -500,35 +500,20 @@ namespace dlech.SshAgentLib
       builder.Clear();
 
       try {
-        int macLength = computedHash.Length;
-        bool failed = false;
-        if (fileData.privateMAC.Length == macLength) {
-          for (int i = 0; i < macLength; i++) {
-            if (fileData.privateMAC[i] != computedHash[i]) {
-              failed = true;
-              break;
-            }
-          }
+        if (fileData.privateMAC.SequenceEqual(computedHash)) return;
+        // private key data should start with 3 bytes with value 0 if it was
+        // properly decrypted or does not require decryption
+        if ((fileData.privateKeyBlob.Data[0] == 0) &&
+            (fileData.privateKeyBlob.Data[1] == 0) &&
+            (fileData.privateKeyBlob.Data[2] == 0)) {
+          // so if they bytes are there, passphrase decrypted properly and
+          // something else is wrong with the file contents
+          throw new PpkFormatterException(PpkFormatterException.PpkErrorType.FileCorrupt);
         } else {
-          failed = true;
+          // if the bytes are not zeros, we assume that the data was not
+          // properly decrypted because the passphrase was incorrect.
+          throw new PpkFormatterException(PpkFormatterException.PpkErrorType.BadPassphrase);
         }
-        if (failed) {
-          // private key data should start with 3 bytes with value 0 if it was
-          // properly decrypted or does not require decryption
-          if ((fileData.privateKeyBlob.Data[0] == 0) &&
-              (fileData.privateKeyBlob.Data[1] == 0) &&
-              (fileData.privateKeyBlob.Data[2] == 0)) {
-            // so if they bytes are there, passphrase decrypted properly and
-            // something else is wrong with the file contents
-            throw new PpkFormatterException(PpkFormatterException.PpkErrorType.FileCorrupt);
-          } else {
-            // if the bytes are not zeros, we assume that the data was not
-            // properly decrypted because the passphrase was incorrect.
-            throw new PpkFormatterException(PpkFormatterException.PpkErrorType.BadPassphrase);
-          }
-        }
-      } catch {
-        throw;
       } finally {
         Array.Clear(computedHash, 0, computedHash.Length);
       }
