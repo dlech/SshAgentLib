@@ -10,6 +10,7 @@
     <RootNamespace>SshAgentLib.GTK</RootNamespace>
     <AssemblyName>SshAgentLib.GTK</AssemblyName>
     <SynchReleaseVersion>False</SynchReleaseVersion>
+    <TargetFrameworkVersion>v4.6</TargetFrameworkVersion>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <DebugSymbols>True</DebugSymbols>
