@@ -34,6 +34,7 @@ using System.Security.Cryptography;
 using System.Text;
 using System.Text.RegularExpressions;
 using dlech.SshAgentLib.Crypto;
+using Konscious.Security.Cryptography;
 using Org.BouncyCastle.Crypto;
 using Org.BouncyCastle.Crypto.Parameters;
 using Org.BouncyCastle.Math;
@@ -429,15 +430,47 @@ namespace dlech.SshAgentLib
 
           /* create key from passphrase */
 
+          byte[] aesKey,iv,macKey;
+          CreateKeyMaterial(fileData, out aesKey, out iv, out macKey);
+
+          Aes aes = Aes.Create();
+          aes.Mode = CipherMode.CBC;
+          aes.Padding = PaddingMode.None;
+          aes.Key = aesKey;
+          aes.IV = iv;
+          Array.Clear(aesKey, 0, aesKey.Length);
+          Array.Clear(iv, 0, iv.Length);
+          ICryptoTransform decryptor = aes.CreateDecryptor();
+          fileData.privateKeyBlob.Data =
+            Util.GenericTransform(decryptor, fileData.privateKeyBlob.Data);
+          decryptor.Dispose();
+          aes.Clear();
+          break;
+
+        default:
+          throw new PpkFormatterException(PpkFormatterException.PpkErrorType.PrivateKeyEncryption);
+      }
+    }
+
+    private static void CreateKeyMaterial(FileData fileData, out byte[] aesKey, out byte[] iv, out byte[] macKey)
+    {
+      byte[] a = new byte[32];
+      byte[] b = new byte[16];
+      byte[] c = new byte[32];
+
+      switch (fileData.ppkFileVersion) {
+        case Version.V1:
+        case Version.V2:
+          /* begin symmetric key+iv */
           SHA1 sha = SHA1.Create();
           sha.Initialize();
-          List<byte> key = new List<byte>();
 
           using (PinnedArray<byte> hashData =
                  new PinnedArray<byte>(cPrivateKeyDecryptSalt1.Length +
-                                     fileData.passphrase.Length)) {
+                                       fileData.passphrase.Length)) {
+            List<byte> key = new List<byte>();
             Array.Copy(Encoding.UTF8.GetBytes(cPrivateKeyDecryptSalt1),
-                       hashData.Data, cPrivateKeyDecryptSalt1.Length);
+              hashData.Data, cPrivateKeyDecryptSalt1.Length);
             IntPtr passphrasePtr =
               Marshal.SecureStringToGlobalAllocUnicode(fileData.passphrase);
             for (int i = 0; i < fileData.passphrase.Length; i++) {
@@ -450,32 +483,49 @@ namespace dlech.SshAgentLib
             sha.ComputeHash(hashData.Data);
             key.AddRange(sha.Hash);
             Array.Copy(Encoding.UTF8.GetBytes(cPrivateKeyDecryptSalt2),
-                       hashData.Data, cPrivateKeyDecryptSalt2.Length);
+              hashData.Data, cPrivateKeyDecryptSalt2.Length);
             sha.ComputeHash(hashData.Data);
             key.AddRange(sha.Hash);
+            Array.Copy(key.ToArray(), a, a.Length);
           }
           sha.Clear();
-          /* decrypt private key */
+          /* end symmetric key+iv */
 
-          Aes aes = Aes.Create();
-          aes.KeySize = 256;
-          aes.Mode = CipherMode.CBC;
-          aes.Padding = PaddingMode.None;
-          int keySize = aes.KeySize / 8; // convert bits to bytes
-          key.RemoveRange(keySize, key.Count - keySize); // remove extra bytes
-          aes.Key = key.ToArray();
-          Util.ClearByteList(key);
-          aes.IV = new byte[aes.IV.Length];
-          ICryptoTransform decryptor = aes.CreateDecryptor();
-          fileData.privateKeyBlob.Data =
-            Util.GenericTransform(decryptor, fileData.privateKeyBlob.Data);
-          decryptor.Dispose();
-          aes.Clear();
           break;
+        case Version.V3:
+          MemoryStream masterSecret = Util.ExposeByteArray(fileData.passphrase, pw => {
+            Argon2 hasher;
+            switch (fileData.kdfAlgorithm) {
+              case KeyDerivation.Argon2i:
+                hasher = new Argon2i(pw);
+                break;
+              case KeyDerivation.Argon2d:
+                hasher = new Argon2d(pw);
+                break;
+              case KeyDerivation.Argon2id:
+                hasher = new Argon2id(pw);
+                break;
+              default:
+                throw new ArgumentOutOfRangeException();
+            }
+            hasher.MemorySize = (int) fileData.kdfParameters[argonMemoryKey];
+            hasher.Iterations = (int) fileData.kdfParameters[argonPassesKey];
+            hasher.DegreeOfParallelism = (int) fileData.kdfParameters[argonParallelismKey];
+            hasher.Salt = (byte[]) fileData.kdfParameters[argonSaltKey];
+            return new MemoryStream(hasher.GetBytes(a.Length + b.Length + c.Length));
+          });
 
+          masterSecret.Read(a, 0, a.Length);
+          masterSecret.Read(b, 0, b.Length);
+          masterSecret.Read(c, 0, c.Length);
+          break;
         default:
-          throw new PpkFormatterException(PpkFormatterException.PpkErrorType.PrivateKeyEncryption);
+          throw new ArgumentOutOfRangeException();
       }
+
+      aesKey = a;
+      iv = b;
+      macKey = c;
     }
 
     private static void VerifyIntegrity(FileData fileData)
