@@ -40,3 +40,4 @@ SshAgentLibTests/SshAgentLibTests.csproj.VisualState.xml
 
 # Nuget
 packages/
+.idea/
