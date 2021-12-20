@@ -30,6 +30,8 @@ using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Reflection;
+using System.Runtime.InteropServices;
+using System.Security;
 using System.Security.Cryptography;
 using System.Text;
 using System.Text.RegularExpressions;
@@ -68,6 +70,35 @@ namespace dlech.SshAgentLib
     {
       return (T) Enum.Parse(typeof(T), value);
     }
+
+    /// <summary>
+    /// SecureString password = ...;<br/>
+    /// Func&lt;byte[], string&gt; passwordToString = v => Encoding.UTF8.GetString(v);<br/>
+    /// string pw = password.ExposeByteArray(passwordToString);<br/>
+    /// </summary>
+    /// <param name="ss"></param>
+    /// <param name="func"></param>
+    /// <typeparam name="T"></typeparam>
+    /// <returns></returns>
+    public static T ExposeByteArray<T>(this SecureString ss, Func<byte[],T> func)
+    {
+      IntPtr bstr = IntPtr.Zero;
+      byte[] pw = null;
+      try {
+        pw = new byte[ss.Length];
+        bstr = Marshal.SecureStringToBSTR(ss);
+        for (int i = 0; i < ss.Length; i++) {
+          pw[i] = Marshal.ReadByte(bstr + i);
+        }
+
+        return func(pw);
+      }
+      finally {
+        if (pw != null) Array.Clear(pw, 0, pw.Length);
+        if (bstr != IntPtr.Zero) Marshal.ZeroFreeBSTR(bstr);
+      }
+    }
+
 
     /// <summary>
     /// Adds Agent.KeyConstraintType.SSH_AGENT_CONSTRAIN_LIFETIME constraint to key
