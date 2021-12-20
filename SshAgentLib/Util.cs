@@ -72,31 +72,24 @@ namespace dlech.SshAgentLib
     }
 
     /// <summary>
-    /// SecureString password = ...;<br/>
-    /// Func&lt;byte[], string&gt; passwordToString = v => Encoding.UTF8.GetString(v);<br/>
-    /// string pw = password.ExposeByteArray(passwordToString);<br/>
+    /// Convert a SecureString to an asni string in the form of a PinnnedArray&lt;byte&gt;
     /// </summary>
     /// <param name="ss"></param>
     /// <param name="func"></param>
     /// <typeparam name="T"></typeparam>
     /// <returns></returns>
-    public static T ExposeByteArray<T>(this SecureString ss, Func<byte[],T> func)
+    public static PinnedArray<byte> ToAnsiArray(this SecureString ss)
     {
-      IntPtr bstr = IntPtr.Zero;
-      byte[] pw = null;
-      try {
-        pw = new byte[ss.Length];
-        bstr = Marshal.SecureStringToBSTR(ss);
-        for (int i = 0; i < ss.Length; i++) {
-          pw[i] = Marshal.ReadByte(bstr + i);
-        }
+      if (ss == null) return null;
 
-        return func(pw);
+      PinnedArray<byte> pw = new PinnedArray<byte>(ss.Length);
+      IntPtr ptr = Marshal.SecureStringToGlobalAllocUnicode(ss);
+      for (int i = 0; i < pw.Data.Length; i++) {
+        pw.Data[i] = UnicodeToAnsi(Marshal.ReadInt16(ptr + i*2));
       }
-      finally {
-        if (pw != null) Array.Clear(pw, 0, pw.Length);
-        if (bstr != IntPtr.Zero) Marshal.ZeroFreeBSTR(bstr);
-      }
+      Marshal.ZeroFreeGlobalAllocUnicode(ptr);
+
+      return pw;
     }
 
 

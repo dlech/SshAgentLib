@@ -324,7 +324,7 @@ namespace dlech.SshAgentLib
         fileData.publicKeyBlob = Util.FromBase64(publicKeyString);
 
         /* key derivation function */
-        if (fileData.privateKeyAlgorithm != PrivateKeyAlgorithm.None) {
+        if (fileData.privateKeyAlgorithm != PrivateKeyAlgorithm.None && fileData.ppkFileVersion >= Version.V3) {
           line = reader.ReadLine();
           string legal = Util.EnumJoin<KeyDerivation>("|");
           m = MatchOrThrow(line, "^"+keyDeriviationKey+": ?("+legal+")$");
@@ -463,47 +463,63 @@ namespace dlech.SshAgentLib
         case Version.V2:
           /* begin symmetric key+iv */
           SHA1 sha = SHA1.Create();
-          sha.Initialize();
+          if (fileData.passphrase != null) {
+            using (var passphrase = fileData.passphrase.ToAnsiArray()) {
+              byte[] hashInput = new byte[4 + passphrase.Data.Length];
+              byte[] hash0 = null;
+              byte[] hash1 = null;
+              try {
+                hashInput[3] = 0;
+                Array.Copy(passphrase.Data, 0, hashInput, 4, passphrase.Data.Length);
+                hash0 = sha.ComputeHash(hashInput);
 
-          using (PinnedArray<byte> hashData =
-                 new PinnedArray<byte>(cPrivateKeyDecryptSalt1.Length +
-                                       fileData.passphrase.Length)) {
-            List<byte> key = new List<byte>();
-            Array.Copy(Encoding.UTF8.GetBytes(cPrivateKeyDecryptSalt1),
-              hashData.Data, cPrivateKeyDecryptSalt1.Length);
-            IntPtr passphrasePtr =
-              Marshal.SecureStringToGlobalAllocUnicode(fileData.passphrase);
-            for (int i = 0; i < fileData.passphrase.Length; i++) {
-              int unicodeChar = Marshal.ReadInt16(passphrasePtr + i * 2);
-              byte ansiChar = Util.UnicodeToAnsi(unicodeChar);
-              hashData.Data[cPrivateKeyDecryptSalt1.Length + i] = ansiChar;
-              Marshal.WriteByte(passphrasePtr, i, 0);
+                hashInput[3] = 1;
+                hash1 = sha.ComputeHash(hashInput);
+
+                a = hash0.Concat(hash1).Take(a.Length).ToArray();
+              } finally {
+                if (hash0 != null) Array.Clear(hash0, 0, hash0.Length);
+                if (hash1 != null) Array.Clear(hash1, 0, hash0.Length);
+                Array.Clear(hashInput, 0, hashInput.Length);
+                sha.Clear();
+              }
             }
-            Marshal.ZeroFreeGlobalAllocUnicode(passphrasePtr);
-            sha.ComputeHash(hashData.Data);
-            key.AddRange(sha.Hash);
-            Array.Copy(Encoding.UTF8.GetBytes(cPrivateKeyDecryptSalt2),
-              hashData.Data, cPrivateKeyDecryptSalt2.Length);
-            sha.ComputeHash(hashData.Data);
-            key.AddRange(sha.Hash);
-            Array.Copy(key.ToArray(), a, a.Length);
           }
-          sha.Clear();
+          else {
+            aesKey = null;
+            iv = null;
+          }
           /* end symmetric key+iv */
+
+          /* begin mac key */
+
+          using (var passphrase = fileData.passphrase.ToAnsiArray()) {
+            byte[] tmp = null;
+            try {
+              tmp = Encoding.UTF8.GetBytes(cMACKeySalt).Concat(passphrase!=null ? passphrase.Data : Array.Empty<byte>()).ToArray();
+              sha.Initialize();
+              c = sha.ComputeHash(tmp);
+            }
+            finally {
+              if (tmp != null) Array.Clear(tmp, 0, tmp.Length);
+            }
+          }
+          /* end mac key */
 
           break;
         case Version.V3:
-          MemoryStream masterSecret = Util.ExposeByteArray(fileData.passphrase, pw => {
+
+          using (var passphrase = fileData.passphrase.ToAnsiArray()) {
             Argon2 hasher;
             switch (fileData.kdfAlgorithm) {
               case KeyDerivation.Argon2i:
-                hasher = new Argon2i(pw);
+                hasher = new Argon2i(passphrase.Data);
                 break;
               case KeyDerivation.Argon2d:
-                hasher = new Argon2d(pw);
+                hasher = new Argon2d(passphrase.Data);
                 break;
               case KeyDerivation.Argon2id:
-                hasher = new Argon2id(pw);
+                hasher = new Argon2id(passphrase.Data);
                 break;
               default:
                 throw new ArgumentOutOfRangeException();
@@ -512,12 +528,12 @@ namespace dlech.SshAgentLib
             hasher.Iterations = (int) fileData.kdfParameters[argonPassesKey];
             hasher.DegreeOfParallelism = (int) fileData.kdfParameters[argonParallelismKey];
             hasher.Salt = (byte[]) fileData.kdfParameters[argonSaltKey];
-            return new MemoryStream(hasher.GetBytes(a.Length + b.Length + c.Length));
-          });
+            MemoryStream ms = new MemoryStream(hasher.GetBytes(a.Length + b.Length + c.Length));
+            ms.Read(a, 0, a.Length);
+            ms.Read(b, 0, b.Length);
+            ms.Read(c, 0, c.Length);
+          };
 
-          masterSecret.Read(a, 0, a.Length);
-          masterSecret.Read(b, 0, b.Length);
-          masterSecret.Read(c, 0, c.Length);
           break;
         default:
           throw new ArgumentOutOfRangeException();
