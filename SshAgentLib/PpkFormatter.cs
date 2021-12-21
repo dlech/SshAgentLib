@@ -68,6 +68,10 @@ namespace dlech.SshAgentLib
     /// </summary>
     private const string privateKeyEncryptionKey = "Encryption";
 
+    private const int cipherLength = 32;
+    private const int ivLength = 16;
+    private const int macLength = 32;
+
     /// <summary>
     /// Key that indicates the line containing the user comment
     /// </summary>
@@ -282,7 +286,6 @@ namespace dlech.SshAgentLib
 
       string line;
       int lineCount;
-      string regex;
       Match m;
 
       StreamReader reader = new StreamReader(aStream, Encoding.GetEncoding(1252));
@@ -376,15 +379,14 @@ namespace dlech.SshAgentLib
 
 
         /* get passphrase and decrypt private key if required */
-        if (fileData.privateKeyAlgorithm != PrivateKeyAlgorithm.None) {
-          if (GetPassphraseCallbackMethod == null) {
-            throw new CallbackNullException();
-          }
-          fileData.passphrase = GetPassphraseCallbackMethod.Invoke(fileData.comment);
-          DecryptPrivateKey(ref fileData);
-        }
 
-        VerifyIntegrity(fileData);
+        Aes cipher;
+        HashAlgorithm mac;
+        fileData.passphrase = GetPassphraseCallbackMethod.Invoke(fileData.comment);
+        CreateKeyMaterial(fileData, out cipher, out mac);
+
+        DecryptPrivateKey(ref fileData, cipher);
+        VerifyIntegrity(fileData, mac);
 
         AsymmetricCipherKeyPair cipherKeyPair =
           CreateCipherKeyPair(fileData.publicKeyAlgorithm,
@@ -419,50 +421,23 @@ namespace dlech.SshAgentLib
 
     #region -- Private Methods --
 
-    private static void DecryptPrivateKey(ref FileData fileData)
+    private static void DecryptPrivateKey(ref FileData fileData, SymmetricAlgorithm cipher)
     {
-      switch (fileData.privateKeyAlgorithm) {
-
-        case PrivateKeyAlgorithm.None:
-          return;
-
-        case PrivateKeyAlgorithm.AES256_CBC:
-
-          /* create key from passphrase */
-
-          byte[] aesKey,iv,macKey;
-          CreateKeyMaterial(fileData, out aesKey, out iv, out macKey);
-
-          Aes aes = Aes.Create();
-          aes.Mode = CipherMode.CBC;
-          aes.Padding = PaddingMode.None;
-          aes.Key = aesKey;
-          aes.IV = iv;
-          Array.Clear(aesKey, 0, aesKey.Length);
-          Array.Clear(iv, 0, iv.Length);
-          ICryptoTransform decryptor = aes.CreateDecryptor();
-          fileData.privateKeyBlob.Data =
-            Util.GenericTransform(decryptor, fileData.privateKeyBlob.Data);
-          decryptor.Dispose();
-          aes.Clear();
-          break;
-
-        default:
-          throw new PpkFormatterException(PpkFormatterException.PpkErrorType.PrivateKeyEncryption);
-      }
+      if (cipher == null) return;
+      ICryptoTransform decryptor = cipher.CreateDecryptor();
+      fileData.privateKeyBlob.Data = Util.GenericTransform(decryptor, fileData.privateKeyBlob.Data);
+      decryptor.Dispose();
+      cipher.Clear();
     }
 
-    private static void CreateKeyMaterial(FileData fileData, out byte[] aesKey, out byte[] iv, out byte[] macKey)
+    private static void CreateKeyMaterial(FileData fileData, out Aes cipher, out HashAlgorithm mac)
     {
-      byte[] a = new byte[32];
-      byte[] b = new byte[16];
-      byte[] c = new byte[32];
-
       switch (fileData.ppkFileVersion) {
         case Version.V1:
         case Version.V2:
           /* begin symmetric key+iv */
           SHA1 sha = SHA1.Create();
+          cipher = null;
           if (fileData.passphrase != null) {
             using (var passphrase = fileData.passphrase.ToAnsiArray()) {
               byte[] hashInput = new byte[4 + passphrase.Data.Length];
@@ -476,7 +451,11 @@ namespace dlech.SshAgentLib
                 hashInput[3] = 1;
                 hash1 = sha.ComputeHash(hashInput);
 
-                a = hash0.Concat(hash1).Take(a.Length).ToArray();
+                cipher = Aes.Create();
+                cipher.Mode = CipherMode.CBC;
+                cipher.Padding = PaddingMode.None;
+                cipher.Key = hash0.Concat(hash1).Take(cipherLength).ToArray();
+                cipher.IV = new byte[ivLength];
               } finally {
                 if (hash0 != null) Array.Clear(hash0, 0, hash0.Length);
                 if (hash1 != null) Array.Clear(hash1, 0, hash0.Length);
@@ -484,29 +463,33 @@ namespace dlech.SshAgentLib
               }
             }
           }
-          else {
-            aesKey = null;
-            iv = null;
-          }
           /* end symmetric key+iv */
 
           /* begin mac key */
 
-          using (var passphrase = fileData.passphrase.ToAnsiArray()) {
-            byte[] tmp = Encoding.UTF8.GetBytes(cMACKeySalt).Concat(passphrase!=null ? passphrase.Data : Array.Empty<byte>()).ToArray();
-            sha.Initialize();
-            c = sha.ComputeHash(tmp);
-            if (tmp != null) Array.Clear(tmp, 0, tmp.Length);
+          if (fileData.isHMAC) {
+            mac = new HMACSHA1();
+            if (fileData.passphrase != null) {
+              using (var passphrase = fileData.passphrase.ToAnsiArray()) {
+                byte[] tmp = Encoding.UTF8.GetBytes(cMACKeySalt).Concat(passphrase.Data).ToArray();
+                ((HMAC) mac).Key = sha.ComputeHash(tmp);
+                Array.Clear(tmp, 0, tmp.Length);
+              }
+            } else {
+              ((HMAC) mac).Key = sha.ComputeHash(Encoding.UTF8.GetBytes(cMACKeySalt));
+            }
+          } else {
+            mac = SHA1.Create();
           }
+
           /* end mac key */
 
           sha.Clear();
           break;
         case Version.V3:
           if (fileData.passphrase == null) {
-            a = null;
-            b = null;
-            c = Array.Empty<byte>();
+            cipher = null;
+            mac = new HMACSHA256(Array.Empty<byte>());
             break;
           }
           using (var passphrase = fileData.passphrase.ToAnsiArray()) {
@@ -528,23 +511,37 @@ namespace dlech.SshAgentLib
             hasher.Iterations = (int) fileData.kdfParameters[argonPassesKey];
             hasher.DegreeOfParallelism = (int) fileData.kdfParameters[argonParallelismKey];
             hasher.Salt = (byte[]) fileData.kdfParameters[argonSaltKey];
-            MemoryStream ms = new MemoryStream(hasher.GetBytes(a.Length + b.Length + c.Length));
-            ms.Read(a, 0, a.Length);
-            ms.Read(b, 0, b.Length);
-            ms.Read(c, 0, c.Length);
+
+            // These values are copied by Aes and HMACSHA256 which
+            // means they aren't explicitly zeroed unless we do it.
+            // and then cipher.Clear() and mac.Clear() need to be
+            // called once they're no longer in use.
+            byte[] kdf = hasher.GetBytes(cipherLength + ivLength + macLength);
+            byte[] key = kdf.Skip(0).Take(cipherLength).ToArray();
+            byte[] iv = kdf.Skip(cipherLength).Take(ivLength).ToArray();
+            byte[] mackey = kdf.Skip(cipherLength+ivLength).Take(macLength).ToArray();
+
+            cipher = Aes.Create();
+            cipher.Mode = CipherMode.CBC;
+            cipher.Padding = PaddingMode.None;
+            cipher.Key = key;
+            cipher.IV = iv;
+
+            mac = new HMACSHA256(mackey);
+
+            Array.Clear(key, 0, key.Length);
+            Array.Clear(iv, 0, iv.Length);
+            Array.Clear(mackey, 0, mackey.Length);
+            Array.Clear(kdf, 0, kdf.Length);
           }
 
           break;
         default:
           throw new ArgumentOutOfRangeException();
       }
-
-      aesKey = a;
-      iv = b;
-      macKey = c;
     }
 
-    private static void VerifyIntegrity(FileData fileData)
+    private static void VerifyIntegrity(FileData fileData, HashAlgorithm mac)
     {
 
       BlobBuilder builder = new BlobBuilder();
@@ -557,53 +554,7 @@ namespace dlech.SshAgentLib
       }
       builder.AddBytes(fileData.privateKeyBlob.Data);
 
-      byte[] aesKey, iv, macKey;
-      CreateKeyMaterial(fileData, out aesKey, out iv,out macKey);
-
-      byte[] computedHash;
-      HMAC hmac;
-      switch (fileData.ppkFileVersion) {
-        case Version.V1:
-        case Version.V2:
-          SHA1 sha = SHA1.Create();
-          if (fileData.isHMAC) {
-            hmac = HMACSHA1.Create();
-            if (fileData.passphrase != null) {
-              using (PinnedArray<byte> hashData =
-                     new PinnedArray<byte>(cMACKeySalt.Length +
-                                           fileData.passphrase.Length)) {
-                Array.Copy(Encoding.UTF8.GetBytes(cMACKeySalt),
-                  hashData.Data, cMACKeySalt.Length);
-                IntPtr passphrasePtr =
-                  Marshal.SecureStringToGlobalAllocUnicode(fileData.passphrase);
-                for (int i = 0; i < fileData.passphrase.Length; i++) {
-                  int unicodeChar = Marshal.ReadInt16(passphrasePtr + i * 2);
-                  byte ansiChar = Util.UnicodeToAnsi(unicodeChar);
-                  hashData.Data[cMACKeySalt.Length + i] = ansiChar;
-                  Marshal.WriteByte(passphrasePtr, i * 2, 0);
-                }
-                Marshal.ZeroFreeGlobalAllocUnicode(passphrasePtr);
-                hmac.Key = sha.ComputeHash(hashData.Data);
-              }
-            } else {
-              hmac.Key = sha.ComputeHash(Encoding.UTF8.GetBytes(cMACKeySalt));
-            }
-            computedHash = hmac.ComputeHash(builder.GetBlob());
-            hmac.Clear();
-          } else {
-            computedHash = sha.ComputeHash(builder.GetBlob());
-          }
-          sha.Clear();
-          break;
-        case Version.V3:
-          // hmac = HMACSHA256.Create();  // DO NOT USE THIS!!!!!! It will create an HMACSHA1 instance, which is really confusing.
-          hmac = new HMACSHA256(macKey);
-          hmac.Key = macKey;
-          computedHash = hmac.ComputeHash(builder.GetBlob());
-          break;
-        default:
-          throw new ArgumentOutOfRangeException();
-      }
+      byte[] computedHash = mac.ComputeHash(builder.GetBlob());
 
       builder.Clear();
 
