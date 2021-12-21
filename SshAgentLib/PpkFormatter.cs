@@ -383,7 +383,7 @@ namespace dlech.SshAgentLib
         Aes cipher;
         HashAlgorithm mac;
         fileData.passphrase = GetPassphraseCallbackMethod.Invoke(fileData.comment);
-        CreateKeyMaterial(fileData, out cipher, out mac);
+        DeriveKeys(fileData, out cipher, out mac);
 
         DecryptPrivateKey(ref fileData, cipher);
         VerifyIntegrity(fileData, mac);
@@ -430,7 +430,7 @@ namespace dlech.SshAgentLib
       cipher.Clear();
     }
 
-    private static void CreateKeyMaterial(FileData fileData, out Aes cipher, out HashAlgorithm mac)
+    private static void DeriveKeys(FileData fileData, out Aes cipher, out HashAlgorithm mac)
     {
       switch (fileData.ppkFileVersion) {
         case Version.V1:
