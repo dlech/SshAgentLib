@@ -290,12 +290,18 @@ namespace dlech.SshAgentLib
 
       StreamReader reader = new StreamReader(aStream, Encoding.GetEncoding(1252));
 
+      const string regexPositiveInteger="0*([1-9][0-9]{0,8})";
+
       try {
         /* read file version */
         line = reader.ReadLine();
-        m = MatchOrThrow(line, "^"+puttyUserKeyFileKey+"("+cLegalVersions+"): ?(.*)$");
+        m = MatchOrThrow(line, "^"+puttyUserKeyFileKey+regexPositiveInteger+": ?(.*)$");
 
-        fileData.ppkFileVersion = Util.EnumParse<Version>("V"+m.Groups[1].Value);
+        try {
+          fileData.ppkFileVersion = Util.EnumParse<Version>("V"+m.Groups[1].Value);
+        } catch (Exception e) when (e is ArgumentNullException || e is ArgumentException || e is OverflowException) {
+          throw new PpkFormatterException(PpkFormatterException.PpkErrorType.FileVersion, cLegalVersions+" expected");
+        }
         if (fileData.ppkFileVersion == Version.V1) {
           WarnOldFileFormatCallbackMethod?.Invoke();
         }
@@ -320,7 +326,7 @@ namespace dlech.SshAgentLib
         /* read public key */
         line = reader.ReadLine();
         // match 1 <= N < 100000 and throw away leading zeros
-        m = MatchOrThrow(line, "^"+publicKeyLinesKey+": 0*([1-9][0-9]{0,4})$");
+        m = MatchOrThrow(line, "^"+publicKeyLinesKey+": "+regexPositiveInteger+"$");
 
         lineCount = int.Parse(m.Groups[1].Value);
         string publicKeyString = string.Join("", from v in Enumerable.Range(0, lineCount) select reader.ReadLine());
@@ -339,7 +345,7 @@ namespace dlech.SshAgentLib
           if (kdfName.StartsWith("Argon2")) {
             foreach (var paramKey in new[]{argonMemoryKey, argonPassesKey, argonParallelismKey}) {
               line = reader.ReadLine();
-              m = MatchOrThrow(line, "^("+paramKey+"): 0*([1-9][0-9]{0,8})$");
+              m = MatchOrThrow(line, "^("+paramKey+"): "+regexPositiveInteger+"$");
               fileData.kdfParameters[m.Groups[1].Value] = int.Parse(m.Groups[2].Value);
             }
 
@@ -357,7 +363,7 @@ namespace dlech.SshAgentLib
         /* read private key */
         line = reader.ReadLine();
         // match 1 <= N < 100000 and throw away leading zeros
-        m = MatchOrThrow(line, "^"+privateKeyLinesKey+": 0*([1-9][0-9]{0,4})$");
+        m = MatchOrThrow(line, "^"+privateKeyLinesKey+": "+regexPositiveInteger+"$");
         lineCount = int.Parse(m.Groups[1].Value);
         string privateKeyString = string.Join("", from v in Enumerable.Range(0, lineCount) select reader.ReadLine());
         fileData.privateKeyBlob = new PinnedArray<byte>(Util.FromBase64(privateKeyString));
@@ -382,7 +388,8 @@ namespace dlech.SshAgentLib
 
         Aes cipher;
         HashAlgorithm mac;
-        fileData.passphrase = GetPassphraseCallbackMethod.Invoke(fileData.comment);
+        if (GetPassphraseCallbackMethod == null && fileData.privateKeyAlgorithm != PrivateKeyAlgorithm.None) throw new CallbackNullException();
+        fileData.passphrase = GetPassphraseCallbackMethod?.Invoke(fileData.comment);
         DeriveKeys(fileData, out cipher, out mac);
 
         DecryptPrivateKey(ref fileData, cipher);
