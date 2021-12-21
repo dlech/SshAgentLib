@@ -334,7 +334,7 @@ namespace dlech.SshAgentLib
           string kdfName = Enum.GetName(typeof(KeyDerivation), fileData.kdfAlgorithm);
           fileData.kdfParameters = new Dictionary<string, object>();
           if (kdfName.StartsWith("Argon2")) {
-            foreach (var paramKey in new string[]{argonMemoryKey, argonPassesKey, argonParallelismKey}) {
+            foreach (var paramKey in new[]{argonMemoryKey, argonPassesKey, argonParallelismKey}) {
               line = reader.ReadLine();
               m = MatchOrThrow(line, "^("+paramKey+"): 0*([1-9][0-9]{0,8})$");
               fileData.kdfParameters[m.Groups[1].Value] = int.Parse(m.Groups[2].Value);
@@ -481,7 +481,6 @@ namespace dlech.SshAgentLib
                 if (hash0 != null) Array.Clear(hash0, 0, hash0.Length);
                 if (hash1 != null) Array.Clear(hash1, 0, hash0.Length);
                 Array.Clear(hashInput, 0, hashInput.Length);
-                sha.Clear();
               }
             }
           }
@@ -494,21 +493,22 @@ namespace dlech.SshAgentLib
           /* begin mac key */
 
           using (var passphrase = fileData.passphrase.ToAnsiArray()) {
-            byte[] tmp = null;
-            try {
-              tmp = Encoding.UTF8.GetBytes(cMACKeySalt).Concat(passphrase!=null ? passphrase.Data : Array.Empty<byte>()).ToArray();
-              sha.Initialize();
-              c = sha.ComputeHash(tmp);
-            }
-            finally {
-              if (tmp != null) Array.Clear(tmp, 0, tmp.Length);
-            }
+            byte[] tmp = Encoding.UTF8.GetBytes(cMACKeySalt).Concat(passphrase!=null ? passphrase.Data : Array.Empty<byte>()).ToArray();
+            sha.Initialize();
+            c = sha.ComputeHash(tmp);
+            if (tmp != null) Array.Clear(tmp, 0, tmp.Length);
           }
           /* end mac key */
 
+          sha.Clear();
           break;
         case Version.V3:
-
+          if (fileData.passphrase == null) {
+            a = null;
+            b = null;
+            c = Array.Empty<byte>();
+            break;
+          }
           using (var passphrase = fileData.passphrase.ToAnsiArray()) {
             Argon2 hasher;
             switch (fileData.kdfAlgorithm) {
@@ -532,7 +532,7 @@ namespace dlech.SshAgentLib
             ms.Read(a, 0, a.Length);
             ms.Read(b, 0, b.Length);
             ms.Read(c, 0, c.Length);
-          };
+          }
 
           break;
         default:
@@ -557,36 +557,54 @@ namespace dlech.SshAgentLib
       }
       builder.AddBytes(fileData.privateKeyBlob.Data);
 
+      byte[] aesKey, iv, macKey;
+      CreateKeyMaterial(fileData, out aesKey, out iv,out macKey);
+
       byte[] computedHash;
-      SHA1 sha = SHA1.Create();
-      if (fileData.isHMAC) {
-        HMAC hmac = HMACSHA1.Create();
-        if (fileData.passphrase != null) {
-          using (PinnedArray<byte> hashData =
-                 new PinnedArray<byte>(cMACKeySalt.Length +
-                   fileData.passphrase.Length)) {
-            Array.Copy(Encoding.UTF8.GetBytes(cMACKeySalt),
-                       hashData.Data, cMACKeySalt.Length);
-            IntPtr passphrasePtr =
-              Marshal.SecureStringToGlobalAllocUnicode(fileData.passphrase);
-            for (int i = 0; i < fileData.passphrase.Length; i++) {
-              int unicodeChar = Marshal.ReadInt16(passphrasePtr + i * 2);
-              byte ansiChar = Util.UnicodeToAnsi(unicodeChar);
-              hashData.Data[cMACKeySalt.Length + i] = ansiChar;
-              Marshal.WriteByte(passphrasePtr, i * 2, 0);
+      HMAC hmac;
+      switch (fileData.ppkFileVersion) {
+        case Version.V1:
+        case Version.V2:
+          SHA1 sha = SHA1.Create();
+          if (fileData.isHMAC) {
+            hmac = HMACSHA1.Create();
+            if (fileData.passphrase != null) {
+              using (PinnedArray<byte> hashData =
+                     new PinnedArray<byte>(cMACKeySalt.Length +
+                                           fileData.passphrase.Length)) {
+                Array.Copy(Encoding.UTF8.GetBytes(cMACKeySalt),
+                  hashData.Data, cMACKeySalt.Length);
+                IntPtr passphrasePtr =
+                  Marshal.SecureStringToGlobalAllocUnicode(fileData.passphrase);
+                for (int i = 0; i < fileData.passphrase.Length; i++) {
+                  int unicodeChar = Marshal.ReadInt16(passphrasePtr + i * 2);
+                  byte ansiChar = Util.UnicodeToAnsi(unicodeChar);
+                  hashData.Data[cMACKeySalt.Length + i] = ansiChar;
+                  Marshal.WriteByte(passphrasePtr, i * 2, 0);
+                }
+                Marshal.ZeroFreeGlobalAllocUnicode(passphrasePtr);
+                hmac.Key = sha.ComputeHash(hashData.Data);
+              }
+            } else {
+              hmac.Key = sha.ComputeHash(Encoding.UTF8.GetBytes(cMACKeySalt));
             }
-            Marshal.ZeroFreeGlobalAllocUnicode(passphrasePtr);
-            hmac.Key = sha.ComputeHash(hashData.Data);
+            computedHash = hmac.ComputeHash(builder.GetBlob());
+            hmac.Clear();
+          } else {
+            computedHash = sha.ComputeHash(builder.GetBlob());
           }
-        } else {
-          hmac.Key = sha.ComputeHash(Encoding.UTF8.GetBytes(cMACKeySalt));
-        }
-        computedHash = hmac.ComputeHash(builder.GetBlob());
-        hmac.Clear();
-      } else {
-        computedHash = sha.ComputeHash(builder.GetBlob());
+          sha.Clear();
+          break;
+        case Version.V3:
+          // hmac = HMACSHA256.Create();  // DO NOT USE THIS!!!!!! It will create an HMACSHA1 instance, which is really confusing.
+          hmac = new HMACSHA256(macKey);
+          hmac.Key = macKey;
+          computedHash = hmac.ComputeHash(builder.GetBlob());
+          break;
+        default:
+          throw new ArgumentOutOfRangeException();
       }
-      sha.Clear();
+
       builder.Clear();
 
       try {
