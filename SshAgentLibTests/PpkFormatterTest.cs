@@ -470,6 +470,21 @@ namespace dlech.SshAgentLibTests
       Assert.NotNull(target);
       Assert.IsInstanceOf<SshKey>(target);
     }
+
+    [Test]
+    public void Ppkv3FileParseDataNonAsciiPassphraseTest()
+    {
+      ISshKey target;
+      // const string passphrase = "PageantSharp";
+      const string passphrase = "Ŧéşť";
+
+      PpkFormatter formatter = new PpkFormatter();
+      formatter.GetPassphraseCallbackMethod = GetPassphrase(passphrase);
+      var path = Path.Combine(DllDirectory, "../../Resources/ssh2-rsa-v3-non-ascii-passphrase.ppk");
+      target = formatter.DeserializeFile(path);
+      Assert.NotNull(target);
+      Assert.IsInstanceOf<SshKey>(target);
+    }
   }
 }
 
