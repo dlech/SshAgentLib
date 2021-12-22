@@ -147,20 +147,18 @@ namespace dlech.SshAgentLib
     /// </exception>
     public static KeyFormatter GetFormatter (string firstLine)
     {
-      // PuTTY Private key format
-      var ppkRegex = new Regex (PpkFormatter.puttyUserKeyFileKey+"("+PpkFormatter.cLegalVersions+")");
       // OpenSSH private key format
       var pemPrivateKeyRegex = new Regex ("-----BEGIN .* PRIVATE KEY-----");
 
-      if (!string.IsNullOrWhiteSpace (firstLine)) {
-        if (ppkRegex.IsMatch (firstLine)) {
+      if (!string.IsNullOrWhiteSpace(firstLine)) {
+        if (PpkFormatter.rePuttyUserKeyFile.IsMatch(firstLine)) {
           return new PpkFormatter();
         } else if (OpensshPrivateKeyFormatter.MARK_BEGIN == firstLine) {
           return new OpensshPrivateKeyFormatter();
         } else if (pemPrivateKeyRegex.IsMatch(firstLine)) {
-          return new PemKeyFormatter ();
+          return new PemKeyFormatter();
         } else if (Ssh1KeyFormatter.FILE_HEADER_LINE == firstLine) {
-          return new Ssh1KeyFormatter ();
+          return new Ssh1KeyFormatter();
         }
       }
       throw new KeyFormatterException ("Unknown file format");

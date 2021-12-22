@@ -46,7 +46,7 @@ namespace dlech.SshAgentLib
   /// </summary>
   public class PpkFormatter : KeyFormatter
   {
-    public static readonly string cLegalVersions = Util.EnumJoin<Version>("|").Replace("V", "");
+    public static readonly string cLegalVersions = Util.EnumJoin<Version>("|", v => v.Substring(1));
 
     #region -- Constants --
 
@@ -55,82 +55,83 @@ namespace dlech.SshAgentLib
     private const string cMACKeySalt = "putty-private-key-file-mac-key";
     internal const string ALGORITHM_NONE = "none";
     internal const string ALGORITHM_AES256_CBC = "aes256-cbc";
+    private const int cipherLength = 32;
+    private const int ivLength = 16;
+    private const int macLength = 32;
+
+    public static readonly Regex rePositiveInteger = new Regex("0*([1-9][0-9]{0,8})");
+    public static readonly Regex reHex = new Regex("([0-9a-fA-F]*)");
 
     /// <summary>
     /// Key that identifies the file version and the public key algorithm
     /// It is the first thing in the file, so it can also be used as a signature
     /// for a quick and dirty file format test.
     /// </summary>
-    public const string puttyUserKeyFileKey = "PuTTY-User-Key-File-";
+    public static readonly Regex rePuttyUserKeyFile = new Regex("^PuTTY-User-Key-File-"+rePositiveInteger+": ?(.*)$");
 
     /// <summary>
     /// Key that indicates the line containing the private key encryption algorithm
     /// </summary>
-    private const string privateKeyEncryptionKey = "Encryption";
-
-    private const int cipherLength = 32;
-    private const int ivLength = 16;
-    private const int macLength = 32;
+    private static readonly Regex rePrivateKeyEncryption = new Regex("^Encryption: (.*)$");
 
     /// <summary>
     /// Key that indicates the line containing the user comment
     /// </summary>
-    private const string commentKey = "Comment";
+    private static readonly Regex reComment = new Regex("^Comment: (.*)$");
 
     /// <summary>
     /// Key that indicates that the public key follows on the next line
     /// and the length of the key in lines
     /// </summary>
-    private const string publicKeyLinesKey = "Public-Lines";
+    private static readonly Regex rePublicKeyLines = new Regex("^Public-Lines: "+rePositiveInteger+"$");
 
     /// <summary>
     /// Key that indicates the key derivation algorithm
     /// </summary>
-    private const string keyDeriviationKey = "Key-Derivation";
+    private static readonly Regex reKeyDeriviation = new Regex("^Key-Derivation: (.*)$");
 
     /// <summary>
     /// Argon2 memory
     /// </summary>
-    private const string argonMemoryKey = "Argon2-Memory";
+    private const string keyArgonMemory = "Argon2-Memory";
+    private static readonly Regex reArgonMemory = new Regex("^("+keyArgonMemory+"): "+rePositiveInteger+"$");
 
     /// <summary>
     /// Argon2 iterations
     /// </summary>
-    private const string argonPassesKey = "Argon2-Passes";
+    private const string keyArgonPasses = "Argon2-Passes";
+    private static readonly Regex reArgonPasses = new Regex("^("+keyArgonPasses+"): "+rePositiveInteger+"$");
 
     /// <summary>
     /// Argon2 parallelism
     /// </summary>
-    private const string argonParallelismKey = "Argon2-Parallelism";
+    private const string keyArgonParallelism = "Argon2-Parallelism";
+    private static readonly Regex reArgonParallelism = new Regex("^("+keyArgonParallelism+"): "+rePositiveInteger+"$");
 
     /// <summary>
     /// Argon2 salt represented as a hex encoded byte[] is the ppk file
     /// </summary>
-    private const string argonSaltKey = "Argon2-Salt";
+    private const string keyArgonSalt = "Argon2-Salt";
+    private static readonly Regex reArgonSalt = new Regex("^("+keyArgonSalt+"): "+reHex+"$");
 
 
     /// <summary>
     /// Key that indicates that the private key follows on the next line
     /// and the length of the key in lines
     /// </summary>
-    private const string privateKeyLinesKey = "Private-Lines";
+    private static readonly Regex rePrivateKeyLines = new Regex("^Private-Lines: "+rePositiveInteger+"$");
 
-    /// <summary>
-    /// Key that indicates that the line contains the hash of the private key
-    /// (version 2 file format only)
-    /// </summary>
-    private const string privateMACKey = "Private-MAC";
+    // /// <summary>
+    // /// Key that indicates that the line contains the hash of the private key
+    // /// (version 2 file format only)
+    // /// </summary>
+    private static readonly Regex rePrivateMACorHash = new Regex("^(Private-MAC|Private-Hash): "+reHex+"$");
 
-    /// <summary>
-    /// Key that indicates that the line contains the hash of the private key
-    /// (version 1 file format only)
-    /// </summary>
-    private const string privateHashKey = "Private-Hash";
-
-    /// <summary>
-    /// The delimiter used by the file
-    /// </summary>
-    private const char cDelimeter = ':';
+    // /// <summary>
+    // /// Key that indicates that the line contains the hash of the private key
+    // /// (version 1 file format only)
+    // /// </summary>
+    // private const string rePrivateHash = "Private-Hash";
 
     #endregion -- Constants --
 
@@ -290,12 +291,10 @@ namespace dlech.SshAgentLib
 
       StreamReader reader = new StreamReader(aStream, Encoding.GetEncoding(1252));
 
-      const string regexPositiveInteger="0*([1-9][0-9]{0,8})";
-
       try {
         /* read file version */
         line = reader.ReadLine();
-        m = MatchOrThrow(line, "^"+puttyUserKeyFileKey+regexPositiveInteger+": ?(.*)$");
+        m = MatchOrThrow(rePuttyUserKeyFile, line);
 
         try {
           fileData.ppkFileVersion = Util.EnumParse<Version>("V"+m.Groups[1].Value);
@@ -313,20 +312,20 @@ namespace dlech.SshAgentLib
 
         /* read private key encryption algorithm type */
         line = reader.ReadLine();
-        m = MatchOrThrow(line, "^"+privateKeyEncryptionKey+": ?(.*)$");
+        m = MatchOrThrow(rePrivateKeyEncryption, line);
         if (!m.Groups[1].Value.TryParsePrivateKeyAlgorithm(ref fileData.privateKeyAlgorithm)) {
           throw new PpkFormatterException(PpkFormatterException.PpkErrorType.PrivateKeyEncryption);
         }
 
         /* read comment */
         line = reader.ReadLine();
-        m = MatchOrThrow(line, "^"+commentKey+": ?(.*)$");
+        m = MatchOrThrow(reComment, line);
         fileData.comment = m.Groups[1].Value;
 
         /* read public key */
         line = reader.ReadLine();
         // match 1 <= N < 100000 and throw away leading zeros
-        m = MatchOrThrow(line, "^"+publicKeyLinesKey+": "+regexPositiveInteger+"$");
+        m = MatchOrThrow(rePublicKeyLines, line);
 
         lineCount = int.Parse(m.Groups[1].Value);
         string publicKeyString = string.Join("", from v in Enumerable.Range(0, lineCount) select reader.ReadLine());
@@ -335,22 +334,25 @@ namespace dlech.SshAgentLib
         /* key derivation function */
         if (fileData.privateKeyAlgorithm != PrivateKeyAlgorithm.None && fileData.ppkFileVersion >= Version.V3) {
           line = reader.ReadLine();
-          string legal = Util.EnumJoin<KeyDerivation>("|");
-          m = MatchOrThrow(line, "^"+keyDeriviationKey+": ?("+legal+")$");
+          m = MatchOrThrow(reKeyDeriviation, line);
 
-          fileData.kdfAlgorithm = Util.EnumParse<KeyDerivation>(m.Groups[1].Value);
+          try {
+            fileData.kdfAlgorithm = Util.EnumParse<KeyDerivation>(m.Groups[1].Value);
+          } catch (Exception e) when (e is ArgumentException || e is OverflowException) {
+            throw new PpkFormatterException(PpkFormatterException.PpkErrorType.FileFormat, "invalid kdf algorithm");
+          }
 
           string kdfName = Enum.GetName(typeof(KeyDerivation), fileData.kdfAlgorithm);
           fileData.kdfParameters = new Dictionary<string, object>();
           if (kdfName.StartsWith("Argon2")) {
-            foreach (var paramKey in new[]{argonMemoryKey, argonPassesKey, argonParallelismKey}) {
+            foreach (var re in new[]{reArgonMemory, reArgonPasses, reArgonParallelism}) {
               line = reader.ReadLine();
-              m = MatchOrThrow(line, "^("+paramKey+"): "+regexPositiveInteger+"$");
+              m = MatchOrThrow(re, line);
               fileData.kdfParameters[m.Groups[1].Value] = int.Parse(m.Groups[2].Value);
             }
 
             line = reader.ReadLine();
-            m = MatchOrThrow(line, "^("+argonSaltKey+"): ([0-9a-fA-F]+)$");
+            m = MatchOrThrow(reArgonSalt, line);
             fileData.kdfParameters[m.Groups[1].Value] = Util.FromHex(m.Groups[2].Value);
           }
           else {
@@ -362,20 +364,19 @@ namespace dlech.SshAgentLib
 
         /* read private key */
         line = reader.ReadLine();
-        // match 1 <= N < 100000 and throw away leading zeros
-        m = MatchOrThrow(line, "^"+privateKeyLinesKey+": "+regexPositiveInteger+"$");
+        m = MatchOrThrow(rePrivateKeyLines, line);
         lineCount = int.Parse(m.Groups[1].Value);
         string privateKeyString = string.Join("", from v in Enumerable.Range(0, lineCount) select reader.ReadLine());
         fileData.privateKeyBlob = new PinnedArray<byte>(Util.FromBase64(privateKeyString));
 
         /* read MAC */
         line = reader.ReadLine();
-        m = MatchOrThrow(line, "^("+privateMACKey+"|"+privateHashKey+"): ?([0-9a-fA-F]+)$");
-        if (m.Groups[1].Value != privateMACKey) {
+        m = MatchOrThrow(rePrivateMACorHash, line);
+        if (!m.Groups[1].Value.EndsWith("MAC")) {
           fileData.isHMAC = false;
-          if (m.Groups[1].Value != privateHashKey || fileData.ppkFileVersion != Version.V1) {
+          if (m.Groups[1].Value.EndsWith("Hash") || fileData.ppkFileVersion != Version.V1) {
             throw new PpkFormatterException(PpkFormatterException.PpkErrorType.FileFormat,
-                                            privateMACKey + " expected");
+                                            rePrivateMACorHash + " expected");
           }
         } else {
           fileData.isHMAC = true;
@@ -494,7 +495,7 @@ namespace dlech.SshAgentLib
           sha.Clear();
           break;
         case Version.V3:
-          if (fileData.passphrase == null) {
+          if (fileData.passphrase == null || fileData.privateKeyAlgorithm == PrivateKeyAlgorithm.None) {
             cipher = null;
             mac = new HMACSHA256(Array.Empty<byte>());
             break;
@@ -514,10 +515,10 @@ namespace dlech.SshAgentLib
               default:
                 throw new ArgumentOutOfRangeException();
             }
-            hasher.MemorySize = (int) fileData.kdfParameters[argonMemoryKey];
-            hasher.Iterations = (int) fileData.kdfParameters[argonPassesKey];
-            hasher.DegreeOfParallelism = (int) fileData.kdfParameters[argonParallelismKey];
-            hasher.Salt = (byte[]) fileData.kdfParameters[argonSaltKey];
+            hasher.MemorySize = (int) fileData.kdfParameters[keyArgonMemory];
+            hasher.Iterations = (int) fileData.kdfParameters[keyArgonPasses];
+            hasher.DegreeOfParallelism = (int) fileData.kdfParameters[keyArgonParallelism];
+            hasher.Salt = (byte[]) fileData.kdfParameters[keyArgonSalt];
 
             // These values are copied by Aes and HMACSHA256 which
             // means they aren't explicitly zeroed unless we do it.
@@ -585,9 +586,9 @@ namespace dlech.SshAgentLib
       }
     }
 
-    private static Match MatchOrThrow(string line, string regex)
+    private static Match MatchOrThrow(Regex regex, string line)
     {
-      Match m = Regex.Match(line, regex);
+      Match m = regex.Match(line);
       if (!m.Success)
         throw new PpkFormatterException(
           PpkFormatterException.PpkErrorType.FileFormat, regex + " expected");

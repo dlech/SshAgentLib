@@ -61,9 +61,10 @@ namespace dlech.SshAgentLib
       return Enum.GetName(value.GetType(), value);
     }
 
-    public static string EnumJoin<T>(string separator)
+    public static string EnumJoin<T>(string separator, Func<string, string> transform = null)
     {
-      return string.Join(separator, Enum.GetNames(typeof(T)));
+      if (transform == null) return string.Join(separator, Enum.GetNames(typeof(T)));
+      return string.Join(separator, from text in Enum.GetNames(typeof(T)) select transform.Invoke(text));
     }
 
     public static T EnumParse<T>(string value)
@@ -90,6 +91,32 @@ namespace dlech.SshAgentLib
       Marshal.ZeroFreeGlobalAllocUnicode(ptr);
 
       return pw;
+    }
+
+    public static string GenerateString(this Regex re, params string[] sub)
+    {
+      string reg = re.ToString();
+      if (reg.StartsWith("^")) reg = reg.Substring(1);
+      if (reg.EndsWith("$")) reg = reg.Substring(0, reg.Length - 1);
+
+      // if (!Regex.Match(reg, @"^(\(|\)\[^()])*\(([^()]*\)[^()]*)*$").Success)
+      if (!Regex.Match(reg, @"^[^()]*\(([^()]*\)[^()]*)*$").Success)
+        throw new ArgumentException("regex too complex");
+      MatchCollection mc = Regex.Matches(reg, @"\([^()]*\)");
+      if (mc == null) throw new ArgumentException("regex too complex");
+      if (mc.Count != sub.Length) throw new ArgumentException("the number of substitutes must match the number of capture groups");
+      if (mc.Count == 0) return reg;
+
+      StringBuilder sb = new StringBuilder();
+      int off = 0;
+      for (int i = 0; i < mc.Count; i++) {
+        sb.Append(reg.Substring(off, mc[i].Index-off));
+        sb.Append(sub[i]);
+        off = mc[i].Index + mc[i].Length;
+      }
+      sb.Append(reg.Substring(off, reg.Length-off));
+
+      return sb.ToString();
     }
 
 
@@ -1803,6 +1830,15 @@ namespace dlech.SshAgentLib
         }
         return assemblyTitle;
       }
+    }
+
+    public static Match RegexMatchReplace(Regex re, Match m, int group, string replacement)
+    {
+      string input = m.Groups[0].Value;
+      string before = input.Substring(0, m.Groups[group].Index);
+      string after = input.Substring(m.Groups[group].Index + m.Groups[group].Length);
+
+      return re.Match(before+replacement+after);
     }
   }
 }
