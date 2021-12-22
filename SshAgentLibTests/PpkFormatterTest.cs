@@ -34,6 +34,8 @@ using NUnit.Framework;
 using Org.BouncyCastle.Crypto.Parameters;
 using Org.BouncyCastle.Math;
 using System.Reflection;
+using System.Runtime.Remoting;
+using System.Text.RegularExpressions;
 
 namespace dlech.SshAgentLibTests
 {
@@ -51,6 +53,17 @@ namespace dlech.SshAgentLibTests
         return Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location);
       }
     }
+
+    public static Func<string, KeyFormatter.GetPassphraseCallback> GetPassphrase = (password) => {
+      return (comment) => {
+        SecureString result = new SecureString();
+        foreach (char c in password) {
+          result.AppendChar(c);
+        }
+
+        return result;
+      };
+    };
 
     /// <summary>
     ///A test for Deserialize .ppk file with non-ascii chars in passphrase
@@ -203,7 +216,7 @@ namespace dlech.SshAgentLibTests
         return result;
       };
 
-      int expectedKeySize = 1024; // all test keys     
+      int expectedKeySize = 1024; // all test keys
 
       //      string expectedSsh2RsaPublicKeyAlgorithm = PpkFile.PublicKeyAlgorithms.ssh_rsa;
       //      string expectedSsh2RsaWithoutPassPublicKeyString =
@@ -247,7 +260,7 @@ namespace dlech.SshAgentLibTests
       //      string expectedSsh2DsaPrivateKey = "AAAAFQCMF35lBnFwFWyl40y0wTf4lfdhNQ==";
 
       PpkFormatter formatter = new PpkFormatter();
-      
+
       /* test for successful method call */
       formatter.GetPassphraseCallbackMethod = getPassphrase;
       formatter.WarnOldFileFormatCallbackMethod = warnOldFileNotExpected;
@@ -264,10 +277,10 @@ namespace dlech.SshAgentLibTests
       byte[] modifiedFileContents;
       MemoryStream modifiedFileContentsStream;
       withoutPassFileContents = Encoding.UTF8.GetString(fileData);
-     
+
       /* test bad file version */
       modifiedFileContents =
-        Encoding.UTF8.GetBytes(withoutPassFileContents.Replace("2", "3"));
+        Encoding.UTF8.GetBytes(withoutPassFileContents.Replace("2", "9"));
       modifiedFileContentsStream = new MemoryStream(modifiedFileContents);
       formatter.GetPassphraseCallbackMethod = null;
       formatter.WarnOldFileFormatCallbackMethod = warnOldFileNotExpected;
@@ -428,6 +441,34 @@ namespace dlech.SshAgentLibTests
         Assert.That(target.GetMD5Fingerprint().ToHexString(), Is.EqualTo(fps[i]));
         Assert.That(target.Comment, Is.EqualTo(comments[i]));
       }
+    }
+
+    [Test]
+    public void Ppkv3FileParseDataWithPassphraseTest()
+    {
+      ISshKey target;
+      const string passphrase = "PageantSharp";
+
+      PpkFormatter formatter = new PpkFormatter();
+      formatter.GetPassphraseCallbackMethod = GetPassphrase(passphrase);
+      var path = Path.Combine(DllDirectory, "../../Resources/ssh2-rsa-v3.ppk");
+      target = formatter.DeserializeFile(path);
+      Assert.NotNull(target);
+      Assert.IsInstanceOf<SshKey>(target);
+    }
+
+    [Test]
+    public void Ppkv3FileParseDataNoPassphraseTest()
+    {
+      ISshKey target;
+      const string passphrase = "PageantSharp";
+
+      PpkFormatter formatter = new PpkFormatter();
+      formatter.GetPassphraseCallbackMethod = GetPassphrase(passphrase);
+      var path = Path.Combine(DllDirectory, "../../Resources/ssh2-rsa-v3-no-passphrase.ppk");
+      target = formatter.DeserializeFile(path);
+      Assert.NotNull(target);
+      Assert.IsInstanceOf<SshKey>(target);
     }
   }
 }
