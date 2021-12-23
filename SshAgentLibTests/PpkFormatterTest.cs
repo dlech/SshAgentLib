@@ -54,7 +54,14 @@ namespace dlech.SshAgentLibTests
       }
     }
 
+    public const string passphraseGood = "PageantSharp";
+    public const string passphraseBad = "badword";
+    public const string passphraseNonAscii = "Ŧéşť";
+    public const string passphraseEmpty = "";
+    public const string passphraseNull = null;
+
     public static Func<string, KeyFormatter.GetPassphraseCallback> GetPassphrase = (password) => {
+      if (password == null) return (comment) => { return null; };
       return (comment) => {
         SecureString result = new SecureString();
         foreach (char c in password) {
@@ -78,15 +85,7 @@ namespace dlech.SshAgentLibTests
         Assert.Fail("Warn old file format was not expected");
       };
 
-      string passphrase = "Ŧéşť";
-      formatter.GetPassphraseCallbackMethod = delegate(string comment)
-      {
-        SecureString result = new SecureString();
-        foreach (char c in passphrase) {
-          result.AppendChar(c);
-        }
-        return result;
-      };
+      formatter.GetPassphraseCallbackMethod = GetPassphrase(passphraseNonAscii);
 
       string expectedComment = "rsa-key-20120818";
 
@@ -196,15 +195,15 @@ namespace dlech.SshAgentLibTests
         warnCallbackCalled = true;
       };
 
-      string passphrase = "PageantSharp";
-      PpkFormatter.GetPassphraseCallback getPassphrase = delegate(string comment)
-      {
-        SecureString result = new SecureString();
-        foreach (char c in passphrase) {
-          result.AppendChar(c);
-        }
-        return result;
-      };
+      // string passphrase = "PageantSharp";
+      // PpkFormatter.GetPassphraseCallback getPassphrase = delegate(string comment)
+      // {
+      //   SecureString result = new SecureString();
+      //   foreach (char c in passphrase) {
+      //     result.AppendChar(c);
+      //   }
+      //   return result;
+      // };
 
 
       PpkFormatter.GetPassphraseCallback getBadPassphrase = delegate(string comment)
@@ -262,7 +261,7 @@ namespace dlech.SshAgentLibTests
       PpkFormatter formatter = new PpkFormatter();
 
       /* test for successful method call */
-      formatter.GetPassphraseCallbackMethod = getPassphrase;
+      formatter.GetPassphraseCallbackMethod = GetPassphrase(passphraseGood);
       formatter.WarnOldFileFormatCallbackMethod = warnOldFileNotExpected;
       var path = Path.Combine(DllDirectory, "../../Resources/ssh2-rsa.ppk");
       target = formatter.DeserializeFile(path);
@@ -352,7 +351,7 @@ namespace dlech.SshAgentLibTests
       path = Path.Combine(DllDirectory, "../../Resources/ssh2-rsa.ppk");
       fileData = File.ReadAllBytes(path);
       modifiedFileContentsStream = new MemoryStream(fileData);
-      formatter.GetPassphraseCallbackMethod = getBadPassphrase;
+      formatter.GetPassphraseCallbackMethod = GetPassphrase(passphraseBad);
       formatter.WarnOldFileFormatCallbackMethod = warnOldFileNotExpected;
       try {
         target = (ISshKey)formatter.Deserialize(modifiedFileContentsStream);
@@ -398,7 +397,7 @@ namespace dlech.SshAgentLibTests
       path = Path.Combine(DllDirectory, "../../Resources/ssh2-dsa.ppk");
       fileData = File.ReadAllBytes(path);
       modifiedFileContentsStream = new MemoryStream(fileData);
-      formatter.GetPassphraseCallbackMethod = getPassphrase;
+      formatter.GetPassphraseCallbackMethod = GetPassphrase(passphraseGood);
       formatter.WarnOldFileFormatCallbackMethod = warnOldFileNotExpected;
       target = (ISshKey)formatter.Deserialize(modifiedFileContentsStream);
       Assert.AreEqual(expectedSsh2DsaWithPassComment, target.Comment);
@@ -431,7 +430,7 @@ namespace dlech.SshAgentLibTests
         "PageantSharp ssh2-ed25519, with passphrase", "PageantSharp ssh2-ed25519, no passphrase"
       };
       int[] sizes = { 256, 256, 384, 384, 521, 521, 256, 256 };
-      formatter.GetPassphraseCallbackMethod = getPassphrase;
+      formatter.GetPassphraseCallbackMethod = GetPassphrase(passphraseGood);
       formatter.WarnOldFileFormatCallbackMethod = warnOldFileNotExpected;
       for (int i = 0; i < keys.Length; ++i) {
         path = Path.Combine(DllDirectory, keys[i]);
@@ -447,10 +446,9 @@ namespace dlech.SshAgentLibTests
     public void Ppkv3FileParseDataWithPassphraseTest()
     {
       ISshKey target;
-      const string passphrase = "PageantSharp";
 
       PpkFormatter formatter = new PpkFormatter();
-      formatter.GetPassphraseCallbackMethod = GetPassphrase(passphrase);
+      formatter.GetPassphraseCallbackMethod = GetPassphrase(passphraseGood);
       var path = Path.Combine(DllDirectory, "../../Resources/ssh2-rsa-v3.ppk");
       target = formatter.DeserializeFile(path);
       Assert.NotNull(target);
@@ -458,13 +456,25 @@ namespace dlech.SshAgentLibTests
     }
 
     [Test]
-    public void Ppkv3FileParseDataNoPassphraseTest()
+    public void Ppkv3FileParseDataNullPassphraseTest()
     {
       ISshKey target;
-      const string passphrase = "PageantSharp";
 
       PpkFormatter formatter = new PpkFormatter();
-      formatter.GetPassphraseCallbackMethod = GetPassphrase(passphrase);
+      formatter.GetPassphraseCallbackMethod = GetPassphrase(passphraseNull);
+      var path = Path.Combine(DllDirectory, "../../Resources/ssh2-rsa-v3-no-passphrase.ppk");
+      target = formatter.DeserializeFile(path);
+      Assert.NotNull(target);
+      Assert.IsInstanceOf<SshKey>(target);
+    }
+
+    [Test]
+    public void Ppkv3FileParseDataEmptyPassphraseTest()
+    {
+      ISshKey target;
+
+      PpkFormatter formatter = new PpkFormatter();
+      formatter.GetPassphraseCallbackMethod = GetPassphrase(passphraseEmpty);
       var path = Path.Combine(DllDirectory, "../../Resources/ssh2-rsa-v3-no-passphrase.ppk");
       target = formatter.DeserializeFile(path);
       Assert.NotNull(target);
@@ -475,11 +485,9 @@ namespace dlech.SshAgentLibTests
     public void Ppkv3FileParseDataNonAsciiPassphraseTest()
     {
       ISshKey target;
-      // const string passphrase = "PageantSharp";
-      const string passphrase = "Ŧéşť";
 
       PpkFormatter formatter = new PpkFormatter();
-      formatter.GetPassphraseCallbackMethod = GetPassphrase(passphrase);
+      formatter.GetPassphraseCallbackMethod = GetPassphrase(passphraseNonAscii);
       var path = Path.Combine(DllDirectory, "../../Resources/ssh2-rsa-v3-non-ascii-passphrase.ppk");
       target = formatter.DeserializeFile(path);
       Assert.NotNull(target);
