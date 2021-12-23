@@ -310,6 +310,18 @@ namespace dlech.SshAgentLib
           throw new PpkFormatterException(PpkFormatterException.PpkErrorType.PublicKeyEncryption);
         }
 
+        SecureString tmp = GetPassphraseCallbackMethod?.Invoke(fileData.comment);
+        if (fileData.privateKeyAlgorithm == PrivateKeyAlgorithm.None && tmp != null)
+          throw new PpkFormatterException(PpkFormatterException.PpkErrorType.NotEncrypted,
+            "Remove the passphrase or encrypt the private key");
+        if (fileData.privateKeyAlgorithm != PrivateKeyAlgorithm.None) {
+          if (GetPassphraseCallbackMethod == null) throw new CallbackNullException();
+          if (tmp == null)
+            throw new PpkFormatterException(PpkFormatterException.PpkErrorType.MissingPassphrase,
+            "No passphrase for encrypted private key");
+        }
+        fileData.passphrase = tmp;
+
         /* read private key encryption algorithm type */
         line = reader.ReadLine();
         m = MatchOrThrow(rePrivateKeyEncryption, line);
@@ -389,8 +401,6 @@ namespace dlech.SshAgentLib
 
         Aes cipher;
         HashAlgorithm mac;
-        if (GetPassphraseCallbackMethod == null && fileData.privateKeyAlgorithm != PrivateKeyAlgorithm.None) throw new CallbackNullException();
-        fileData.passphrase = GetPassphraseCallbackMethod?.Invoke(fileData.comment);
         DeriveKeys(fileData, out cipher, out mac);
 
         DecryptPrivateKey(ref fileData, cipher);
@@ -446,7 +456,7 @@ namespace dlech.SshAgentLib
           /* begin symmetric key+iv */
           SHA1 sha = SHA1.Create();
           cipher = null;
-          if (fileData.passphrase != null) {
+          if (fileData.privateKeyAlgorithm != PrivateKeyAlgorithm.None) {
             using (var passphrase = fileData.passphrase.ToAnsiArray()) {
               byte[] hashInput = new byte[4 + passphrase.Data.Length];
               byte[] hash0 = null;
@@ -477,7 +487,7 @@ namespace dlech.SshAgentLib
 
           if (fileData.isHMAC) {
             mac = new HMACSHA1();
-            if (fileData.passphrase != null) {
+            if (fileData.privateKeyAlgorithm != PrivateKeyAlgorithm.None) {
               using (var passphrase = fileData.passphrase.ToAnsiArray()) {
                 byte[] tmp = Encoding.UTF8.GetBytes(cMACKeySalt).Concat(passphrase.Data).ToArray();
                 ((HMAC) mac).Key = sha.ComputeHash(tmp);
@@ -495,7 +505,7 @@ namespace dlech.SshAgentLib
           sha.Clear();
           break;
         case Version.V3:
-          if (fileData.passphrase == null || fileData.privateKeyAlgorithm == PrivateKeyAlgorithm.None) {
+          if (fileData.privateKeyAlgorithm == PrivateKeyAlgorithm.None) {
             cipher = null;
             mac = new HMACSHA256(Array.Empty<byte>());
             break;

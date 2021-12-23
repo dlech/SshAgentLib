@@ -63,6 +63,16 @@ namespace dlech.SshAgentLib
       BadPassphrase,
 
       /// <summary>
+      /// Private key is encrypted, but there is no passphrase supplied
+      /// </summary>
+      MissingPassphrase,
+
+      /// <summary>
+      /// A passphrase is supplied when the private key is unprotected
+      /// </summary>
+      NotEncrypted,
+
+      /// <summary>
       /// File is corrupted or has been tampered with
       /// </summary>
       FileCorrupt
@@ -83,7 +93,7 @@ namespace dlech.SshAgentLib
 
     public PpkFormatterException(PpkErrorType err, string message,
       Exception innerException)
-      : base(message, innerException) 
+      : base(message, innerException)
     {
       this.PpkError = err;
     }
