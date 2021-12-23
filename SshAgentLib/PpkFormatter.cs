@@ -70,13 +70,24 @@ namespace dlech.SshAgentLib
     private const string commentKey = "Comment";
 
     /// <summary>
-    /// Key that indicates that the public key follows on the next line 
+    /// Key that indicates that the public key follows on the next line
     /// and the length of the key in lines
     /// </summary>
     private const string publicKeyLinesKey = "Public-Lines";
 
+
+    private const string keyDerivationKey = "Key-Derivation";
+
+    private const string argonMemoryKey = "Argon2-Memory";
+
+    private const string argonPassesKey = "Argon2-Passes";
+
+    private const string argonParallelismKey = "Argon2-Parallelism";
+
+    private const string argonSaltKey = "Argon2-Salt";
+
     /// <summary>
-    /// Key that indicates that the private key follows on the next line 
+    /// Key that indicates that the private key follows on the next line
     /// and the length of the key in lines
     /// </summary>
     private const string privateKeyLinesKey = "Private-Lines";
@@ -133,7 +144,7 @@ namespace dlech.SshAgentLib
 
       /// <summary>
       /// File format version (one of FileVersions members)
-      /// Callers of this method should warn user 
+      /// Callers of this method should warn user
       /// that version 1 has security issue and should not be used
       /// </summary>
       public Version ppkFileVersion;
@@ -161,6 +172,9 @@ namespace dlech.SshAgentLib
       /// </summary>
       public string comment;
 
+      public KeyDerivation kdfAlgorithm;
+      public Dictionary<string, object> kdfParameters;
+
       /// <summary>
       /// The private key.
       /// </summary>
@@ -176,7 +190,6 @@ namespace dlech.SshAgentLib
       /// </summary>
       public bool isHMAC;
       public SecureString passphrase;
-
     }
 
     #endregion -- structures --
@@ -301,6 +314,94 @@ namespace dlech.SshAgentLib
           publicKeyString += reader.ReadLine();
         }
         fileData.publicKeyBlob = Util.FromBase64(publicKeyString);
+
+        /* read kdf parameters */
+        if (fileData.privateKeyAlgorithm != PrivateKeyAlgorithm.None) {
+          fileData.kdfParameters = new Dictionary<string, object>();
+
+          line = reader.ReadLine();
+          pair = line.Split(delimArray, 2);
+          if (pair[0] != keyDerivationKey) {
+            throw new PpkFormatterException(PpkFormatterException.PpkErrorType.FileFormat,
+              keyDerivationKey + "expected");
+          }
+
+          algorithm = pair[1].Trim();
+          try {
+            fileData.kdfAlgorithm = (KeyDerivation)Enum.Parse(typeof(KeyDerivation), algorithm);
+          }
+          catch (Exception e) when (e is ArgumentException || e is OverflowException) {
+            throw new PpkFormatterException(PpkFormatterException.PpkErrorType.FileFormat,
+              "unsupported key derivation algorithm");
+          }
+
+
+          if (!algorithm.StartsWith("Argon2")) {
+            throw new NotImplementedException();
+          }
+
+
+          line = reader.ReadLine();
+          pair = line.Split(delimArray, 2);
+          if (pair[0] != argonMemoryKey) {
+            throw new PpkFormatterException(PpkFormatterException.PpkErrorType.FileFormat,
+              argonMemoryKey + "expected");
+          }
+
+          try {
+            fileData.kdfParameters[argonMemoryKey] = int.Parse(pair[1].Trim());
+          }
+          catch (Exception e) when (e is ArgumentNullException || e is FormatException || e is OverflowException) {
+            throw new PpkFormatterException(PpkFormatterException.PpkErrorType.FileFormat,
+              "expected an int");
+          }
+
+
+          line = reader.ReadLine();
+          pair = line.Split(delimArray, 2);
+          if (pair[0] != argonPassesKey) {
+            throw new PpkFormatterException(PpkFormatterException.PpkErrorType.FileFormat,
+              argonPassesKey + "expected");
+          }
+
+          try {
+            fileData.kdfParameters[argonPassesKey] = int.Parse(pair[1].Trim());
+          }
+          catch (Exception e) when (e is ArgumentNullException || e is FormatException || e is OverflowException) {
+            throw new PpkFormatterException(PpkFormatterException.PpkErrorType.FileFormat,
+              "expected an int");
+          }
+
+          line = reader.ReadLine();
+          pair = line.Split(delimArray, 2);
+          if (pair[0] != argonParallelismKey) {
+            throw new PpkFormatterException(PpkFormatterException.PpkErrorType.FileFormat,
+              argonParallelismKey + "expected");
+          }
+
+          try {
+            fileData.kdfParameters[argonParallelismKey] = int.Parse(pair[1].Trim());
+          }
+          catch (Exception e) when (e is ArgumentNullException || e is FormatException || e is OverflowException) {
+            throw new PpkFormatterException(PpkFormatterException.PpkErrorType.FileFormat,
+              "expected an int");
+          }
+
+          line = reader.ReadLine();
+          pair = line.Split(delimArray, 2);
+          if (pair[0] != argonSaltKey) {
+            throw new PpkFormatterException(PpkFormatterException.PpkErrorType.FileFormat,
+              argonSaltKey + "expected");
+          }
+
+          try {
+            fileData.kdfParameters[argonSaltKey] = Util.FromHex(pair[1].Trim());
+          }
+          catch (ArgumentException e) {
+            throw new PpkFormatterException(PpkFormatterException.PpkErrorType.FileFormat,
+              "expected a hex string");
+          }
+        }
 
         /* read private key */
         line = reader.ReadLine();
@@ -587,6 +688,13 @@ namespace dlech.SshAgentLib
 
     # endregion -- Private Methods --
 
+  }
+
+  public enum KeyDerivation
+  {
+    Argon2id,
+    Argon2i,
+    Argon2d
   }
 
   static class PpkFormatterExt
