@@ -310,18 +310,6 @@ namespace dlech.SshAgentLib
           throw new PpkFormatterException(PpkFormatterException.PpkErrorType.PublicKeyEncryption);
         }
 
-        SecureString tmp = GetPassphraseCallbackMethod?.Invoke(fileData.comment);
-        if (fileData.privateKeyAlgorithm == PrivateKeyAlgorithm.None && tmp != null)
-          throw new PpkFormatterException(PpkFormatterException.PpkErrorType.NotEncrypted,
-            "Remove the passphrase or encrypt the private key");
-        if (fileData.privateKeyAlgorithm != PrivateKeyAlgorithm.None) {
-          if (GetPassphraseCallbackMethod == null) throw new CallbackNullException();
-          if (tmp == null)
-            throw new PpkFormatterException(PpkFormatterException.PpkErrorType.MissingPassphrase,
-            "No passphrase for encrypted private key");
-        }
-        fileData.passphrase = tmp;
-
         /* read private key encryption algorithm type */
         line = reader.ReadLine();
         m = MatchOrThrow(rePrivateKeyEncryption, line);
@@ -398,6 +386,19 @@ namespace dlech.SshAgentLib
 
 
         /* get passphrase and decrypt private key if required */
+        SecureString tmp = GetPassphraseCallbackMethod?.Invoke(fileData.comment);
+        if (tmp != null && tmp.Length == 0) tmp = null;
+        if (fileData.privateKeyAlgorithm == PrivateKeyAlgorithm.None && tmp != null)
+          throw new PpkFormatterException(PpkFormatterException.PpkErrorType.NotEncrypted,
+            "Remove the passphrase or encrypt the private key");
+        if (fileData.privateKeyAlgorithm != PrivateKeyAlgorithm.None) {
+          if (GetPassphraseCallbackMethod == null) throw new CallbackNullException();
+          if (tmp == null)
+            throw new PpkFormatterException(PpkFormatterException.PpkErrorType.MissingPassphrase,
+              "No passphrase for encrypted private key");
+        }
+        fileData.passphrase = tmp;
+
 
         Aes cipher;
         HashAlgorithm mac;
