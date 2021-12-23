@@ -109,7 +109,8 @@ namespace dlech.SshAgentLib
     internal enum Version
     {
       V1,
-      V2
+      V2,
+      V3
     }
 
     /// <summary>
@@ -626,6 +627,8 @@ namespace dlech.SshAgentLib
           return "1";
         case PpkFormatter.Version.V2:
           return "2";
+        case PpkFormatter.Version.V3:
+          return "3";
         default:
           Debug.Fail("Unknown version");
           throw new Exception("Unknown version");
@@ -640,6 +643,9 @@ namespace dlech.SshAgentLib
           return true;
         case "2":
           version = PpkFormatter.Version.V2;
+          return true;
+        case "3":
+          version = PpkFormatter.Version.V3;
           return true;
         default:
           return false;
