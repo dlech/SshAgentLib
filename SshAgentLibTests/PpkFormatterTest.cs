@@ -103,16 +103,6 @@ namespace dlech.SshAgentLibTests
     public void Ed25519SigTest() {
       ISshKey target;
 
-      PpkFormatter formatter = new PpkFormatter() { GetPassphraseCallbackMethod = _ =>
-        {
-          SecureString result = new SecureString();
-          foreach (char c in "PageantSharp")
-          {
-            result.AppendChar(c);
-          }
-          return result;
-        }
-      };
       string[] keys = {
         "../../Resources/ssh2-ed25519.ppk",
         "../../Resources/ssh2-ed25519-no-passphrase.ppk"
@@ -125,10 +115,19 @@ namespace dlech.SshAgentLibTests
         "bf:e4:06:fc:4a:1b:da:e3:0b:1f:5d:df:37:6a:d1:1d:b3:31:39:60:20:61:" +
         "b7:ac:bd:a1:e4:39:fc:b1:b0:a3:4c:9c:8c:02:f2:e1:2d:1c:9e:c8"
       };
+      PpkFormatter formatter = new PpkFormatter();
+
       for (int i = 0; i < keys.Length; ++i)
       {
         var path = Path.Combine(DllDirectory, keys[i]);
-        target = (ISshKey)formatter.DeserializeFile(path);
+        try {
+          formatter.GetPassphraseCallbackMethod = GetPassphrase(passphraseGood);
+          target = formatter.DeserializeFile(path);
+        }
+        catch (PpkFormatterException e) when (e.PpkError == PpkFormatterException.PpkErrorType.NotEncrypted) {
+          formatter.GetPassphraseCallbackMethod = GetPassphrase(passphraseNull);
+          target = formatter.DeserializeFile(path);
+        }
         Assert.That(((Ed25519PrivateKeyParameter)target.GetPrivateKeyParameters()).Signature.ToHexString(),
             Is.EqualTo(sig[i]), keys[i]);
       }
@@ -137,19 +136,6 @@ namespace dlech.SshAgentLibTests
     [Test]
     public void EcdsaSigTest() {
       ISshKey target;
-
-      PpkFormatter formatter = new PpkFormatter()
-      {
-        GetPassphraseCallbackMethod = _ =>
-        {
-          SecureString result = new SecureString();
-          foreach (char c in "PageantSharp")
-          {
-            result.AppendChar(c);
-          }
-          return result;
-        }
-      };
 
       string[] keys = {
         "../../Resources/ecdsa-sha2-nistp256.ppk",
@@ -169,9 +155,18 @@ namespace dlech.SshAgentLibTests
         "ef41441bc21c20ee38a8169855b618e5c76f34b067d8bbd85276de982aec60fc9" +
         "0114acad5fc599e83c8d6fc535fb36c5244908577b1138ff4eed7d7b6c9eb2d01"
       };
+
+      PpkFormatter formatter = new PpkFormatter();
       for (int i = 0; i < keys.Length; ++i) {
         var path = Path.Combine(DllDirectory, keys[i]);
-        target = formatter.DeserializeFile(path);
+        try {
+          formatter.GetPassphraseCallbackMethod = GetPassphrase(passphraseGood);
+          target = formatter.DeserializeFile(path);
+        }
+        catch (PpkFormatterException e) when (e.PpkError == PpkFormatterException.PpkErrorType.NotEncrypted) {
+          formatter.GetPassphraseCallbackMethod = GetPassphrase(passphraseNull);
+          target = formatter.DeserializeFile(path);
+        }
         var priKeyParam = (ECPrivateKeyParameters) target.GetPrivateKeyParameters();
         Assert.That(priKeyParam.D.ToString(16), Is.EqualTo(d[i]));
       }
@@ -193,26 +188,6 @@ namespace dlech.SshAgentLibTests
       PpkFormatter.WarnOldFileFormatCallback warnOldFileExpected = delegate()
       {
         warnCallbackCalled = true;
-      };
-
-      // string passphrase = "PageantSharp";
-      // PpkFormatter.GetPassphraseCallback getPassphrase = delegate(string comment)
-      // {
-      //   SecureString result = new SecureString();
-      //   foreach (char c in passphrase) {
-      //     result.AppendChar(c);
-      //   }
-      //   return result;
-      // };
-
-
-      PpkFormatter.GetPassphraseCallback getBadPassphrase = delegate(string comment)
-      {
-        SecureString result = new SecureString();
-        foreach (char c in "badword") {
-          result.AppendChar(c);
-        }
-        return result;
       };
 
       int expectedKeySize = 1024; // all test keys
@@ -430,11 +405,17 @@ namespace dlech.SshAgentLibTests
         "PageantSharp ssh2-ed25519, with passphrase", "PageantSharp ssh2-ed25519, no passphrase"
       };
       int[] sizes = { 256, 256, 384, 384, 521, 521, 256, 256 };
-      formatter.GetPassphraseCallbackMethod = GetPassphrase(passphraseGood);
       formatter.WarnOldFileFormatCallbackMethod = warnOldFileNotExpected;
       for (int i = 0; i < keys.Length; ++i) {
         path = Path.Combine(DllDirectory, keys[i]);
-        target = (ISshKey) formatter.DeserializeFile(path);
+        try {
+          formatter.GetPassphraseCallbackMethod = GetPassphrase(passphraseGood);
+          target = formatter.DeserializeFile(path);
+        }
+        catch (PpkFormatterException e) when (e.PpkError == PpkFormatterException.PpkErrorType.NotEncrypted) {
+          formatter.GetPassphraseCallbackMethod = GetPassphrase(passphraseNull);
+          target = formatter.DeserializeFile(path);
+        }
         Assert.That(target.Size, Is.EqualTo(sizes[i]));
         Assert.That(target.Algorithm, Is.EqualTo(algs[i]));
         Assert.That(target.GetMD5Fingerprint().ToHexString(), Is.EqualTo(fps[i]));
