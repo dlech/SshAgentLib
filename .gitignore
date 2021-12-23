@@ -40,3 +40,6 @@ SshAgentLibTests/SshAgentLibTests.csproj.VisualState.xml
 
 # Nuget
 packages/
+
+#ignore jetbrains rider files
+.idea/
