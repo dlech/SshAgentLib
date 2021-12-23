@@ -9,6 +9,7 @@
     <OutputType>Library</OutputType>
     <RootNamespace>dlech.SshAgentLibTests</RootNamespace>
     <AssemblyName>SshAgentLibTests</AssemblyName>
+    <TargetFrameworkVersion>v4.6</TargetFrameworkVersion>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <DebugSymbols>True</DebugSymbols>
