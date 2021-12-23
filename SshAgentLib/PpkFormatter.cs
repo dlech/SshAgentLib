@@ -374,7 +374,7 @@ namespace dlech.SshAgentLib
         m = MatchOrThrow(rePrivateMACorHash, line);
         if (!m.Groups[1].Value.EndsWith("MAC")) {
           fileData.isHMAC = false;
-          if (m.Groups[1].Value.EndsWith("Hash") || fileData.ppkFileVersion != Version.V1) {
+          if ((fileData.ppkFileVersion == Version.V1 && !m.Groups[1].Value.EndsWith("Hash")) || fileData.ppkFileVersion != Version.V1) {
             throw new PpkFormatterException(PpkFormatterException.PpkErrorType.FileFormat,
                                             rePrivateMACorHash + " expected");
           }
