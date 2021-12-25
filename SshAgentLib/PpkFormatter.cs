@@ -318,7 +318,7 @@ namespace dlech.SshAgentLib
         fileData.publicKeyBlob = Util.FromBase64(publicKeyString);
 
         /* read kdf parameters */
-        if (fileData.privateKeyAlgorithm != PrivateKeyAlgorithm.None) {
+        if (fileData.privateKeyAlgorithm != PrivateKeyAlgorithm.None && fileData.ppkFileVersion == Version.V3) {
           fileData.kdfParameters = new Dictionary<string, object>();
 
           line = reader.ReadLine();
