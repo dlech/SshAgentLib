@@ -267,7 +267,7 @@ namespace dlech.SshAgentLibTests
 
       /* test bad file version */
       modifiedFileContents =
-        Encoding.UTF8.GetBytes(withoutPassFileContents.Replace("2", "3"));
+        Encoding.UTF8.GetBytes(withoutPassFileContents.Replace("2", "9"));
       modifiedFileContentsStream = new MemoryStream(modifiedFileContents);
       formatter.GetPassphraseCallbackMethod = null;
       formatter.WarnOldFileFormatCallbackMethod = warnOldFileNotExpected;
