@@ -325,7 +325,7 @@ namespace dlech.SshAgentLib
           pair = line.Split(delimArray, 2);
           if (pair[0] != keyDerivationKey) {
             throw new PpkFormatterException(PpkFormatterException.PpkErrorType.FileFormat,
-              keyDerivationKey + "expected");
+              keyDerivationKey + " expected");
           }
 
           algorithm = pair[1].Trim();
@@ -614,9 +614,6 @@ namespace dlech.SshAgentLib
       }
       builder.AddBytes(fileData.privateKeyBlob.Data);
 
-      byte[] cipherKey, iv, macKey;
-      argonKeys(fileData, out cipherKey, out iv, out macKey);
-
       byte[] computedHash;
       switch (fileData.ppkFileVersion) {
         case Version.V1:
@@ -654,6 +651,8 @@ namespace dlech.SshAgentLib
 
           break;
         case Version.V3:
+          byte[] cipherKey, iv, macKey;
+          argonKeys(fileData, out cipherKey, out iv, out macKey);
           HMACSHA256 hmacsha256 = new HMACSHA256(macKey);
           computedHash = hmacsha256.ComputeHash(builder.GetBlob());
           break;
