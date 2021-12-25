@@ -662,18 +662,6 @@ namespace dlech.SshAgentLib
       }
 
       try {
-        // int macLength = computedHash.Length;
-        // bool failed = false;
-        // if (fileData.privateMAC.Length == macLength) {
-        //   for (int i = 0; i < macLength; i++) {
-        //     if (fileData.privateMAC[i] != computedHash[i]) {
-        //       failed = true;
-        //       break;
-        //     }
-        //   }
-        // } else {
-        //   failed = true;
-        // }
         if (!fileData.privateMAC.SequenceEqual(computedHash)) {
           // private key data should start with 3 bytes with value 0 if it was
           // properly decrypted or does not require decryption
