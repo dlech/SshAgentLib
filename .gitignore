@@ -28,6 +28,9 @@ _ReSharper*/
 [Tt]est[Rr]esult*
 .vs/
 
+#ignore jetbrains rider files
+.idea/
+
 #Ignore monodevelop/linux
 *.pidb
 *.userprefs
@@ -41,5 +44,5 @@ SshAgentLibTests/SshAgentLibTests.csproj.VisualState.xml
 # Nuget
 packages/
 
-#ignore jetbrains rider files
-.idea/
+# Code coverage
+coverage/

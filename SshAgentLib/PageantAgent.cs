@@ -71,6 +71,7 @@ namespace dlech.SshAgentLib
     CygwinSocket cygwinSocket;
     MsysSocket msysSocket;
     WindowsOpenSshPipe opensshPipe;
+    Thread winThread;
 
     #endregion
 
@@ -154,7 +155,7 @@ namespace dlech.SshAgentLib
 
     /// <summary>
     /// Creates a new instance of PageantWindow that acts as a server for
-    /// Putty-type clients.    
+    /// Putty-type clients.
     /// </summary>
     /// <exception cref="PageantRunningException">
     /// Thrown when another instance of Pageant is running.
@@ -183,7 +184,7 @@ namespace dlech.SshAgentLib
         throw new Exception("Could not register window class");
       }
 
-      Thread winThread = new Thread(RunWindowInNewAppcontext);
+      winThread = new Thread(RunWindowInNewAppcontext);
       winThread.SetApartmentState(ApartmentState.STA);
       winThread.Name = "PageantWindow";
       lock (lockObject) {
@@ -312,8 +313,10 @@ namespace dlech.SshAgentLib
 
     public override void Dispose()
     {
-      Dispose(true);
-      GC.SuppressFinalize(this);
+      if (!disposed) {
+        appContext.ExitThread();
+        winThread.Join();
+      }
     }
 
     #endregion
@@ -361,15 +364,8 @@ namespace dlech.SshAgentLib
       }
     }
 
-    private void Dispose(bool disposing)
-    {
-      if (!disposed) {
-        appContext.ExitThread();
-      }
-    }
-
     /// <summary>
-    /// 
+    ///
     /// </summary>
     /// <param name="hWnd"></param>
     /// <param name="msg"></param>
@@ -541,7 +537,7 @@ namespace dlech.SshAgentLib
       bool bInheritHandle, long dwProcessId);
 
     [DllImport("Advapi32")]
-    private static extern long GetSecurityInfo(IntPtr handle, 
+    private static extern long GetSecurityInfo(IntPtr handle,
       SE_OBJECT_TYPE objectType, SECURITY_INFORMATION securityInfo,
       out IntPtr ppsidOwner, out IntPtr ppsidGroup, out IntPtr ppDacl,
       out IntPtr ppSacl, out IntPtr ppSecurityDescriptor);
