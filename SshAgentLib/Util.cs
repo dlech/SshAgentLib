@@ -55,7 +55,9 @@ namespace dlech.SshAgentLib
     /// <returns></returns>
     public static PinnedArray<byte> ToAnsiArray(this SecureString ss)
     {
-      if (ss == null) return null;
+      if (ss == null) {
+        return null;
+      }
 
       PinnedArray<byte> pw = new PinnedArray<byte>(ss.Length);
       IntPtr ptr = Marshal.SecureStringToGlobalAllocUnicode(ss);
