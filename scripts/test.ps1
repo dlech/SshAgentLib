@@ -3,7 +3,7 @@ msbuild "SshAgentLibTests"
 if ($LastExitCode) {
     exit $LastExitCode
 }
-vstest.console "SshAgentLibTests\bin\Debug\SshAgentLibTests.dll" /TestAdapterPath:"packages\NUnit3TestAdapter.4.2.0\build\net35"
+vstest.console "SshAgentLibTests\bin\Debug\SshAgentLibTests.dll"
 if ($LastExitCode) {
     exit $LastExitCode
 }

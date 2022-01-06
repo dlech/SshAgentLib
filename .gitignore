@@ -27,6 +27,7 @@ obj/
 _ReSharper*/
 [Tt]est[Rr]esult*
 .vs/
+MigrationBackup/
 
 #ignore jetbrains rider files
 .idea/
