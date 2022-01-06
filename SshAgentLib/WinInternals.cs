@@ -182,7 +182,7 @@ namespace dlech.SshAgentLib
                 if (!match.HasValue) {
                     throw new Exception("Match not found.");
                 }
-                return Process.GetProcessById((int)match.Value.dwOwningPid);;
+                return Process.GetProcessById((int)match.Value.dwOwningPid);
             } finally {
                 Marshal.FreeHGlobal(buf);
             }
