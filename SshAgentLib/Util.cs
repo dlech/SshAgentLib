@@ -30,6 +30,8 @@ using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Reflection;
+using System.Runtime.InteropServices;
+using System.Security;
 using System.Security.Cryptography;
 using System.Text;
 using System.Text.RegularExpressions;
@@ -43,6 +45,27 @@ namespace dlech.SshAgentLib
   {
 
     static string assemblyTitle;
+
+    /// <summary>
+    /// Convert a SecureString to an asni string in the form of a PinnnedArray&lt;byte&gt;
+    /// </summary>
+    /// <param name="ss"></param>
+    /// <returns></returns>
+    public static PinnedArray<byte> ToAnsiArray(this SecureString ss)
+    {
+      if (ss == null) {
+        return null;
+      }
+
+      PinnedArray<byte> pw = new PinnedArray<byte>(ss.Length);
+      IntPtr ptr = Marshal.SecureStringToGlobalAllocUnicode(ss);
+      for (int i = 0; i < pw.Data.Length; i++) {
+        pw.Data[i] = UnicodeToAnsi(Marshal.ReadInt16(ptr + i*2));
+      }
+      Marshal.ZeroFreeGlobalAllocUnicode(ptr);
+
+      return pw;
+    }
 
     /// <summary>
     /// Adds Agent.KeyConstraintType.SSH_AGENT_CONSTRAIN_CONFIRM constraint to key

@@ -5,6 +5,7 @@
 
 ## Added
 - Added this changelog.
+- Added PuTTY private key v3 support
 
 ## Fixed
 - Fixed using incorrect unmanaged memory free function in `PagentClent.SendMessage()`.

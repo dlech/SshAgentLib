@@ -28,6 +28,9 @@ _ReSharper*/
 [Tt]est[Rr]esult*
 .vs/
 
+#ignore jetbrains rider files
+.idea/
+
 #Ignore monodevelop/linux
 *.pidb
 *.userprefs
