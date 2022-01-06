@@ -442,7 +442,9 @@ namespace dlech.SshAgentLibTests
 
       Func<string, PpkFormatter.GetPassphraseCallback> GetPassphrase = v => {
         return (comment) => {
-          if (comment == null) return null;
+          if (comment == null) {
+            return null;
+          }
           SecureString result = new SecureString();
           foreach (char c in v) {
             result.AppendChar(c);
