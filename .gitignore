@@ -40,3 +40,6 @@ SshAgentLibTests/SshAgentLibTests.csproj.VisualState.xml
 
 # Nuget
 packages/
+
+# Code coverage
+coverage/

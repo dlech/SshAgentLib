@@ -18,9 +18,17 @@ jobs:
     - name: Nuget restore
       run: nuget restore
 
+    - name: Install tools
+      run: dotnet tool install --global coverlet.console
+
     - name: Run unit tests
       run: |
         $vsDevPath = "${env:ProgramFiles}\Microsoft Visual Studio\2022\Enterprise"
         Import-Module "${vsDevPath}\Common7\Tools\Microsoft.VisualStudio.DevShell.dll"
         Enter-VsDevShell -VsInstallPath "${vsDevPath}" -DevCmdArguments '-arch=x64'
-        ./scripts/test.ps1
+        msbuild SshAgentLibTests
+        ./scripts/coverage.ps1
+
+    - uses: codecov/codecov-action@v2
+      with:
+        directory: ./coverage
