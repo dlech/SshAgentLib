@@ -399,7 +399,7 @@ namespace dlech.SshAgentLib
           try {
             fileData.kdfParameters[argonSaltKey] = Util.FromHex(pair[1].Trim());
           }
-          catch (ArgumentException e) {
+          catch (ArgumentException) {
             throw new PpkFormatterException(PpkFormatterException.PpkErrorType.FileFormat,
               "expected a hex string");
           }

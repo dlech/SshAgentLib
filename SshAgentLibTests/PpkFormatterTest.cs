@@ -435,14 +435,9 @@ namespace dlech.SshAgentLibTests
     {
       ISshKey target;
 
-      PpkFormatter.WarnOldFileFormatCallback warnOldFileNotExpected = delegate()
+      PpkFormatter.WarnOldFileFormatCallback warnOldFileNotExpected = ()=>
       {
         Assert.Fail("Warn old file format was not expected");
-      };
-      bool warnCallbackCalled; // set to false before calling warnOldFileExpceted
-      PpkFormatter.WarnOldFileFormatCallback warnOldFileExpected = delegate()
-      {
-        warnCallbackCalled = true;
       };
 
       Func<string, PpkFormatter.GetPassphraseCallback> GetPassphrase = v => {
@@ -459,13 +454,10 @@ namespace dlech.SshAgentLibTests
 
       string passphraseNonAscii = "Ŧéşť";
       string passphraseGood = "PageantSharp";
-      string passphraseBad = "badword";
+      // string passphraseBad = "badword";
       string passphraseNull = null;
 
       int expectedKeySize = 1024; // all test keys
-      string expectedSsh2RsaWithoutPassPrivateMACString = "77bfa6dc141ed17e4c850d3a95cd6f4ec89cd86b";
-      string oldFileFormatSsh2RsaWithoutPassPrivateMACString = "dc54d9b526e6d5aeb4832811f2b825e735b218f7";
-      // string expectedSsh2DsaWithPassComment = "PageantSharp SSH2-DSA, with passphrase";
 
       string path;
       PpkFormatter formatter = new PpkFormatter();
