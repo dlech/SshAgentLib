@@ -65,6 +65,10 @@ namespace dlech.SshAgentLibTests
     [Test, NonParallelizable]
     public void PageantAgentInstanceTest()
     {
+      if (Environment.GetEnvironmentVariable("CI") != null) {
+        Assert.Ignore("SendMessage fails on CI");
+      }
+
       /* code based on agent_query function in winpgntc.c from PuTTY */
 
       using (PageantAgent agent = new PageantAgent()) {
