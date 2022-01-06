@@ -4,8 +4,6 @@ All code unless otherwise specified is licensed under the MIT License.
 packages/NUnit*/* is licensed under its own license.
 [License.NUnit.txt]
 
-Chaos.Nacl/* is in the public domain (no license).
-
 SshAgentLib/Microsoft/* is licensed under the Microsoft Limited Public License.
 [License.MS-LPL.txt]
 
