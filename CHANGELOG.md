@@ -8,6 +8,7 @@
 
 ## Fixed
 - Fixed using incorrect unmanaged memory free function in `PagentClent.SendMessage()`.
+- Fixed `PagentAgent.Dispose()` returning before all resources have been freed.
 
 ## Removed
 - Removed Qt widgets.

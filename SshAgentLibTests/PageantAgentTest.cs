@@ -1,4 +1,4 @@
-//
+﻿//
 // PageantAgentTest.cs
 //
 // Author(s): David Lechner <david@lechnology.com>
@@ -36,7 +36,7 @@ namespace dlech.SshAgentLibTests
   ///This is a test class for PageantWindowTest and is intended
   ///to contain all PageantWindowTest Unit Tests
   ///</summary>
-  [TestFixture()]
+  [TestFixture, NonParallelizable]
   [Platform(Include = "Win")]
   public class PageantAgentTest
   {
@@ -62,19 +62,18 @@ namespace dlech.SshAgentLibTests
     /// <summary>
     /// Test for WinPagent
     /// </summary>
-    [Test()]
+    [Test, NonParallelizable]
     public void PageantAgentInstanceTest()
     {
       /* code based on agent_query function in winpgntc.c from PuTTY */
 
       using (PageantAgent agent = new PageantAgent()) {
-                
+
         /* try starting a second instance */
 
         Assert.That(delegate()
         {
-          PageantAgent agent2 = new PageantAgent();
-          agent2.Dispose();
+          using (PageantAgent agent2 = new PageantAgent()) { }
         }, Throws.InstanceOf<PageantRunningException>());
 
         /* test WndProc callback */
@@ -113,6 +112,5 @@ namespace dlech.SshAgentLibTests
         }
       }
     }
-
   }
 }
