@@ -537,8 +537,8 @@ namespace dlech.SshAgentLib
 
           /* create key from passphrase */
 
-          byte[] cipherKey = new byte[32];
-          byte[] iv = new byte[16];
+          byte[] cipherKey;
+          byte[] iv;
 
           switch (fileData.ppkFileVersion) {
             case Version.V1:
@@ -546,6 +546,7 @@ namespace dlech.SshAgentLib
               SHA1 sha = SHA1.Create();
               sha.Initialize();
               List<byte> key = new List<byte>();
+              iv = new byte[16];
 
               using (PinnedArray<byte> hashData =
                      new PinnedArray<byte>(cPrivateKeyDecryptSalt1.Length +
