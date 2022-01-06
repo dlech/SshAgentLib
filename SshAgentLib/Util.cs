@@ -50,8 +50,6 @@ namespace dlech.SshAgentLib
     /// Convert a SecureString to an asni string in the form of a PinnnedArray&lt;byte&gt;
     /// </summary>
     /// <param name="ss"></param>
-    /// <param name="func"></param>
-    /// <typeparam name="T"></typeparam>
     /// <returns></returns>
     public static PinnedArray<byte> ToAnsiArray(this SecureString ss)
     {
