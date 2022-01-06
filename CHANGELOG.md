@@ -5,9 +5,7 @@
 
 ## Added
 - Added this changelog.
-
-## Changed
-- Changed several code segments in Util.cs, WinInternals.cs, PpkFormatter.cs, and PpkFormatterTest.cs to conform to the project's code style.
+- Added PuTTY private key v3 support
 
 ## Fixed
 - Fixed using incorrect unmanaged memory free function in `PagentClent.SendMessage()`.
