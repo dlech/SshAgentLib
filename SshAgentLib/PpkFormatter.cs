@@ -756,7 +756,7 @@ namespace dlech.SshAgentLib
   {
     Argon2id,
     Argon2i,
-    Argon2d
+    Argon2d,
   }
 
   static class PpkFormatterExt
