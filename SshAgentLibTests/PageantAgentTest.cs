@@ -1,4 +1,4 @@
-﻿//
+//
 // PageantAgentTest.cs
 //
 // Author(s): David Lechner <david@lechnology.com>
@@ -100,7 +100,7 @@ namespace dlech.SshAgentLibTests
             IntPtr copyDataPtr = Marshal.AllocHGlobal(Marshal.SizeOf(copyData));
             Marshal.StructureToPtr(copyData, copyDataPtr, false);
             IntPtr resultPtr = SendMessage(hwnd, WM_COPYDATA, IntPtr.Zero, copyDataPtr);
-            Marshal.FreeHGlobal(copyData.lpData);
+            Marshal.FreeCoTaskMem(copyData.lpData);
             Marshal.FreeHGlobal(copyDataPtr);
             Assert.That(resultPtr, Is.Not.EqualTo(IntPtr.Zero));
             byte[] reply = new byte[5];

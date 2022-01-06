@@ -6,6 +6,9 @@
 ## Added
 - Added this changelog.
 
+## Fixed
+- Fixed using incorrect unmanaged memory free function in `PagentClent.SendMessage()`.
+
 ## Removed
 - Removed Qt widgets.
 

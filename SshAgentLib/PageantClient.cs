@@ -81,7 +81,7 @@ namespace dlech.SshAgentLib
           Marshal.StructureToPtr(copyData, copyDataPtr, false);
           var resultPtr =
             SendMessage(hwnd, WM_COPYDATA, IntPtr.Zero, copyDataPtr);
-          Marshal.FreeHGlobal(copyData.lpData);
+          Marshal.FreeCoTaskMem(copyData.lpData);
           Marshal.FreeHGlobal(copyDataPtr);
           if (resultPtr == IntPtr.Zero) {
             throw new Exception("send message failed");
