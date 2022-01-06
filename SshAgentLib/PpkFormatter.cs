@@ -325,7 +325,7 @@ namespace dlech.SshAgentLib
           pair = line.Split(delimArray, 2);
           if (pair[0] != keyDerivationKey) {
             throw new PpkFormatterException(PpkFormatterException.PpkErrorType.FileFormat,
-              keyDerivationKey + " expected");
+              $"{keyDerivationKey} expected");
           }
 
           algorithm = pair[1].Trim();
