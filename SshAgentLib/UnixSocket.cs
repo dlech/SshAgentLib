@@ -1,6 +1,8 @@
 ﻿//
 // UnixSocket.cs
 //
+// Allows WSL1 connections via AF_UNIX sockets on Windows 10 and above.
+//
 // Permission is hereby granted, free of charge, to any person obtaining a copy
 // of this software and associated documentation files (the "Software"), to deal
 // in the Software without restriction, including without limitation the rights
@@ -132,15 +134,18 @@ namespace dlech.SshAgentLib
           BindingFlags
             sbinding = BindingFlags.Static | BindingFlags.NonPublic | BindingFlags.Public,
             ibinding = BindingFlags.Instance | BindingFlags.NonPublic | BindingFlags.Public;
-          var m_Size = typeof(SocketAddress).GetField("m_Size", ibinding);
           var args = new object[]
           {
             typeof(Socket).GetField("m_Handle", ibinding).GetValue(socket),
             (byte[])typeof(SocketAddress).GetField("m_Buffer", ibinding).GetValue(sockaddr),
-            (int)m_Size.GetValue(sockaddr)
+            sockaddr.Size
           };
           var acceptedHandle = (SafeHandleMinusOneIsInvalid)typeof(Socket).Assembly.GetType("System.Net.SafeCloseSocket").GetMethod("Accept", sbinding).Invoke(null, args);
-          m_Size.SetValue(sockaddr, (int)args[2]);
+          // Accept() returns the socket address for the accepted connection, along with its size.
+          // We want the SocketAddress object to contain that address when creating the endpoint.
+          // We use reflection to access the field since there is no public setter.
+          // This is safe because accept() returns the actual number of bytes written to the buffer, so the output cannot overflow the buffer.
+          typeof(SocketAddress).GetField("m_Size", ibinding).SetValue(sockaddr, (int)args[2]);
           var endpoint = new UnixEndPoint(null).Create(sockaddr);
           var clientSocket = acceptedHandle.IsInvalid ? null : (Socket)typeof(Socket).GetMethod("CreateAcceptSocket", ibinding).Invoke(socket, new object[] { acceptedHandle, endpoint, false });
           if (clientSocket == null) { Marshal.ThrowExceptionForHR(Marshal.GetHRForLastWin32Error()); }
