@@ -42,11 +42,11 @@ namespace dlech.SshAgentLib
     static uint threadId = 0;
 
     NamedPipeServerStream listeningServer;
-    
+
 
     public delegate void ConnectionHandlerFunc(Stream stream, Process process);
     public ConnectionHandlerFunc ConnectionHandler { get; set; }
-    
+
     public WindowsOpenSshPipe()
     {
       if (File.Exists(string.Format("//./pipe/{0}", agentPipeId))) {
@@ -58,7 +58,7 @@ namespace dlech.SshAgentLib
       };
       thread.Start();
     }
-    
+
     [DllImport("kernel32.dll", SetLastError = true)]
     static extern bool GetNamedPipeClientProcessId(IntPtr Pipe, out long ClientProcessId);
 
@@ -102,7 +102,7 @@ namespace dlech.SshAgentLib
         // TODO: add event to notify when there is a problem
       }
     }
-    
+
     public void Dispose()
     {
       Dispose(true);
