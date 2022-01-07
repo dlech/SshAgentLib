@@ -28,17 +28,17 @@ using System.Diagnostics;
 using System.IO;
 using System.IO.Pipes;
 using System.Runtime.InteropServices;
-using System.Threading;
 
 namespace dlech.SshAgentLib
 {
-  public class WindowsOpenSshPipe : IDisposable
+  public sealed class WindowsOpenSshPipe : IDisposable
   {
-    private const string agentPipeId = "openssh-ssh-agent";
-    private const int receiveBufferSize = 5 * 1024;
+    private const string agentPipeName = "openssh-ssh-agent";
 
-    private static uint threadId;
+    private const int BufferSizeIn = 5 * 1024;
+    private const int BufferSizeOut = 5 * 1024;
 
+    private bool disposed;
     private NamedPipeServerStream listeningServer;
 
 
@@ -47,73 +47,79 @@ namespace dlech.SshAgentLib
 
     public WindowsOpenSshPipe()
     {
-      if (File.Exists($"//./pipe/{agentPipeId}")) {
+      if (File.Exists($"//./pipe/{agentPipeName}")) {
         throw new PageantRunningException();
       }
-      var thread = new Thread(listenerThread) {
-        Name = "WindowsOpenSshPipe.Listener",
-        IsBackground = true
-      };
-      thread.Start();
+
+      AwaitConnection();
     }
 
     [DllImport("kernel32.dll", SetLastError = true)]
     private static extern bool GetNamedPipeClientProcessId(IntPtr Pipe, out uint ClientProcessId);
 
-    private void listenerThread()
+    private void AwaitConnection()
     {
-      try {
-        while (true) {
-          var server = new NamedPipeServerStream(agentPipeId, PipeDirection.InOut, NamedPipeServerStream.MaxAllowedServerInstances,
-            PipeTransmissionMode.Byte, PipeOptions.WriteThrough, receiveBufferSize, receiveBufferSize);
-          listeningServer = server;
-          server.WaitForConnection();
-          listeningServer = null;
-          var thread = new Thread(connectionThread) {
-            Name = $"WindowsOpenSshPipe.Connection{threadId++}",
-            IsBackground = true
-          };
-          thread.Start(server);
-        }
+      if (disposed) {
+        return;
       }
-      catch (Exception) {
-        // don't crash background thread
+
+      listeningServer = new NamedPipeServerStream(agentPipeName,
+                                                  PipeDirection.InOut,
+                                                  NamedPipeServerStream.MaxAllowedServerInstances,
+                                                  PipeTransmissionMode.Byte,
+                                                  // TODO: Consider setting PipeOptions.CurrentUserOnly
+                                                  PipeOptions.Asynchronous | PipeOptions.WriteThrough,
+                                                  BufferSizeIn,
+                                                  BufferSizeOut);
+
+      try {
+        listeningServer.BeginWaitForConnection(AcceptConnection, listeningServer);
+        Debug.WriteLine("Started new server and awaiting connection ...");
+      }
+      catch (ObjectDisposedException) {
+        // Could happen if we're disposing while starting a server
+      }
+      catch (Exception ex) {
+        // Should never happen but we don't want to crash KeePass
+        Debug.WriteLine($"{ex.GetType()} in AwaitConnection(): {ex.Message}");
+        listeningServer.Dispose();
       }
     }
 
-    private void connectionThread(object obj)
+    private void AcceptConnection(IAsyncResult result)
     {
+      Debug.WriteLine("Received new connection ...");
+      AwaitConnection();
+
+      var server = result.AsyncState as NamedPipeServerStream;
       try {
-        var server = obj as NamedPipeServerStream;
+        server.EndWaitForConnection(result);
 
         if (!GetNamedPipeClientProcessId(server.SafePipeHandle.DangerousGetHandle(), out var clientPid)) {
           throw new IOException("Failed to get client PID", Marshal.GetHRForLastWin32Error());
         }
-        var proc = Process.GetProcessById((int)clientPid);
 
-        ConnectionHandler(server, proc);
-        server.Disconnect();
-        server.Dispose();
+        var clientProcess = Process.GetProcessById((int)clientPid);
+        Debug.WriteLine($"Processing request from process: {clientProcess.MainModule.ModuleName} (PID: {clientPid})");
+        ConnectionHandler(server, clientProcess);
       }
-      catch (Exception) {
-        // TODO: add event to notify when there is a problem
+      catch (ObjectDisposedException) {
+        // Server has been disposed
+      }
+      catch (Exception ex) {
+        // Should never happen but we don't want to crash KeePass
+        Debug.WriteLine($"{ex.GetType()} in AcceptConnection(): {ex.Message}");
+      }
+      finally {
+        server.Dispose();
       }
     }
 
     public void Dispose()
     {
-      Dispose(true);
-      GC.SuppressFinalize(this);
-    }
-
-    protected virtual void Dispose(bool disposing)
-    {
-      if (disposing) {
-        if (listeningServer != null) {
-          listeningServer.Dispose();
-          listeningServer = null;
-        }
-      }
+      disposed = true;
+      listeningServer?.Dispose();
+      listeningServer = null;
     }
   }
 }
