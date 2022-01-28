@@ -234,25 +234,23 @@ namespace dlech.SshAgentLib
 
     public static byte[] GetMD5Fingerprint(this ISshKey key)
     {
-      try {
-        using (MD5 md5 = MD5.Create()) {
-          if (key.GetPublicKeyParameters() is RsaKeyParameters && key.Version == SshVersion.SSH1) {
-            var rsaKeyParameters = key.GetPublicKeyParameters() as RsaKeyParameters;
+      if (key == null) {
+        throw new ArgumentNullException(nameof(key));
+      }
 
-            int modSize = rsaKeyParameters.Modulus.ToByteArrayUnsigned().Length;
-            int expSize = rsaKeyParameters.Exponent.ToByteArrayUnsigned().Length;
-            byte[] md5Buffer = new byte[modSize + expSize];
+      using (var md5 = MD5.Create()) {
+        if (key.Version == SshVersion.SSH1 && key.GetPublicKeyParameters() is RsaKeyParameters rsaKeyParameters) {
+          int modSize = rsaKeyParameters.Modulus.ToByteArrayUnsigned().Length;
+          int expSize = rsaKeyParameters.Exponent.ToByteArrayUnsigned().Length;
+          byte[] md5Buffer = new byte[modSize + expSize];
 
-            rsaKeyParameters.Modulus.ToByteArrayUnsigned().CopyTo(md5Buffer, 0);
-            rsaKeyParameters.Exponent.ToByteArrayUnsigned().CopyTo(md5Buffer, modSize);
+          rsaKeyParameters.Modulus.ToByteArrayUnsigned().CopyTo(md5Buffer, 0);
+          rsaKeyParameters.Exponent.ToByteArrayUnsigned().CopyTo(md5Buffer, modSize);
 
-            return md5.ComputeHash(md5Buffer);
-          }
-
-          return md5.ComputeHash(key.GetPublicKeyBlob(false));
+          return md5.ComputeHash(md5Buffer);
         }
-      } catch (Exception) {
-        return null;
+
+        return md5.ComputeHash(key.GetPublicKeyBlob(false));
       }
     }
 
@@ -326,7 +324,7 @@ namespace dlech.SshAgentLib
       }
       else if (publicKey is ECPublicKeyParameters) {
         var ecdsaFieldSize = ((ECPublicKeyParameters)publicKey).Q.Curve.FieldSize;
-        
+
         if (ecdsaFieldSize <= 256) {
           return SignerUtilities.GetSigner(X9ObjectIdentifiers.ECDsaWithSha256);
         }
