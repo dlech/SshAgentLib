@@ -295,8 +295,7 @@ namespace dlech.SshAgentLib
       if (opensshPipe != null) {
         return;
       }
-      opensshPipe = new WindowsOpenSshPipe();
-      opensshPipe.ConnectionHandler = connectionHandler;
+      opensshPipe = new WindowsOpenSshPipe(connectionHandler);
     }
 
     public void StopWindowsOpenSshPipe()
