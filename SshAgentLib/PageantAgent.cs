@@ -1,4 +1,4 @@
-//
+﻿//
 // PageantAgent.cs
 //
 // Author(s): David Lechner <david@lechnology.com>
@@ -53,6 +53,7 @@ namespace dlech.SshAgentLib
     const int ERROR_CLASS_ALREADY_EXISTS = 1410;
     const int WM_COPYDATA = 0x004A;
     const int WSAECONNABORTED = 10053;
+    const int WSAECONNRESET = 10054;
 
     /* From PuTTY source code */
 
@@ -70,6 +71,7 @@ namespace dlech.SshAgentLib
     object lockObject = new object();
     CygwinSocket cygwinSocket;
     MsysSocket msysSocket;
+    WslSocket wslSocket;
     WindowsOpenSshPipe opensshPipe;
     Thread winThread;
 
@@ -287,6 +289,36 @@ namespace dlech.SshAgentLib
       msysSocket = null;
     }
 
+    /// <summary>
+    /// Starts a wsl style socket that can be used by the ssh program
+    /// that comes with wsl.
+    /// </summary>
+    /// <param name="path">The path to the socket file that will be created.</param>
+    public void StartWslSocket(string path)
+    {
+      if (disposed) {
+        throw new ObjectDisposedException("PagentAgent");
+      }
+      if (wslSocket != null) {
+        return;
+      }
+      // only overwrite a file if it looks like a WslSocket file.
+      if (File.Exists(path) && WslSocket.TestFile(path)) {
+        File.Delete(path);
+      }
+      wslSocket = new WslSocket(path, connectionHandler);
+    }
+
+    public void StopWslSocket()
+    {
+      if (disposed)
+        throw new ObjectDisposedException("PagentAgent");
+      if (wslSocket == null)
+        return;
+      wslSocket.Dispose();
+      wslSocket = null;
+    }
+
     public void StartWindowsOpenSshPipe()
     {
       if (disposed) {
@@ -353,6 +385,7 @@ namespace dlech.SshAgentLib
       // make sure socket files are cleaned up when we stop.
       StopCygwinSocket();
       StopMsysSocket();
+      StopWslSocket();
       StopWindowsOpenSshPipe();
 
       if (hwnd != IntPtr.Zero) {
@@ -455,7 +488,8 @@ namespace dlech.SshAgentLib
           }
       } catch (IOException ex) {
         var socketException = ex.InnerException as SocketException;
-        if (socketException != null && socketException.ErrorCode == WSAECONNABORTED) {
+        if (socketException != null && (
+          socketException.ErrorCode == WSAECONNABORTED || socketException.ErrorCode == WSAECONNRESET)) {
           // expected error
           return;
         }
