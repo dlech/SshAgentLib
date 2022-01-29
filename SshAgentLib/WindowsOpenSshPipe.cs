@@ -43,6 +43,7 @@ namespace dlech.SshAgentLib
 
             cancelSource = new CancellationTokenSource();
             listenerTask = RunListenerAsync(connectionHandler, cancelSource.Token);
+            Debug.WriteLine("Started new Windows OpenSSH Pipe");
         }
 
         [DllImport("kernel32.dll", SetLastError = true)]
@@ -64,6 +65,7 @@ namespace dlech.SshAgentLib
                     bufferSize))
                 {
                     await server.WaitForConnectionAsync(cancellationToken).ConfigureAwait(false);
+                    Debug.WriteLine("Received Windows OpenSSH Pipe client connection");
 
                     if (!GetNamedPipeClientProcessId(
                         server.SafePipeHandle.DangerousGetHandle(), out var clientPid))
@@ -99,6 +101,8 @@ namespace dlech.SshAgentLib
             {
                 // expected since we just canceled the task
             }
+
+            Debug.WriteLine("Stopped Windows OpenSSH Pipe");
         }
     }
 }
