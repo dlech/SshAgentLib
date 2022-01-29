@@ -424,7 +424,7 @@ namespace dlech.SshAgentLib
           try {
               otherProcess = WinInternals.FindProcessWithMatchingHandle(fileMap);
           } catch (Exception ex) {
-              Debug.Fail(ex.ToString());
+              Debug.WriteLine(ex.ToString());
           }
 
           if (userSid == mapOwner || procOwnerSid == mapOwner) {
