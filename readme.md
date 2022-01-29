@@ -22,10 +22,6 @@ Gtk
 ---
 Provides widgets based on the [GtkSharp][3] library
 
-Qt
---
-Provides widgets based on the [Qyoto][4] library
-
 
 [1]: http://lechnology.com/KeeAgent
 [2]: http://msdn.microsoft.com/en-us/library/system.windows.forms.aspx

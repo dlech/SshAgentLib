@@ -18,10 +18,6 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SshAgentLib.Ui.WinForms", "
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SshAgentLib.Ui.GTK", "Ui\Gtk\SshAgentLib.Ui.GTK.csproj", "{D9797E08-73FA-4F41-AB34-789F1BB68F07}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SshAgentLib.Ui.Qt", "Ui\Qt\SshAgentLib.Ui.Qt.csproj", "{71DDF18D-2CA7-46E3-866C-6CC7294E0B69}"
-EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SshAgentLib.Ui.Qt.Demo", "Ui\Qt.Demo\SshAgentLib.Ui.Qt.Demo.csproj", "{703E9787-06B8-45EB-881B-6251F0AB845E}"
-EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -59,27 +55,5 @@ Global
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
-	EndGlobalSection
-	GlobalSection(MonoDevelopProperties) = preSolution
-		Policies = $0
-		$0.DotNetNamingPolicy = $1
-		$1.DirectoryNamespaceAssociation = None
-		$1.ResourceNamePolicy = FileFormatDefault
-		$0.TextStylePolicy = $13
-		$13.FileWidth = 120
-		$13.TabsToSpaces = False
-		$13.inheritsSet = null
-		$13.inheritsScope = text/plain
-		$13.scope = text/x-csharp
-		$0.CSharpFormattingPolicy = $14
-		$14.IndentSwitchSection = True
-		$14.inheritsSet = Mono
-		$14.inheritsScope = text/x-csharp
-		$14.scope = text/x-csharp
-		$14.SpacingAfterMethodDeclarationName = False
-		$14.SpaceAfterMethodCallName = False
-		$14.SpaceBeforeOpenSquareBracket = False
-		version = 0.7.7
-		StartupItem = Ui\Qt.Demo\SshAgentLib.Ui.Qt.Demo.csproj
 	EndGlobalSection
 EndGlobal

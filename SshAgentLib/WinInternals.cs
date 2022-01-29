@@ -51,7 +51,7 @@ namespace dlech.SshAgentLib
         const uint AF_INET6 = 23;
 
         enum TCP_CONNECTION_OFFLOAD_STATE
-        { 
+        {
             TcpConnectionOffloadStateInHost      = 0,
             TcpConnectionOffloadStateOffloading  = 1,
             TcpConnectionOffloadStateOffloaded   = 2,
@@ -76,7 +76,7 @@ namespace dlech.SshAgentLib
         }
 
         enum TCP_TABLE_CLASS
-        { 
+        {
           TCP_TABLE_BASIC_LISTENER,
           TCP_TABLE_BASIC_CONNECTIONS,
           TCP_TABLE_BASIC_ALL,
@@ -182,7 +182,7 @@ namespace dlech.SshAgentLib
                 if (!match.HasValue) {
                     throw new Exception("Match not found.");
                 }
-                return Process.GetProcessById((int)match.Value.dwOwningPid);;
+                return Process.GetProcessById((int)match.Value.dwOwningPid);
             } finally {
                 Marshal.FreeHGlobal(buf);
             }
@@ -347,7 +347,7 @@ namespace dlech.SshAgentLib
             SystemLogicalProcessorInformation = 73,
             SystemInformationClassMax
         }
-        
+
         enum NTSTATUS : uint
         {
             STATUS_SUCCESS = 0x00000000,

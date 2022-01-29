@@ -203,7 +203,7 @@ namespace dlech.SshAgentLibTests
         return result;
       };
 
-      int expectedKeySize = 1024; // all test keys     
+      int expectedKeySize = 1024; // all test keys
 
       //      string expectedSsh2RsaPublicKeyAlgorithm = PpkFile.PublicKeyAlgorithms.ssh_rsa;
       //      string expectedSsh2RsaWithoutPassPublicKeyString =
@@ -247,7 +247,7 @@ namespace dlech.SshAgentLibTests
       //      string expectedSsh2DsaPrivateKey = "AAAAFQCMF35lBnFwFWyl40y0wTf4lfdhNQ==";
 
       PpkFormatter formatter = new PpkFormatter();
-      
+
       /* test for successful method call */
       formatter.GetPassphraseCallbackMethod = getPassphrase;
       formatter.WarnOldFileFormatCallbackMethod = warnOldFileNotExpected;
@@ -264,10 +264,10 @@ namespace dlech.SshAgentLibTests
       byte[] modifiedFileContents;
       MemoryStream modifiedFileContentsStream;
       withoutPassFileContents = Encoding.UTF8.GetString(fileData);
-     
+
       /* test bad file version */
       modifiedFileContents =
-        Encoding.UTF8.GetBytes(withoutPassFileContents.Replace("2", "3"));
+        Encoding.UTF8.GetBytes(withoutPassFileContents.Replace("2", "9"));
       modifiedFileContentsStream = new MemoryStream(modifiedFileContents);
       formatter.GetPassphraseCallbackMethod = null;
       formatter.WarnOldFileFormatCallbackMethod = warnOldFileNotExpected;
@@ -428,6 +428,68 @@ namespace dlech.SshAgentLibTests
         Assert.That(target.GetMD5Fingerprint().ToHexString(), Is.EqualTo(fps[i]));
         Assert.That(target.Comment, Is.EqualTo(comments[i]));
       }
+    }
+
+    [Test]
+    public void ParsePpkv3()
+    {
+      ISshKey target;
+
+      PpkFormatter.WarnOldFileFormatCallback warnOldFileNotExpected = ()=>
+      {
+        Assert.Fail("Warn old file format was not expected");
+      };
+
+      Func<string, PpkFormatter.GetPassphraseCallback> GetPassphrase = v => {
+        return (comment) => {
+          if (comment == null) {
+            return null;
+          }
+          SecureString result = new SecureString();
+          foreach (char c in v) {
+            result.AppendChar(c);
+          }
+          return result;
+        };
+      };
+
+
+      string passphraseNonAscii = "Ŧéşť";
+      string passphraseGood = "PageantSharp";
+      // string passphraseBad = "badword";
+      string passphraseNull = null;
+
+      int expectedKeySize = 1024; // all test keys
+
+      string path;
+      PpkFormatter formatter = new PpkFormatter();
+
+      /* test for successful method call */
+      formatter.GetPassphraseCallbackMethod = GetPassphrase(passphraseGood);
+      formatter.WarnOldFileFormatCallbackMethod = warnOldFileNotExpected;
+      path = Path.Combine(DllDirectory, "../../Resources/ssh2-rsa-v3.ppk");
+      target = formatter.DeserializeFile(path);
+      Assert.AreEqual("PageantSharp test: SSH2-RSA PPKv3, with passphrase", target.Comment);
+      Assert.AreEqual(expectedKeySize, target.Size);
+      Assert.That(target.Version, Is.EqualTo(SshVersion.SSH2));
+
+
+      formatter.GetPassphraseCallbackMethod = GetPassphrase(passphraseNonAscii);
+      formatter.WarnOldFileFormatCallbackMethod = warnOldFileNotExpected;
+      path = Path.Combine(DllDirectory, "../../Resources/ssh2-rsa-v3-non-ascii-passphrase.ppk");
+      target = formatter.DeserializeFile(path);
+      Assert.AreEqual("PageantSharp test: SSH2-RSA PPKv3, non ascii passphrase", target.Comment);
+      Assert.AreEqual(expectedKeySize, target.Size);
+      Assert.That(target.Version, Is.EqualTo(SshVersion.SSH2));
+
+
+      formatter.GetPassphraseCallbackMethod = GetPassphrase(passphraseNull);
+      formatter.WarnOldFileFormatCallbackMethod = warnOldFileNotExpected;
+      path = Path.Combine(DllDirectory, "../../Resources/ssh2-rsa-v3-no-passphrase.ppk");
+      target = formatter.DeserializeFile(path);
+      Assert.AreEqual("PageantSharp test: SSH2-RSA PPKv3, no passphrase", target.Comment);
+      Assert.AreEqual(expectedKeySize, target.Size);
+      Assert.That(target.Version, Is.EqualTo(SshVersion.SSH2));
     }
   }
 }

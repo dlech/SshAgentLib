@@ -27,11 +27,13 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
+using System.Linq;
 using System.Runtime.InteropServices;
 using System.Security;
 using System.Security.Cryptography;
 using System.Text;
 using dlech.SshAgentLib.Crypto;
+using Konscious.Security.Cryptography;
 using Org.BouncyCastle.Crypto;
 using Org.BouncyCastle.Crypto.Parameters;
 using Org.BouncyCastle.Math;
@@ -70,13 +72,24 @@ namespace dlech.SshAgentLib
     private const string commentKey = "Comment";
 
     /// <summary>
-    /// Key that indicates that the public key follows on the next line 
+    /// Key that indicates that the public key follows on the next line
     /// and the length of the key in lines
     /// </summary>
     private const string publicKeyLinesKey = "Public-Lines";
 
+
+    private const string keyDerivationKey = "Key-Derivation";
+
+    private const string argonMemoryKey = "Argon2-Memory";
+
+    private const string argonPassesKey = "Argon2-Passes";
+
+    private const string argonParallelismKey = "Argon2-Parallelism";
+
+    private const string argonSaltKey = "Argon2-Salt";
+
     /// <summary>
-    /// Key that indicates that the private key follows on the next line 
+    /// Key that indicates that the private key follows on the next line
     /// and the length of the key in lines
     /// </summary>
     private const string privateKeyLinesKey = "Private-Lines";
@@ -109,7 +122,8 @@ namespace dlech.SshAgentLib
     internal enum Version
     {
       V1,
-      V2
+      V2,
+      V3,
     }
 
     /// <summary>
@@ -132,7 +146,7 @@ namespace dlech.SshAgentLib
 
       /// <summary>
       /// File format version (one of FileVersions members)
-      /// Callers of this method should warn user 
+      /// Callers of this method should warn user
       /// that version 1 has security issue and should not be used
       /// </summary>
       public Version ppkFileVersion;
@@ -160,6 +174,9 @@ namespace dlech.SshAgentLib
       /// </summary>
       public string comment;
 
+      public KeyDerivation kdfAlgorithm;
+      public Dictionary<string, object> kdfParameters;
+
       /// <summary>
       /// The private key.
       /// </summary>
@@ -175,7 +192,6 @@ namespace dlech.SshAgentLib
       /// </summary>
       public bool isHMAC;
       public SecureString passphrase;
-
     }
 
     #endregion -- structures --
@@ -301,6 +317,94 @@ namespace dlech.SshAgentLib
         }
         fileData.publicKeyBlob = Util.FromBase64(publicKeyString);
 
+        /* read kdf parameters */
+        if (fileData.privateKeyAlgorithm != PrivateKeyAlgorithm.None && fileData.ppkFileVersion == Version.V3) {
+          fileData.kdfParameters = new Dictionary<string, object>();
+
+          line = reader.ReadLine();
+          pair = line.Split(delimArray, 2);
+          if (pair[0] != keyDerivationKey) {
+            throw new PpkFormatterException(PpkFormatterException.PpkErrorType.FileFormat,
+              $"{keyDerivationKey} expected");
+          }
+
+          algorithm = pair[1].Trim();
+          try {
+            fileData.kdfAlgorithm = (KeyDerivation)Enum.Parse(typeof(KeyDerivation), algorithm);
+          }
+          catch (Exception e) when (e is ArgumentException || e is OverflowException) {
+            throw new PpkFormatterException(PpkFormatterException.PpkErrorType.FileFormat,
+              "unsupported key derivation algorithm");
+          }
+
+
+          if (!algorithm.StartsWith("Argon2")) {
+            throw new NotImplementedException();
+          }
+
+
+          line = reader.ReadLine();
+          pair = line.Split(delimArray, 2);
+          if (pair[0] != argonMemoryKey) {
+            throw new PpkFormatterException(PpkFormatterException.PpkErrorType.FileFormat,
+              argonMemoryKey + "expected");
+          }
+
+          try {
+            fileData.kdfParameters[argonMemoryKey] = int.Parse(pair[1].Trim());
+          }
+          catch (Exception e) when (e is ArgumentNullException || e is FormatException || e is OverflowException) {
+            throw new PpkFormatterException(PpkFormatterException.PpkErrorType.FileFormat,
+              "expected an int");
+          }
+
+
+          line = reader.ReadLine();
+          pair = line.Split(delimArray, 2);
+          if (pair[0] != argonPassesKey) {
+            throw new PpkFormatterException(PpkFormatterException.PpkErrorType.FileFormat,
+              argonPassesKey + "expected");
+          }
+
+          try {
+            fileData.kdfParameters[argonPassesKey] = int.Parse(pair[1].Trim());
+          }
+          catch (Exception e) when (e is ArgumentNullException || e is FormatException || e is OverflowException) {
+            throw new PpkFormatterException(PpkFormatterException.PpkErrorType.FileFormat,
+              "expected an int");
+          }
+
+          line = reader.ReadLine();
+          pair = line.Split(delimArray, 2);
+          if (pair[0] != argonParallelismKey) {
+            throw new PpkFormatterException(PpkFormatterException.PpkErrorType.FileFormat,
+              argonParallelismKey + "expected");
+          }
+
+          try {
+            fileData.kdfParameters[argonParallelismKey] = int.Parse(pair[1].Trim());
+          }
+          catch (Exception e) when (e is ArgumentNullException || e is FormatException || e is OverflowException) {
+            throw new PpkFormatterException(PpkFormatterException.PpkErrorType.FileFormat,
+              "expected an int");
+          }
+
+          line = reader.ReadLine();
+          pair = line.Split(delimArray, 2);
+          if (pair[0] != argonSaltKey) {
+            throw new PpkFormatterException(PpkFormatterException.PpkErrorType.FileFormat,
+              argonSaltKey + "expected");
+          }
+
+          try {
+            fileData.kdfParameters[argonSaltKey] = Util.FromHex(pair[1].Trim());
+          }
+          catch (ArgumentException) {
+            throw new PpkFormatterException(PpkFormatterException.PpkErrorType.FileFormat,
+              "expected a hex string");
+          }
+        }
+
         /* read private key */
         line = reader.ReadLine();
         pair = line.Split(delimArray, 2);
@@ -379,6 +483,49 @@ namespace dlech.SshAgentLib
 
     #region -- Private Methods --
 
+    private static void argonKeys(FileData fileData, out byte[] cipherKey, out byte[] iv, out byte[] macKey)
+    {
+      int cipherLength = 32;
+      int ivLength = 16;
+      int macLength = 32;
+
+      if (fileData.privateKeyAlgorithm == PrivateKeyAlgorithm.None) {
+        cipherKey = null;
+        iv = null;
+        macKey = new byte[0];
+        return;
+      }
+      using (var passphrase = fileData.passphrase.ToAnsiArray()) {
+        Argon2 hasher;
+        switch (fileData.kdfAlgorithm) {
+          case KeyDerivation.Argon2i:
+            hasher = new Argon2i(passphrase.Data);
+            break;
+          case KeyDerivation.Argon2d:
+            hasher = new Argon2d(passphrase.Data);
+            break;
+          case KeyDerivation.Argon2id:
+            hasher = new Argon2id(passphrase.Data);
+            break;
+          default:
+            throw new ArgumentOutOfRangeException();
+        }
+        hasher.MemorySize = (int) fileData.kdfParameters[argonMemoryKey];
+        hasher.Iterations = (int) fileData.kdfParameters[argonPassesKey];
+        hasher.DegreeOfParallelism = (int) fileData.kdfParameters[argonParallelismKey];
+        hasher.Salt = (byte[]) fileData.kdfParameters[argonSaltKey];
+
+        // These values are copied by Aes and HMACSHA256 which
+        // means they aren't explicitly zeroed unless we do it.
+        // and then cipher.Clear() and mac.Clear() need to be
+        // called once they're no longer in use.
+        byte[] kdf = hasher.GetBytes(cipherLength + ivLength + macLength);
+        cipherKey = kdf.Skip(0).Take(cipherLength).ToArray();
+        iv = kdf.Skip(cipherLength).Take(ivLength).ToArray();
+        macKey = kdf.Skip(cipherLength+ivLength).Take(macLength).ToArray();
+      }
+    }
+
     private static void DecryptPrivateKey(ref FileData fileData)
     {
       switch (fileData.privateKeyAlgorithm) {
@@ -390,43 +537,59 @@ namespace dlech.SshAgentLib
 
           /* create key from passphrase */
 
-          SHA1 sha = SHA1.Create();
-          sha.Initialize();
-          List<byte> key = new List<byte>();
+          byte[] cipherKey;
+          byte[] iv;
 
-          using (PinnedArray<byte> hashData =
-                 new PinnedArray<byte>(cPrivateKeyDecryptSalt1.Length +
-                                     fileData.passphrase.Length)) {
-            Array.Copy(Encoding.UTF8.GetBytes(cPrivateKeyDecryptSalt1),
-                       hashData.Data, cPrivateKeyDecryptSalt1.Length);
-            IntPtr passphrasePtr =
-              Marshal.SecureStringToGlobalAllocUnicode(fileData.passphrase);
-            for (int i = 0; i < fileData.passphrase.Length; i++) {
-              int unicodeChar = Marshal.ReadInt16(passphrasePtr + i * 2);
-              byte ansiChar = Util.UnicodeToAnsi(unicodeChar);
-              hashData.Data[cPrivateKeyDecryptSalt1.Length + i] = ansiChar;
-              Marshal.WriteByte(passphrasePtr, i, 0);
-            }
-            Marshal.ZeroFreeGlobalAllocUnicode(passphrasePtr);
-            sha.ComputeHash(hashData.Data);
-            key.AddRange(sha.Hash);
-            Array.Copy(Encoding.UTF8.GetBytes(cPrivateKeyDecryptSalt2),
-                       hashData.Data, cPrivateKeyDecryptSalt2.Length);
-            sha.ComputeHash(hashData.Data);
-            key.AddRange(sha.Hash);
+          switch (fileData.ppkFileVersion) {
+            case Version.V1:
+            case Version.V2:
+              SHA1 sha = SHA1.Create();
+              sha.Initialize();
+              List<byte> key = new List<byte>();
+              iv = new byte[16];
+
+              using (PinnedArray<byte> hashData =
+                     new PinnedArray<byte>(cPrivateKeyDecryptSalt1.Length +
+                                         fileData.passphrase.Length)) {
+                Array.Copy(Encoding.UTF8.GetBytes(cPrivateKeyDecryptSalt1),
+                           hashData.Data, cPrivateKeyDecryptSalt1.Length);
+                IntPtr passphrasePtr =
+                  Marshal.SecureStringToGlobalAllocUnicode(fileData.passphrase);
+                for (int i = 0; i < fileData.passphrase.Length; i++) {
+                  int unicodeChar = Marshal.ReadInt16(passphrasePtr + i * 2);
+                  byte ansiChar = Util.UnicodeToAnsi(unicodeChar);
+                  hashData.Data[cPrivateKeyDecryptSalt1.Length + i] = ansiChar;
+                  Marshal.WriteByte(passphrasePtr, i, 0);
+                }
+                Marshal.ZeroFreeGlobalAllocUnicode(passphrasePtr);
+                sha.ComputeHash(hashData.Data);
+                key.AddRange(sha.Hash);
+                Array.Copy(Encoding.UTF8.GetBytes(cPrivateKeyDecryptSalt2),
+                           hashData.Data, cPrivateKeyDecryptSalt2.Length);
+                sha.ComputeHash(hashData.Data);
+                key.AddRange(sha.Hash);
+                int keySize = 256 / 8; // convert bits to bytes
+                key.RemoveRange(keySize, key.Count - keySize); // remove extra bytes
+                cipherKey = key.ToArray();
+              }
+              sha.Clear();
+              break;
+            case Version.V3:
+              byte[] macKey;
+              argonKeys(fileData, out cipherKey, out iv, out macKey);
+              break;
+            default:
+              throw new ArgumentOutOfRangeException();
           }
-          sha.Clear();
           /* decrypt private key */
 
           Aes aes = Aes.Create();
           aes.KeySize = 256;
           aes.Mode = CipherMode.CBC;
           aes.Padding = PaddingMode.None;
-          int keySize = aes.KeySize / 8; // convert bits to bytes
-          key.RemoveRange(keySize, key.Count - keySize); // remove extra bytes
-          aes.Key = key.ToArray();
-          Util.ClearByteList(key);
-          aes.IV = new byte[aes.IV.Length];
+          aes.Key = cipherKey;
+          Array.Clear(cipherKey, 0, cipherKey.Length);
+          aes.IV = iv;
           ICryptoTransform decryptor = aes.CreateDecryptor();
           fileData.privateKeyBlob.Data =
             Util.GenericTransform(decryptor, fileData.privateKeyBlob.Data);
@@ -453,51 +616,53 @@ namespace dlech.SshAgentLib
       builder.AddBytes(fileData.privateKeyBlob.Data);
 
       byte[] computedHash;
-      SHA1 sha = SHA1.Create();
-      if (fileData.isHMAC) {
-        HMAC hmac = HMACSHA1.Create();
-        if (fileData.passphrase != null) {
-          using (PinnedArray<byte> hashData =
-                 new PinnedArray<byte>(cMACKeySalt.Length +
-                   fileData.passphrase.Length)) {
-            Array.Copy(Encoding.UTF8.GetBytes(cMACKeySalt),
-                       hashData.Data, cMACKeySalt.Length);
-            IntPtr passphrasePtr =
-              Marshal.SecureStringToGlobalAllocUnicode(fileData.passphrase);
-            for (int i = 0; i < fileData.passphrase.Length; i++) {
-              int unicodeChar = Marshal.ReadInt16(passphrasePtr + i * 2);
-              byte ansiChar = Util.UnicodeToAnsi(unicodeChar);
-              hashData.Data[cMACKeySalt.Length + i] = ansiChar;
-              Marshal.WriteByte(passphrasePtr, i * 2, 0);
+      switch (fileData.ppkFileVersion) {
+        case Version.V1:
+        case Version.V2:
+          SHA1 sha = SHA1.Create();
+          if (fileData.isHMAC) {
+            HMAC hmac = HMACSHA1.Create();
+            if (fileData.passphrase != null) {
+              using (PinnedArray<byte> hashData =
+                     new PinnedArray<byte>(cMACKeySalt.Length +
+                       fileData.passphrase.Length)) {
+                Array.Copy(Encoding.UTF8.GetBytes(cMACKeySalt),
+                           hashData.Data, cMACKeySalt.Length);
+                IntPtr passphrasePtr =
+                  Marshal.SecureStringToGlobalAllocUnicode(fileData.passphrase);
+                for (int i = 0; i < fileData.passphrase.Length; i++) {
+                  int unicodeChar = Marshal.ReadInt16(passphrasePtr + i * 2);
+                  byte ansiChar = Util.UnicodeToAnsi(unicodeChar);
+                  hashData.Data[cMACKeySalt.Length + i] = ansiChar;
+                  Marshal.WriteByte(passphrasePtr, i * 2, 0);
+                }
+                Marshal.ZeroFreeGlobalAllocUnicode(passphrasePtr);
+                hmac.Key = sha.ComputeHash(hashData.Data);
+              }
+            } else {
+              hmac.Key = sha.ComputeHash(Encoding.UTF8.GetBytes(cMACKeySalt));
             }
-            Marshal.ZeroFreeGlobalAllocUnicode(passphrasePtr);
-            hmac.Key = sha.ComputeHash(hashData.Data);
+            computedHash = hmac.ComputeHash(builder.GetBlob());
+            hmac.Clear();
+          } else {
+            computedHash = sha.ComputeHash(builder.GetBlob());
           }
-        } else {
-          hmac.Key = sha.ComputeHash(Encoding.UTF8.GetBytes(cMACKeySalt));
-        }
-        computedHash = hmac.ComputeHash(builder.GetBlob());
-        hmac.Clear();
-      } else {
-        computedHash = sha.ComputeHash(builder.GetBlob());
+          sha.Clear();
+          builder.Clear();
+
+          break;
+        case Version.V3:
+          byte[] cipherKey, iv, macKey;
+          argonKeys(fileData, out cipherKey, out iv, out macKey);
+          HMACSHA256 hmacsha256 = new HMACSHA256(macKey);
+          computedHash = hmacsha256.ComputeHash(builder.GetBlob());
+          break;
+        default:
+          throw new ArgumentOutOfRangeException();
       }
-      sha.Clear();
-      builder.Clear();
 
       try {
-        int macLength = computedHash.Length;
-        bool failed = false;
-        if (fileData.privateMAC.Length == macLength) {
-          for (int i = 0; i < macLength; i++) {
-            if (fileData.privateMAC[i] != computedHash[i]) {
-              failed = true;
-              break;
-            }
-          }
-        } else {
-          failed = true;
-        }
-        if (failed) {
+        if (!fileData.privateMAC.SequenceEqual(computedHash)) {
           // private key data should start with 3 bytes with value 0 if it was
           // properly decrypted or does not require decryption
           if ((fileData.privateKeyBlob.Data[0] == 0) &&
@@ -588,6 +753,13 @@ namespace dlech.SshAgentLib
 
   }
 
+  public enum KeyDerivation
+  {
+    Argon2id,
+    Argon2i,
+    Argon2d,
+  }
+
   static class PpkFormatterExt
   {
     public static string GetIdentifierString(
@@ -626,6 +798,8 @@ namespace dlech.SshAgentLib
           return "1";
         case PpkFormatter.Version.V2:
           return "2";
+        case PpkFormatter.Version.V3:
+          return "3";
         default:
           Debug.Fail("Unknown version");
           throw new Exception("Unknown version");
@@ -640,6 +814,9 @@ namespace dlech.SshAgentLib
           return true;
         case "2":
           version = PpkFormatter.Version.V2;
+          return true;
+        case "3":
+          version = PpkFormatter.Version.V3;
           return true;
         default:
           return false;

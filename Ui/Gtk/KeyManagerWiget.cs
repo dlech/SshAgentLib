@@ -60,7 +60,7 @@ namespace SshAgentLib.GTK
       if (mAgent != null) {
         if (mAgent is Agent) {
           var agent = mAgent as Agent;
-          agent.KeyListChanged -= AgentKeyListChangeHandler;
+          // agent.KeyListChanged -= AgentKeyListChangeHandler;
           agent.Locked -= AgentLockHandler;
         }
       }
@@ -71,7 +71,7 @@ namespace SshAgentLib.GTK
         var agent = mAgent as Agent;
         mKeyNodeView.Columns[0].Visible = true;
         mKeyNodeView.Columns[1].Visible = true;
-        agent.KeyListChanged += AgentKeyListChangeHandler;
+        // agent.KeyListChanged += AgentKeyListChangeHandler;
         agent.Locked += AgentLockHandler;
         //buttonTableLayoutPanel.Controls.Remove(refreshButton);
         //buttonTableLayoutPanel.ColumnCount = 5;
@@ -86,7 +86,7 @@ namespace SshAgentLib.GTK
 
     private void ReloadKeyListView()
     {
-          
+
       mKeyCollection = new Gtk.NodeStore(typeof(KeyNode));
       try {
         foreach (var key in mAgent.GetAllKeys()) {
@@ -101,7 +101,7 @@ namespace SshAgentLib.GTK
       } catch (Exception) {
         // TODO - fix strings
         var messageDialog =
-          new Gtk.MessageDialog(null, Gtk.DialogFlags.Modal , 
+          new Gtk.MessageDialog(null, Gtk.DialogFlags.Modal ,
                                 Gtk.MessageType.Error , Gtk.ButtonsType.Close ,
                                 "failed"/*Strings.errListKeysFailed*/);
         messageDialog.Run ();
@@ -120,6 +120,7 @@ namespace SshAgentLib.GTK
 //      });
     }
 
+#if FIXME
     private void AgentKeyListChangeHandler(object sender, Agent.KeyListChangeEventArgs e)
     {
 //      if (IsDisposed) {
@@ -147,8 +148,9 @@ namespace SshAgentLib.GTK
           });
           break;
       }
-      
+
     }
+#endif
 
     private void UpdateVisibility()
     {
@@ -186,7 +188,7 @@ namespace SshAgentLib.GTK
     {
       try {
         // TODO - get passphrase
-        mAgent.Lock (new byte[0]); 
+        mAgent.Lock (new byte[0]);
         } catch (AgentLockedException) {
         // TODO - show error message
       } catch (Exception ex) {
@@ -201,7 +203,7 @@ namespace SshAgentLib.GTK
     {
      try {
         // TODO - get passphrase
-        mAgent.Unlock (new byte[0]); 
+        mAgent.Unlock (new byte[0]);
         } catch (AgentLockedException) {
         // TODO - show error message
       } catch (Exception ex) {
@@ -210,7 +212,7 @@ namespace SshAgentLib.GTK
       if (!(mAgent is Agent)) {
         ReloadKeyListView ();
       }
-    }    
+    }
 
     protected void OnMAddButtonClicked (object sender, EventArgs e)
     {
@@ -236,7 +238,7 @@ namespace SshAgentLib.GTK
       if (!(mAgent is Agent)) {
         ReloadKeyListView ();
       }
-    }    
+    }
 
     protected void OnMRemoveButtonClicked (object sender, EventArgs e)
     {
@@ -246,7 +248,7 @@ namespace SshAgentLib.GTK
       if (!(mAgent is Agent)) {
         ReloadKeyListView ();
       }
-    }    
+    }
 
     protected void OnMRemoveAllButtonClicked (object sender, EventArgs e)
     {
@@ -254,7 +256,7 @@ namespace SshAgentLib.GTK
       if (!(mAgent is Agent)) {
         ReloadKeyListView ();
       }
-    }    
+    }
 
     protected void OnMRefreshButtonClicked (object sender, EventArgs e)
     {
