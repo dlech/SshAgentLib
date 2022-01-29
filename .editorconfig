@@ -147,5 +147,5 @@ csharp_preserve_single_line_statements = true
 csharp_preserve_single_line_blocks = true
 
 # starting to convert to 4 spaces
-[*WindowsOpenSshPipe*.cs]
+[*{WindowsOpenSshPipe,WslSocket,UnixDomainSocketEndPoint}*.cs]
 indent_size = 4

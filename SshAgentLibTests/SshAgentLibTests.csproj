@@ -112,6 +112,7 @@
     <Compile Include="ISshKeyTest.cs" />
     <Compile Include="OpensshPublicKeyFormatterTests.cs" />
     <Compile Include="WindowsOpenSshPipeTests.cs" />
+    <Compile Include="WslSocketTests.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
   <ItemGroup>

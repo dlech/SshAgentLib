@@ -1,4 +1,4 @@
-//
+﻿//
 // PageantAgent.cs
 //
 // Author(s): David Lechner <david@lechnology.com>
@@ -53,6 +53,7 @@ namespace dlech.SshAgentLib
     const int ERROR_CLASS_ALREADY_EXISTS = 1410;
     const int WM_COPYDATA = 0x004A;
     const int WSAECONNABORTED = 10053;
+    const int WSAECONNRESET = 10054;
 
     /* From PuTTY source code */
 
@@ -70,7 +71,7 @@ namespace dlech.SshAgentLib
     object lockObject = new object();
     CygwinSocket cygwinSocket;
     MsysSocket msysSocket;
-    UnixSocket wslSocket;
+    WslSocket wslSocket;
     WindowsOpenSshPipe opensshPipe;
     Thread winThread;
 
@@ -302,13 +303,10 @@ namespace dlech.SshAgentLib
         return;
       }
       // only overwrite a file if it looks like a WslSocket file.
-      // TODO: Might be good to test that there are not network sockets using
-      // the port specified in this file.
-      if (File.Exists(path) && UnixSocket.TestFile(path)) {
+      if (File.Exists(path) && WslSocket.TestFile(path)) {
         File.Delete(path);
       }
-      wslSocket = new UnixSocket(path);
-      wslSocket.ConnectionHandler = connectionHandler;
+      wslSocket = new WslSocket(path, connectionHandler);
     }
 
     public void StopWslSocket()
@@ -490,7 +488,8 @@ namespace dlech.SshAgentLib
           }
       } catch (IOException ex) {
         var socketException = ex.InnerException as SocketException;
-        if (socketException != null && socketException.ErrorCode == WSAECONNABORTED) {
+        if (socketException != null && (
+          socketException.ErrorCode == WSAECONNABORTED || socketException.ErrorCode == WSAECONNRESET)) {
           // expected error
           return;
         }
