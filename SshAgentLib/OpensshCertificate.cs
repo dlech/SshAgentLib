@@ -27,50 +27,61 @@ using System.Linq;
 
 namespace dlech.SshAgentLib
 {
-  /// <summary>
-  /// Openssh certificate.
-  /// </summary>
-  /// <remarks>
-  /// Based on <c>struct sshkey_cert</c> in sshkey.h.
-  /// </remarks>
-  public sealed class OpensshCertificate
-  {
-    public byte[] Blob { get; private set; }
-    public Ssh2CertType Type { get; private set; }
-    public ulong Serial { get; private set; }
-    public string KeyId { get; private set; }
-    public IList<string> Principals { get; private set; }
-    public DateTime ValidAfter { get; private set; }
-    public DateTime ValidBefore { get; private set; }
-    public object Critical { get; private set; }
-    public object Extenstions { get; private set; }
-    public object SignatureKey { get; private set; }
-
-    public OpensshCertificate(byte[] blob, Ssh2CertType type, ulong serial, string keyId,
-                              IEnumerable<string> principals, DateTime validAfter,
-                              DateTime validBefore, object critical, object extensions,
-                              object signatureKey)
+    /// <summary>
+    /// Openssh certificate.
+    /// </summary>
+    /// <remarks>
+    /// Based on <c>struct sshkey_cert</c> in sshkey.h.
+    /// </remarks>
+    public sealed class OpensshCertificate
     {
-      Blob = blob;
-      Type = type;
-      Serial = serial;
-      KeyId = keyId;
-      if (principals == null) {
-        Principals = new List<string>().AsReadOnly();
-      } else {
-        Principals = principals.ToList().AsReadOnly();
-      }
-      ValidAfter = validAfter;
-      ValidBefore = validBefore;
-      Critical = critical;
-      Extenstions = extensions;
-      SignatureKey = signatureKey;
-    }
-  }
+        public byte[] Blob { get; private set; }
+        public Ssh2CertType Type { get; private set; }
+        public ulong Serial { get; private set; }
+        public string KeyId { get; private set; }
+        public IList<string> Principals { get; private set; }
+        public DateTime ValidAfter { get; private set; }
+        public DateTime ValidBefore { get; private set; }
+        public object Critical { get; private set; }
+        public object Extenstions { get; private set; }
+        public object SignatureKey { get; private set; }
 
-  public enum Ssh2CertType
-  {
-    User = 1,
-    Host = 2,
-  }
+        public OpensshCertificate(
+            byte[] blob,
+            Ssh2CertType type,
+            ulong serial,
+            string keyId,
+            IEnumerable<string> principals,
+            DateTime validAfter,
+            DateTime validBefore,
+            object critical,
+            object extensions,
+            object signatureKey
+        )
+        {
+            Blob = blob;
+            Type = type;
+            Serial = serial;
+            KeyId = keyId;
+            if (principals == null)
+            {
+                Principals = new List<string>().AsReadOnly();
+            }
+            else
+            {
+                Principals = principals.ToList().AsReadOnly();
+            }
+            ValidAfter = validAfter;
+            ValidBefore = validBefore;
+            Critical = critical;
+            Extenstions = extensions;
+            SignatureKey = signatureKey;
+        }
+    }
+
+    public enum Ssh2CertType
+    {
+        User = 1,
+        Host = 2,
+    }
 }

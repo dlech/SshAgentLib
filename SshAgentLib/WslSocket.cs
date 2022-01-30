@@ -35,7 +35,11 @@ namespace dlech.SshAgentLib
         /// </param>
         public WslSocket(string path, ConnectionHandlerFunc connectionHandler)
         {
-            var socket = new Socket(AddressFamily.Unix, SocketType.Stream, ProtocolType.Unspecified);
+            var socket = new Socket(
+                AddressFamily.Unix,
+                SocketType.Stream,
+                ProtocolType.Unspecified
+            );
 
             try
             {
@@ -57,7 +61,8 @@ namespace dlech.SshAgentLib
                 var userOnlyRule = new FileSystemAccessRule(
                     WindowsIdentity.GetCurrent().User,
                     FileSystemRights.FullControl,
-                    AccessControlType.Allow);
+                    AccessControlType.Allow
+                );
                 fileSecurity.SetAccessRule(userOnlyRule);
                 File.SetAccessControl(path, fileSecurity);
 
@@ -75,10 +80,7 @@ namespace dlech.SshAgentLib
                 {
                     File.Delete(path);
                 }
-                catch
-                {
-
-                }
+                catch { }
                 throw;
             }
         }
@@ -86,25 +88,28 @@ namespace dlech.SshAgentLib
         private static async Task AcceptConnectionsAsync(
             Socket socket,
             ConnectionHandlerFunc connectionHandler,
-            CancellationToken cancellationToken)
+            CancellationToken cancellationToken
+        )
         {
-            cancellationToken.Register(() =>
-            {
-                // have to get endpoint before Dispose() to avoid exception.
-                var endpoint = socket.LocalEndPoint as UnixDomainSocketEndPoint;
-                socket.Dispose();
+            cancellationToken.Register(
+                () =>
+                {
+                    // have to get endpoint before Dispose() to avoid exception.
+                    var endpoint = socket.LocalEndPoint as UnixDomainSocketEndPoint;
+                    socket.Dispose();
 
-                // In .NET core, the Socket.Dispose() will take care of this, but
-                // for now...
-                try
-                {
-                    File.Delete(endpoint.CreateBoundEndPoint().BoundFileName);
+                    // In .NET core, the Socket.Dispose() will take care of this, but
+                    // for now...
+                    try
+                    {
+                        File.Delete(endpoint.CreateBoundEndPoint().BoundFileName);
+                    }
+                    catch
+                    {
+                        // we tried
+                    }
                 }
-                catch
-                {
-                    // we tried
-                }
-            });
+            );
 
             while (!cancellationToken.IsCancellationRequested)
             {
@@ -113,17 +118,19 @@ namespace dlech.SshAgentLib
                 {
                     Debug.WriteLine("Accepted WSL socket client connection");
 
-                    await Task.Run(() =>
-                    {
-                        using (var stream = new NetworkStream(clientSocket))
-                        {
-                            var proc = default(Process);
-                            connectionHandler(stream, proc);
-                        }
-                    }).ConfigureAwait(false);
+                    await Task.Run(
+                            () =>
+                            {
+                                using (var stream = new NetworkStream(clientSocket))
+                                {
+                                    var proc = default(Process);
+                                    connectionHandler(stream, proc);
+                                }
+                            }
+                        )
+                        .ConfigureAwait(false);
                 }
             }
-
         }
 
         /// <summary>

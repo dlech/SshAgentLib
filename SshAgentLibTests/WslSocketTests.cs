@@ -1,11 +1,11 @@
-// SPDX-License-Identifier: MIT
+﻿// SPDX-License-Identifier: MIT
 // Copyright (c) 2022 David Lechner <david@lechnology.com>
 
 using System.IO;
 using System.Net.Sockets;
-using NUnit.Framework;
-using dlech.SshAgentLib;
 using System.Threading;
+using dlech.SshAgentLib;
+using NUnit.Framework;
 
 namespace dlech.SshAgentLibTests
 {
@@ -33,8 +33,10 @@ namespace dlech.SshAgentLibTests
         {
             using (new WslSocket(testPath, (s, p) => { }))
             {
-                Assert.That(() => new WslSocket(testPath, (s2, p2) => { }),
-                    Throws.TypeOf<PageantRunningException>());
+                Assert.That(
+                    () => new WslSocket(testPath, (s2, p2) => { }),
+                    Throws.TypeOf<PageantRunningException>()
+                );
             }
         }
 
@@ -43,11 +45,9 @@ namespace dlech.SshAgentLibTests
         {
             using (new WslSocket(testPath, (s, p) => { }))
             {
-                Assert.That(File.Exists(testPath),
-                    "Creating pipe should create socket file");
+                Assert.That(File.Exists(testPath), "Creating pipe should create socket file");
             }
-            Assert.That(!File.Exists(testPath),
-                "Disposing pipe should remove file.");
+            Assert.That(!File.Exists(testPath), "Disposing pipe should remove file.");
         }
 
         [Test, NonParallelizable]
@@ -57,12 +57,24 @@ namespace dlech.SshAgentLibTests
             {
                 var endpoint = new UnixDomainSocketEndPoint(testPath);
 
-                using (var client = new Socket(AddressFamily.Unix, SocketType.Stream, ProtocolType.Unspecified))
+                using (
+                    var client = new Socket(
+                        AddressFamily.Unix,
+                        SocketType.Stream,
+                        ProtocolType.Unspecified
+                    )
+                )
                 {
                     client.Connect(endpoint);
                 }
 
-                using (var client = new Socket(AddressFamily.Unix, SocketType.Stream, ProtocolType.Unspecified))
+                using (
+                    var client = new Socket(
+                        AddressFamily.Unix,
+                        SocketType.Stream,
+                        ProtocolType.Unspecified
+                    )
+                )
                 {
                     client.Connect(endpoint);
                 }
@@ -74,17 +86,28 @@ namespace dlech.SshAgentLibTests
         {
             var callbackEvent = new AutoResetEvent(false);
 
-            using (var socket = new WslSocket(testPath, (s, p) =>
-            {
-                s.ReadByte();
-                callbackEvent.Set();
-                s.ReadByte();
-                callbackEvent.Set();
-            }))
+            using (
+                var socket = new WslSocket(
+                    testPath,
+                    (s, p) =>
+                    {
+                        s.ReadByte();
+                        callbackEvent.Set();
+                        s.ReadByte();
+                        callbackEvent.Set();
+                    }
+                )
+            )
             {
                 var endpoint = new UnixDomainSocketEndPoint(testPath);
 
-                using (var client = new Socket(AddressFamily.Unix, SocketType.Stream, ProtocolType.Unspecified))
+                using (
+                    var client = new Socket(
+                        AddressFamily.Unix,
+                        SocketType.Stream,
+                        ProtocolType.Unspecified
+                    )
+                )
                 {
                     client.Connect(endpoint);
                     client.Send(new byte[1]);

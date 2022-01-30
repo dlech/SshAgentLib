@@ -45,13 +45,14 @@ namespace dlech.SshAgentLib.Crypto
             }
         }
 
-        public Ed25519PrivateKeyParameter(byte[] key)
-            : base(privateKey: true)
+        public Ed25519PrivateKeyParameter(byte[] key) : base(privateKey: true)
         {
-            if (key == null) {
+            if (key == null)
+            {
                 throw new ArgumentNullException("key");
             }
-            if (key.Length != Ed25519.ExpandedPrivateKeySizeInBytes) {
+            if (key.Length != Ed25519.ExpandedPrivateKeySizeInBytes)
+            {
                 throw new ArgumentException("Bad key length.", "key");
             }
             this.key = key;

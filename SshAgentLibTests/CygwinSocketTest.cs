@@ -23,30 +23,31 @@
 
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Text;
-using System.IO;
-
-using NUnit.Framework;
 using dlech.SshAgentLib;
+using NUnit.Framework;
 
 namespace dlech.SshAgentLibTests
 {
-  [TestFixture, Platform("Win")]
-  public class CygwinSocketTest
-  {
-    [Test]
-    public void TestTestFile()
+    [TestFixture, Platform("Win")]
+    public class CygwinSocketTest
     {
-      var path = Path.GetTempFileName();
-      Assert.That(CygwinSocket.TestFile(path), Is.False);
-      File.Delete(path);
-      using (var socket = new CygwinSocket(path)) {
-        Assert.That(CygwinSocket.TestFile(path), Is.True);
-      }
-      using (var socket = new MsysSocket(path)) {
-        Assert.That(CygwinSocket.TestFile(path), Is.False);
-      }
+        [Test]
+        public void TestTestFile()
+        {
+            var path = Path.GetTempFileName();
+            Assert.That(CygwinSocket.TestFile(path), Is.False);
+            File.Delete(path);
+            using (var socket = new CygwinSocket(path))
+            {
+                Assert.That(CygwinSocket.TestFile(path), Is.True);
+            }
+            using (var socket = new MsysSocket(path))
+            {
+                Assert.That(CygwinSocket.TestFile(path), Is.False);
+            }
+        }
     }
-  }
 }

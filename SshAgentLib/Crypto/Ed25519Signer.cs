@@ -23,10 +23,9 @@
 
 using System;
 using System.Collections.Generic;
-
 using Chaos.NaCl;
-using Org.BouncyCastle.Crypto;
 using dlech.SshAgentLib;
+using Org.BouncyCastle.Crypto;
 
 namespace dlech.SshAgentLib.Crypto
 {
@@ -46,14 +45,16 @@ namespace dlech.SshAgentLib.Crypto
 
         public void BlockUpdate(byte[] input, int inOff, int length)
         {
-            for (int i = 0; i < length; i++) {
+            for (int i = 0; i < length; i++)
+            {
                 message.Add(input[inOff + i]);
             }
         }
 
         public byte[] GenerateSignature()
         {
-            if (privateKey == null) {
+            if (privateKey == null)
+            {
                 throw new InvalidOperationException();
             }
             return Ed25519.Sign(message.ToArray(), privateKey.Signature);
@@ -61,21 +62,33 @@ namespace dlech.SshAgentLib.Crypto
 
         public void Init(bool forSigning, ICipherParameters parameters)
         {
-            if (parameters == null) {
+            if (parameters == null)
+            {
                 throw new ArgumentNullException("parameters");
             }
             message.Clear();
-            if (forSigning) {
+            if (forSigning)
+            {
                 privateKey = parameters as Ed25519PrivateKeyParameter;
                 publicKey = null;
-                if (privateKey == null) {
-                    throw new ArgumentException("Expecting Ed25519PrivateKeyParameter", "parameters");
+                if (privateKey == null)
+                {
+                    throw new ArgumentException(
+                        "Expecting Ed25519PrivateKeyParameter",
+                        "parameters"
+                    );
                 }
-            } else {
+            }
+            else
+            {
                 publicKey = parameters as Ed25519PublicKeyParameter;
                 privateKey = null;
-                if (publicKey == null) {
-                    throw new ArgumentException("Expecting Ed25519PublicKeyParameter", "parameters");
+                if (publicKey == null)
+                {
+                    throw new ArgumentException(
+                        "Expecting Ed25519PublicKeyParameter",
+                        "parameters"
+                    );
                 }
             }
         }
@@ -92,7 +105,8 @@ namespace dlech.SshAgentLib.Crypto
 
         public bool VerifySignature(byte[] signature)
         {
-            if (publicKey == null) {
+            if (publicKey == null)
+            {
                 throw new InvalidOperationException();
             }
             return Ed25519.Verify(signature, message.ToArray(), publicKey.Key);

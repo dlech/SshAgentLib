@@ -1,6 +1,6 @@
 {
     "[csharp]": {
         "editor.formatOnSave": true,
-        "editor.defaultFormatter": "ms-dotnettools.csharp"
+        "editor.defaultFormatter": "csharpier.csharpier-vscode"
     }
 }

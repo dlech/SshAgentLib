@@ -1,4 +1,4 @@
-//
+﻿//
 // PemKeyFormatterTest.cs
 //
 // Author(s): David Lechner <david@lechnology.com>
@@ -25,13 +25,12 @@
 
 using System.IO;
 using System.Security;
-
+using dlech.SshAgentLib;
+using dlech.SshAgentLibTests.Properties;
 using NUnit.Framework;
 using Org.BouncyCastle.Asn1.X9;
 using Org.BouncyCastle.Crypto.Parameters;
 using Org.BouncyCastle.Math;
-using dlech.SshAgentLib;
-using dlech.SshAgentLibTests.Properties;
 
 namespace dlech.SshAgentLibTests
 {
@@ -53,7 +52,8 @@ namespace dlech.SshAgentLibTests
             passphraseCallback = delegate(string comment)
             {
                 SecureString passphrase = new SecureString();
-                foreach (char c in Resources.pw.Trim()) {
+                foreach (char c in Resources.pw.Trim())
+                {
                     passphrase.AppendChar(c);
                 }
                 return passphrase;

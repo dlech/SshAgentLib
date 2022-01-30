@@ -3,10 +3,8 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Runtime.InteropServices;
 using System.Text;
-
-using NUnit.Framework;
-
 using dlech.SshAgentLib;
+using NUnit.Framework;
 
 namespace dlech.SshAgentLibTests
 {
@@ -14,7 +12,6 @@ namespace dlech.SshAgentLibTests
     [Platform(Include = "Win")]
     public class PageantClientTest
     {
-
         [StructLayout(LayoutKind.Sequential)]
         struct COPYDATASTRUCT
         {
@@ -26,18 +23,20 @@ namespace dlech.SshAgentLibTests
         [Test, NonParallelizable]
         public void SendMessageTest()
         {
-            if (Environment.GetEnvironmentVariable("CI") != null) {
-              Assert.Ignore("SendMessage fails on CI");
+            if (Environment.GetEnvironmentVariable("CI") != null)
+            {
+                Assert.Ignore("SendMessage fails on CI");
             }
 
             // TODO: Need to modify this test so that it does not use PageantAgent
             const string messageValue = "junk";
 
-            var builder = new BlobBuilder ();
+            var builder = new BlobBuilder();
             builder.AddStringBlob(messageValue);
             var messageBytes = builder.GetBlob();
 
-            using (var agent = new PageantAgent()) {
+            using (var agent = new PageantAgent())
+            {
                 var client = new PageantClient();
                 var reply = client.SendMessage(messageBytes);
                 var replyParser = new BlobParser(reply);

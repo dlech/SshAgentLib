@@ -27,10 +27,8 @@ using System;
 
 namespace dlech.SshAgentLib
 {
-  /// <summary>
-  /// Indicates that a method was called while the agent was locked
-  /// </summary>
-  public class AgentLockedException : Exception 
-  {
-  }
+    /// <summary>
+    /// Indicates that a method was called while the agent was locked
+    /// </summary>
+    public class AgentLockedException : Exception { }
 }

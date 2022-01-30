@@ -27,84 +27,87 @@ using System.Linq;
 
 namespace dlech.SshAgentLib
 {
-  public sealed class OpensshPublicKeyFormatter : KeyFormatter
-  {
-
-    public override void Serialize(Stream stream, object obj)
+    public sealed class OpensshPublicKeyFormatter : KeyFormatter
     {
-      throw new NotImplementedException();
-    }
-
-    public override object Deserialize(Stream stream)
-    {
-      if (stream == null) {
-        throw new ArgumentNullException("stream");
-      }
-      using (var reader = new StreamReader(stream)) {
-        var line = reader.ReadLine();
-        line = line.Trim();
-        var algoName = new string(line.TakeWhile(c => !char.IsWhiteSpace(c)).ToArray());
-        line = line.Substring(algoName.Length).Trim();
-        var data = new string(line.TakeWhile(c => !char.IsWhiteSpace(c)).ToArray());
-        line = line.Substring(data.Length).Trim();
-        var comment = line;
-
-        PublicKeyAlgorithm algo;
-        if (!TryParsePublicKeyAlgorithm(algoName, out algo)) {
-          var message = string.Format("Unknown algorithm: {0}", algoName);
-          throw new KeyFormatterException(message);
+        public override void Serialize(Stream stream, object obj)
+        {
+            throw new NotImplementedException();
         }
 
-        var parser = new BlobParser(Util.FromBase64(data));
-        OpensshCertificate cert;
-        var publicKeyParams = parser.ReadSsh2PublicKeyData(out cert);
-        var key = new SshKey(SshVersion.SSH2, publicKeyParams, null, comment, cert);
-        return key;
-      }
-    }
+        public override object Deserialize(Stream stream)
+        {
+            if (stream == null)
+            {
+                throw new ArgumentNullException("stream");
+            }
+            using (var reader = new StreamReader(stream))
+            {
+                var line = reader.ReadLine();
+                line = line.Trim();
+                var algoName = new string(line.TakeWhile(c => !char.IsWhiteSpace(c)).ToArray());
+                line = line.Substring(algoName.Length).Trim();
+                var data = new string(line.TakeWhile(c => !char.IsWhiteSpace(c)).ToArray());
+                line = line.Substring(data.Length).Trim();
+                var comment = line;
 
-    static bool TryParsePublicKeyAlgorithm(string text, out PublicKeyAlgorithm algo)
-    {
-      switch (text) {
-        case PublicKeyAlgorithmExt.ALGORITHM_RSA_KEY:
-          algo = PublicKeyAlgorithm.SSH_RSA;
-          break;
-        case PublicKeyAlgorithmExt.ALGORITHM_RSA_CERT_V1:
-          algo = PublicKeyAlgorithm.SSH_RSA_CERT_V1;
-          break;
-        case PublicKeyAlgorithmExt.ALGORITHM_DSA_KEY:
-          algo = PublicKeyAlgorithm.SSH_DSS;
-          break;
-        case PublicKeyAlgorithmExt.ALGORITHM_DSA_CERT_V1:
-          algo = PublicKeyAlgorithm.SSH_DSS_CERT_V1;
-          break;
-        case PublicKeyAlgorithmExt.ALGORITHM_ECDSA_SHA2_NISTP256_KEY:
-          algo = PublicKeyAlgorithm.ECDSA_SHA2_NISTP256;
-          break;
-        case PublicKeyAlgorithmExt.ALGORITHM_ECDSA_SHA2_NISTP256_CERT_V1:
-          algo = PublicKeyAlgorithm.ECDSA_SHA2_NISTP256_CERT_V1;
-          break;
-        case PublicKeyAlgorithmExt.ALGORITHM_ECDSA_SHA2_NISTP384_CERT_V1:
-          algo = PublicKeyAlgorithm.ECDSA_SHA2_NISTP384_CERT_V1;
-          break;
-        case PublicKeyAlgorithmExt.ALGORITHM_ECDSA_SHA2_NISTP521_KEY:
-          algo = PublicKeyAlgorithm.ECDSA_SHA2_NISTP521;
-          break;
-        case PublicKeyAlgorithmExt.ALGORITHM_ECDSA_SHA2_NISTP521_CERT_V1:
-          algo = PublicKeyAlgorithm.ECDSA_SHA2_NISTP521_CERT_V1;
-          break;
-        case PublicKeyAlgorithmExt.ALGORITHM_ED25519:
-          algo = PublicKeyAlgorithm.ED25519;
-          break;
-        case PublicKeyAlgorithmExt.ALGORITHM_ED25519_CERT_V1:
-          algo = PublicKeyAlgorithm.ED25519_CERT_V1;
-          break;
-        default:
-          algo = default(PublicKeyAlgorithm);
-          return false;
-      }
+                PublicKeyAlgorithm algo;
+                if (!TryParsePublicKeyAlgorithm(algoName, out algo))
+                {
+                    var message = string.Format("Unknown algorithm: {0}", algoName);
+                    throw new KeyFormatterException(message);
+                }
 
-      return true;
+                var parser = new BlobParser(Util.FromBase64(data));
+                OpensshCertificate cert;
+                var publicKeyParams = parser.ReadSsh2PublicKeyData(out cert);
+                var key = new SshKey(SshVersion.SSH2, publicKeyParams, null, comment, cert);
+                return key;
+            }
+        }
+
+        static bool TryParsePublicKeyAlgorithm(string text, out PublicKeyAlgorithm algo)
+        {
+            switch (text)
+            {
+                case PublicKeyAlgorithmExt.ALGORITHM_RSA_KEY:
+                    algo = PublicKeyAlgorithm.SSH_RSA;
+                    break;
+                case PublicKeyAlgorithmExt.ALGORITHM_RSA_CERT_V1:
+                    algo = PublicKeyAlgorithm.SSH_RSA_CERT_V1;
+                    break;
+                case PublicKeyAlgorithmExt.ALGORITHM_DSA_KEY:
+                    algo = PublicKeyAlgorithm.SSH_DSS;
+                    break;
+                case PublicKeyAlgorithmExt.ALGORITHM_DSA_CERT_V1:
+                    algo = PublicKeyAlgorithm.SSH_DSS_CERT_V1;
+                    break;
+                case PublicKeyAlgorithmExt.ALGORITHM_ECDSA_SHA2_NISTP256_KEY:
+                    algo = PublicKeyAlgorithm.ECDSA_SHA2_NISTP256;
+                    break;
+                case PublicKeyAlgorithmExt.ALGORITHM_ECDSA_SHA2_NISTP256_CERT_V1:
+                    algo = PublicKeyAlgorithm.ECDSA_SHA2_NISTP256_CERT_V1;
+                    break;
+                case PublicKeyAlgorithmExt.ALGORITHM_ECDSA_SHA2_NISTP384_CERT_V1:
+                    algo = PublicKeyAlgorithm.ECDSA_SHA2_NISTP384_CERT_V1;
+                    break;
+                case PublicKeyAlgorithmExt.ALGORITHM_ECDSA_SHA2_NISTP521_KEY:
+                    algo = PublicKeyAlgorithm.ECDSA_SHA2_NISTP521;
+                    break;
+                case PublicKeyAlgorithmExt.ALGORITHM_ECDSA_SHA2_NISTP521_CERT_V1:
+                    algo = PublicKeyAlgorithm.ECDSA_SHA2_NISTP521_CERT_V1;
+                    break;
+                case PublicKeyAlgorithmExt.ALGORITHM_ED25519:
+                    algo = PublicKeyAlgorithm.ED25519;
+                    break;
+                case PublicKeyAlgorithmExt.ALGORITHM_ED25519_CERT_V1:
+                    algo = PublicKeyAlgorithm.ED25519_CERT_V1;
+                    break;
+                default:
+                    algo = default(PublicKeyAlgorithm);
+                    return false;
+            }
+
+            return true;
+        }
     }
-  }
 }

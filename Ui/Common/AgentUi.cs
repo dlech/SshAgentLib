@@ -25,14 +25,13 @@
 
 namespace dlech.SshAgentLib.Ui.Common
 {
-  public abstract class AgentUi
-  {
-    private IAgent mAgent;
-
-    public AgentUi(IAgent aAgent)
+    public abstract class AgentUi
     {
-      mAgent = aAgent;
-    }
-  }
-}
+        private IAgent mAgent;
 
+        public AgentUi(IAgent aAgent)
+        {
+            mAgent = aAgent;
+        }
+    }
+}

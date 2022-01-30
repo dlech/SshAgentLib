@@ -1,4 +1,4 @@
-//
+﻿//
 // Ssh1KeyFormatterTest.cs
 //
 // Author(s): David Lechner <david@lechnology.com>
@@ -34,7 +34,6 @@ using Org.BouncyCastle.Math;
 
 namespace dlech.SshAgentLibTests
 {
-
     /// <summary>
     ///This is a test class for Ssh1KeyFormatter and is intended
     ///to contain all Ssh1KeyFormatter Unit Tests
@@ -53,7 +52,8 @@ namespace dlech.SshAgentLibTests
             passphraseCallback = delegate(string comment)
             {
                 SecureString passphrase = new SecureString();
-                foreach (var c in Resources.pw.Trim()) {
+                foreach (var c in Resources.pw.Trim())
+                {
                     passphrase.AppendChar(c);
                 }
                 return passphrase;

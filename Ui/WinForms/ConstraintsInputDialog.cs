@@ -29,53 +29,56 @@ using System.Windows.Forms;
 
 namespace dlech.SshAgentLib.WinForms
 {
-  public partial class ConstraintsInputDialog : Form
-  {
-    public bool ConfirmConstraintChecked
+    public partial class ConstraintsInputDialog : Form
     {
-      get { return confirmConstraintControl.Checked; }
-    }
+        public bool ConfirmConstraintChecked
+        {
+            get { return confirmConstraintControl.Checked; }
+        }
 
-    public bool LifetimeConstraintChecked
-    {
-      get { return lifetimeConstraintControl.Checked; }
-    }
+        public bool LifetimeConstraintChecked
+        {
+            get { return lifetimeConstraintControl.Checked; }
+        }
 
-    public uint LifetimeDuration
-    {
-      get { return lifetimeConstraintControl.Lifetime; }
-    }
+        public uint LifetimeDuration
+        {
+            get { return lifetimeConstraintControl.Lifetime; }
+        }
 
-    public ConstraintsInputDialog() : this(false)
-    {
-    }
+        public ConstraintsInputDialog() : this(false) { }
 
-    public ConstraintsInputDialog(bool initalConfirmChecked)
-    {
-      InitializeComponent();
-      confirmConstraintControl.Checked = initalConfirmChecked;
-      if (Type.GetType ("Mono.Runtime") != null) {
-        confirmConstraintControl.AutoSize = false;
-        confirmConstraintControl.Size =
-        new Size (200, confirmConstraintControl.Height);
-        lifetimeConstraintControl.AutoSize = false;
-        lifetimeConstraintControl.Size =
-        new Size (200, lifetimeConstraintControl.Height);
-        okButton.Location = new Point (okButton.Location.X,
-                                     okButton.Location.Y - 20);
-        Size = new Size (Width, Height + 20);
-      }
-    }
+        public ConstraintsInputDialog(bool initalConfirmChecked)
+        {
+            InitializeComponent();
+            confirmConstraintControl.Checked = initalConfirmChecked;
+            if (Type.GetType("Mono.Runtime") != null)
+            {
+                confirmConstraintControl.AutoSize = false;
+                confirmConstraintControl.Size = new Size(200, confirmConstraintControl.Height);
+                lifetimeConstraintControl.AutoSize = false;
+                lifetimeConstraintControl.Size = new Size(200, lifetimeConstraintControl.Height);
+                okButton.Location = new Point(okButton.Location.X, okButton.Location.Y - 20);
+                Size = new Size(Width, Height + 20);
+            }
+        }
 
-    private void mOKButton_Click(object sender, EventArgs e)
-    {
-      if (LifetimeConstraintChecked && LifetimeDuration == 0) {
-        MessageBox.Show("Invalid Lifetime", "Error", MessageBoxButtons.OK,
-          MessageBoxIcon.Exclamation);
-      } else {
-        DialogResult = DialogResult.OK;
-        Close();
-      }
+        private void mOKButton_Click(object sender, EventArgs e)
+        {
+            if (LifetimeConstraintChecked && LifetimeDuration == 0)
+            {
+                MessageBox.Show(
+                    "Invalid Lifetime",
+                    "Error",
+                    MessageBoxButtons.OK,
+                    MessageBoxIcon.Exclamation
+                );
+            }
+            else
+            {
+                DialogResult = DialogResult.OK;
+                Close();
+            }
+        }
     }
-  }
 }

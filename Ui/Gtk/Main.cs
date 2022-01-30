@@ -1,4 +1,4 @@
-//
+﻿//
 // Main.cs
 //
 // Author(s): David Lechner <david@lechnology.com>
@@ -28,15 +28,15 @@ using Gtk;
 
 namespace SshAgentLib.GTK
 {
-  class MainClass
-  {
-    public static void Main (string[] args)
+    class MainClass
     {
-      Application.Init ();
-      KeyManagerWindow win = new KeyManagerWindow ();
-      win.SetAgent (new UnixClient());
-      win.Show ();
-      Application.Run ();
+        public static void Main(string[] args)
+        {
+            Application.Init();
+            KeyManagerWindow win = new KeyManagerWindow();
+            win.SetAgent(new UnixClient());
+            win.Show();
+            Application.Run();
+        }
     }
-  }
 }

@@ -28,13 +28,11 @@ using System.Runtime.InteropServices;
 using System.Security;
 using System.Security.Cryptography;
 using System.Text;
-
+using dlech.SshAgentLib.Crypto;
+using Org.BouncyCastle.Asn1.X509;
 using Org.BouncyCastle.Crypto;
 using Org.BouncyCastle.Crypto.Parameters;
 using Org.BouncyCastle.Security;
-
-using dlech.SshAgentLib.Crypto;
-using Org.BouncyCastle.Asn1.X509;
 
 namespace dlech.SshAgentLib
 {
@@ -58,27 +56,33 @@ namespace dlech.SshAgentLib
         public override void Serialize(Stream stream, object obj)
         {
             /* check for required parameters */
-            if (stream == null) {
+            if (stream == null)
+            {
                 throw new ArgumentNullException("stream");
             }
 
-            if (obj == null) {
+            if (obj == null)
+            {
                 throw new ArgumentNullException("obj");
             }
 
             PinnedArray<char> passphrase = null;
 
             string ciphername;
-            if (passphrase == null || passphrase.Data.Length == 0) {
+            if (passphrase == null || passphrase.Data.Length == 0)
+            {
                 ciphername = KDFNAME_NONE;
-            } else {
+            }
+            else
+            {
                 ciphername = KDFNAME_BCRYPT;
             }
 
             var builder = new BlobBuilder();
 
             ISshKey sshKey = obj as ISshKey;
-            if (sshKey == null) {
+            if (sshKey == null)
+            {
                 throw new ArgumentException("Expected ISshKey", "obj");
             }
             var publicKeyParams = sshKey.GetPublicKeyParameters() as Ed25519PublicKeyParameter;
@@ -109,12 +113,16 @@ namespace dlech.SshAgentLib
             privateKeyBuilder.AddBlob(privateKeyParams.Signature);
             privateKeyBuilder.AddStringBlob(sshKey.Comment);
 
-            if (ciphername == KDFNAME_NONE) {
+            if (ciphername == KDFNAME_NONE)
+            {
                 /* plain-text */
                 builder.AddBlob(privateKeyBuilder.GetBlobAsPinnedByteArray().Data);
-            } else {
+            }
+            else
+            {
                 byte[] keydata;
-                using (MD5 md5 = MD5.Create()) {
+                using (MD5 md5 = MD5.Create())
+                {
                     keydata = md5.ComputeHash(Encoding.ASCII.GetBytes(passphrase.Data));
                 }
                 passphrase.Dispose();
@@ -122,17 +130,22 @@ namespace dlech.SshAgentLib
 
             /* writing result to file */
             var builderOutput = builder.GetBlobAsPinnedByteArray();
-            using (var writer = new StreamWriter(stream)) {
+            using (var writer = new StreamWriter(stream))
+            {
                 writer.NewLine = "\n";
                 writer.WriteLine(MARK_BEGIN);
                 var base64Data = Util.ToBase64(builderOutput.Data);
                 var base64String = Encoding.UTF8.GetString(base64Data);
                 var offset = 0;
-                while (offset < base64String.Length) {
+                while (offset < base64String.Length)
+                {
                     const int maxLineLength = 70;
-                    if (offset + maxLineLength > base64String.Length) {
+                    if (offset + maxLineLength > base64String.Length)
+                    {
                         writer.WriteLine(base64String.Substring(offset));
-                    } else {
+                    }
+                    else
+                    {
                         writer.WriteLine(base64String.Substring(offset, maxLineLength));
                     }
                     offset += maxLineLength;
@@ -144,20 +157,27 @@ namespace dlech.SshAgentLib
         public override object Deserialize(Stream stream)
         {
             /* check for required parameters */
-            if (stream == null) {
+            if (stream == null)
+            {
                 throw new ArgumentNullException("stream");
             }
 
-            try {
+            try
+            {
                 var reader = new StreamReader(stream);
                 var firstLine = reader.ReadLine();
-                if (firstLine != MARK_BEGIN) {
-                    throw new KeyFormatterException("Bad file format - does not have expected header.");
+                if (firstLine != MARK_BEGIN)
+                {
+                    throw new KeyFormatterException(
+                        "Bad file format - does not have expected header."
+                    );
                 }
                 var base64String = new StringBuilder();
-                while (true) {
+                while (true)
+                {
                     var line = reader.ReadLine();
-                    if (line == MARK_END) {
+                    if (line == MARK_END)
+                    {
                         break;
                     }
                     base64String.Append(line);
@@ -167,37 +187,44 @@ namespace dlech.SshAgentLib
                 BlobParser parser = new BlobParser(Util.FromBase64(base64String.ToString()));
 
                 var magicBytes = parser.ReadBytes((uint)AUTH_MAGIC.Length);
-                if (Encoding.UTF8.GetString(magicBytes) != AUTH_MAGIC) {
+                if (Encoding.UTF8.GetString(magicBytes) != AUTH_MAGIC)
+                {
                     throw new KeyFormatterException("Bad data - missing AUTH_MAGIC.");
                 }
 
                 var ciphername = parser.ReadString();
-                if (!IsSupportCipher(ciphername)) {
+                if (!IsSupportCipher(ciphername))
+                {
                     throw new KeyFormatterException("Unsupported cyphername: " + ciphername);
                 }
 
                 var kdfname = parser.ReadString();
-                if (kdfname != KDFNAME_BCRYPT && kdfname != KDFNAME_NONE) {
+                if (kdfname != KDFNAME_BCRYPT && kdfname != KDFNAME_NONE)
+                {
                     throw new KeyFormatterException("Unsupported kdfname: " + ciphername);
                 }
-                if (kdfname == KDFNAME_NONE && ciphername != CIPHERNAME_NONE) {
+                if (kdfname == KDFNAME_NONE && ciphername != CIPHERNAME_NONE)
+                {
                     throw new KeyFormatterException("Invalid format.");
                 }
 
                 var kdfoptions = parser.ReadBlob();
                 var keyCount = parser.ReadUInt32();
-                if (keyCount != 1) {
+                if (keyCount != 1)
+                {
                     throw new KeyFormatterException("Only one key allowed.");
                 }
 
                 var publicKeys = new List<byte[]>();
-                for (int i = 0; i < keyCount; i++) {
+                for (int i = 0; i < keyCount; i++)
+                {
                     publicKeys.Add(parser.ReadBlob());
                 }
                 var privateKeys = parser.ReadBlob();
 
                 var keyAndIV = new byte[32 + 16];
-                if (kdfname == KDFNAME_BCRYPT) {
+                if (kdfname == KDFNAME_BCRYPT)
+                {
                     var kdfOptionsParser = new BlobParser(kdfoptions);
                     var salt = kdfOptionsParser.ReadBlob();
                     var rounds = kdfOptionsParser.ReadUInt32();
@@ -205,7 +232,8 @@ namespace dlech.SshAgentLib
                     var passphrase = GetPassphraseCallbackMethod(null);
                     var passphraseChars = new char[passphrase.Length];
                     var passphrasePtr = Marshal.SecureStringToGlobalAllocUnicode(passphrase);
-                    for (int i = 0; i < passphrase.Length; i++) {
+                    for (int i = 0; i < passphrase.Length; i++)
+                    {
                         passphraseChars[i] = (char)Marshal.ReadInt16(passphrasePtr, i * 2);
                     }
                     Marshal.ZeroFreeGlobalAllocUnicode(passphrasePtr);
@@ -218,40 +246,48 @@ namespace dlech.SshAgentLib
                 var iv = new byte[16];
                 Array.Copy(keyAndIV, key.Length, iv, 0, iv.Length);
 
-                switch (ciphername) {
-                case CIPHERNAME_AES256_CBC:
-                    var aes = Aes.Create();
-                    aes.KeySize = 256;
-                    aes.Mode = CipherMode.CBC;
-                    aes.Padding = PaddingMode.None;
-                    aes.Key = key;
-                    aes.IV = iv;
+                switch (ciphername)
+                {
+                    case CIPHERNAME_AES256_CBC:
+                        var aes = Aes.Create();
+                        aes.KeySize = 256;
+                        aes.Mode = CipherMode.CBC;
+                        aes.Padding = PaddingMode.None;
+                        aes.Key = key;
+                        aes.IV = iv;
 
-                    if (privateKeys.Length < aes.BlockSize / 8 || privateKeys.Length % (aes.BlockSize / 8) != 0) {
-                        throw new KeyFormatterException("Bad private key encrypted length.");
-                    }
+                        if (
+                            privateKeys.Length < aes.BlockSize / 8
+                            || privateKeys.Length % (aes.BlockSize / 8) != 0
+                        )
+                        {
+                            throw new KeyFormatterException("Bad private key encrypted length.");
+                        }
 
-                    using (ICryptoTransform decryptor = aes.CreateDecryptor()) {
-                        privateKeys = Util.GenericTransform(decryptor, privateKeys);
-                    }
-                    aes.Clear();
-                    break;
-                case CIPHERNAME_AES256_CTR:
-                    var ctrCipher = CipherUtilities.GetCipher("AES/CTR/NoPadding");
-                    ctrCipher.Init(false, new ParametersWithIV(new KeyParameter(key), iv));
-                    privateKeys = ctrCipher.DoFinal(privateKeys);
-                    break;
+                        using (ICryptoTransform decryptor = aes.CreateDecryptor())
+                        {
+                            privateKeys = Util.GenericTransform(decryptor, privateKeys);
+                        }
+                        aes.Clear();
+                        break;
+                    case CIPHERNAME_AES256_CTR:
+                        var ctrCipher = CipherUtilities.GetCipher("AES/CTR/NoPadding");
+                        ctrCipher.Init(false, new ParametersWithIV(new KeyParameter(key), iv));
+                        privateKeys = ctrCipher.DoFinal(privateKeys);
+                        break;
                 }
 
                 parser = new BlobParser(privateKeys);
-                
+
                 var checkint1 = parser.ReadUInt32();
                 var checkint2 = parser.ReadUInt32();
-                if (checkint1 != checkint2) {
+                if (checkint1 != checkint2)
+                {
                     throw new KeyFormatterException("checkint does not match in private key.");
                 }
                 var keys = new List<SshKey>();
-                for (int i = 0; i < keyCount; i++) {
+                for (int i = 0; i < keyCount; i++)
+                {
                     OpensshCertificate cert;
                     var publicKey = parser.ReadSsh2PublicKeyData(out cert);
                     var keyPair = parser.ReadSsh2KeyData(publicKey);
@@ -260,21 +296,27 @@ namespace dlech.SshAgentLib
                     keys.Add(sshKey);
                 }
                 return keys[0];
-            } catch (KeyFormatterException) {
+            }
+            catch (KeyFormatterException)
+            {
                 throw;
-            } catch (Exception ex) {
+            }
+            catch (Exception ex)
+            {
                 throw new KeyFormatterException("see inner exception", ex);
             }
         }
 
-        bool IsSupportCipher(string ciphername) {
-            switch (ciphername) {
-            case CIPHERNAME_NONE:
-            case CIPHERNAME_AES256_CBC:
-            case CIPHERNAME_AES256_CTR:
-                return true;
-            default:
-                return false;
+        bool IsSupportCipher(string ciphername)
+        {
+            switch (ciphername)
+            {
+                case CIPHERNAME_NONE:
+                case CIPHERNAME_AES256_CBC:
+                case CIPHERNAME_AES256_CTR:
+                    return true;
+                default:
+                    return false;
             }
         }
     }

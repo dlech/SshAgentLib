@@ -1,4 +1,4 @@
-//
+﻿//
 // UnixClient.cs
 //
 // Author(s): David Lechner <david@lechnology.com>
@@ -28,36 +28,39 @@ using System.IO;
 
 namespace dlech.SshAgentLib
 {
-  /// <summary>
-  /// ssh-agent for linux
-  /// </summary>
-  /// <remarks>
-  /// Code based on ssh-agent.c from OpenBSD/OpenSSH and
-  /// http://msdn.microsoft.com/en-us/library/system.net.sockets.socketasynceventargs.aspx
-  /// </remarks>
-  public class UnixClient : AgentClient
-  {
     /// <summary>
-    /// Name of the environment variable containing the path name of the
-    /// authentication socket.
+    /// ssh-agent for linux
     /// </summary>
-    public const string SshAuthSockName = "SSH_AUTH_SOCK";
-    public const int BufferSize = 4096;
-
-    public override byte[] SendMessage(byte[] aMessage)
+    /// <remarks>
+    /// Code based on ssh-agent.c from OpenBSD/OpenSSH and
+    /// http://msdn.microsoft.com/en-us/library/system.net.sockets.socketasynceventargs.aspx
+    /// </remarks>
+    public class UnixClient : AgentClient
     {
-      var socketPath = Environment.GetEnvironmentVariable(SshAuthSockName);
-      if (!File.Exists(socketPath)) {
-        throw new AgentNotRunningException();
-      }
-      using (var client = new Mono.Unix.UnixClient (socketPath)) {
-        using (var stream = client.GetStream()) {
-          stream.Write(aMessage, 0, aMessage.Length);
-          byte[] reply = new byte[BufferSize];
-          stream.Read(reply, 0, reply.Length);
-          return reply;
+        /// <summary>
+        /// Name of the environment variable containing the path name of the
+        /// authentication socket.
+        /// </summary>
+        public const string SshAuthSockName = "SSH_AUTH_SOCK";
+        public const int BufferSize = 4096;
+
+        public override byte[] SendMessage(byte[] aMessage)
+        {
+            var socketPath = Environment.GetEnvironmentVariable(SshAuthSockName);
+            if (!File.Exists(socketPath))
+            {
+                throw new AgentNotRunningException();
+            }
+            using (var client = new Mono.Unix.UnixClient(socketPath))
+            {
+                using (var stream = client.GetStream())
+                {
+                    stream.Write(aMessage, 0, aMessage.Length);
+                    byte[] reply = new byte[BufferSize];
+                    stream.Read(reply, 0, reply.Length);
+                    return reply;
+                }
+            }
         }
-      }
     }
-  }
 }

@@ -25,75 +25,53 @@
 
 namespace dlech.SshAgentLib
 {
-  public class KeyWrapper
-  {
-    private ISshKey key;
-
-    public bool Confirm
+    public class KeyWrapper
     {
-      get
-      {
-        return key.HasConstraint(Agent.KeyConstraintType.SSH_AGENT_CONSTRAIN_CONFIRM);
-      }
-    }
+        private ISshKey key;
 
-    public bool Lifetime
-    {
-      get
-      {
-        return key.HasConstraint(Agent.KeyConstraintType.SSH_AGENT_CONSTRAIN_LIFETIME);
-      }
-    }
+        public bool Confirm
+        {
+            get { return key.HasConstraint(Agent.KeyConstraintType.SSH_AGENT_CONSTRAIN_CONFIRM); }
+        }
 
-    public string Comment
-    {
-      get
-      {
-        return key.Comment;
-      }
-    }
+        public bool Lifetime
+        {
+            get { return key.HasConstraint(Agent.KeyConstraintType.SSH_AGENT_CONSTRAIN_LIFETIME); }
+        }
 
-    public string Source
-    {
-      get
-      {
-        return key.Source;
-      }
-    }
+        public string Comment
+        {
+            get { return key.Comment; }
+        }
 
-    public string Type
-    {
-      get
-      {
-        return key.Algorithm.GetIdentifierString();
-      }
-    }
+        public string Source
+        {
+            get { return key.Source; }
+        }
 
-    public int Size
-    {
-      get
-      {
-        return key.Size;
-      }
-    }
+        public string Type
+        {
+            get { return key.Algorithm.GetIdentifierString(); }
+        }
 
-    public string Fingerprint
-    {
-      get
-      {
-        return key.GetMD5Fingerprint().ToHexString();
-      }
-    }
+        public int Size
+        {
+            get { return key.Size; }
+        }
 
-    public KeyWrapper(ISshKey key)
-    {
-      this.key = key;
-    }
+        public string Fingerprint
+        {
+            get { return key.GetMD5Fingerprint().ToHexString(); }
+        }
 
-    public ISshKey GetKey()
-    {
-      return key;
-    }
+        public KeyWrapper(ISshKey key)
+        {
+            this.key = key;
+        }
 
-  }
+        public ISshKey GetKey()
+        {
+            return key;
+        }
+    }
 }

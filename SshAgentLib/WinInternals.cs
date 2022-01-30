@@ -52,11 +52,11 @@ namespace dlech.SshAgentLib
 
         enum TCP_CONNECTION_OFFLOAD_STATE
         {
-            TcpConnectionOffloadStateInHost      = 0,
-            TcpConnectionOffloadStateOffloading  = 1,
-            TcpConnectionOffloadStateOffloaded   = 2,
-            TcpConnectionOffloadStateUploading   = 3,
-            TcpConnectionOffloadStateMax         = 4
+            TcpConnectionOffloadStateInHost = 0,
+            TcpConnectionOffloadStateOffloading = 1,
+            TcpConnectionOffloadStateOffloaded = 2,
+            TcpConnectionOffloadStateUploading = 3,
+            TcpConnectionOffloadStateMax = 4
         }
 
         enum MIB_TCP_STATE
@@ -77,18 +77,18 @@ namespace dlech.SshAgentLib
 
         enum TCP_TABLE_CLASS
         {
-          TCP_TABLE_BASIC_LISTENER,
-          TCP_TABLE_BASIC_CONNECTIONS,
-          TCP_TABLE_BASIC_ALL,
-          TCP_TABLE_OWNER_PID_LISTENER,
-          TCP_TABLE_OWNER_PID_CONNECTIONS,
-          TCP_TABLE_OWNER_PID_ALL,
-          TCP_TABLE_OWNER_MODULE_LISTENER,
-          TCP_TABLE_OWNER_MODULE_CONNECTIONS,
-          TCP_TABLE_OWNER_MODULE_ALL
+            TCP_TABLE_BASIC_LISTENER,
+            TCP_TABLE_BASIC_CONNECTIONS,
+            TCP_TABLE_BASIC_ALL,
+            TCP_TABLE_OWNER_PID_LISTENER,
+            TCP_TABLE_OWNER_PID_CONNECTIONS,
+            TCP_TABLE_OWNER_PID_ALL,
+            TCP_TABLE_OWNER_MODULE_LISTENER,
+            TCP_TABLE_OWNER_MODULE_CONNECTIONS,
+            TCP_TABLE_OWNER_MODULE_ALL
         }
 
-// compiler complains about unused fields
+        // compiler complains about unused fields
 #pragma warning disable 0649
         struct MIB_TCPROW_OWNER_PID
         {
@@ -103,12 +103,12 @@ namespace dlech.SshAgentLib
 
         [DllImport("Iphlpapi.dll")]
         static extern DWORD GetExtendedTcpTable(
-          PVOID pTcpTable,
-          ref DWORD pdwSize,
-          BOOL bOrder,
-          ULONG ulAf,
-          TCP_TABLE_CLASS TableClass,
-          ULONG Reserved = 0
+            PVOID pTcpTable,
+            ref DWORD pdwSize,
+            BOOL bOrder,
+            ULONG ulAf,
+            TCP_TABLE_CLASS TableClass,
+            ULONG Reserved = 0
         );
 
         /// <summary>
@@ -117,29 +117,42 @@ namespace dlech.SshAgentLib
         /// </summary>
         /// <param name="port">The TCP port to look for.</param>
         /// <returns>The process that owns this connection.</returns>
-        public static Process GetProcessForTcpPort(IPEndPoint localEndpoint, IPEndPoint remoteEndpoint)
+        public static Process GetProcessForTcpPort(
+            IPEndPoint localEndpoint,
+            IPEndPoint remoteEndpoint
+        )
         {
-            if (localEndpoint == null) {
+            if (localEndpoint == null)
+            {
                 throw new ArgumentNullException("localEndpoint");
             }
-            if (remoteEndpoint == null) {
+            if (remoteEndpoint == null)
+            {
                 throw new ArgumentNullException("remoteEndpoint");
             }
-            if (localEndpoint.AddressFamily != AddressFamily.InterNetwork) {
+            if (localEndpoint.AddressFamily != AddressFamily.InterNetwork)
+            {
                 throw new ArgumentException("Must be IPv4 address.", "localEndpoint");
             }
-            if (remoteEndpoint.AddressFamily != AddressFamily.InterNetwork) {
+            if (remoteEndpoint.AddressFamily != AddressFamily.InterNetwork)
+            {
                 throw new ArgumentException("Must be IPv4 address.", "remoteEndpoint");
             }
 
             // The MIB_TCPROW_OWNER_PID struct stores address as integers in
             // network byte order, so we fixup the address to match.
             var localAddressBytes = localEndpoint.Address.GetAddressBytes();
-            var localAddress = localAddressBytes[0] + (localAddressBytes[1] << 8)
-                + (localAddressBytes[2] << 16) + (localAddressBytes[3] << 24);
+            var localAddress =
+                localAddressBytes[0]
+                + (localAddressBytes[1] << 8)
+                + (localAddressBytes[2] << 16)
+                + (localAddressBytes[3] << 24);
             var remoteAddressBytes = localEndpoint.Address.GetAddressBytes();
-            var remoteAddress = remoteAddressBytes[0] + (remoteAddressBytes[1] << 8)
-                + (remoteAddressBytes[2] << 16) + (remoteAddressBytes[3] << 24);
+            var remoteAddress =
+                remoteAddressBytes[0]
+                + (remoteAddressBytes[1] << 8)
+                + (remoteAddressBytes[2] << 16)
+                + (remoteAddressBytes[3] << 24);
 
             // The MIB_TCPROW_OWNER_PID struct stores ports in network byte
             // order, so we have to swap the port to match.
@@ -150,46 +163,70 @@ namespace dlech.SshAgentLib
 
             var buf = IntPtr.Zero;
             var bufSize = 0U;
-            var result = GetExtendedTcpTable(buf, ref bufSize, false, AF_INET,
-                TCP_TABLE_CLASS.TCP_TABLE_OWNER_PID_CONNECTIONS);
-            if (result != ERROR_INSUFFICIENT_BUFFER) {
+            var result = GetExtendedTcpTable(
+                buf,
+                ref bufSize,
+                false,
+                AF_INET,
+                TCP_TABLE_CLASS.TCP_TABLE_OWNER_PID_CONNECTIONS
+            );
+            if (result != ERROR_INSUFFICIENT_BUFFER)
+            {
                 throw new Exception(string.Format("Error: {0}", result));
             }
 
             // then alloc some memory so we can acutally get the data
             buf = Marshal.AllocHGlobal((int)bufSize);
-            try {
-                result = GetExtendedTcpTable(buf, ref bufSize, false, AF_INET,
-                    TCP_TABLE_CLASS.TCP_TABLE_OWNER_PID_CONNECTIONS);
-                if (result != NO_ERROR) {
+            try
+            {
+                result = GetExtendedTcpTable(
+                    buf,
+                    ref bufSize,
+                    false,
+                    AF_INET,
+                    TCP_TABLE_CLASS.TCP_TABLE_OWNER_PID_CONNECTIONS
+                );
+                if (result != NO_ERROR)
+                {
                     throw new Exception(string.Format("Error: {0}", result));
                 }
                 var count = Marshal.ReadInt32(buf);
                 var tablePtr = buf + sizeof(int);
                 var rowSize = Marshal.SizeOf(typeof(MIB_TCPROW_OWNER_PID));
                 var match = (MIB_TCPROW_OWNER_PID?)null;
-                for (int i = 0; i < count; i++) {
+                for (int i = 0; i < count; i++)
+                {
                     var row = (MIB_TCPROW_OWNER_PID)Marshal.PtrToStructure(
-                        tablePtr, typeof(MIB_TCPROW_OWNER_PID));
-                    if (localAddress == row.dwLocalAddr && localPort == row.dwLocalPort
-                        && remoteAddress == row.dwRemoteAddr && remotePort == row.dwRemotePort)
+                        tablePtr,
+                        typeof(MIB_TCPROW_OWNER_PID)
+                    );
+                    if (
+                        localAddress == row.dwLocalAddr
+                        && localPort == row.dwLocalPort
+                        && remoteAddress == row.dwRemoteAddr
+                        && remotePort == row.dwRemotePort
+                    )
                     {
                         match = row;
                         break;
                     }
                     tablePtr += rowSize;
                 }
-                if (!match.HasValue) {
+                if (!match.HasValue)
+                {
                     throw new Exception("Match not found.");
                 }
                 return Process.GetProcessById((int)match.Value.dwOwningPid);
-            } finally {
+            }
+            finally
+            {
                 Marshal.FreeHGlobal(buf);
             }
         }
 
         [StructLayout(LayoutKind.Sequential)]
-        struct SYSTEM_HANDLE_ENTRY {
+        struct SYSTEM_HANDLE_ENTRY
+        {
             public ULONG OwnerPid;
             public BYTE ObjectType;
             public BYTE HandleFlags;
@@ -199,7 +236,8 @@ namespace dlech.SshAgentLib
         }
 
         [StructLayout(LayoutKind.Sequential)]
-        struct SYSTEM_HANDLE_INFORMATION {
+        struct SYSTEM_HANDLE_INFORMATION
+        {
             public ULONG Count;
             public IntPtr Handle; // array
         }
@@ -209,7 +247,8 @@ namespace dlech.SshAgentLib
             SYSTEM_INFORMATION_CLASS SystemInformationClass,
             PVOID SystemInformation,
             ULONG Length,
-            out ULONG ResultLength);
+            out ULONG ResultLength
+        );
 
         /// <summary>
         /// Iterates all open handles on the system (using internal system call)
@@ -224,21 +263,27 @@ namespace dlech.SshAgentLib
             // hopefully this is enough room (16MiB)
             const int sysInfoPtrLength = 4096 * 4096;
             var sysInfoPtr = Marshal.AllocHGlobal(sysInfoPtrLength);
-            try {
+            try
+            {
                 uint resultLength;
                 var result = NtQuerySystemInformation(
                     SYSTEM_INFORMATION_CLASS.SystemHandleInformation,
-                    sysInfoPtr, sysInfoPtrLength, out resultLength);
-                if (result != 0) {
+                    sysInfoPtr,
+                    sysInfoPtrLength,
+                    out resultLength
+                );
+                if (result != 0)
+                {
                     throw new Exception(result.ToString());
                 }
                 var info = (SYSTEM_HANDLE_INFORMATION)Marshal.PtrToStructure(
-                    sysInfoPtr, typeof(SYSTEM_HANDLE_INFORMATION));
+                    sysInfoPtr,
+                    typeof(SYSTEM_HANDLE_INFORMATION)
+                );
 
                 // set entryPtr to position of info.Handle
-                var entryPtr = sysInfoPtr
-                    + Marshal.SizeOf(typeof(SYSTEM_HANDLE_INFORMATION))
-                    - IntPtr.Size;
+                var entryPtr =
+                    sysInfoPtr + Marshal.SizeOf(typeof(SYSTEM_HANDLE_INFORMATION)) - IntPtr.Size;
                 var entries = new List<SYSTEM_HANDLE_ENTRY>();
                 // we loop through a large number (10s of thousands) of handles,
                 // so dereferencig everything first should improve perfomarnce
@@ -246,27 +291,36 @@ namespace dlech.SshAgentLib
                 var pid = Process.GetCurrentProcess().Id;
                 var handle = (ushort)mmf.SafeMemoryMappedFileHandle.DangerousGetHandle();
                 var match = IntPtr.Zero;
-                for (int i = 0; i < info.Count; i++) {
+                for (int i = 0; i < info.Count; i++)
+                {
                     var entry = (SYSTEM_HANDLE_ENTRY)Marshal.PtrToStructure(
-                        entryPtr, typeof(SYSTEM_HANDLE_ENTRY));
+                        entryPtr,
+                        typeof(SYSTEM_HANDLE_ENTRY)
+                    );
                     // search for a handle for this process that matches the
                     // memory mapped file.
-                    if (entry.OwnerPid == pid && entry.HandleValue == handle) {
+                    if (entry.OwnerPid == pid && entry.HandleValue == handle)
+                    {
                         match = entry.ObjectPointer;
-                    } else {
+                    }
+                    else
+                    {
                         // Save all other entries excpt for the match to a list
                         // so we can search it again later
                         entries.Add(entry);
                     }
                     entryPtr += entryLength;
                 }
-                if (match == IntPtr.Zero) {
+                if (match == IntPtr.Zero)
+                {
                     throw new Exception("Match not found.");
                 }
 
                 var otherHandle = entries.Single(e => e.ObjectPointer == match);
                 return Process.GetProcessById((int)otherHandle.OwnerPid);
-            } finally {
+            }
+            finally
+            {
                 Marshal.FreeHGlobal(sysInfoPtr);
             }
         }

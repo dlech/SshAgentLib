@@ -1,4 +1,4 @@
-//
+﻿//
 // WindowsOpenSshClient.cs
 //
 // Author(s): David Lechner <david@lechnology.com>
@@ -28,24 +28,25 @@ using System.IO.Pipes;
 
 namespace dlech.SshAgentLib
 {
-  /// <summary>
-  /// Windows OpenSSH client
-  /// </summary>
-  public class WindowsOpenSshClient : AgentClient
-  {
-    const int BufferSize = 5 * 1024;
-    const string agentPipeId = "openssh-ssh-agent";
-
-    public override byte[] SendMessage(byte[] message)
+    /// <summary>
+    /// Windows OpenSSH client
+    /// </summary>
+    public class WindowsOpenSshClient : AgentClient
     {
-      using (var pipe = new NamedPipeClientStream(agentPipeId)) {
-        pipe.Connect(500);
-        pipe.Write(message, 0, message.Length);
-        pipe.Flush();
-        byte[] reply = new byte[BufferSize];
-        pipe.Read(reply, 0, reply.Length);
-        return reply;
-      }
+        const int BufferSize = 5 * 1024;
+        const string agentPipeId = "openssh-ssh-agent";
+
+        public override byte[] SendMessage(byte[] message)
+        {
+            using (var pipe = new NamedPipeClientStream(agentPipeId))
+            {
+                pipe.Connect(500);
+                pipe.Write(message, 0, message.Length);
+                pipe.Flush();
+                byte[] reply = new byte[BufferSize];
+                pipe.Read(reply, 0, reply.Length);
+                return reply;
+            }
+        }
     }
-  }
 }

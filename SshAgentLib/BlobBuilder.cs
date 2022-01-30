@@ -1,4 +1,4 @@
-//
+﻿//
 // BlobBuilder.cs
 //
 // Author(s): David Lechner <david@lechnology.com>
@@ -32,156 +32,151 @@ using Org.BouncyCastle.Math;
 
 namespace dlech.SshAgentLib
 {
-  /// <summary>
-  /// used to build blobs that are used for storing and sending keys
-  /// in open-ssh/PuTTY format
-  /// </summary>
-  public class BlobBuilder
-  {
-
-    List<byte> byteList;
-
     /// <summary>
-    /// Gets current length of blob
+    /// used to build blobs that are used for storing and sending keys
+    /// in open-ssh/PuTTY format
     /// </summary>
-    public int Length
+    public class BlobBuilder
     {
-      get
-      {
-        return byteList.Count();
-      }
-    }
+        List<byte> byteList;
 
-    /// <summary>
-    /// Creates new instance of BlobBuilder
-    /// </summary>
-    public BlobBuilder()
-    {
-      byteList = new List<byte>();
-    }
+        /// <summary>
+        /// Gets current length of blob
+        /// </summary>
+        public int Length
+        {
+            get { return byteList.Count(); }
+        }
 
+        /// <summary>
+        /// Creates new instance of BlobBuilder
+        /// </summary>
+        public BlobBuilder()
+        {
+            byteList = new List<byte>();
+        }
 
-    ~BlobBuilder()
-    {
-      Clear();
-    }
+        ~BlobBuilder()
+        {
+            Clear();
+        }
 
-    /// <summary>
-    /// Adds byte to the blob
-    /// </summary>
-    public void AddUInt8(byte value)
-    {
-      byteList.Add(value);
-    }
+        /// <summary>
+        /// Adds byte to the blob
+        /// </summary>
+        public void AddUInt8(byte value)
+        {
+            byteList.Add(value);
+        }
 
-    public void AddInt(int value)
-    {
-      AddUInt32((uint)value);
-    }
+        public void AddInt(int value)
+        {
+            AddUInt32((uint)value);
+        }
 
-    public void AddUInt32(uint value)
-    {
-      byteList.AddRange(value.ToBytes());
-    }
+        public void AddUInt32(uint value)
+        {
+            byteList.AddRange(value.ToBytes());
+        }
 
-    public void AddUInt64(ulong value)
-    {
-      byteList.AddRange(value.ToBytes());
-    }
+        public void AddUInt64(ulong value)
+        {
+            byteList.AddRange(value.ToBytes());
+        }
 
-    /// <summary>
-    /// Adds byte[] to the blob
-    /// </summary>
-    /// <param name="bytes"></param>
-    public void AddBytes(byte[] bytes)
-    {
-      byteList.AddRange(bytes);
-    }
+        /// <summary>
+        /// Adds byte[] to the blob
+        /// </summary>
+        /// <param name="bytes"></param>
+        public void AddBytes(byte[] bytes)
+        {
+            byteList.AddRange(bytes);
+        }
 
-    /// <summary>
-    /// Adds a string to the blob
-    /// </summary>
-    /// <param name="value">the string to add</param>
-    public void AddStringBlob(string value)
-    {
-      AddBlob(Encoding.UTF8.GetBytes(value));
-    }
+        /// <summary>
+        /// Adds a string to the blob
+        /// </summary>
+        /// <param name="value">the string to add</param>
+        public void AddStringBlob(string value)
+        {
+            AddBlob(Encoding.UTF8.GetBytes(value));
+        }
 
-    /// <summary>
-    /// Adds BigInteger to builder prefixed with size
-    /// </summary>
-    /// <param name="value"></param>
-    public void AddBigIntBlob(BigInteger value)
-    {
-      byte[] bytes = value.ToByteArray();
-      AddBlob(bytes);
-    }
+        /// <summary>
+        /// Adds BigInteger to builder prefixed with size
+        /// </summary>
+        /// <param name="value"></param>
+        public void AddBigIntBlob(BigInteger value)
+        {
+            byte[] bytes = value.ToByteArray();
+            AddBlob(bytes);
+        }
 
-    /// <summary>
-    /// Adds byte[] to builder as Ssh1 sub-blob
-    /// </summary>
-    /// <param name="value"></param>
-    public void AddSsh1BigIntBlob(BigInteger value)
-    {
-        ushort size = (ushort)(value.BitLength);
-        AddUInt8((byte)((size >> 8) & 0xFF));
-        AddUInt8((byte)(size & 0xFF));
-        byte[] bytes = value.ToByteArrayUnsigned();
-        byteList.AddRange(bytes);
-    }
+        /// <summary>
+        /// Adds byte[] to builder as Ssh1 sub-blob
+        /// </summary>
+        /// <param name="value"></param>
+        public void AddSsh1BigIntBlob(BigInteger value)
+        {
+            ushort size = (ushort)(value.BitLength);
+            AddUInt8((byte)((size >> 8) & 0xFF));
+            AddUInt8((byte)(size & 0xFF));
+            byte[] bytes = value.ToByteArrayUnsigned();
+            byteList.AddRange(bytes);
+        }
 
-    /// <summary>
-    /// Adds byte[] to builder as sub-blob
-    /// </summary>
-    /// <param name="blob"></param>
-    public void AddBlob(byte[] blob)
-    {
-      byteList.AddRange(blob.Length.ToBytes());
-      byteList.AddRange(blob);
-    }
+        /// <summary>
+        /// Adds byte[] to builder as sub-blob
+        /// </summary>
+        /// <param name="blob"></param>
+        public void AddBlob(byte[] blob)
+        {
+            byteList.AddRange(blob.Length.ToBytes());
+            byteList.AddRange(blob);
+        }
 
-    /// <summary>
-    /// Prepends header 
-    /// </summary>
-    /// <param name="message">message number to include in header</param>
-    /// <param name="headerData">data to include in header</param>
-    public void InsertHeader(Agent.Message message, int headerData)
-    {
-      byteList.InsertRange(0, headerData.ToBytes());
-      InsertHeader(message);
-    }
+        /// <summary>
+        /// Prepends header 
+        /// </summary>
+        /// <param name="message">message number to include in header</param>
+        /// <param name="headerData">data to include in header</param>
+        public void InsertHeader(Agent.Message message, int headerData)
+        {
+            byteList.InsertRange(0, headerData.ToBytes());
+            InsertHeader(message);
+        }
 
-    /// <summary>
-    /// Prepends header 
-    /// </summary>
-    /// <param name="message">message number to include in header</param>
-    public void InsertHeader(Agent.Message message)
-    {
-      byteList.Insert(0, (byte)message);
-      byte[] blobLength = byteList.Count.ToBytes();
-      byteList.InsertRange(0, blobLength);
-    }
+        /// <summary>
+        /// Prepends header 
+        /// </summary>
+        /// <param name="message">message number to include in header</param>
+        public void InsertHeader(Agent.Message message)
+        {
+            byteList.Insert(0, (byte)message);
+            byte[] blobLength = byteList.Count.ToBytes();
+            byteList.InsertRange(0, blobLength);
+        }
 
-    /// <summary>
-    /// Gets the resulting blob from the blob builder.
-    /// </summary>
-    /// <returns>byte[] containing the blob</returns>
-    public byte[] GetBlob()
-    {
-      return byteList.ToArray();
-    }
+        /// <summary>
+        /// Gets the resulting blob from the blob builder.
+        /// </summary>
+        /// <returns>byte[] containing the blob</returns>
+        public byte[] GetBlob()
+        {
+            return byteList.ToArray();
+        }
 
-    public PinnedArray<byte> GetBlobAsPinnedByteArray()
-    {
-      return new PinnedArray<byte>(GetBlob());      
-    }
+        public PinnedArray<byte> GetBlobAsPinnedByteArray()
+        {
+            return new PinnedArray<byte>(GetBlob());
+        }
 
-    /// <summary>
-    /// Writes 0 to all values, then clears list
-    /// </summary>
-    public void Clear()
-    {
-      Util.ClearByteList(byteList);
+        /// <summary>
+        /// Writes 0 to all values, then clears list
+        /// </summary>
+        public void Clear()
+        {
+            Util.ClearByteList(byteList);
+        }
     }
-  }
 }

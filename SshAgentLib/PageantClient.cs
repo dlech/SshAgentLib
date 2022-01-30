@@ -32,69 +32,80 @@ using System.Threading;
 
 namespace dlech.SshAgentLib
 {
-  public class PageantClient : AgentClient
-  {
-    public const string cPageantWindowClass = "Pageant";
-    public const string cMapNamePrefix = "SshAgentPageantClientRequest";
-
-    private const int WM_COPYDATA = 0x004A;
-    private const long AGENT_COPYDATA_ID = 0x804e50ba;
-
-    [DllImport("user32.dll")]
-    private static extern IntPtr SendMessage(IntPtr hWnd, uint Msg,
-      IntPtr wParam, IntPtr lParam);
-
-    [DllImport("user32.dll")]
-    private static extern IntPtr FindWindow(String sClassName, String sAppName);
-
-    [StructLayout(LayoutKind.Sequential)]
-    private struct COPYDATASTRUCT
+    public class PageantClient : AgentClient
     {
-      public IntPtr dwData;
-      public int cbData;
-      public IntPtr lpData;
-    }
+        public const string cPageantWindowClass = "Pageant";
+        public const string cMapNamePrefix = "SshAgentPageantClientRequest";
 
-    public override byte[] SendMessage(byte[] aMessage)
-    {
-      var hwnd = FindWindow(cPageantWindowClass, cPageantWindowClass);
-      if (hwnd == IntPtr.Zero) {
-        throw new AgentNotRunningException();
-      }
-      var threadId = Thread.CurrentThread.ManagedThreadId;
-      var mapName = String.Format("{0}{1:x8}", cMapNamePrefix, threadId);
-      using (var mappedFile = MemoryMappedFile.CreateNew(mapName, 8192)) {
-        if (mappedFile.SafeMemoryMappedFileHandle.IsInvalid) {
-          throw new Exception("Invalid mapped file handle");
+        private const int WM_COPYDATA = 0x004A;
+        private const long AGENT_COPYDATA_ID = 0x804e50ba;
+
+        [DllImport("user32.dll")]
+        private static extern IntPtr SendMessage(
+            IntPtr hWnd,
+            uint Msg,
+            IntPtr wParam,
+            IntPtr lParam
+        );
+
+        [DllImport("user32.dll")]
+        private static extern IntPtr FindWindow(String sClassName, String sAppName);
+
+        [StructLayout(LayoutKind.Sequential)]
+        private struct COPYDATASTRUCT
+        {
+            public IntPtr dwData;
+            public int cbData;
+            public IntPtr lpData;
         }
-        using (var stream = mappedFile.CreateViewStream()) {
-          stream.Write(aMessage, 0, aMessage.Length);
-          var copyData = new COPYDATASTRUCT();
-          if (IntPtr.Size == 4) {
-            copyData.dwData = new IntPtr(unchecked((int)AGENT_COPYDATA_ID));
-          } else {
-            copyData.dwData = new IntPtr(AGENT_COPYDATA_ID);
-          }
-          copyData.cbData = mapName.Length + 1;
-          copyData.lpData = Marshal.StringToCoTaskMemAnsi(mapName);
-          IntPtr copyDataPtr = Marshal.AllocHGlobal(Marshal.SizeOf(copyData));
-          Marshal.StructureToPtr(copyData, copyDataPtr, false);
-          var resultPtr =
-            SendMessage(hwnd, WM_COPYDATA, IntPtr.Zero, copyDataPtr);
-          Marshal.FreeCoTaskMem(copyData.lpData);
-          Marshal.FreeHGlobal(copyDataPtr);
-          if (resultPtr == IntPtr.Zero) {
-            throw new Exception("send message failed");
-          }
-          stream.Position = 0;
-          var parser = new BlobParser(stream);
-          var replyLength = parser.ReadUInt32();
-          stream.Position = 0;
-          var reply = new byte[replyLength + 4];
-          stream.Read(reply, 0, reply.Length);
-          return reply;
+
+        public override byte[] SendMessage(byte[] aMessage)
+        {
+            var hwnd = FindWindow(cPageantWindowClass, cPageantWindowClass);
+            if (hwnd == IntPtr.Zero)
+            {
+                throw new AgentNotRunningException();
+            }
+            var threadId = Thread.CurrentThread.ManagedThreadId;
+            var mapName = String.Format("{0}{1:x8}", cMapNamePrefix, threadId);
+            using (var mappedFile = MemoryMappedFile.CreateNew(mapName, 8192))
+            {
+                if (mappedFile.SafeMemoryMappedFileHandle.IsInvalid)
+                {
+                    throw new Exception("Invalid mapped file handle");
+                }
+                using (var stream = mappedFile.CreateViewStream())
+                {
+                    stream.Write(aMessage, 0, aMessage.Length);
+                    var copyData = new COPYDATASTRUCT();
+                    if (IntPtr.Size == 4)
+                    {
+                        copyData.dwData = new IntPtr(unchecked((int)AGENT_COPYDATA_ID));
+                    }
+                    else
+                    {
+                        copyData.dwData = new IntPtr(AGENT_COPYDATA_ID);
+                    }
+                    copyData.cbData = mapName.Length + 1;
+                    copyData.lpData = Marshal.StringToCoTaskMemAnsi(mapName);
+                    IntPtr copyDataPtr = Marshal.AllocHGlobal(Marshal.SizeOf(copyData));
+                    Marshal.StructureToPtr(copyData, copyDataPtr, false);
+                    var resultPtr = SendMessage(hwnd, WM_COPYDATA, IntPtr.Zero, copyDataPtr);
+                    Marshal.FreeCoTaskMem(copyData.lpData);
+                    Marshal.FreeHGlobal(copyDataPtr);
+                    if (resultPtr == IntPtr.Zero)
+                    {
+                        throw new Exception("send message failed");
+                    }
+                    stream.Position = 0;
+                    var parser = new BlobParser(stream);
+                    var replyLength = parser.ReadUInt32();
+                    stream.Position = 0;
+                    var reply = new byte[replyLength + 4];
+                    stream.Read(reply, 0, reply.Length);
+                    return reply;
+                }
+            }
         }
-      }
     }
-  }
 }

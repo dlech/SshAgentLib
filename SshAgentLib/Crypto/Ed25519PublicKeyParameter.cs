@@ -35,8 +35,10 @@ namespace dlech.SshAgentLib.Crypto
     {
         byte[] key;
 
-        public byte[] Key {
-            get {
+        public byte[] Key
+        {
+            get
+            {
                 var copy = new byte[key.Length];
                 Array.Copy(key, copy, key.Length);
                 return copy;
@@ -45,10 +47,12 @@ namespace dlech.SshAgentLib.Crypto
 
         public Ed25519PublicKeyParameter(byte[] key) : base(privateKey: false)
         {
-            if (key == null) {
+            if (key == null)
+            {
                 throw new ArgumentNullException("key");
             }
-            if (key.Length != Ed25519.PublicKeySizeInBytes) {
+            if (key.Length != Ed25519.PublicKeySizeInBytes)
+            {
                 throw new ArgumentException("Bad key length.", "key");
             }
             this.key = key;

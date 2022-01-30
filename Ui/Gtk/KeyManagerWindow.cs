@@ -1,4 +1,4 @@
-//
+﻿//
 // KeyManagerWindow.cs
 //
 // Author(s): David Lechner <david@lechnology.com>
@@ -26,21 +26,21 @@
 using dlech.SshAgentLib;
 using Gtk;
 
-public partial class KeyManagerWindow: Gtk.Window
-{  
-  public KeyManagerWindow (): base (Gtk.WindowType.Toplevel)
-  {
-    Build ();
-  }
-  
-  protected void OnDeleteEvent (object sender, DeleteEventArgs a)
-  {
-    Application.Quit ();
-    a.RetVal = true;
-  }
+public partial class KeyManagerWindow : Gtk.Window
+{
+    public KeyManagerWindow() : base(Gtk.WindowType.Toplevel)
+    {
+        Build();
+    }
 
-  public void SetAgent (IAgent aAgent)
-  {
-    keymanagerwiget1.SetAgent (aAgent);
-  }
+    protected void OnDeleteEvent(object sender, DeleteEventArgs a)
+    {
+        Application.Quit();
+        a.RetVal = true;
+    }
+
+    public void SetAgent(IAgent aAgent)
+    {
+        keymanagerwiget1.SetAgent(aAgent);
+    }
 }

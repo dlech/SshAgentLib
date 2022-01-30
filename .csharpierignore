@@ -1,0 +1,4 @@
+SshAgentLib/Microsoft/**
+UI/WinForms/FileDlgExtenders/**
+UI/WinForms/Microsoft/**
+**/gtk-gui/*.cs

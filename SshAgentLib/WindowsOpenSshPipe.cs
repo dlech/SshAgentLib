@@ -21,7 +21,6 @@ namespace dlech.SshAgentLib
         private const string agentPipeId = "openssh-ssh-agent";
         private const int bufferSize = 5 * 1024;
 
-
         private readonly CancellationTokenSource cancelSource;
         private readonly Task listenerTask;
 
@@ -48,29 +47,43 @@ namespace dlech.SshAgentLib
 
         [DllImport("kernel32.dll", SetLastError = true)]
         private static extern bool GetNamedPipeClientProcessId(
-            IntPtr Pipe, out uint ClientProcessId);
+            IntPtr Pipe,
+            out uint ClientProcessId
+        );
 
         private static async Task RunListenerAsync(
-            ConnectionHandler connectionHandler, CancellationToken cancellationToken)
+            ConnectionHandler connectionHandler,
+            CancellationToken cancellationToken
+        )
         {
             while (!cancellationToken.IsCancellationRequested)
             {
-                using (var server = new NamedPipeServerStream(
-                    agentPipeId,
-                    PipeDirection.InOut,
-                    NamedPipeServerStream.MaxAllowedServerInstances,
-                    PipeTransmissionMode.Byte,
-                    PipeOptions.WriteThrough | PipeOptions.Asynchronous,
-                    bufferSize,
-                    bufferSize))
+                using (
+                    var server = new NamedPipeServerStream(
+                        agentPipeId,
+                        PipeDirection.InOut,
+                        NamedPipeServerStream.MaxAllowedServerInstances,
+                        PipeTransmissionMode.Byte,
+                        PipeOptions.WriteThrough | PipeOptions.Asynchronous,
+                        bufferSize,
+                        bufferSize
+                    )
+                )
                 {
                     await server.WaitForConnectionAsync(cancellationToken).ConfigureAwait(false);
                     Debug.WriteLine("Received Windows OpenSSH Pipe client connection");
 
-                    if (!GetNamedPipeClientProcessId(
-                        server.SafePipeHandle.DangerousGetHandle(), out var clientPid))
+                    if (
+                        !GetNamedPipeClientProcessId(
+                            server.SafePipeHandle.DangerousGetHandle(),
+                            out var clientPid
+                        )
+                    )
                     {
-                        throw new IOException("Failed to get client PID", Marshal.GetHRForLastWin32Error());
+                        throw new IOException(
+                            "Failed to get client PID",
+                            Marshal.GetHRForLastWin32Error()
+                        );
                     }
 
                     var proc = Process.GetProcessById((int)clientPid);

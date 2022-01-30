@@ -27,10 +27,8 @@ using System;
 
 namespace dlech.SshAgentLib
 {
-  /// <summary>
-  /// Indicates that passphrase was incorrect
-  /// </summary>
-  public class PassphraseException : Exception 
-  {
-  }
+    /// <summary>
+    /// Indicates that passphrase was incorrect
+    /// </summary>
+    public class PassphraseException : Exception { }
 }

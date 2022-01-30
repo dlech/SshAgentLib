@@ -27,26 +27,26 @@ using FileDialogExtenders;
 
 namespace dlech.SshAgentLib.WinForms
 {
-  public partial class XPOpenFileDialog : FileDialogControlBase
-  {
-    public XPOpenFileDialog()
+    public partial class XPOpenFileDialog : FileDialogControlBase
     {
-      InitializeComponent();
-    }
+        public XPOpenFileDialog()
+        {
+            InitializeComponent();
+        }
 
-    public bool UseConfirmConstraintChecked
-    {
-      get { return mConfirmConstraintControl.Checked; }
-    }
+        public bool UseConfirmConstraintChecked
+        {
+            get { return mConfirmConstraintControl.Checked; }
+        }
 
-    public bool UseLifetimeConstraintChecked
-    {
-      get { return mLifetimeConstraintControl.Checked; }
-    }
+        public bool UseLifetimeConstraintChecked
+        {
+            get { return mLifetimeConstraintControl.Checked; }
+        }
 
-    public uint LifetimeConstraintDuration
-    {
-      get { return mLifetimeConstraintControl.Lifetime; }
+        public uint LifetimeConstraintDuration
+        {
+            get { return mLifetimeConstraintControl.Lifetime; }
+        }
     }
-  }
 }

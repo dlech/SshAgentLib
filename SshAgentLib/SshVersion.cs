@@ -25,9 +25,9 @@
 
 namespace dlech.SshAgentLib
 {
-  public enum SshVersion
-  {
-    SSH1,
-    SSH2
-  }
+    public enum SshVersion
+    {
+        SSH1,
+        SSH2
+    }
 }

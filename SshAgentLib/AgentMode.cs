@@ -25,10 +25,10 @@
 
 namespace dlech.SshAgentLib
 {
-  public enum AgentMode
-  {
-    Server,
-    Client,
-    Auto
-  }
+    public enum AgentMode
+    {
+        Server,
+        Client,
+        Auto,
+    }
 }

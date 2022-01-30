@@ -27,17 +27,17 @@ using System.Windows.Forms;
 
 namespace dlech.SshAgentLib.WinForms
 {
-  public partial class KeyManagerForm : Form
-  {
-    public KeyManagerForm(IAgent aAgent)
+    public partial class KeyManagerForm : Form
     {
-      InitializeComponent();
-      keyInfoViewer.SetAgent(aAgent); 
-    }
+        public KeyManagerForm(IAgent aAgent)
+        {
+            InitializeComponent();
+            keyInfoViewer.SetAgent(aAgent);
+        }
 
-    private void MainForm_FormClosing(object sender, FormClosingEventArgs e)
-    {
-      //Properties.Settings.Default.Save();
+        private void MainForm_FormClosing(object sender, FormClosingEventArgs e)
+        {
+            //Properties.Settings.Default.Save();
+        }
     }
-  }
 }

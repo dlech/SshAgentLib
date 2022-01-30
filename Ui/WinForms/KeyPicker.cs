@@ -34,51 +34,56 @@ using System.Windows.Forms;
 
 namespace dlech.SshAgentLib.WinForms
 {
-  public partial class KeyPicker : Form
-  {
-    public IEnumerable<ISshKey> SelectedKeys
+    public partial class KeyPicker : Form
     {
-      get
-      {
-        return keyDataGridView.SelectedRows.Cast<DataGridViewRow>()
-          .Select(r => ((KeyWrapper)r.DataBoundItem).GetKey());
-      }
-    }
+        public IEnumerable<ISshKey> SelectedKeys
+        {
+            get
+            {
+                return keyDataGridView.SelectedRows
+                    .Cast<DataGridViewRow>()
+                    .Select(r => ((KeyWrapper)r.DataBoundItem).GetKey());
+            }
+        }
 
-    public KeyPicker(ICollection<ISshKey> keys)
-    {
-      if (keys == null) {
-        throw new ArgumentNullException("keys");
-      }
-      if (keys.Count == 0) {
-        throw new ArgumentException("No keys in list.", "keys");
-      }
-      InitializeComponent();
-      keyDataGridView.ColumnAdded += keyDataGridView_ColumnAdded;
-      keyDataGridView.DataSource = keys.Select(k => new KeyWrapper(k)).ToList();
-      keyDataGridView.Rows[0].Selected = true;
-    }
+        public KeyPicker(ICollection<ISshKey> keys)
+        {
+            if (keys == null)
+            {
+                throw new ArgumentNullException("keys");
+            }
+            if (keys.Count == 0)
+            {
+                throw new ArgumentException("No keys in list.", "keys");
+            }
+            InitializeComponent();
+            keyDataGridView.ColumnAdded += keyDataGridView_ColumnAdded;
+            keyDataGridView.DataSource = keys.Select(k => new KeyWrapper(k)).ToList();
+            keyDataGridView.Rows[0].Selected = true;
+        }
 
-    void keyDataGridView_ColumnAdded(object sender, DataGridViewColumnEventArgs e)
-    {
-      e.Column.AutoSizeMode = DataGridViewAutoSizeColumnMode.AllCells;
-      if (e.Column.DataPropertyName == "Confirm" || e.Column.DataPropertyName == "Lifetime") {
-        e.Column.Visible = false;
-      }
-    }
+        void keyDataGridView_ColumnAdded(object sender, DataGridViewColumnEventArgs e)
+        {
+            e.Column.AutoSizeMode = DataGridViewAutoSizeColumnMode.AllCells;
+            if (e.Column.DataPropertyName == "Confirm" || e.Column.DataPropertyName == "Lifetime")
+            {
+                e.Column.Visible = false;
+            }
+        }
 
-    private void keyDataGridView_CellDoubleClick(object sender, DataGridViewCellEventArgs e)
-    {
-      keyDataGridView.Rows[e.RowIndex].Selected = true;
-      AcceptButton.PerformClick();
-    }
+        private void keyDataGridView_CellDoubleClick(object sender, DataGridViewCellEventArgs e)
+        {
+            keyDataGridView.Rows[e.RowIndex].Selected = true;
+            AcceptButton.PerformClick();
+        }
 
-    private void keyDataGridView_KeyDown(object sender, KeyEventArgs e)
-    {
-      if (e.KeyCode == Keys.Enter) {
-        AcceptButton.PerformClick();
-        e.Handled = true;
-      }
+        private void keyDataGridView_KeyDown(object sender, KeyEventArgs e)
+        {
+            if (e.KeyCode == Keys.Enter)
+            {
+                AcceptButton.PerformClick();
+                e.Handled = true;
+            }
+        }
     }
-  }
 }

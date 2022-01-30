@@ -1,11 +1,10 @@
-// SPDX-License-Identifier: MIT
+﻿// SPDX-License-Identifier: MIT
 // Copyright (c) 2022 David Lechner <david@lechnology.com>
 
-using NUnit.Framework;
-
-using dlech.SshAgentLib;
 using System.IO;
 using System.IO.Pipes;
+using dlech.SshAgentLib;
+using NUnit.Framework;
 
 namespace dlech.SshAgentLibTests
 {
@@ -20,8 +19,10 @@ namespace dlech.SshAgentLibTests
         {
             using (new WindowsOpenSshPipe((s, p) => { }))
             {
-                Assert.That(() => new WindowsOpenSshPipe((s2, p2) => { }),
-                    Throws.TypeOf<PageantRunningException>());
+                Assert.That(
+                    () => new WindowsOpenSshPipe((s2, p2) => { }),
+                    Throws.TypeOf<PageantRunningException>()
+                );
             }
         }
 
@@ -30,11 +31,9 @@ namespace dlech.SshAgentLibTests
         {
             using (new WindowsOpenSshPipe((s, p) => { }))
             {
-                Assert.That(File.Exists(pipePath),
-                    "Creating pipe should create socket file");
+                Assert.That(File.Exists(pipePath), "Creating pipe should create socket file");
             }
-            Assert.That(!File.Exists(pipePath),
-                "Disposing pipe should remove file.");
+            Assert.That(!File.Exists(pipePath), "Disposing pipe should remove file.");
         }
 
         [Test, NonParallelizable]

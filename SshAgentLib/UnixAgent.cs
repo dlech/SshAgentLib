@@ -1,4 +1,4 @@
-//
+﻿//
 // UnixAgent.cs
 //
 // Author(s): David Lechner <david@lechnology.com>
@@ -35,147 +35,182 @@ using Mono.Unix.Native;
 
 namespace dlech.SshAgentLib
 {
-  /// <summary>
-  /// ssh-agent for linux
-  /// </summary>
-  /// <remarks>
-  /// Code based on ssh-agent.c from OpenBSD/OpenSSH and
-  /// http://msdn.microsoft.com/en-us/library/system.net.sockets.socketasynceventargs.aspx
-  /// </remarks>
-  public class UnixAgent : Agent
-  {
-    /* Listen backlog for sshd, ssh-agent and forwarding sockets */
-    const int sshListenBacklog = 128;
-    const int maxNumConnections = 10;
-    const int receiveBufferSize = 4096;
-
-    static int clientCount = 0;
-
-    UnixListener listener;
-    Thread connectionThread;
-    List<Mono.Unix.UnixClient> activeClients = new List<Mono.Unix.UnixClient>();
-    object activeClientsLock = new object();
-    bool isDisposed;
-
-    public void StartUnixSocket(string socketPath)
+    /// <summary>
+    /// ssh-agent for linux
+    /// </summary>
+    /// <remarks>
+    /// Code based on ssh-agent.c from OpenBSD/OpenSSH and
+    /// http://msdn.microsoft.com/en-us/library/system.net.sockets.socketasynceventargs.aspx
+    /// </remarks>
+    public class UnixAgent : Agent
     {
-      if (socketPath == null) {
-        throw new ArgumentNullException("socketPath");
-      }
-      try {
-        socketPath = Path.GetFullPath(socketPath);
-        if (File.Exists(socketPath)) {
-          var info = UnixFileSystemInfo.GetFileSystemEntry(socketPath);
-          if (info.IsSocket) {
-            // if the file is a socket, it probably came from us, so overwrite it.
-            File.Delete(socketPath);
-          } else {
-            // don't want to overwrite anything that is not a socket file though.
-            var message = string.Format("The file '{0}' already exists.", socketPath);
-            throw new Exception(message);
-          }
-        }
+        /* Listen backlog for sshd, ssh-agent and forwarding sockets */
+        const int sshListenBacklog = 128;
+        const int maxNumConnections = 10;
+        const int receiveBufferSize = 4096;
 
-        // set file permission to user only.
-        var prevUmask = Syscall.umask(
-          FilePermissions.S_IXUSR |
-          FilePermissions.S_IRWXG |
-          FilePermissions.S_IRWXO);
-        // file is created in UnixListener()
-        try {
-          listener = new UnixListener(socketPath);
-        } finally {
-          Syscall.umask(prevUmask);
-        }
-        listener.Start ();
-        connectionThread = new Thread(AcceptConnections) { Name = "UnixAgent" };
-        connectionThread.Start ();
+        static int clientCount = 0;
 
-      } catch (Exception ex) {
-        var message = string.Format("Failed to start Unix Agent: {0}", ex.Message);
-        throw new Exception(message, ex);
-      }
-    }
+        UnixListener listener;
+        Thread connectionThread;
+        List<Mono.Unix.UnixClient> activeClients = new List<Mono.Unix.UnixClient>();
+        object activeClientsLock = new object();
+        bool isDisposed;
 
-    public void StopUnixSocket()
-    {
-      // work around mono bug. listener.Dispose() should delete file, but it
-      // fails because there are null chars appended to the end of the filename
-      // for some reason.
-      // See: https://bugzilla.xamarin.com/show_bug.cgi?id=35004
-      var socketPath = ((UnixEndPoint)listener.LocalEndpoint).Filename;
-      var nullTerminatorIndex = socketPath.IndexOf('\0');
-      listener.Dispose();
-      if (nullTerminatorIndex > 0) {
-        try {
-          socketPath = socketPath.Remove(nullTerminatorIndex);
-          File.Delete(socketPath);
-        } catch {
-          // well, we tried
-        }
-      }
-    }
-
-    void AcceptConnections()
-    {
-      try {
-        while (true) {
-          var client = listener.AcceptUnixClient ();
-          var clientThread = new Thread (() => {
-            try {
-              using (var stream = client.GetStream ()) {
-                while (true) {
-                  AnswerMessage (stream);
-                }
-              }
-            } catch (Exception) {
-              // client will throw when connection is closed
-            } finally {
-              lock (activeClientsLock) {
-                activeClients.Remove (client);
-              }
+        public void StartUnixSocket(string socketPath)
+        {
+            if (socketPath == null)
+            {
+                throw new ArgumentNullException("socketPath");
             }
-          });
-          lock (activeClientsLock) {
-            activeClients.Add (client);
-          }
-          clientThread.Name = string.Format ("UnixClient{0}", clientCount++);
-          clientThread.Start ();
+            try
+            {
+                socketPath = Path.GetFullPath(socketPath);
+                if (File.Exists(socketPath))
+                {
+                    var info = UnixFileSystemInfo.GetFileSystemEntry(socketPath);
+                    if (info.IsSocket)
+                    {
+                        // if the file is a socket, it probably came from us, so overwrite it.
+                        File.Delete(socketPath);
+                    }
+                    else
+                    {
+                        // don't want to overwrite anything that is not a socket file though.
+                        var message = string.Format("The file '{0}' already exists.", socketPath);
+                        throw new Exception(message);
+                    }
+                }
+
+                // set file permission to user only.
+                var prevUmask = Syscall.umask(
+                    FilePermissions.S_IXUSR | FilePermissions.S_IRWXG | FilePermissions.S_IRWXO
+                );
+                // file is created in UnixListener()
+                try
+                {
+                    listener = new UnixListener(socketPath);
+                }
+                finally
+                {
+                    Syscall.umask(prevUmask);
+                }
+                listener.Start();
+                connectionThread = new Thread(AcceptConnections) { Name = "UnixAgent" };
+                connectionThread.Start();
+            }
+            catch (Exception ex)
+            {
+                var message = string.Format("Failed to start Unix Agent: {0}", ex.Message);
+                throw new Exception(message, ex);
+            }
         }
-      } catch (SocketException) {
-        // happens when listener is Disposed
-      } catch (Exception ex) {
-        Debug.Fail (ex.Message);
-      }
-    }
 
-    public override void Dispose()
-    {
-      Dispose(true);
-      GC.SuppressFinalize(this);
-    }
-
-    protected virtual void Dispose(bool disposing)
-    {
-      if (!isDisposed) {
-        if (disposing) {
-          // clients can be removed from the list in background thread when
-          // disposed, so we make a copy of the list for iteration
-          foreach (var clientSocket in activeClients.ToArray()) {
-            clientSocket.Dispose();
-          }
-          // listener will be null if constructor throws
-          if (listener != null) {
-            StopUnixSocket ();
-          }
+        public void StopUnixSocket()
+        {
+            // work around mono bug. listener.Dispose() should delete file, but it
+            // fails because there are null chars appended to the end of the filename
+            // for some reason.
+            // See: https://bugzilla.xamarin.com/show_bug.cgi?id=35004
+            var socketPath = ((UnixEndPoint)listener.LocalEndpoint).Filename;
+            var nullTerminatorIndex = socketPath.IndexOf('\0');
+            listener.Dispose();
+            if (nullTerminatorIndex > 0)
+            {
+                try
+                {
+                    socketPath = socketPath.Remove(nullTerminatorIndex);
+                    File.Delete(socketPath);
+                }
+                catch
+                {
+                    // well, we tried
+                }
+            }
         }
-      }
-      isDisposed = true;
-    }
 
-    ~UnixAgent()
-    {
-      Dispose(false);
+        void AcceptConnections()
+        {
+            try
+            {
+                while (true)
+                {
+                    var client = listener.AcceptUnixClient();
+                    var clientThread = new Thread(
+                        () =>
+                        {
+                            try
+                            {
+                                using (var stream = client.GetStream())
+                                {
+                                    while (true)
+                                    {
+                                        AnswerMessage(stream);
+                                    }
+                                }
+                            }
+                            catch (Exception)
+                            {
+                                // client will throw when connection is closed
+                            }
+                            finally
+                            {
+                                lock (activeClientsLock)
+                                {
+                                    activeClients.Remove(client);
+                                }
+                            }
+                        }
+                    );
+                    lock (activeClientsLock)
+                    {
+                        activeClients.Add(client);
+                    }
+                    clientThread.Name = string.Format("UnixClient{0}", clientCount++);
+                    clientThread.Start();
+                }
+            }
+            catch (SocketException)
+            {
+                // happens when listener is Disposed
+            }
+            catch (Exception ex)
+            {
+                Debug.Fail(ex.Message);
+            }
+        }
+
+        public override void Dispose()
+        {
+            Dispose(true);
+            GC.SuppressFinalize(this);
+        }
+
+        protected virtual void Dispose(bool disposing)
+        {
+            if (!isDisposed)
+            {
+                if (disposing)
+                {
+                    // clients can be removed from the list in background thread when
+                    // disposed, so we make a copy of the list for iteration
+                    foreach (var clientSocket in activeClients.ToArray())
+                    {
+                        clientSocket.Dispose();
+                    }
+                    // listener will be null if constructor throws
+                    if (listener != null)
+                    {
+                        StopUnixSocket();
+                    }
+                }
+            }
+            isDisposed = true;
+        }
+
+        ~UnixAgent()
+        {
+            Dispose(false);
+        }
     }
-  }
 }
