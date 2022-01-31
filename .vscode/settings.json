@@ -3,5 +3,27 @@
         "editor.formatOnSave": true,
         "editor.defaultFormatter": "csharpier.csharpier-vscode"
     },
-    "omnisharp.enableRoslynAnalyzers": true
+    "omnisharp.enableRoslynAnalyzers": true,
+    "psi-header.config": {
+        "license": "MIT",
+        "copyrightHolder": "David Lechner <david@lechnology.com>",
+        "forceToTop": true,
+    },
+    "psi-header.templates": [
+        {
+            "language": "*",
+            "template": [
+                "SPDX-License-Identifier: <<spdxid>>",
+                "Copyright (c) <<year>> <<copyrightholder>>"
+            ]
+        }
+    ],
+    "psi-header.lang-config": [
+        {
+            "language": "csharp",
+            "begin": "",
+            "end": "",
+            "prefix": "// "
+        }
+    ]
 }
