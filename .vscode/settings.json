@@ -2,5 +2,6 @@
     "[csharp]": {
         "editor.formatOnSave": true,
         "editor.defaultFormatter": "csharpier.csharpier-vscode"
-    }
+    },
+    "omnisharp.enableRoslynAnalyzers": true
 }
