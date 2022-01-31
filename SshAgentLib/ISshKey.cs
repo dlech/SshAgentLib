@@ -1,4 +1,4 @@
-﻿//
+//
 // ISshKey.cs
 //
 // Author(s): David Lechner <david@lechnology.com>
@@ -155,9 +155,8 @@ namespace dlech.SshAgentLib
             }
             AsymmetricKeyParameter parameters = key.GetPublicKeyParameters();
             BlobBuilder builder = new BlobBuilder();
-            if (parameters is RsaKeyParameters)
+            if (parameters is RsaKeyParameters rsaPublicKeyParameters)
             {
-                RsaKeyParameters rsaPublicKeyParameters = (RsaKeyParameters)parameters;
                 if (key.Version == SshVersion.SSH1)
                 {
                     builder.AddInt(key.Size);
@@ -166,22 +165,20 @@ namespace dlech.SshAgentLib
                 }
                 else
                 {
-                    builder.AddStringBlob(PublicKeyAlgorithm.SSH_RSA.GetIdentifierString());
+                    builder.AddStringBlob(PublicKeyAlgorithm.SshRsa.GetIdentifier());
                     builder.AddBigIntBlob(rsaPublicKeyParameters.Exponent);
                     builder.AddBigIntBlob(rsaPublicKeyParameters.Modulus);
                 }
             }
-            else if (parameters is DsaPublicKeyParameters)
+            else if (parameters is DsaPublicKeyParameters dsaParameters)
             {
-                DsaPublicKeyParameters dsaParameters = (DsaPublicKeyParameters)parameters;
-
-                builder.AddStringBlob(PublicKeyAlgorithm.SSH_DSS.GetIdentifierString());
+                builder.AddStringBlob(PublicKeyAlgorithm.SshDss.GetIdentifier());
                 builder.AddBigIntBlob(dsaParameters.Parameters.P);
                 builder.AddBigIntBlob(dsaParameters.Parameters.Q);
                 builder.AddBigIntBlob(dsaParameters.Parameters.G);
                 builder.AddBigIntBlob(dsaParameters.Y);
             }
-            else if (parameters is ECPublicKeyParameters)
+            else if (parameters is ECPublicKeyParameters ecdsaParameters)
             {
                 ECPublicKeyParameters ecdsaParameters = (ECPublicKeyParameters)parameters;
 
@@ -210,10 +207,10 @@ namespace dlech.SshAgentLib
                 builder.AddStringBlob(algorithm);
                 builder.AddBlob(ecdsaParameters.Q.GetEncoded());
             }
-            else if (parameters is Ed25519PublicKeyParameter)
+            else if (parameters is Ed25519PublicKeyParameter ed15519Parameters)
             {
                 builder.AddStringBlob(PublicKeyAlgorithm.ED25519.GetIdentifierString());
-                builder.AddBlob(((Ed25519PublicKeyParameter)parameters).Key);
+                builder.AddBlob(ed15519Parameters.Key);
             }
             else
             {
