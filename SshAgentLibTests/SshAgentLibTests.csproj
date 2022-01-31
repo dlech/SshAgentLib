@@ -1,222 +1,14 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
-<Project DefaultTargets="Build" ToolsVersion="12.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
   <PropertyGroup>
-    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
-    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
-    <ProductVersion>8.0.30703</ProductVersion>
-    <SchemaVersion>2.0</SchemaVersion>
-    <ProjectGuid>{4C052A55-5F53-4756-AC2C-103EE602E60F}</ProjectGuid>
-    <OutputType>Library</OutputType>
-    <RootNamespace>dlech.SshAgentLibTests</RootNamespace>
-    <AssemblyName>SshAgentLibTests</AssemblyName>
-    <TargetFrameworkVersion>v4.6.2</TargetFrameworkVersion>
-    <TargetFrameworkProfile />
-    <NuGetPackageImportStamp>
-    </NuGetPackageImportStamp>
+    <TargetFramework>net462</TargetFramework>
+    <EnableNETAnalyzers>True</EnableNETAnalyzers>
   </PropertyGroup>
-  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
-    <DebugSymbols>True</DebugSymbols>
-    <DebugType>portable</DebugType>
-    <Optimize>False</Optimize>
-    <OutputPath>bin\Debug</OutputPath>
-    <DefineConstants>DEBUG;</DefineConstants>
-    <ErrorReport>prompt</ErrorReport>
-    <WarningLevel>4</WarningLevel>
-    <ConsolePause>False</ConsolePause>
-    <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
-    <Prefer32Bit>false</Prefer32Bit>
-  </PropertyGroup>
-  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
-    <DebugType>none</DebugType>
-    <Optimize>False</Optimize>
-    <OutputPath>bin\Release</OutputPath>
-    <ErrorReport>prompt</ErrorReport>
-    <WarningLevel>4</WarningLevel>
-    <ConsolePause>False</ConsolePause>
-    <Prefer32Bit>false</Prefer32Bit>
-  </PropertyGroup>
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug-Win32|AnyCPU'">
-    <DebugSymbols>true</DebugSymbols>
-    <OutputPath>bin\Debug-Win32\</OutputPath>
-    <DefineConstants>DEBUG;</DefineConstants>
-    <DebugType>full</DebugType>
-    <PlatformTarget>AnyCPU</PlatformTarget>
-    <ErrorReport>prompt</ErrorReport>
-    <WarningLevel>4</WarningLevel>
-    <Optimize>false</Optimize>
-    <Prefer32Bit>false</Prefer32Bit>
-  </PropertyGroup>
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|x86'">
-    <DebugSymbols>true</DebugSymbols>
-    <OutputPath>bin\x86\Debug\</OutputPath>
-    <DefineConstants>DEBUG;</DefineConstants>
-    <DebugType>full</DebugType>
-    <PlatformTarget>x86</PlatformTarget>
-    <ErrorReport>prompt</ErrorReport>
-    <CodeAnalysisIgnoreBuiltInRuleSets>true</CodeAnalysisIgnoreBuiltInRuleSets>
-    <CodeAnalysisIgnoreBuiltInRules>true</CodeAnalysisIgnoreBuiltInRules>
-    <WarningLevel>4</WarningLevel>
-    <Optimize>false</Optimize>
-    <Prefer32Bit>false</Prefer32Bit>
-  </PropertyGroup>
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release|x86'">
-    <OutputPath>bin\x86\Release\</OutputPath>
-    <PlatformTarget>x86</PlatformTarget>
-    <ErrorReport>prompt</ErrorReport>
-    <CodeAnalysisIgnoreBuiltInRuleSets>false</CodeAnalysisIgnoreBuiltInRuleSets>
-    <WarningLevel>4</WarningLevel>
-    <Optimize>false</Optimize>
-    <Prefer32Bit>false</Prefer32Bit>
-  </PropertyGroup>
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug-Win32|x86'">
-    <DebugSymbols>true</DebugSymbols>
-    <OutputPath>bin\x86\Debug-Win32\</OutputPath>
-    <DefineConstants>DEBUG;</DefineConstants>
-    <DebugType>full</DebugType>
-    <PlatformTarget>x86</PlatformTarget>
-    <ErrorReport>prompt</ErrorReport>
-    <CodeAnalysisIgnoreBuiltInRuleSets>true</CodeAnalysisIgnoreBuiltInRuleSets>
-    <CodeAnalysisIgnoreBuiltInRules>true</CodeAnalysisIgnoreBuiltInRules>
-    <CodeAnalysisFailOnMissingRules>false</CodeAnalysisFailOnMissingRules>
-    <WarningLevel>4</WarningLevel>
-    <Optimize>false</Optimize>
-    <Prefer32Bit>false</Prefer32Bit>
-  </PropertyGroup>
+
   <ItemGroup>
-    <Reference Include="System" />
-    <Reference Include="System.Numerics" />
-    <Reference Include="System.Windows.Forms" />
+    <ProjectReference Include="..\SshAgentLib\SshAgentLib.csproj" />
   </ItemGroup>
-  <ItemGroup>
-    <Compile Include="AgentClientTest.cs" />
-    <Compile Include="AgentTest.cs" />
-    <Compile Include="BCryptTest.cs" />
-    <Compile Include="BlobBuilderTest.cs" />
-    <Compile Include="CygwinSocketTest.cs" />
-    <Compile Include="KeyGenerator.cs" />
-    <Compile Include="MsysSocketTest.cs" />
-    <Compile Include="OpensshPrivateKeyFormatterTest.cs" />
-    <Compile Include="PageantClientTest.cs" />
-    <Compile Include="Ssh1KeyFormatterTest.cs" />
-    <Compile Include="PemKeyFormatterTest.cs" />
-    <Compile Include="PpkFormatterTest.cs" />
-    <Compile Include="Properties\Resources.Designer.cs">
-      <AutoGen>True</AutoGen>
-      <DesignTime>True</DesignTime>
-      <DependentUpon>Resources.resx</DependentUpon>
-    </Compile>
-    <Compile Include="SshAgentLibTestsSetup.cs" />
-    <Compile Include="SshKeyTest.cs" />
-    <Compile Include="PageantAgentTest.cs" />
-    <Compile Include="UnixAgentTest.cs" />
-    <Compile Include="ISshKeyTest.cs" />
-    <Compile Include="OpensshPublicKeyFormatterTests.cs" />
-    <Compile Include="WindowsOpenSshPipeTests.cs" />
-    <Compile Include="WslSocketTests.cs" />
-  </ItemGroup>
-  <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
-  <ItemGroup>
-    <ProjectReference Include="..\SshAgentLib\SshAgentLib.csproj">
-      <Project>{9163B6B6-0603-4C6E-BC67-7111ED8CDDE1}</Project>
-      <Name>SshAgentLib</Name>
-    </ProjectReference>
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="Resources\dsa_1" />
-    <None Include="Resources\dsa_1-cert.fp" />
-    <None Include="Resources\dsa_1-cert.pub" />
-    <None Include="Resources\dsa_1.fp" />
-    <None Include="Resources\dsa_1.fp.bb" />
-    <None Include="Resources\dsa_1.param.g" />
-    <None Include="Resources\dsa_1.param.priv" />
-    <None Include="Resources\dsa_1.param.pub" />
-    <None Include="Resources\dsa_1.pub" />
-    <None Include="Resources\dsa_1_pw" />
-    <None Include="Resources\dsa_2" />
-    <None Include="Resources\dsa_2.fp" />
-    <None Include="Resources\dsa_2.fp.bb" />
-    <None Include="Resources\dsa_2.pub" />
-    <None Include="Resources\dsa_n" />
-    <None Include="Resources\dsa_n_pw" />
-    <None Include="Resources\ecdsa_1" />
-    <None Include="Resources\ecdsa_1-cert.fp" />
-    <None Include="Resources\ecdsa_1-cert.pub" />
-    <None Include="Resources\ecdsa_1.fp" />
-    <None Include="Resources\ecdsa_1.fp.bb" />
-    <None Include="Resources\ecdsa_1.param.curve" />
-    <None Include="Resources\ecdsa_1.param.priv" />
-    <None Include="Resources\ecdsa_1.param.pub" />
-    <None Include="Resources\ecdsa_1.pub" />
-    <None Include="Resources\ecdsa_1_pw" />
-    <None Include="Resources\ecdsa_2" />
-    <None Include="Resources\ecdsa_2.fp" />
-    <None Include="Resources\ecdsa_2.fp.bb" />
-    <None Include="Resources\ecdsa_2.param.curve" />
-    <None Include="Resources\ecdsa_2.param.priv" />
-    <None Include="Resources\ecdsa_2.param.pub" />
-    <None Include="Resources\ecdsa_2.pub" />
-    <None Include="Resources\ecdsa_n" />
-    <None Include="Resources\ecdsa_n_pw" />
-    <None Include="Resources\ed25519_1" />
-    <None Include="Resources\ed25519_1-cert.fp" />
-    <None Include="Resources\ed25519_1-cert.pub" />
-    <None Include="Resources\ed25519_1.fp" />
-    <None Include="Resources\ed25519_1.fp.bb" />
-    <None Include="Resources\ed25519_1.pub" />
-    <None Include="Resources\ed25519_1_pw" />
-    <None Include="Resources\ed25519_2" />
-    <None Include="Resources\ed25519_2.fp" />
-    <None Include="Resources\ed25519_2.fp.bb" />
-    <None Include="Resources\ed25519_2.pub" />
-    <None Include="Resources\emptyFile.ppk" />
-    <None Include="Resources\non-standard-length.ppk" />
-    <None Include="Resources\pw" />
-    <None Include="Resources\rsa1_1" />
-    <None Include="Resources\rsa1_1.fp" />
-    <None Include="Resources\rsa1_1.fp.bb" />
-    <None Include="Resources\rsa1_1.param.n" />
-    <None Include="Resources\rsa1_1.pub" />
-    <None Include="Resources\rsa1_1_pw" />
-    <None Include="Resources\rsa1_2" />
-    <None Include="Resources\rsa1_2.fp" />
-    <None Include="Resources\rsa1_2.fp.bb" />
-    <None Include="Resources\rsa1_2.param.n" />
-    <None Include="Resources\rsa1_2.pub" />
-    <None Include="Resources\rsa_1" />
-    <None Include="Resources\rsa_1-cert.fp" />
-    <None Include="Resources\rsa_1-cert.pub" />
-    <None Include="Resources\rsa_1.fp" />
-    <None Include="Resources\rsa_1.fp.bb" />
-    <None Include="Resources\rsa_1.param.n" />
-    <None Include="Resources\rsa_1.param.p" />
-    <None Include="Resources\rsa_1.param.q" />
-    <None Include="Resources\rsa_1.pub" />
-    <None Include="Resources\rsa_1_pw" />
-    <None Include="Resources\rsa_2" />
-    <None Include="Resources\rsa_2.fp" />
-    <None Include="Resources\rsa_2.fp.bb" />
-    <None Include="Resources\rsa_2.param.n" />
-    <None Include="Resources\rsa_2.param.p" />
-    <None Include="Resources\rsa_2.param.q" />
-    <None Include="Resources\rsa_2.pub" />
-    <None Include="Resources\rsa_n" />
-    <None Include="Resources\rsa_n_pw" />
-    <None Include="Resources\ssh2-dsa-no-passphrase.ppk" />
-    <None Include="Resources\ssh2-dsa.ppk" />
-    <None Include="Resources\ssh2-rsa-no-passphrase.ppk" />
-    <None Include="Resources\ssh2-rsa-non-ascii-passphrase.ppk" />
-    <None Include="Resources\ssh2-rsa.ppk" />
-  </ItemGroup>
-  <ItemGroup>
-    <EmbeddedResource Include="Properties\Resources.resx">
-      <Generator>ResXFileCodeGenerator</Generator>
-      <LastGenOutput>Resources.Designer.cs</LastGenOutput>
-      <SubType>Designer</SubType>
-    </EmbeddedResource>
-  </ItemGroup>
-  <ItemGroup>
-    <Service Include="{82A7F48D-3B50-4B1E-B82E-3ADA8210C358}" />
-  </ItemGroup>
+
   <ItemGroup>
     <PackageReference Include="NUnit">
       <Version>3.13.2</Version>
@@ -225,4 +17,17 @@
       <Version>4.2.0</Version>
     </PackageReference>
   </ItemGroup>
+
+  <ItemGroup>
+    <EmbeddedResource Update="Properties\Resources.resx">
+      <Generator>ResXFileCodeGenerator</Generator>
+      <LastGenOutput>Resources.Designer.cs</LastGenOutput>
+    </EmbeddedResource>
+    <Compile Update="Properties\Resources.Designer.cs">
+      <AutoGen>True</AutoGen>
+      <DependentUpon>Resources.resx</DependentUpon>
+      <DesignTime>True</DesignTime>
+    </Compile>
+  </ItemGroup>
+
 </Project>

@@ -78,7 +78,7 @@ namespace dlech.SshAgentLibTests
             /* test for successful method call */
             var path = Path.Combine(
                 DllDirectory,
-                "../../Resources/ssh2-rsa-non-ascii-passphrase.ppk"
+                "../../../Resources/ssh2-rsa-non-ascii-passphrase.ppk"
             );
             key = formatter.DeserializeFile(path);
             Assert.AreEqual(expectedComment, key.Comment);
@@ -106,8 +106,8 @@ namespace dlech.SshAgentLibTests
             };
             string[] keys =
             {
-                "../../Resources/ssh2-ed25519.ppk",
-                "../../Resources/ssh2-ed25519-no-passphrase.ppk"
+                "../../../Resources/ssh2-ed25519.ppk",
+                "../../../Resources/ssh2-ed25519-no-passphrase.ppk"
             };
             string[] sig =
             {
@@ -152,12 +152,12 @@ namespace dlech.SshAgentLibTests
 
             string[] keys =
             {
-                "../../Resources/ecdsa-sha2-nistp256.ppk",
-                "../../Resources/ecdsa-sha2-nistp256-no-passphrase.ppk",
-                "../../Resources/ecdsa-sha2-nistp384.ppk",
-                "../../Resources/ecdsa-sha2-nistp384-no-passphrase.ppk",
-                "../../Resources/ecdsa-sha2-nistp521.ppk",
-                "../../Resources/ecdsa-sha2-nistp521-no-passphrase.ppk"
+                "../../../Resources/ecdsa-sha2-nistp256.ppk",
+                "../../../Resources/ecdsa-sha2-nistp256-no-passphrase.ppk",
+                "../../../Resources/ecdsa-sha2-nistp384.ppk",
+                "../../../Resources/ecdsa-sha2-nistp384-no-passphrase.ppk",
+                "../../../Resources/ecdsa-sha2-nistp521.ppk",
+                "../../../Resources/ecdsa-sha2-nistp521-no-passphrase.ppk"
             };
             string[] d =
             {
@@ -266,14 +266,14 @@ namespace dlech.SshAgentLibTests
             /* test for successful method call */
             formatter.GetPassphraseCallbackMethod = getPassphrase;
             formatter.WarnOldFileFormatCallbackMethod = warnOldFileNotExpected;
-            var path = Path.Combine(DllDirectory, "../../Resources/ssh2-rsa.ppk");
+            var path = Path.Combine(DllDirectory, "../../../Resources/ssh2-rsa.ppk");
             target = formatter.DeserializeFile(path);
             Assert.AreEqual(expectedSsh2RsaWithPassComment, target.Comment);
             Assert.AreEqual(expectedKeySize, target.Size);
             Assert.That(target.Version, Is.EqualTo(SshVersion.SSH2));
 
             /* read file to string for modification by subsequent tests */
-            path = Path.Combine(DllDirectory, "../../Resources/ssh2-rsa-no-passphrase.ppk");
+            path = Path.Combine(DllDirectory, "../../../Resources/ssh2-rsa-no-passphrase.ppk");
             byte[] fileData = File.ReadAllBytes(path);
             string withoutPassFileContents;
             byte[] modifiedFileContents;
@@ -365,7 +365,7 @@ namespace dlech.SshAgentLibTests
             }
 
             /* test bad passphrase */
-            path = Path.Combine(DllDirectory, "../../Resources/ssh2-rsa.ppk");
+            path = Path.Combine(DllDirectory, "../../../Resources/ssh2-rsa.ppk");
             fileData = File.ReadAllBytes(path);
             modifiedFileContentsStream = new MemoryStream(fileData);
             formatter.GetPassphraseCallbackMethod = null;
@@ -379,7 +379,7 @@ namespace dlech.SshAgentLibTests
             {
                 Assert.IsInstanceOf<CallbackNullException>(ex);
             }
-            path = Path.Combine(DllDirectory, "../../Resources/ssh2-rsa.ppk");
+            path = Path.Combine(DllDirectory, "../../../Resources/ssh2-rsa.ppk");
             fileData = File.ReadAllBytes(path);
             modifiedFileContentsStream = new MemoryStream(fileData);
             formatter.GetPassphraseCallbackMethod = getBadPassphrase;
@@ -423,7 +423,7 @@ namespace dlech.SshAgentLibTests
             }
 
             /* test reading bad file */
-            path = Path.Combine(DllDirectory, "../../Resources/emptyFile.ppk");
+            path = Path.Combine(DllDirectory, "../../../Resources/emptyFile.ppk");
             fileData = File.ReadAllBytes(path);
             modifiedFileContentsStream = new MemoryStream(fileData);
             formatter.GetPassphraseCallbackMethod = null;
@@ -442,7 +442,7 @@ namespace dlech.SshAgentLibTests
             }
 
             /* test reading SSH2-DSA files */
-            path = Path.Combine(DllDirectory, "../../Resources/ssh2-dsa.ppk");
+            path = Path.Combine(DllDirectory, "../../../Resources/ssh2-dsa.ppk");
             fileData = File.ReadAllBytes(path);
             modifiedFileContentsStream = new MemoryStream(fileData);
             formatter.GetPassphraseCallbackMethod = getPassphrase;
@@ -455,14 +455,14 @@ namespace dlech.SshAgentLibTests
 
             string[] keys =
             {
-                "../../Resources/ecdsa-sha2-nistp256.ppk",
-                "../../Resources/ecdsa-sha2-nistp256-no-passphrase.ppk",
-                "../../Resources/ecdsa-sha2-nistp384.ppk",
-                "../../Resources/ecdsa-sha2-nistp384-no-passphrase.ppk",
-                "../../Resources/ecdsa-sha2-nistp521.ppk",
-                "../../Resources/ecdsa-sha2-nistp521-no-passphrase.ppk",
-                "../../Resources/ssh2-ed25519.ppk",
-                "../../Resources/ssh2-ed25519-no-passphrase.ppk"
+                "../../../Resources/ecdsa-sha2-nistp256.ppk",
+                "../../../Resources/ecdsa-sha2-nistp256-no-passphrase.ppk",
+                "../../../Resources/ecdsa-sha2-nistp384.ppk",
+                "../../../Resources/ecdsa-sha2-nistp384-no-passphrase.ppk",
+                "../../../Resources/ecdsa-sha2-nistp521.ppk",
+                "../../../Resources/ecdsa-sha2-nistp521-no-passphrase.ppk",
+                "../../../Resources/ssh2-ed25519.ppk",
+                "../../../Resources/ssh2-ed25519-no-passphrase.ppk"
             };
             string[] fps =
             {
@@ -551,7 +551,7 @@ namespace dlech.SshAgentLibTests
             /* test for successful method call */
             formatter.GetPassphraseCallbackMethod = GetPassphrase(passphraseGood);
             formatter.WarnOldFileFormatCallbackMethod = warnOldFileNotExpected;
-            path = Path.Combine(DllDirectory, "../../Resources/ssh2-rsa-v3.ppk");
+            path = Path.Combine(DllDirectory, "../../../Resources/ssh2-rsa-v3.ppk");
             target = formatter.DeserializeFile(path);
             Assert.AreEqual("PageantSharp test: SSH2-RSA PPKv3, with passphrase", target.Comment);
             Assert.AreEqual(expectedKeySize, target.Size);
@@ -561,7 +561,7 @@ namespace dlech.SshAgentLibTests
             formatter.WarnOldFileFormatCallbackMethod = warnOldFileNotExpected;
             path = Path.Combine(
                 DllDirectory,
-                "../../Resources/ssh2-rsa-v3-non-ascii-passphrase.ppk"
+                "../../../Resources/ssh2-rsa-v3-non-ascii-passphrase.ppk"
             );
             target = formatter.DeserializeFile(path);
             Assert.AreEqual(
@@ -573,7 +573,7 @@ namespace dlech.SshAgentLibTests
 
             formatter.GetPassphraseCallbackMethod = GetPassphrase(passphraseNull);
             formatter.WarnOldFileFormatCallbackMethod = warnOldFileNotExpected;
-            path = Path.Combine(DllDirectory, "../../Resources/ssh2-rsa-v3-no-passphrase.ppk");
+            path = Path.Combine(DllDirectory, "../../../Resources/ssh2-rsa-v3-no-passphrase.ppk");
             target = formatter.DeserializeFile(path);
             Assert.AreEqual("PageantSharp test: SSH2-RSA PPKv3, no passphrase", target.Comment);
             Assert.AreEqual(expectedKeySize, target.Size);

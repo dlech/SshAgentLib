@@ -21,11 +21,10 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 // THE SOFTWARE.
 
-using System.IO;
 using System.Security;
 using dlech.SshAgentLib;
 using dlech.SshAgentLib.Crypto;
-using dlech.SshAgentLibTests.Properties;
+using SshAgentLibTests.Properties;
 using NUnit.Framework;
 using Org.BouncyCastle.Asn1.X9;
 using Org.BouncyCastle.Crypto.Parameters;

@@ -25,7 +25,7 @@ using System;
 using System.Linq;
 using dlech.SshAgentLib;
 using dlech.SshAgentLib.Crypto;
-using dlech.SshAgentLibTests.Properties;
+using SshAgentLibTests.Properties;
 using NUnit.Framework;
 using Org.BouncyCastle.Crypto.Parameters;
 using Org.BouncyCastle.Math;

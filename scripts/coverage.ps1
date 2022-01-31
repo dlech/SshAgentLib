@@ -3,7 +3,7 @@
 # Requires:
 #   dotnet tool install --global coverlet.console
 
-$dll = "SshAgentLibTests\bin\Debug\SshAgentLibTests.dll"
+$dll = "SshAgentLibTests\bin\Debug\net462\SshAgentLibTests.dll"
 coverlet "$dll" --target "vstest.console.exe" --targetargs "$dll" --output "coverage/" --format "opencover"
 if ($LastExitCode) {
     exit $LastExitCode
