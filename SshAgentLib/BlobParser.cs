@@ -4,7 +4,7 @@
 // Author(s): David Lechner <david@lechnology.com>
 //            Max Laverse
 //
-// Copyright (c) 2012-2015,2017 David Lechner
+// Copyright (c) 2012-2015,2017,2022 David Lechner
 //
 // Permission is hereby granted, free of charge, to any person obtaining a copy
 // of this software and associated documentation files (the "Software"), to deal
@@ -33,6 +33,7 @@ using Org.BouncyCastle.Asn1.Sec;
 using Org.BouncyCastle.Crypto;
 using Org.BouncyCastle.Crypto.Parameters;
 using Org.BouncyCastle.Math;
+using SshAgentLib;
 
 namespace dlech.SshAgentLib
 {
@@ -217,13 +218,13 @@ namespace dlech.SshAgentLib
         public AsymmetricKeyParameter ReadSsh2PublicKeyData(out OpensshCertificate cert)
         {
             cert = null;
-            var algorithm = Encoding.UTF8.GetString(ReadBlob());
+            var algorithm = KeyFormatIdentifier.Parse(ReadString());
             var certBuilder = new BlobBuilder();
-            certBuilder.AddStringBlob(algorithm);
+            certBuilder.AddStringBlob(algorithm.GetIdentifier());
 
             switch (algorithm)
             {
-                case PublicKeyAlgorithmExt.ALGORITHM_RSA_KEY:
+                case PublicKeyAlgorithm.SshRsa:
                 {
                     var n = new BigInteger(1, ReadBlob()); // modulus
                     var e = new BigInteger(1, ReadBlob()); // exponent
@@ -236,7 +237,7 @@ namespace dlech.SshAgentLib
                     return new RsaKeyParameters(false, n, e);
                 }
 
-                case PublicKeyAlgorithmExt.ALGORITHM_RSA_CERT_V1:
+                case PublicKeyAlgorithm.SshRsaCertV1:
                 {
                     var nonce = ReadBlob();
                     if (nonce.Length != 32)
@@ -260,7 +261,7 @@ namespace dlech.SshAgentLib
                     }
                 }
 
-                case PublicKeyAlgorithmExt.ALGORITHM_DSA_KEY:
+                case PublicKeyAlgorithm.SshDss:
                 {
                     var p = new BigInteger(1, ReadBlob());
                     var q = new BigInteger(1, ReadBlob());
@@ -271,7 +272,7 @@ namespace dlech.SshAgentLib
                     return new DsaPublicKeyParameters(y, dsaParams);
                 }
 
-                case PublicKeyAlgorithmExt.ALGORITHM_DSA_CERT_V1:
+                case PublicKeyAlgorithm.SshDssCertV1:
                 {
                     var nonce = ReadBlob();
                     if (nonce.Length != 32)
@@ -300,9 +301,9 @@ namespace dlech.SshAgentLib
                     }
                 }
 
-                case PublicKeyAlgorithmExt.ALGORITHM_ECDSA_SHA2_NISTP256_KEY:
-                case PublicKeyAlgorithmExt.ALGORITHM_ECDSA_SHA2_NISTP384_KEY:
-                case PublicKeyAlgorithmExt.ALGORITHM_ECDSA_SHA2_NISTP521_KEY:
+                case PublicKeyAlgorithm.EcdsaSha2Nistp256:
+                case PublicKeyAlgorithm.EcdsaSha2Nistp384:
+                case PublicKeyAlgorithm.EcdsaSha2Nistp521:
                 {
                     var curveName = ReadString();
                     var publicKey = ReadBlob();
@@ -318,9 +319,9 @@ namespace dlech.SshAgentLib
                     return new ECPublicKeyParameters(point, domainParams);
                 }
 
-                case PublicKeyAlgorithmExt.ALGORITHM_ECDSA_SHA2_NISTP256_CERT_V1:
-                case PublicKeyAlgorithmExt.ALGORITHM_ECDSA_SHA2_NISTP384_CERT_V1:
-                case PublicKeyAlgorithmExt.ALGORITHM_ECDSA_SHA2_NISTP521_CERT_V1:
+                case PublicKeyAlgorithm.EcdsaSha2Nistp256CertV1:
+                case PublicKeyAlgorithm.EcdsaSha2Nistp384CertV1:
+                case PublicKeyAlgorithm.EcdsaSha2Nistp521CertV1:
                 {
                     var nonce = ReadBlob();
                     if (nonce.Length != 32)
@@ -353,13 +354,13 @@ namespace dlech.SshAgentLib
                     }
                 }
 
-                case PublicKeyAlgorithmExt.ALGORITHM_ED25519:
+                case PublicKeyAlgorithm.SshEd25519:
                 {
                     var publicKey = ReadBlob();
                     return new Ed25519PublicKeyParameter(publicKey);
                 }
 
-                case PublicKeyAlgorithmExt.ALGORITHM_ED25519_CERT_V1:
+                case PublicKeyAlgorithm.SshEd25519CertV1:
                 {
                     var nonce = ReadBlob();
                     if (nonce.Length != 32)
@@ -397,14 +398,14 @@ namespace dlech.SshAgentLib
         {
             switch (name)
             {
-                case PublicKeyAlgorithmExt.EC_ALGORITHM_NISTP256:
+                case "nistp256":
                     return "secp256r1";
-                case PublicKeyAlgorithmExt.EC_ALGORITHM_NISTP384:
+                case "nistp384":
                     return "secp384r1";
-                case PublicKeyAlgorithmExt.EC_ALGORITHM_NISTP521:
+                case "nistp521":
                     return "secp521r1";
                 default:
-                    throw new ArgumentException("Unsupported EC algorithm: " + name, "name");
+                    throw new ArgumentException($"Unsupported EC algorithm: {name}", nameof(name));
             }
         }
 
@@ -481,7 +482,7 @@ namespace dlech.SshAgentLib
         }
 
         /// <summary>
-        /// reads ssh1 OpenSSH formatted public key blob from stream and creates 
+        /// reads ssh1 OpenSSH formatted public key blob from stream and creates
         /// an AsymmetricKeyParameter object
         /// </summary>
         /// <param name="Stream">stream to parse</param>

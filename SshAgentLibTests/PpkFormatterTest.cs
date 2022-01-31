@@ -3,7 +3,7 @@
 //
 // Author(s): David Lechner <david@lechnology.com>
 //
-// Copyright (c) 2012-2013,2015 David Lechner
+// Copyright (c) 2012-2013,2015,2022 David Lechner
 //
 // Permission is hereby granted, free of charge, to any person obtaining a copy
 // of this software and associated documentation files (the "Software"), to deal
@@ -477,14 +477,14 @@ namespace dlech.SshAgentLibTests
             };
             PublicKeyAlgorithm[] algs =
             {
-                PublicKeyAlgorithm.ECDSA_SHA2_NISTP256,
-                PublicKeyAlgorithm.ECDSA_SHA2_NISTP256,
-                PublicKeyAlgorithm.ECDSA_SHA2_NISTP384,
-                PublicKeyAlgorithm.ECDSA_SHA2_NISTP384,
-                PublicKeyAlgorithm.ECDSA_SHA2_NISTP521,
-                PublicKeyAlgorithm.ECDSA_SHA2_NISTP521,
-                PublicKeyAlgorithm.ED25519,
-                PublicKeyAlgorithm.ED25519
+                PublicKeyAlgorithm.EcdsaSha2Nistp256,
+                PublicKeyAlgorithm.EcdsaSha2Nistp256,
+                PublicKeyAlgorithm.EcdsaSha2Nistp384,
+                PublicKeyAlgorithm.EcdsaSha2Nistp384,
+                PublicKeyAlgorithm.EcdsaSha2Nistp521,
+                PublicKeyAlgorithm.EcdsaSha2Nistp521,
+                PublicKeyAlgorithm.SshEd25519,
+                PublicKeyAlgorithm.SshEd25519
             };
             string[] comments =
             {

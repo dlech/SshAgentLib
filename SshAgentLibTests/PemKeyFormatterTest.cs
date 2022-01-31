@@ -3,7 +3,7 @@
 //
 // Author(s): David Lechner <david@lechnology.com>
 //
-// Copyright (c) 2012-2015 David Lechner
+// Copyright (c) 2012-2015,2022 David Lechner
 //
 // Permission is hereby granted, free of charge, to any person obtaining a copy
 // of this software and associated documentation files (the "Software"), to deal
@@ -65,7 +65,7 @@ namespace dlech.SshAgentLibTests
             var formatter = new PemKeyFormatter();
             var key = formatter.Deserialize(Resources.rsa_1);
             Assert.That(key.Version, Is.EqualTo(SshVersion.SSH2));
-            Assert.That(key.Algorithm, Is.EqualTo(PublicKeyAlgorithm.SSH_RSA));
+            Assert.That(key.Algorithm, Is.EqualTo(PublicKeyAlgorithm.SshRsa));
             var publicKey = (RsaKeyParameters)key.GetPublicKeyParameters();
             var privateKey = (RsaPrivateCrtKeyParameters)key.GetPrivateKeyParameters();
             var param_n = new BigInteger(Resources.rsa_1_param_n.Trim(), 16);
@@ -83,7 +83,7 @@ namespace dlech.SshAgentLibTests
             formatter.GetPassphraseCallbackMethod = passphraseCallback;
             var key = formatter.Deserialize(Resources.rsa_1_pw);
             Assert.That(key.Version, Is.EqualTo(SshVersion.SSH2));
-            Assert.That(key.Algorithm, Is.EqualTo(PublicKeyAlgorithm.SSH_RSA));
+            Assert.That(key.Algorithm, Is.EqualTo(PublicKeyAlgorithm.SshRsa));
             var publicKey = (RsaKeyParameters)key.GetPublicKeyParameters();
             var privateKey = (RsaPrivateCrtKeyParameters)key.GetPrivateKeyParameters();
             var param_n = new BigInteger(Resources.rsa_1_param_n.Trim(), 16);
@@ -100,7 +100,7 @@ namespace dlech.SshAgentLibTests
             var formatter = new PemKeyFormatter();
             var key = formatter.Deserialize(Resources.dsa_1);
             Assert.That(key.Version, Is.EqualTo(SshVersion.SSH2));
-            Assert.That(key.Algorithm, Is.EqualTo(PublicKeyAlgorithm.SSH_DSS));
+            Assert.That(key.Algorithm, Is.EqualTo(PublicKeyAlgorithm.SshDss));
             var publicKey = (DsaPublicKeyParameters)key.GetPublicKeyParameters();
             var privateKey = (DsaPrivateKeyParameters)key.GetPrivateKeyParameters();
             var param_g = new BigInteger(Resources.dsa_1_param_g.Trim(), 16);
@@ -118,7 +118,7 @@ namespace dlech.SshAgentLibTests
             formatter.GetPassphraseCallbackMethod = passphraseCallback;
             var key = formatter.Deserialize(Resources.dsa_1_pw);
             Assert.That(key.Version, Is.EqualTo(SshVersion.SSH2));
-            Assert.That(key.Algorithm, Is.EqualTo(PublicKeyAlgorithm.SSH_DSS));
+            Assert.That(key.Algorithm, Is.EqualTo(PublicKeyAlgorithm.SshDss));
             var publicKey = (DsaPublicKeyParameters)key.GetPublicKeyParameters();
             var privateKey = (DsaPrivateKeyParameters)key.GetPrivateKeyParameters();
             var param_g = new BigInteger(Resources.dsa_1_param_g.Trim(), 16);
@@ -135,7 +135,7 @@ namespace dlech.SshAgentLibTests
             var formatter = new PemKeyFormatter();
             var key = formatter.Deserialize(Resources.ecdsa_1);
             Assert.That(key.Version, Is.EqualTo(SshVersion.SSH2));
-            Assert.That(key.Algorithm, Is.EqualTo(PublicKeyAlgorithm.ECDSA_SHA2_NISTP256));
+            Assert.That(key.Algorithm, Is.EqualTo(PublicKeyAlgorithm.EcdsaSha2Nistp256));
             var publicKey = (ECPublicKeyParameters)key.GetPublicKeyParameters();
             var privateKey = (ECPrivateKeyParameters)key.GetPrivateKeyParameters();
             var param_curve = X962NamedCurves.GetByName(Resources.ecdsa_1_param_curve.Trim());
@@ -154,7 +154,7 @@ namespace dlech.SshAgentLibTests
             formatter.GetPassphraseCallbackMethod = passphraseCallback;
             var key = formatter.Deserialize(Resources.ecdsa_1_pw);
             Assert.That(key.Version, Is.EqualTo(SshVersion.SSH2));
-            Assert.That(key.Algorithm, Is.EqualTo(PublicKeyAlgorithm.ECDSA_SHA2_NISTP256));
+            Assert.That(key.Algorithm, Is.EqualTo(PublicKeyAlgorithm.EcdsaSha2Nistp256));
             var publicKey = (ECPublicKeyParameters)key.GetPublicKeyParameters();
             var privateKey = (ECPrivateKeyParameters)key.GetPrivateKeyParameters();
             var param_curve = X962NamedCurves.GetByName(Resources.ecdsa_1_param_curve.Trim());

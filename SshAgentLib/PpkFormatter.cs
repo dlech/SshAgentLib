@@ -3,7 +3,7 @@
 //
 // Author(s): David Lechner <david@lechnology.com>
 //
-// Copyright (c) 2012-2013,2015,2017 David Lechner
+// Copyright (c) 2012-2013,2015,2017,2022 David Lechner
 //
 // Permission is hereby granted, free of charge, to any person obtaining a copy
 // of this software and associated documentation files (the "Software"), to deal
@@ -37,6 +37,7 @@ using Konscious.Security.Cryptography;
 using Org.BouncyCastle.Crypto;
 using Org.BouncyCastle.Crypto.Parameters;
 using Org.BouncyCastle.Math;
+using SshAgentLib;
 
 namespace dlech.SshAgentLib
 {
@@ -279,7 +280,12 @@ namespace dlech.SshAgentLib
 
                 /* read public key encryption algorithm type */
                 string algorithm = pair[1].Trim();
-                if (!algorithm.TryParsePublicKeyAlgorithm(ref fileData.publicKeyAlgorithm))
+
+                try
+                {
+                    fileData.publicKeyAlgorithm = KeyFormatIdentifier.Parse(algorithm);
+                }
+                catch (ArgumentException)
                 {
                     throw new PpkFormatterException(
                         PpkFormatterException.PpkErrorType.PublicKeyEncryption
@@ -733,7 +739,7 @@ namespace dlech.SshAgentLib
             BlobBuilder builder = new BlobBuilder();
             if (fileData.ppkFileVersion != Version.V1)
             {
-                builder.AddStringBlob(fileData.publicKeyAlgorithm.GetIdentifierString());
+                builder.AddStringBlob(fileData.publicKeyAlgorithm.GetIdentifier());
                 builder.AddStringBlob(fileData.privateKeyAlgorithm.GetIdentifierString());
                 builder.AddBlob(Encoding.GetEncoding(1252).GetBytes(fileData.comment));
                 builder.AddBlob(fileData.publicKeyBlob);
@@ -855,7 +861,7 @@ namespace dlech.SshAgentLib
 
             switch (algorithm)
             {
-                case PublicKeyAlgorithm.SSH_RSA:
+                case PublicKeyAlgorithm.SshRsa:
                     var rsaPublicKeyParams = (RsaKeyParameters)publicKey;
 
                     var d = new BigInteger(1, parser.ReadBlob());
@@ -880,7 +886,7 @@ namespace dlech.SshAgentLib
 
                     return new AsymmetricCipherKeyPair(rsaPublicKeyParams, rsaPrivateKeyParams);
 
-                case PublicKeyAlgorithm.SSH_DSS:
+                case PublicKeyAlgorithm.SshDss:
                     var dsaPublicKeyParams = (DsaPublicKeyParameters)publicKey;
 
                     var x = new BigInteger(1, parser.ReadBlob());
@@ -890,7 +896,7 @@ namespace dlech.SshAgentLib
                     );
 
                     return new AsymmetricCipherKeyPair(dsaPublicKeyParams, dsaPrivateKeyParams);
-                case PublicKeyAlgorithm.ED25519:
+                case PublicKeyAlgorithm.SshEd25519:
                     var ed25596PublicKey = (Ed25519PublicKeyParameter)publicKey;
 
                     byte[] privBlob = parser.ReadBlob();
@@ -901,9 +907,9 @@ namespace dlech.SshAgentLib
                     var ed25596PrivateKey = new Ed25519PrivateKeyParameter(privSig);
 
                     return new AsymmetricCipherKeyPair(ed25596PublicKey, ed25596PrivateKey);
-                case PublicKeyAlgorithm.ECDSA_SHA2_NISTP256:
-                case PublicKeyAlgorithm.ECDSA_SHA2_NISTP384:
-                case PublicKeyAlgorithm.ECDSA_SHA2_NISTP521:
+                case PublicKeyAlgorithm.EcdsaSha2Nistp256:
+                case PublicKeyAlgorithm.EcdsaSha2Nistp384:
+                case PublicKeyAlgorithm.EcdsaSha2Nistp521:
                     var ecPublicKeyParams = (ECPublicKeyParameters)publicKey;
 
                     var ecdsaPrivate = new BigInteger(1, parser.ReadBlob());
@@ -994,33 +1000,6 @@ namespace dlech.SshAgentLib
                     return true;
                 case "3":
                     version = PpkFormatter.Version.V3;
-                    return true;
-                default:
-                    return false;
-            }
-        }
-
-        public static bool TryParsePublicKeyAlgorithm(this string text, ref PublicKeyAlgorithm algo)
-        {
-            switch (text)
-            {
-                case PublicKeyAlgorithmExt.ALGORITHM_RSA_KEY:
-                    algo = PublicKeyAlgorithm.SSH_RSA;
-                    return true;
-                case PublicKeyAlgorithmExt.ALGORITHM_DSA_KEY:
-                    algo = PublicKeyAlgorithm.SSH_DSS;
-                    return true;
-                case PublicKeyAlgorithmExt.ALGORITHM_ECDSA_SHA2_NISTP256_KEY:
-                    algo = PublicKeyAlgorithm.ECDSA_SHA2_NISTP256;
-                    return true;
-                case PublicKeyAlgorithmExt.ALGORITHM_ECDSA_SHA2_NISTP384_KEY:
-                    algo = PublicKeyAlgorithm.ECDSA_SHA2_NISTP384;
-                    return true;
-                case PublicKeyAlgorithmExt.ALGORITHM_ECDSA_SHA2_NISTP521_KEY:
-                    algo = PublicKeyAlgorithm.ECDSA_SHA2_NISTP521;
-                    return true;
-                case PublicKeyAlgorithmExt.ALGORITHM_ED25519:
-                    algo = PublicKeyAlgorithm.ED25519;
                     return true;
                 default:
                     return false;

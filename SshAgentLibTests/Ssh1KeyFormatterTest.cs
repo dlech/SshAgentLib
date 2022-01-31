@@ -4,7 +4,7 @@
 // Author(s): David Lechner <david@lechnology.com>
 //            Max Laverse
 //
-// Copyright (c) 2012-2013,2015 David Lechner
+// Copyright (c) 2012-2013,2015,2022 David Lechner
 //
 // Permission is hereby granted, free of charge, to any person obtaining a copy
 // of this software and associated documentation files (the "Software"), to deal
@@ -65,7 +65,7 @@ namespace dlech.SshAgentLibTests
             var formatter = new Ssh1KeyFormatter();
             var key = formatter.Deserialize(Resources.rsa1_1);
             Assert.That(key.Version, Is.EqualTo(SshVersion.SSH1));
-            Assert.That(key.Algorithm, Is.EqualTo(PublicKeyAlgorithm.SSH_RSA));
+            Assert.That(key.Algorithm, Is.EqualTo(PublicKeyAlgorithm.SshRsa));
             var publicKey = (RsaKeyParameters)key.GetPublicKeyParameters();
             var expected = new BigInteger(Resources.rsa1_1_param_n.Trim(), 16);
             Assert.That(publicKey.Modulus, Is.EqualTo(expected));
@@ -77,7 +77,7 @@ namespace dlech.SshAgentLibTests
             var formatter = new Ssh1KeyFormatter();
             formatter.GetPassphraseCallbackMethod = passphraseCallback;
             var key = formatter.Deserialize(Resources.rsa1_1_pw);
-            Assert.That(key.Algorithm, Is.EqualTo(PublicKeyAlgorithm.SSH_RSA));
+            Assert.That(key.Algorithm, Is.EqualTo(PublicKeyAlgorithm.SshRsa));
             Assert.That(key.Version, Is.EqualTo(SshVersion.SSH1));
             var publicKey = (RsaKeyParameters)key.GetPublicKeyParameters();
             var expected = new BigInteger(Resources.rsa1_1_param_n.Trim(), 16);

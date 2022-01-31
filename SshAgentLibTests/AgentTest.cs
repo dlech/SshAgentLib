@@ -1,10 +1,10 @@
-//
+﻿//
 // AgentTest.cs
 //
 // Author(s): David Lechner <david@lechnology.com>
 //            Max Laverse
 //
-// Copyright (c) 2012-2013,2015,2017 David Lechner
+// Copyright (c) 2012-2013,2015,2017,2022 David Lechner
 //
 // Permission is hereby granted, free of charge, to any person obtaining a copy
 // of this software and associated documentation files (the "Software"), to deal
@@ -96,37 +96,37 @@ namespace dlech.SshAgentLibTests
 
             rsa1Key = KeyGenerator.CreateKey(
                 SshVersion.SSH1,
-                PublicKeyAlgorithm.SSH_RSA,
+                PublicKeyAlgorithm.SshRsa,
                 "SSH1 RSA test key"
             );
             rsaKey = KeyGenerator.CreateKey(
                 SshVersion.SSH2,
-                PublicKeyAlgorithm.SSH_RSA,
+                PublicKeyAlgorithm.SshRsa,
                 "SSH2 RSA test key"
             );
             dsaKey = KeyGenerator.CreateKey(
                 SshVersion.SSH2,
-                PublicKeyAlgorithm.SSH_DSS,
+                PublicKeyAlgorithm.SshDss,
                 "SSH2 DSA test key"
             );
             ecdsa256Key = KeyGenerator.CreateKey(
                 SshVersion.SSH2,
-                PublicKeyAlgorithm.ECDSA_SHA2_NISTP256,
+                PublicKeyAlgorithm.EcdsaSha2Nistp256,
                 "SSH2 ECDSA 256 test key"
             );
             ecdsa384Key = KeyGenerator.CreateKey(
                 SshVersion.SSH2,
-                PublicKeyAlgorithm.ECDSA_SHA2_NISTP384,
+                PublicKeyAlgorithm.EcdsaSha2Nistp384,
                 "SSH2 ECDSA 384 test key"
             );
             ecdsa521Key = KeyGenerator.CreateKey(
                 SshVersion.SSH2,
-                PublicKeyAlgorithm.ECDSA_SHA2_NISTP521,
+                PublicKeyAlgorithm.EcdsaSha2Nistp521,
                 "SSH2 ECDSA 521 test key"
             );
             ed25519Key = KeyGenerator.CreateKey(
                 SshVersion.SSH2,
-                PublicKeyAlgorithm.ED25519,
+                PublicKeyAlgorithm.SshEd25519,
                 "SSH2 ED25519 test key"
             );
 
@@ -195,7 +195,7 @@ namespace dlech.SshAgentLibTests
 
             RsaPrivateCrtKeyParameters rsaParameters =
                 (RsaPrivateCrtKeyParameters)rsaKey.GetPrivateKeyParameters();
-            builder.AddStringBlob(rsaKey.Algorithm.GetIdentifierString());
+            builder.AddStringBlob(rsaKey.Algorithm.GetIdentifier());
             builder.AddBigIntBlob(rsaParameters.Modulus);
             builder.AddBigIntBlob(rsaParameters.PublicExponent);
             builder.AddBigIntBlob(rsaParameters.Exponent);
@@ -224,7 +224,7 @@ namespace dlech.SshAgentLibTests
             var rsaParameters = (RsaPrivateCrtKeyParameters)rsaKey.GetPrivateKeyParameters();
 
             var certBuilder = new BlobBuilder();
-            certBuilder.AddStringBlob(PublicKeyAlgorithmExt.ALGORITHM_RSA_CERT_V1);
+            certBuilder.AddStringBlob("ssh-rsa-cert-v01@openssh.com");
             certBuilder.AddBlob(new byte[32]); // nonce
             certBuilder.AddBigIntBlob(rsaParameters.PublicExponent); // e
             certBuilder.AddBigIntBlob(rsaParameters.Modulus); // n
@@ -241,7 +241,7 @@ namespace dlech.SshAgentLibTests
             certBuilder.AddBlob(new byte[0]); // signature
 
             var builder = new BlobBuilder();
-            builder.AddStringBlob(PublicKeyAlgorithmExt.ALGORITHM_RSA_CERT_V1);
+            builder.AddStringBlob("ssh-rsa-cert-v01@openssh.com");
             builder.AddBlob(certBuilder.GetBlob());
             builder.AddBigIntBlob(rsaParameters.Exponent); // D
             builder.AddBigIntBlob(rsaParameters.QInv);
@@ -276,7 +276,7 @@ namespace dlech.SshAgentLibTests
                 (DsaPrivateKeyParameters)dsaKey.GetPrivateKeyParameters();
 
             var builder = new BlobBuilder();
-            builder.AddStringBlob(dsaKey.Algorithm.GetIdentifierString());
+            builder.AddStringBlob(dsaKey.Algorithm.GetIdentifier());
             builder.AddBigIntBlob(dsaPublicParameters.Parameters.P);
             builder.AddBigIntBlob(dsaPublicParameters.Parameters.Q);
             builder.AddBigIntBlob(dsaPublicParameters.Parameters.G);
@@ -307,7 +307,7 @@ namespace dlech.SshAgentLibTests
             var dsaPrivateParameters = (DsaPrivateKeyParameters)dsaKey.GetPrivateKeyParameters();
 
             var certBuilder = new BlobBuilder();
-            certBuilder.AddStringBlob(PublicKeyAlgorithmExt.ALGORITHM_DSA_CERT_V1);
+            certBuilder.AddStringBlob("ssh-dss-cert-v01@openssh.com");
             certBuilder.AddBlob(new byte[32]); // nonce
             certBuilder.AddBigIntBlob(dsaPublicParameters.Parameters.P); // p
             certBuilder.AddBigIntBlob(dsaPublicParameters.Parameters.Q); // q
@@ -326,7 +326,7 @@ namespace dlech.SshAgentLibTests
             certBuilder.AddBlob(new byte[0]); // signature
 
             var builder = new BlobBuilder();
-            builder.AddStringBlob(PublicKeyAlgorithmExt.ALGORITHM_DSA_CERT_V1);
+            builder.AddStringBlob("ssh-dss-cert-v01@openssh.com");
             builder.AddBlob(certBuilder.GetBlob());
             builder.AddBigIntBlob(dsaPrivateParameters.X);
             builder.AddStringBlob(dsaKey.Comment);
@@ -367,13 +367,8 @@ namespace dlech.SshAgentLibTests
                     (ECPublicKeyParameters)key.GetPublicKeyParameters();
                 ECPrivateKeyParameters ecdsaPrivateParameters =
                     (ECPrivateKeyParameters)key.GetPrivateKeyParameters();
-                string ecdsaAlgorithm = key.Algorithm.GetIdentifierString();
-                builder.AddStringBlob(ecdsaAlgorithm);
-                ecdsaAlgorithm = ecdsaAlgorithm.Replace(
-                    PublicKeyAlgorithmExt.ALGORITHM_ECDSA_SHA2_PREFIX,
-                    string.Empty
-                );
-                builder.AddStringBlob(ecdsaAlgorithm);
+                builder.AddStringBlob(key.Algorithm.GetIdentifier());
+                builder.AddStringBlob(key.Algorithm.GetCurveDomainIdentifier());
                 builder.AddBlob(ecdsaPublicParameters.Q.GetEncoded());
                 builder.AddBigIntBlob(ecdsaPrivateParameters.D);
                 builder.AddStringBlob(key.Comment);
@@ -408,9 +403,9 @@ namespace dlech.SshAgentLibTests
                 (ECPrivateKeyParameters)ecdsa256Key.GetPrivateKeyParameters();
 
             var certBuilder = new BlobBuilder();
-            certBuilder.AddStringBlob(PublicKeyAlgorithmExt.ALGORITHM_ECDSA_SHA2_NISTP256_CERT_V1);
+            certBuilder.AddStringBlob("ecdsa-sha2");
             certBuilder.AddBlob(new byte[32]); // nonce
-            certBuilder.AddStringBlob(PublicKeyAlgorithmExt.EC_ALGORITHM_NISTP256); // curve
+            certBuilder.AddStringBlob("nistp256"); // curve
             certBuilder.AddBlob(ecdsaPublicParameters.Q.GetEncoded()); // public key
             certBuilder.AddUInt64(0); // serial
             certBuilder.AddUInt32((uint)Ssh2CertType.User); // type
@@ -425,7 +420,7 @@ namespace dlech.SshAgentLibTests
             certBuilder.AddBlob(new byte[0]); // signature
 
             var builder = new BlobBuilder();
-            builder.AddStringBlob(PublicKeyAlgorithmExt.ALGORITHM_ECDSA_SHA2_NISTP256_CERT_V1);
+            builder.AddStringBlob("ecdsa-sha2-nistp256-cert-v01@openssh.com");
             builder.AddBlob(certBuilder.GetBlob());
             builder.AddBigIntBlob(ecdsaPrivateParameters.D);
             builder.AddStringBlob(ecdsa256Key.Comment);
@@ -465,7 +460,7 @@ namespace dlech.SshAgentLibTests
             var privateKeyParams = (Ed25519PrivateKeyParameter)ed25519Key.GetPrivateKeyParameters();
 
             var builder = new BlobBuilder();
-            builder.AddStringBlob(ed25519Key.Algorithm.GetIdentifierString());
+            builder.AddStringBlob(ed25519Key.Algorithm.GetIdentifier());
             builder.AddBlob(publicKeyParams.Key);
             builder.AddBlob(privateKeyParams.Signature);
             builder.AddStringBlob(ed25519Key.Comment);
@@ -504,7 +499,7 @@ namespace dlech.SshAgentLibTests
             var privateKeyParams = (Ed25519PrivateKeyParameter)ed25519Key.GetPrivateKeyParameters();
 
             var certBuilder = new BlobBuilder();
-            certBuilder.AddStringBlob(PublicKeyAlgorithmExt.ALGORITHM_ED25519_CERT_V1);
+            certBuilder.AddStringBlob("ssh-ed25519-cert-v01@openssh.com");
             certBuilder.AddBlob(new byte[32]); // nonce
             certBuilder.AddBlob(publicKeyParams.Key); // public key
             certBuilder.AddUInt64(0); // serial
@@ -520,7 +515,7 @@ namespace dlech.SshAgentLibTests
             certBuilder.AddBlob(new byte[0]); // signature
 
             var builder = new BlobBuilder();
-            builder.AddStringBlob(PublicKeyAlgorithmExt.ALGORITHM_ED25519_CERT_V1);
+            builder.AddStringBlob("ssh-ed25519-cert-v01@openssh.com");
             builder.AddBlob(certBuilder.GetBlob());
             builder.AddBlob(publicKeyParams.Key);
             builder.AddBlob(privateKeyParams.Signature);
@@ -562,7 +557,7 @@ namespace dlech.SshAgentLibTests
 
             RsaPrivateCrtKeyParameters rsaParameters =
                 (RsaPrivateCrtKeyParameters)rsaKey.GetPrivateKeyParameters();
-            builder.AddStringBlob(rsaKey.Algorithm.GetIdentifierString());
+            builder.AddStringBlob(rsaKey.Algorithm.GetIdentifier());
             builder.AddBigIntBlob(rsaParameters.Modulus);
             builder.AddBigIntBlob(rsaParameters.PublicExponent);
             builder.AddBigIntBlob(rsaParameters.Exponent);
@@ -761,7 +756,7 @@ namespace dlech.SshAgentLibTests
             BlobBuilder builder = new BlobBuilder();
             RsaPrivateCrtKeyParameters rsaParameters =
                 (RsaPrivateCrtKeyParameters)rsaKey.GetPrivateKeyParameters();
-            builder.AddStringBlob(rsaKey.Algorithm.GetIdentifierString());
+            builder.AddStringBlob(rsaKey.Algorithm.GetIdentifier());
             builder.AddBigIntBlob(rsaParameters.Modulus);
             builder.AddBigIntBlob(rsaParameters.PublicExponent);
             builder.AddBigIntBlob(rsaParameters.Exponent);
@@ -1067,13 +1062,13 @@ namespace dlech.SshAgentLibTests
                 signatureBlob = parser.ReadBlob();
                 signatureParser = new BlobParser(signatureBlob);
                 algorithm = signatureParser.ReadString();
-                Assert.That(algorithm, Is.EqualTo(key.Algorithm.GetIdentifierString()));
+                Assert.That(algorithm, Is.EqualTo(key.Algorithm.GetIdentifier()));
                 signature = signatureParser.ReadBlob();
-                if (key.Algorithm == PublicKeyAlgorithm.SSH_RSA)
+                if (key.Algorithm == PublicKeyAlgorithm.SshRsa)
                 {
                     Assert.That(signature.Length == key.Size / 8);
                 }
-                else if (key.Algorithm == PublicKeyAlgorithm.SSH_DSS)
+                else if (key.Algorithm == PublicKeyAlgorithm.SshDss)
                 {
                     Assert.That(signature.Length, Is.EqualTo(40));
                     r = new BigInteger(1, signature, 0, 20);
@@ -1082,9 +1077,9 @@ namespace dlech.SshAgentLibTests
                     signature = seq.GetDerEncoded();
                 }
                 else if (
-                    key.Algorithm == PublicKeyAlgorithm.ECDSA_SHA2_NISTP256
-                    || key.Algorithm == PublicKeyAlgorithm.ECDSA_SHA2_NISTP384
-                    || key.Algorithm == PublicKeyAlgorithm.ECDSA_SHA2_NISTP521
+                    key.Algorithm == PublicKeyAlgorithm.EcdsaSha2Nistp256
+                    || key.Algorithm == PublicKeyAlgorithm.EcdsaSha2Nistp384
+                    || key.Algorithm == PublicKeyAlgorithm.EcdsaSha2Nistp521
                 )
                 {
                     Assert.That(signature.Length, Is.AtLeast(key.Size / 4 + 8));
@@ -1095,7 +1090,7 @@ namespace dlech.SshAgentLibTests
                     seq = new DerSequence(new DerInteger(r), new DerInteger(s));
                     signature = seq.GetDerEncoded();
                 }
-                else if (key.Algorithm == PublicKeyAlgorithm.ED25519)
+                else if (key.Algorithm == PublicKeyAlgorithm.SshEd25519)
                 {
                     Assert.That(signature.Length, Is.EqualTo(64));
                 }

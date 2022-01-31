@@ -24,7 +24,6 @@
 using System;
 using System.Collections.Generic;
 using Chaos.NaCl;
-using dlech.SshAgentLib;
 using Org.BouncyCastle.Crypto;
 
 namespace dlech.SshAgentLib.Crypto
@@ -40,7 +39,7 @@ namespace dlech.SshAgentLib.Crypto
 
         public string AlgorithmName
         {
-            get { return PublicKeyAlgorithm.ED25519.GetIdentifierString(); }
+            get { return PublicKeyAlgorithm.SshEd25519.GetIdentifier(); }
         }
 
         public void BlockUpdate(byte[] input, int inOff, int length)

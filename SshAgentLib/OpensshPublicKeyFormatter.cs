@@ -1,7 +1,7 @@
 ﻿//
 // OpensshPublicKeyFormatter.cs
 //
-// Copyright (c) 2017 David Lechner
+// Copyright (c) 2017.2022 David Lechner
 //
 // Permission is hereby granted, free of charge, to any person obtaining a copy
 // of this software and associated documentation files (the "Software"), to deal
@@ -24,6 +24,7 @@
 using System;
 using System.IO;
 using System.Linq;
+using SshAgentLib;
 
 namespace dlech.SshAgentLib
 {
@@ -50,64 +51,21 @@ namespace dlech.SshAgentLib
                 line = line.Substring(data.Length).Trim();
                 var comment = line;
 
-                PublicKeyAlgorithm algo;
-                if (!TryParsePublicKeyAlgorithm(algoName, out algo))
+                try
+                {
+                    KeyFormatIdentifier.Parse(algoName);
+                }
+                catch (ArgumentException)
                 {
                     var message = string.Format("Unknown algorithm: {0}", algoName);
                     throw new KeyFormatterException(message);
                 }
 
                 var parser = new BlobParser(Util.FromBase64(data));
-                OpensshCertificate cert;
-                var publicKeyParams = parser.ReadSsh2PublicKeyData(out cert);
+                var publicKeyParams = parser.ReadSsh2PublicKeyData(out var cert);
                 var key = new SshKey(SshVersion.SSH2, publicKeyParams, null, comment, cert);
                 return key;
             }
-        }
-
-        static bool TryParsePublicKeyAlgorithm(string text, out PublicKeyAlgorithm algo)
-        {
-            switch (text)
-            {
-                case PublicKeyAlgorithmExt.ALGORITHM_RSA_KEY:
-                    algo = PublicKeyAlgorithm.SSH_RSA;
-                    break;
-                case PublicKeyAlgorithmExt.ALGORITHM_RSA_CERT_V1:
-                    algo = PublicKeyAlgorithm.SSH_RSA_CERT_V1;
-                    break;
-                case PublicKeyAlgorithmExt.ALGORITHM_DSA_KEY:
-                    algo = PublicKeyAlgorithm.SSH_DSS;
-                    break;
-                case PublicKeyAlgorithmExt.ALGORITHM_DSA_CERT_V1:
-                    algo = PublicKeyAlgorithm.SSH_DSS_CERT_V1;
-                    break;
-                case PublicKeyAlgorithmExt.ALGORITHM_ECDSA_SHA2_NISTP256_KEY:
-                    algo = PublicKeyAlgorithm.ECDSA_SHA2_NISTP256;
-                    break;
-                case PublicKeyAlgorithmExt.ALGORITHM_ECDSA_SHA2_NISTP256_CERT_V1:
-                    algo = PublicKeyAlgorithm.ECDSA_SHA2_NISTP256_CERT_V1;
-                    break;
-                case PublicKeyAlgorithmExt.ALGORITHM_ECDSA_SHA2_NISTP384_CERT_V1:
-                    algo = PublicKeyAlgorithm.ECDSA_SHA2_NISTP384_CERT_V1;
-                    break;
-                case PublicKeyAlgorithmExt.ALGORITHM_ECDSA_SHA2_NISTP521_KEY:
-                    algo = PublicKeyAlgorithm.ECDSA_SHA2_NISTP521;
-                    break;
-                case PublicKeyAlgorithmExt.ALGORITHM_ECDSA_SHA2_NISTP521_CERT_V1:
-                    algo = PublicKeyAlgorithm.ECDSA_SHA2_NISTP521_CERT_V1;
-                    break;
-                case PublicKeyAlgorithmExt.ALGORITHM_ED25519:
-                    algo = PublicKeyAlgorithm.ED25519;
-                    break;
-                case PublicKeyAlgorithmExt.ALGORITHM_ED25519_CERT_V1:
-                    algo = PublicKeyAlgorithm.ED25519_CERT_V1;
-                    break;
-                default:
-                    algo = default(PublicKeyAlgorithm);
-                    return false;
-            }
-
-            return true;
         }
     }
 }

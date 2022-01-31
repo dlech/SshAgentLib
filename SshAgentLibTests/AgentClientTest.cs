@@ -3,7 +3,7 @@
 //
 // Author(s): David Lechner <david@lechnology.com>
 //
-// Copyright (c) 2012-2013,2015,2017 David Lechner
+// Copyright (c) 2012-2013,2015,2017,2022 David Lechner
 //
 // Permission is hereby granted, free of charge, to any person obtaining a copy
 // of this software and associated documentation files (the "Software"), to deal
@@ -87,67 +87,67 @@ namespace dlech.SshAgentLibTests
         {
             rsa1Key = KeyGenerator.CreateKey(
                 SshVersion.SSH1,
-                PublicKeyAlgorithm.SSH_RSA,
+                PublicKeyAlgorithm.SshRsa,
                 "SSH1 RSA test key"
             );
             rsaKey = KeyGenerator.CreateKey(
                 SshVersion.SSH2,
-                PublicKeyAlgorithm.SSH_RSA,
+                PublicKeyAlgorithm.SshRsa,
                 "SSH2 RSA test key"
             );
             rsaCert = KeyGenerator.CreateKey(
                 SshVersion.SSH2,
-                PublicKeyAlgorithm.SSH_RSA_CERT_V1,
+                PublicKeyAlgorithm.SshRsaCertV1,
                 "SSH2 RSA test key + cert"
             );
             dsaKey = KeyGenerator.CreateKey(
                 SshVersion.SSH2,
-                PublicKeyAlgorithm.SSH_DSS,
+                PublicKeyAlgorithm.SshDss,
                 "SSH2 DSA test key"
             );
             dsaCert = KeyGenerator.CreateKey(
                 SshVersion.SSH2,
-                PublicKeyAlgorithm.SSH_DSS_CERT_V1,
+                PublicKeyAlgorithm.SshDssCertV1,
                 "SSH2 DSA test key + cert"
             );
             ecdsa256Key = KeyGenerator.CreateKey(
                 SshVersion.SSH2,
-                PublicKeyAlgorithm.ECDSA_SHA2_NISTP256,
+                PublicKeyAlgorithm.EcdsaSha2Nistp256,
                 "SSH2 ECDSA 256 test key"
             );
             ecdsa256Cert = KeyGenerator.CreateKey(
                 SshVersion.SSH2,
-                PublicKeyAlgorithm.ECDSA_SHA2_NISTP256_CERT_V1,
+                PublicKeyAlgorithm.EcdsaSha2Nistp256CertV1,
                 "SSH2 ECDSA 256 test key + cert"
             );
             ecdsa384Key = KeyGenerator.CreateKey(
                 SshVersion.SSH2,
-                PublicKeyAlgorithm.ECDSA_SHA2_NISTP384,
+                PublicKeyAlgorithm.EcdsaSha2Nistp384,
                 "SSH2 ECDSA 384 test key"
             );
             ecdsa384Cert = KeyGenerator.CreateKey(
                 SshVersion.SSH2,
-                PublicKeyAlgorithm.ECDSA_SHA2_NISTP384_CERT_V1,
+                PublicKeyAlgorithm.EcdsaSha2Nistp384CertV1,
                 "SSH2 ECDSA 384 test key + cert"
             );
             ecdsa521Key = KeyGenerator.CreateKey(
                 SshVersion.SSH2,
-                PublicKeyAlgorithm.ECDSA_SHA2_NISTP521,
+                PublicKeyAlgorithm.EcdsaSha2Nistp521,
                 "SSH2 ECDSA 521 test key"
             );
             ecdsa521Cert = KeyGenerator.CreateKey(
                 SshVersion.SSH2,
-                PublicKeyAlgorithm.ECDSA_SHA2_NISTP521_CERT_V1,
+                PublicKeyAlgorithm.EcdsaSha2Nistp521CertV1,
                 "SSH2 ECDSA 521 test key + cert"
             );
             ed25519Key = KeyGenerator.CreateKey(
                 SshVersion.SSH2,
-                PublicKeyAlgorithm.ED25519,
+                PublicKeyAlgorithm.SshEd25519,
                 "SSH2 Ed25519 test key"
             );
             ed25519Cert = KeyGenerator.CreateKey(
                 SshVersion.SSH2,
-                PublicKeyAlgorithm.ED25519_CERT_V1,
+                PublicKeyAlgorithm.SshEd25519CertV1,
                 "SSH2 Ed25519 test key + cert"
             );
 
@@ -331,13 +331,13 @@ namespace dlech.SshAgentLibTests
                     case SshVersion.SSH2:
                         BlobParser signatureParser = new BlobParser(signature);
                         var algorithm = signatureParser.ReadString();
-                        Assert.That(algorithm, Is.EqualTo(key.Algorithm.GetIdentifierString()));
+                        Assert.That(algorithm, Is.EqualTo(key.Algorithm.GetIdentifier()));
                         signature = signatureParser.ReadBlob();
-                        if (key.Algorithm == PublicKeyAlgorithm.SSH_RSA)
+                        if (key.Algorithm == PublicKeyAlgorithm.SshRsa)
                         {
                             Assert.That(signature.Length == key.Size / 8);
                         }
-                        else if (key.Algorithm == PublicKeyAlgorithm.SSH_DSS)
+                        else if (key.Algorithm == PublicKeyAlgorithm.SshDss)
                         {
                             Assert.That(signature.Length, Is.EqualTo(40));
                             var r = new BigInteger(1, signature, 0, 20);
@@ -346,9 +346,9 @@ namespace dlech.SshAgentLibTests
                             signature = seq.GetDerEncoded();
                         }
                         else if (
-                            key.Algorithm == PublicKeyAlgorithm.ECDSA_SHA2_NISTP256
-                            || key.Algorithm == PublicKeyAlgorithm.ECDSA_SHA2_NISTP384
-                            || key.Algorithm == PublicKeyAlgorithm.ECDSA_SHA2_NISTP521
+                            key.Algorithm == PublicKeyAlgorithm.EcdsaSha2Nistp256
+                            || key.Algorithm == PublicKeyAlgorithm.EcdsaSha2Nistp384
+                            || key.Algorithm == PublicKeyAlgorithm.EcdsaSha2Nistp521
                         )
                         {
                             Assert.That(signature.Length, Is.AtLeast(key.Size / 4 + 8));

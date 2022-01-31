@@ -3,7 +3,7 @@
 //
 // Author(s): David Lechner <david@lechnology.com>
 //
-// Copyright (c) 2012-2013,2015 David Lechner
+// Copyright (c) 2012-2013,2015,2022 David Lechner
 //
 // Permission is hereby granted, free of charge, to any person obtaining a copy
 // of this software and associated documentation files (the "Software"), to deal
@@ -52,15 +52,15 @@ namespace dlech.SshAgentLibTests
             string comment = ""
         )
         {
-            if (version == SshVersion.SSH1 && algorithm != PublicKeyAlgorithm.SSH_RSA)
+            if (version == SshVersion.SSH1 && algorithm != PublicKeyAlgorithm.SshRsa)
             {
                 throw new Exception("unsupported version/algorithm combination");
             }
 
             switch (algorithm)
             {
-                case PublicKeyAlgorithm.SSH_RSA:
-                case PublicKeyAlgorithm.SSH_RSA_CERT_V1:
+                case PublicKeyAlgorithm.SshRsa:
+                case PublicKeyAlgorithm.SshRsaCertV1:
                     KeyGenerationParameters keyGenParam = new KeyGenerationParameters(
                         secureRandom,
                         512
@@ -72,8 +72,8 @@ namespace dlech.SshAgentLibTests
                     var rsaKey = new SshKey(version, keyPair, comment);
                     return rsaKey;
 
-                case PublicKeyAlgorithm.SSH_DSS:
-                case PublicKeyAlgorithm.SSH_DSS_CERT_V1:
+                case PublicKeyAlgorithm.SshDss:
+                case PublicKeyAlgorithm.SshDssCertV1:
                     DsaParametersGenerator dsaParamGen = new DsaParametersGenerator();
                     dsaParamGen.Init(512, 10, secureRandom);
                     DsaParameters dsaParam = dsaParamGen.GenerateParameters();
@@ -88,8 +88,8 @@ namespace dlech.SshAgentLibTests
                     dsaKey.Comment = comment;
                     return dsaKey;
 
-                case PublicKeyAlgorithm.ECDSA_SHA2_NISTP256:
-                case PublicKeyAlgorithm.ECDSA_SHA2_NISTP256_CERT_V1:
+                case PublicKeyAlgorithm.EcdsaSha2Nistp256:
+                case PublicKeyAlgorithm.EcdsaSha2Nistp256CertV1:
                     X9ECParameters ecdsa256X9Params = SecNamedCurves.GetByName("secp256r1");
                     ECDomainParameters ecdsa256DomainParams = new ECDomainParameters(
                         ecdsa256X9Params.Curve,
@@ -108,8 +108,8 @@ namespace dlech.SshAgentLibTests
                     ecdsa256Key.Comment = comment;
                     return ecdsa256Key;
 
-                case PublicKeyAlgorithm.ECDSA_SHA2_NISTP384:
-                case PublicKeyAlgorithm.ECDSA_SHA2_NISTP384_CERT_V1:
+                case PublicKeyAlgorithm.EcdsaSha2Nistp384:
+                case PublicKeyAlgorithm.EcdsaSha2Nistp384CertV1:
                     X9ECParameters ecdsa384X9Params = SecNamedCurves.GetByName("secp384r1");
                     ECDomainParameters ecdsa384DomainParams = new ECDomainParameters(
                         ecdsa384X9Params.Curve,
@@ -128,8 +128,8 @@ namespace dlech.SshAgentLibTests
                     ecdsa384Key.Comment = comment;
                     return ecdsa384Key;
 
-                case PublicKeyAlgorithm.ECDSA_SHA2_NISTP521:
-                case PublicKeyAlgorithm.ECDSA_SHA2_NISTP521_CERT_V1:
+                case PublicKeyAlgorithm.EcdsaSha2Nistp521:
+                case PublicKeyAlgorithm.EcdsaSha2Nistp521CertV1:
                     X9ECParameters ecdsa521X9Params = SecNamedCurves.GetByName("secp521r1");
                     ECDomainParameters ecdsa521DomainParams = new ECDomainParameters(
                         ecdsa521X9Params.Curve,
@@ -148,8 +148,8 @@ namespace dlech.SshAgentLibTests
                     ecdsa521Key.Comment = comment;
                     return ecdsa521Key;
 
-                case PublicKeyAlgorithm.ED25519:
-                case PublicKeyAlgorithm.ED25519_CERT_V1:
+                case PublicKeyAlgorithm.SshEd25519:
+                case PublicKeyAlgorithm.SshEd25519CertV1:
                     var privateKeySeed = secureRandom.GenerateSeed(
                         Ed25519.PrivateKeySeedSizeInBytes
                     );

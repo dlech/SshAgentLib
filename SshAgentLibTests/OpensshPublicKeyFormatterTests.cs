@@ -1,7 +1,7 @@
 ﻿//
 // OpensshPrivateKeyFormatterTest.cs
 //
-// Copyright (c) 2015 David Lechner
+// Copyright (c) 2015,2022 David Lechner
 //
 // Permission is hereby granted, free of charge, to any person obtaining a copy
 // of this software and associated documentation files (the "Software"), to deal
@@ -47,7 +47,7 @@ namespace dlech.SshAgentLibTests
             var formatter = new OpensshPublicKeyFormatter();
             var key = formatter.Deserialize(keyFile);
             Assert.That(key.Version, Is.EqualTo(SshVersion.SSH2));
-            Assert.That(key.Algorithm, Is.EqualTo(PublicKeyAlgorithm.SSH_RSA));
+            Assert.That(key.Algorithm, Is.EqualTo(PublicKeyAlgorithm.SshRsa));
             var publicKey = (RsaKeyParameters)key.GetPublicKeyParameters();
             var param_n = new BigInteger(Resources.rsa_1_param_n.Trim(), 16);
             Assert.That(publicKey.Modulus, Is.EqualTo(param_n));
@@ -62,7 +62,7 @@ namespace dlech.SshAgentLibTests
             var formatter = new OpensshPublicKeyFormatter();
             var key = formatter.Deserialize(keyFile);
             Assert.That(key.Version, Is.EqualTo(SshVersion.SSH2));
-            Assert.That(key.Algorithm, Is.EqualTo(PublicKeyAlgorithm.SSH_RSA_CERT_V1));
+            Assert.That(key.Algorithm, Is.EqualTo(PublicKeyAlgorithm.SshRsaCertV1));
             var publicKey = (RsaKeyParameters)key.GetPublicKeyParameters();
             var param_n = new BigInteger(Resources.rsa_1_param_n.Trim(), 16);
             Assert.That(publicKey.Modulus, Is.EqualTo(param_n));
@@ -94,7 +94,7 @@ namespace dlech.SshAgentLibTests
             var formatter = new OpensshPublicKeyFormatter();
             var key = formatter.Deserialize(keyFile);
             Assert.That(key.Version, Is.EqualTo(SshVersion.SSH2));
-            Assert.That(key.Algorithm, Is.EqualTo(PublicKeyAlgorithm.SSH_DSS));
+            Assert.That(key.Algorithm, Is.EqualTo(PublicKeyAlgorithm.SshDss));
             var publicKey = (DsaPublicKeyParameters)key.GetPublicKeyParameters();
             var param_pub = new BigInteger(Resources.dsa_1_param_pub.Trim(), 16);
             Assert.That(publicKey.Y, Is.EqualTo(param_pub));
@@ -109,7 +109,7 @@ namespace dlech.SshAgentLibTests
             var formatter = new OpensshPublicKeyFormatter();
             var key = formatter.Deserialize(keyFile);
             Assert.That(key.Version, Is.EqualTo(SshVersion.SSH2));
-            Assert.That(key.Algorithm, Is.EqualTo(PublicKeyAlgorithm.SSH_DSS_CERT_V1));
+            Assert.That(key.Algorithm, Is.EqualTo(PublicKeyAlgorithm.SshDssCertV1));
             var publicKey = (DsaPublicKeyParameters)key.GetPublicKeyParameters();
             var param_pub = new BigInteger(Resources.dsa_1_param_pub.Trim(), 16);
             Assert.That(publicKey.Y, Is.EqualTo(param_pub));
@@ -141,7 +141,7 @@ namespace dlech.SshAgentLibTests
             var formatter = new OpensshPublicKeyFormatter();
             var key = formatter.Deserialize(keyFile);
             Assert.That(key.Version, Is.EqualTo(SshVersion.SSH2));
-            Assert.That(key.Algorithm, Is.EqualTo(PublicKeyAlgorithm.ECDSA_SHA2_NISTP256));
+            Assert.That(key.Algorithm, Is.EqualTo(PublicKeyAlgorithm.EcdsaSha2Nistp256));
             var publicKey = (ECPublicKeyParameters)key.GetPublicKeyParameters();
             var param_pub = new BigInteger(Resources.ecdsa_1_param_pub.Trim(), 16);
             var q = new BigInteger(publicKey.Q.GetEncoded());
@@ -157,7 +157,7 @@ namespace dlech.SshAgentLibTests
             var formatter = new OpensshPublicKeyFormatter();
             var key = formatter.Deserialize(keyFile);
             Assert.That(key.Version, Is.EqualTo(SshVersion.SSH2));
-            Assert.That(key.Algorithm, Is.EqualTo(PublicKeyAlgorithm.ECDSA_SHA2_NISTP256_CERT_V1));
+            Assert.That(key.Algorithm, Is.EqualTo(PublicKeyAlgorithm.EcdsaSha2Nistp256CertV1));
             var publicKey = (ECPublicKeyParameters)key.GetPublicKeyParameters();
             var param_pub = new BigInteger(Resources.ecdsa_1_param_pub.Trim(), 16);
             var q = new BigInteger(publicKey.Q.GetEncoded());
@@ -189,7 +189,7 @@ namespace dlech.SshAgentLibTests
             var formatter = new OpensshPublicKeyFormatter();
             var key = formatter.Deserialize(keyFile);
             Assert.That(key.Version, Is.EqualTo(SshVersion.SSH2));
-            Assert.That(key.Algorithm, Is.EqualTo(PublicKeyAlgorithm.ECDSA_SHA2_NISTP521));
+            Assert.That(key.Algorithm, Is.EqualTo(PublicKeyAlgorithm.EcdsaSha2Nistp521));
             var publicKey = (ECPublicKeyParameters)key.GetPublicKeyParameters();
             var param_pub = new BigInteger(Resources.ecdsa_2_param_pub.Trim(), 16);
             var q = new BigInteger(publicKey.Q.GetEncoded());
@@ -205,7 +205,7 @@ namespace dlech.SshAgentLibTests
             var formatter = new OpensshPublicKeyFormatter();
             var key = formatter.Deserialize(keyFile);
             Assert.That(key.Version, Is.EqualTo(SshVersion.SSH2));
-            Assert.That(key.Algorithm, Is.EqualTo(PublicKeyAlgorithm.ED25519));
+            Assert.That(key.Algorithm, Is.EqualTo(PublicKeyAlgorithm.SshEd25519));
             var publicKey = (Ed25519PublicKeyParameter)key.GetPublicKeyParameters();
             var param_pub = new BigInteger(Resources.ed25519_1_param_pub.Trim(), 16);
             var k = new BigInteger(1, publicKey.Key);
@@ -221,7 +221,7 @@ namespace dlech.SshAgentLibTests
             var formatter = new OpensshPublicKeyFormatter();
             var key = formatter.Deserialize(keyFile);
             Assert.That(key.Version, Is.EqualTo(SshVersion.SSH2));
-            Assert.That(key.Algorithm, Is.EqualTo(PublicKeyAlgorithm.ED25519_CERT_V1));
+            Assert.That(key.Algorithm, Is.EqualTo(PublicKeyAlgorithm.SshEd25519CertV1));
             var publicKey = (Ed25519PublicKeyParameter)key.GetPublicKeyParameters();
             var param_pub = new BigInteger(Resources.ed25519_1_param_pub.Trim(), 16);
             var k = new BigInteger(1, publicKey.Key);
@@ -254,7 +254,7 @@ namespace dlech.SshAgentLibTests
             var formatter = new OpensshPublicKeyFormatter();
             var key = formatter.Deserialize(keyFile);
             Assert.That(key.Version, Is.EqualTo(SshVersion.SSH2));
-            Assert.That(key.Algorithm, Is.EqualTo(PublicKeyAlgorithm.ED25519));
+            Assert.That(key.Algorithm, Is.EqualTo(PublicKeyAlgorithm.SshEd25519));
             var publicKey = (Ed25519PublicKeyParameter)key.GetPublicKeyParameters();
             var param_pub = new BigInteger(Resources.ed25519_2_param_pub.Trim(), 16);
             var k = new BigInteger(1, publicKey.Key);

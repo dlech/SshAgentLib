@@ -4,7 +4,7 @@
 // Author(s): David Lechner <david@lechnology.com>
 //            Max Laverse
 //
-// Copyright (c) 2012-2015,2017 David Lechner
+// Copyright (c) 2012-2015,2017,2022 David Lechner
 //
 // Permission is hereby granted, free of charge, to any person obtaining a copy
 // of this software and associated documentation files (the "Software"), to deal
@@ -82,51 +82,49 @@ namespace dlech.SshAgentLib
                 {
                     if (Certificate != null)
                     {
-                        return PublicKeyAlgorithm.SSH_RSA_CERT_V1;
+                        return PublicKeyAlgorithm.SshRsaCertV1;
                     }
-                    return PublicKeyAlgorithm.SSH_RSA;
+                    return PublicKeyAlgorithm.SshRsa;
                 }
                 else if (publicKeyParameter is DsaPublicKeyParameters)
                 {
                     if (Certificate != null)
                     {
-                        return PublicKeyAlgorithm.SSH_DSS_CERT_V1;
+                        return PublicKeyAlgorithm.SshDssCertV1;
                     }
-                    return PublicKeyAlgorithm.SSH_DSS;
+                    return PublicKeyAlgorithm.SshDss;
                 }
-                else if (publicKeyParameter is ECPublicKeyParameters)
+                else if (publicKeyParameter is ECPublicKeyParameters ecdsaParameters)
                 {
-                    ECPublicKeyParameters ecdsaParameters =
-                        (ECPublicKeyParameters)publicKeyParameter;
                     switch (ecdsaParameters.Q.Curve.FieldSize)
                     {
                         case 256:
                             if (Certificate != null)
                             {
-                                return PublicKeyAlgorithm.ECDSA_SHA2_NISTP256_CERT_V1;
+                                return PublicKeyAlgorithm.EcdsaSha2Nistp256CertV1;
                             }
-                            return PublicKeyAlgorithm.ECDSA_SHA2_NISTP256;
+                            return PublicKeyAlgorithm.EcdsaSha2Nistp256;
                         case 384:
                             if (Certificate != null)
                             {
-                                return PublicKeyAlgorithm.ECDSA_SHA2_NISTP384_CERT_V1;
+                                return PublicKeyAlgorithm.EcdsaSha2Nistp384CertV1;
                             }
-                            return PublicKeyAlgorithm.ECDSA_SHA2_NISTP384;
+                            return PublicKeyAlgorithm.EcdsaSha2Nistp384;
                         case 521:
                             if (Certificate != null)
                             {
-                                return PublicKeyAlgorithm.ECDSA_SHA2_NISTP521_CERT_V1;
+                                return PublicKeyAlgorithm.EcdsaSha2Nistp521CertV1;
                             }
-                            return PublicKeyAlgorithm.ECDSA_SHA2_NISTP521;
+                            return PublicKeyAlgorithm.EcdsaSha2Nistp521;
                     }
                 }
                 else if (publicKeyParameter is Ed25519PublicKeyParameter)
                 {
                     if (Certificate != null)
                     {
-                        return PublicKeyAlgorithm.ED25519_CERT_V1;
+                        return PublicKeyAlgorithm.SshEd25519CertV1;
                     }
-                    return PublicKeyAlgorithm.ED25519;
+                    return PublicKeyAlgorithm.SshEd25519;
                 }
                 throw new Exception("Unknown algorithm");
             }

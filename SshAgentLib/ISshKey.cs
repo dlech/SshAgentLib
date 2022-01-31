@@ -1,9 +1,9 @@
-//
+﻿//
 // ISshKey.cs
 //
 // Author(s): David Lechner <david@lechnology.com>
 //
-// Copyright (c) 2012-2015,2017 David Lechner
+// Copyright (c) 2012-2015,2017,2022 David Lechner
 //
 // Permission is hereby granted, free of charge, to any person obtaining a copy
 // of this software and associated documentation files (the "Software"), to deal
@@ -180,36 +180,30 @@ namespace dlech.SshAgentLib
             }
             else if (parameters is ECPublicKeyParameters ecdsaParameters)
             {
-                ECPublicKeyParameters ecdsaParameters = (ECPublicKeyParameters)parameters;
-
-                string algorithm;
+                PublicKeyAlgorithm algorithm;
                 switch (ecdsaParameters.Parameters.Curve.FieldSize)
                 {
                     case 256:
-                        algorithm = PublicKeyAlgorithm.ECDSA_SHA2_NISTP256.GetIdentifierString();
+                        algorithm = PublicKeyAlgorithm.EcdsaSha2Nistp256;
                         break;
                     case 384:
-                        algorithm = PublicKeyAlgorithm.ECDSA_SHA2_NISTP384.GetIdentifierString();
+                        algorithm = PublicKeyAlgorithm.EcdsaSha2Nistp384;
                         break;
                     case 521:
-                        algorithm = PublicKeyAlgorithm.ECDSA_SHA2_NISTP521.GetIdentifierString();
+                        algorithm = PublicKeyAlgorithm.EcdsaSha2Nistp521;
                         break;
                     default:
                         throw new ArgumentException(
                             "Unsupported EC size: " + ecdsaParameters.Parameters.Curve.FieldSize
                         );
                 }
-                builder.AddStringBlob(algorithm);
-                algorithm = algorithm.Replace(
-                    PublicKeyAlgorithmExt.ALGORITHM_ECDSA_SHA2_PREFIX,
-                    string.Empty
-                );
-                builder.AddStringBlob(algorithm);
+                builder.AddStringBlob(algorithm.GetIdentifier());
+                builder.AddStringBlob(algorithm.GetCurveDomainIdentifier());
                 builder.AddBlob(ecdsaParameters.Q.GetEncoded());
             }
             else if (parameters is Ed25519PublicKeyParameter ed15519Parameters)
             {
-                builder.AddStringBlob(PublicKeyAlgorithm.ED25519.GetIdentifierString());
+                builder.AddStringBlob(PublicKeyAlgorithm.SshEd25519.GetIdentifier());
                 builder.AddBlob(ed15519Parameters.Key);
             }
             else
@@ -242,7 +236,7 @@ namespace dlech.SshAgentLib
                     break;
                 case SshVersion.SSH2:
                     result =
-                        PublicKeyAlgorithmExt.GetIdentifierString(aKey.Algorithm)
+                        aKey.Algorithm.GetIdentifier()
                         + " "
                         + Convert.ToBase64String(aKey.GetPublicKeyBlob())
                         + " "

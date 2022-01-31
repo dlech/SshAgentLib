@@ -47,7 +47,7 @@ namespace SshAgentLib.GTK
         [Gtk.TreeNodeValue(Column = 2)]
         public string Type
         {
-            get { return mKey.Algorithm.GetIdentifierString(); }
+            get { return mKey.Algorithm.GetIdentifier(); }
         }
 
         [Gtk.TreeNodeValue(Column = 3)]

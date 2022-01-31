@@ -97,7 +97,7 @@ namespace dlech.SshAgentLib
             /* writing public key */
             builder.AddInt(1); // number of keys N
             var publicKeyBuilder = new BlobBuilder();
-            publicKeyBuilder.AddStringBlob(PublicKeyAlgorithm.ED25519.GetIdentifierString());
+            publicKeyBuilder.AddStringBlob(PublicKeyAlgorithm.SshEd25519.GetIdentifier());
             publicKeyBuilder.AddBlob(publicKeyParams.Key);
             builder.AddBlob(publicKeyBuilder.GetBlob());
 
@@ -108,7 +108,7 @@ namespace dlech.SshAgentLib
             privateKeyBuilder.AddInt(checkint);
             privateKeyBuilder.AddInt(checkint);
 
-            privateKeyBuilder.AddStringBlob(PublicKeyAlgorithm.ED25519.GetIdentifierString());
+            privateKeyBuilder.AddStringBlob(PublicKeyAlgorithm.SshEd25519.GetIdentifier());
             privateKeyBuilder.AddBlob(publicKeyParams.Key);
             privateKeyBuilder.AddBlob(privateKeyParams.Signature);
             privateKeyBuilder.AddStringBlob(sshKey.Comment);

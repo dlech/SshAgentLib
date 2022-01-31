@@ -51,7 +51,7 @@ namespace dlech.SshAgentLib
 
         public string Type
         {
-            get { return key.Algorithm.GetIdentifierString(); }
+            get { return key.Algorithm.GetIdentifier(); }
         }
 
         public int Size

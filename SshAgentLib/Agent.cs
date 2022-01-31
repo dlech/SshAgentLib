@@ -1,4 +1,4 @@
-//
+﻿//
 // Agent.cs
 //
 // Author(s): David Lechner <david@lechnology.com>
@@ -628,7 +628,7 @@ namespace dlech.SshAgentLib
 
                         if (!flags.HasFlag(SignRequestFlags.SSH_AGENT_OLD_SIGNATURE))
                         {
-                            var algName = signKey.Algorithm.GetIdentifierString();
+                            var algName = signKey.Algorithm.GetIdentifier();
 
                             // handle possible overridden signer (because of flags)
                             if (signer.AlgorithmName == "SHA-512withRSA")
