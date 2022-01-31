@@ -1,4 +1,4 @@
-﻿//
+//
 // BlobBuilder.cs
 //
 // Author(s): David Lechner <david@lechnology.com>
@@ -45,7 +45,7 @@ namespace dlech.SshAgentLib
         /// </summary>
         public int Length
         {
-            get { return byteList.Count(); }
+            get { return byteList.Count; }
         }
 
         /// <summary>

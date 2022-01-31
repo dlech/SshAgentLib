@@ -1,4 +1,4 @@
-﻿//
+//
 // Agent.cs
 //
 // Author(s): David Lechner <david@lechnology.com>
@@ -609,7 +609,7 @@ namespace dlech.SshAgentLib
                             constraint =>
                                 constraint.Type == KeyConstraintType.SSH_AGENT_CONSTRAIN_CONFIRM
                         );
-                        if (confirmConstraints.Count() > 0)
+                        if (confirmConstraints.Any())
                         {
                             if (!ConfirmUserPermissionCallback.Invoke(matchingKey, process))
                             {

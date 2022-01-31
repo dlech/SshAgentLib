@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Linq;
 using dlech.SshAgentLib;
 using NUnit.Framework;
@@ -41,7 +41,7 @@ namespace dlech.SshAgentLibTests
             var s = new DerInteger(s_bytes);
             var sequence = new DerSequence(r, s);
             var signature = dsa_key.FormatSignature(sequence.GetEncoded());
-            Assert.That(signature.Count(), Is.EqualTo(40));
+            Assert.That(signature.Count, Is.EqualTo(40));
         }
     }
 }
