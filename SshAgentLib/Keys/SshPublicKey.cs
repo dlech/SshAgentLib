@@ -1,8 +1,9 @@
 ﻿// SPDX-License-Identifier: MIT
 // Copyright (c) 2022 David Lechner <david@lechnology.com>
 
+using System;
+using System.Security.Cryptography;
 using dlech.SshAgentLib;
-using Org.BouncyCastle.Crypto;
 
 namespace SshAgentLib.Keys
 {
@@ -12,43 +13,58 @@ namespace SshAgentLib.Keys
     public sealed class SshPublicKey
     {
         /// <summary>
-        /// The SSH protocol version.
+        /// Gets the SSH protocol version.
         /// </summary>
         public SshVersion Version { get; }
 
         /// <summary>
-        /// The encryption parameter.
+        /// Gets the public key algorithm.
         /// </summary>
-        public AsymmetricKeyParameter Parameter { get; }
+        public PublicKeyAlgorithm Algorithm { get; }
 
         /// <summary>
-        /// Optional comment.
+        /// Gets the encryption parameter.
+        /// </summary>
+        public byte[] KeyBlob { get; }
+
+        /// <summary>
+        /// Gets the optional comment.
         /// </summary>
         public string Comment { get; }
 
         /// <summary>
-        /// Optional certificate.
+        /// Gets the SHA256 hash of <see cref="KeyBlob"/>.
         /// </summary>
-        public object Certificate { get; }
+        public string Sha256Hash
+        {
+            get
+            {
+                using (var sha = SHA256.Create())
+                {
+                    var hash = sha.ComputeHash(WithoutCertificate().KeyBlob);
+                    return $"SHA256:{Convert.ToBase64String(hash).Trim('=')}";
+                }
+            }
+        }
 
         /// <summary>
         /// Creates a new public key.
         /// </summary>
         /// <param name="version">The SSH version.</param>
-        /// <param name="parameter">The encryption parameter.</param>
+        /// <param name="algorithm">The SSH key encryption algorithm.</param>
+        /// <param name="keyBlob">The public key binary data.</param>
         /// <param name="comment">Optional comment.</param>
-        /// <param name="certificate">Optional certificate.</param>
         public SshPublicKey(
             SshVersion version,
-            AsymmetricKeyParameter parameter,
-            string comment = null,
-            object certificate = null
+            PublicKeyAlgorithm algorithm,
+            byte[] keyBlob,
+            string comment = null
         )
         {
             Version = version;
-            Parameter = parameter;
+            Algorithm = algorithm;
+            KeyBlob = keyBlob ?? throw new ArgumentNullException(nameof(keyBlob));
             Comment = comment;
-            Certificate = certificate;
         }
 
         /// <summary>
@@ -58,17 +74,35 @@ namespace SshAgentLib.Keys
         /// <returns>A new key.</returns>
         public SshPublicKey WithComment(string comment)
         {
-            return new SshPublicKey(Version, Parameter, comment, Certificate);
+            return new SshPublicKey(Version, Algorithm, KeyBlob, comment);
         }
 
         /// <summary>
-        /// Returns a copy of the key with a new certificate.
+        /// Returns a copy of the key with any certificates removed.
         /// </summary>
-        /// <param name="certificate">The new certificate.</param>
-        /// <returns>The new key.</returns>
-        public SshPublicKey WithCertificate(object certificate)
+        public SshPublicKey WithoutCertificate()
         {
-            return new SshPublicKey(Version, Parameter, Comment, certificate);
+            // if there is already no certificate, just return self
+            if (
+                !Algorithm
+                    .GetIdentifier()
+                    .EndsWith("-cert-v01@openssh.com", StringComparison.Ordinal)
+            )
+            {
+                return this;
+            }
+
+            if (Version == SshVersion.SSH1)
+            {
+                throw new InvalidOperationException("SSH v1 keys do not support certificates.");
+            }
+
+            // separate the key from the certificate
+            var parser = new BlobParser(KeyBlob);
+            var parameters = parser.ReadSsh2PublicKeyData(out var _);
+            var key = new SshKey(Version, parameters);
+
+            return new SshPublicKey(Version, key.Algorithm, key.GetPublicKeyBlob(), Comment);
         }
     }
 }
