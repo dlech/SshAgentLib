@@ -49,5 +49,25 @@ namespace SshAgentLibTests
                 )
             );
         }
+
+        /// <summary>
+        /// Returns a string from the contents of a file.
+        /// <summary>
+        /// <param name="directory">
+        /// The name of a directory in the "Resources" directory.
+        /// </param>
+        /// <param name="file">
+        /// The name of a file in <paramref name="directory"/>.
+        /// </param>
+        /// <returns>
+        /// The string.
+        /// </returns>
+        public static string ReadStringResourceFile(string directory, string file)
+        {
+            using (var reader = new StreamReader(OpenResourceFile(directory, file)))
+            {
+                return reader.ReadLine();
+            }
+        }
     }
 }

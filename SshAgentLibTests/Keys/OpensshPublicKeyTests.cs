@@ -25,7 +25,7 @@ namespace SshAgentLibTests.Keys
                 Assert.That(key.Algorithm, Is.EqualTo(PublicKeyAlgorithm.SshRsa));
                 Assert.That(
                     key.Sha256Hash,
-                    Is.EqualTo("SHA256:l6itGumSMcRBBAFteCgmjQBIXqLK/jFGUH3viHX1RmE")
+                    Is.EqualTo(ReadStringResourceFile("OpenSshTestData", "rsa_1.fp"))
                 );
                 Assert.That(key.Comment, Is.EqualTo("RSA test key #1"));
             }
@@ -42,7 +42,7 @@ namespace SshAgentLibTests.Keys
                 Assert.That(key.Algorithm, Is.EqualTo(PublicKeyAlgorithm.SshRsaCertV1));
                 Assert.That(
                     key.Sha256Hash,
-                    Is.EqualTo("SHA256:l6itGumSMcRBBAFteCgmjQBIXqLK/jFGUH3viHX1RmE")
+                    Is.EqualTo(ReadStringResourceFile("OpenSshTestData", "rsa_1-cert.fp"))
                 );
                 Assert.That(key.Comment, Is.EqualTo("RSA test key #1"));
             }
@@ -59,7 +59,7 @@ namespace SshAgentLibTests.Keys
                 Assert.That(key.Algorithm, Is.EqualTo(PublicKeyAlgorithm.SshDss));
                 Assert.That(
                     key.Sha256Hash,
-                    Is.EqualTo("SHA256:kOLgXSoAT8O5T6r36n5NJUYigbux1d7gdH/rmWiJm6s")
+                    Is.EqualTo(ReadStringResourceFile("OpenSshTestData", "dsa_1.fp"))
                 );
                 Assert.That(key.Comment, Is.EqualTo("DSA test key #1"));
             }
@@ -76,7 +76,7 @@ namespace SshAgentLibTests.Keys
                 Assert.That(key.Algorithm, Is.EqualTo(PublicKeyAlgorithm.SshDssCertV1));
                 Assert.That(
                     key.Sha256Hash,
-                    Is.EqualTo("SHA256:kOLgXSoAT8O5T6r36n5NJUYigbux1d7gdH/rmWiJm6s")
+                    Is.EqualTo(ReadStringResourceFile("OpenSshTestData", "dsa_1-cert.fp"))
                 );
                 Assert.That(key.Comment, Is.EqualTo("DSA test key #1"));
             }
@@ -93,7 +93,7 @@ namespace SshAgentLibTests.Keys
                 Assert.That(key.Algorithm, Is.EqualTo(PublicKeyAlgorithm.EcdsaSha2Nistp256));
                 Assert.That(
                     key.Sha256Hash,
-                    Is.EqualTo("SHA256:8ty77fOpABat1y88aNdclQTfU+lVvWe7jYZGw8VYtfg")
+                    Is.EqualTo(ReadStringResourceFile("OpenSshTestData", "ecdsa_1.fp"))
                 );
                 Assert.That(key.Comment, Is.EqualTo("ECDSA test key #1"));
             }
@@ -110,7 +110,7 @@ namespace SshAgentLibTests.Keys
                 Assert.That(key.Algorithm, Is.EqualTo(PublicKeyAlgorithm.EcdsaSha2Nistp256CertV1));
                 Assert.That(
                     key.Sha256Hash,
-                    Is.EqualTo("SHA256:8ty77fOpABat1y88aNdclQTfU+lVvWe7jYZGw8VYtfg")
+                    Is.EqualTo(ReadStringResourceFile("OpenSshTestData", "ecdsa_1-cert.fp"))
                 );
                 Assert.That(key.Comment, Is.EqualTo("ECDSA test key #1"));
             }
@@ -127,7 +127,7 @@ namespace SshAgentLibTests.Keys
                 Assert.That(key.Algorithm, Is.EqualTo(PublicKeyAlgorithm.EcdsaSha2Nistp521));
                 Assert.That(
                     key.Sha256Hash,
-                    Is.EqualTo("SHA256:ed8YniRHA6qCrErCRnzrWxPHxYuA62a+CAFYUVxJgaI")
+                    Is.EqualTo(ReadStringResourceFile("OpenSshTestData", "ecdsa_2.fp"))
                 );
                 Assert.That(key.Comment, Is.EqualTo("ECDSA test key #2"));
             }
@@ -144,7 +144,7 @@ namespace SshAgentLibTests.Keys
                 Assert.That(key.Algorithm, Is.EqualTo(PublicKeyAlgorithm.SshEd25519));
                 Assert.That(
                     key.Sha256Hash,
-                    Is.EqualTo("SHA256:L3k/oJubblSY0lB9Ulsl7emDMnRPKm/8udf2ccwk560")
+                    Is.EqualTo(ReadStringResourceFile("OpenSshTestData", "ed25519_1.fp"))
                 );
                 Assert.That(key.Comment, Is.EqualTo("ED25519 test key #1"));
             }
@@ -161,7 +161,7 @@ namespace SshAgentLibTests.Keys
                 Assert.That(key.Algorithm, Is.EqualTo(PublicKeyAlgorithm.SshEd25519CertV1));
                 Assert.That(
                     key.Sha256Hash,
-                    Is.EqualTo("SHA256:L3k/oJubblSY0lB9Ulsl7emDMnRPKm/8udf2ccwk560")
+                    Is.EqualTo(ReadStringResourceFile("OpenSshTestData", "ed25519_1-cert.fp"))
                 );
                 Assert.That(key.Comment, Is.EqualTo("ED25519 test key #1"));
             }
@@ -178,7 +178,7 @@ namespace SshAgentLibTests.Keys
                 Assert.That(key.Algorithm, Is.EqualTo(PublicKeyAlgorithm.SshEd25519));
                 Assert.That(
                     key.Sha256Hash,
-                    Is.EqualTo("SHA256:vMbaARqVciRgXyZPNHDo+P5p5WK5yWG1Oo6VC35Bomw")
+                    Is.EqualTo(ReadStringResourceFile("OpenSshTestData", "ed25519_2.fp"))
                 );
                 // Upstream bug - comment says #1 instead of #1 in the source file
                 Assert.That(key.Comment, Is.EqualTo("ED25519 test key #1"));
