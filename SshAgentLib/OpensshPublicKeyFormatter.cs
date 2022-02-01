@@ -61,7 +61,7 @@ namespace dlech.SshAgentLib
                     throw new KeyFormatterException(message);
                 }
 
-                var parser = new BlobParser(Util.FromBase64(data));
+                var parser = new BlobParser(Convert.FromBase64String(data));
                 var publicKeyParams = parser.ReadSsh2PublicKeyData(out var cert);
                 var key = new SshKey(SshVersion.SSH2, publicKeyParams, null, comment, cert);
                 return key;

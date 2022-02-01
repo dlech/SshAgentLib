@@ -269,11 +269,6 @@ namespace dlech.SshAgentLib
             return BitConverter.ToString(bytes).ToLowerInvariant().Replace("-", ":");
         }
 
-        public static byte[] FromBase64(string base64String)
-        {
-            return FromBase64(Encoding.UTF8.GetBytes(base64String));
-        }
-
         public static byte[] FromBase64(byte[] base64Data)
         {
             using (FromBase64Transform base64Transform = new FromBase64Transform())

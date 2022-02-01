@@ -173,7 +173,9 @@ namespace dlech.SshAgentLib
                 }
 
                 /* reading unencrypted part */
-                BlobParser parser = new BlobParser(Util.FromBase64(base64String.ToString()));
+                BlobParser parser = new BlobParser(
+                    Convert.FromBase64String(base64String.ToString())
+                );
 
                 var magicBytes = parser.ReadBytes((uint)AUTH_MAGIC.Length);
                 if (Encoding.UTF8.GetString(magicBytes) != AUTH_MAGIC)

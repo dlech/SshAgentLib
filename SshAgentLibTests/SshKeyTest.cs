@@ -27,6 +27,7 @@
 using dlech.SshAgentLib;
 using SshAgentLibTests.Properties;
 using NUnit.Framework;
+using System;
 
 namespace dlech.SshAgentLibTests
 {
@@ -76,7 +77,7 @@ namespace dlech.SshAgentLibTests
 
             /* test RSA key */
             target = formatter.Deserialize(Resources.ssh2_rsa_no_passphrase_ppk);
-            expected = Util.FromBase64(
+            expected = Convert.FromBase64String(
                 "AAAAB3NzaC1yc2EAAAABJQAAAIEAhWqdEs/lz1r4L8ZAAS76rX7hj3rrI/6FNlBw"
                     + "6ERba2VFmn2AHxQwZmHHmqM+UtiY57angjD9fTbTzL74C0+f/NrRY+BYXf1cF+u5"
                     + "XmjNKygrsIq3yPMZV4q8YcN/ls9COcynOQMIEmJF6Q0LD7Gt9Uv5yjqc2Ay7VVhG"
@@ -88,7 +89,7 @@ namespace dlech.SshAgentLibTests
 
             /* test DSA key */
             target = formatter.Deserialize(Resources.ssh2_dsa_no_passphrase_ppk);
-            expected = Util.FromBase64(
+            expected = Convert.FromBase64String(
                 "AAAAB3NzaC1kc3MAAACBAMXDM56ty6fV+qDpMyZxobn5VB4L/E6zvOibUead6HBc"
                     + "OHUibA97EKgooUbqJ9qFUOhhw8TaFtN0UtTLZoHjOWN3JdyugK+f2HYIxvhlvW60"
                     + "8g0lfDU0G4KIXdZukTYm66C0jVSCIdHQ1Iz219JeaEZK00v6wEW7Pp7T7yE71W65"

@@ -344,7 +344,7 @@ namespace dlech.SshAgentLib
                 {
                     publicKeyString += reader.ReadLine();
                 }
-                fileData.publicKeyBlob = Util.FromBase64(publicKeyString);
+                fileData.publicKeyBlob = Convert.FromBase64String(publicKeyString);
 
                 /* read kdf parameters */
                 if (
