@@ -136,7 +136,7 @@ namespace dlech.SshAgentLib
         }
 
         /// <summary>
-        /// Prepends header 
+        /// Prepends header
         /// </summary>
         /// <param name="message">message number to include in header</param>
         /// <param name="headerData">data to include in header</param>
@@ -147,7 +147,7 @@ namespace dlech.SshAgentLib
         }
 
         /// <summary>
-        /// Prepends header 
+        /// Prepends header
         /// </summary>
         /// <param name="message">message number to include in header</param>
         public void InsertHeader(Agent.Message message)
@@ -164,11 +164,6 @@ namespace dlech.SshAgentLib
         public byte[] GetBlob()
         {
             return byteList.ToArray();
-        }
-
-        public PinnedArray<byte> GetBlobAsPinnedByteArray()
-        {
-            return new PinnedArray<byte>(GetBlob());
         }
 
         /// <summary>

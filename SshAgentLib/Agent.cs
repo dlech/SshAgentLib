@@ -862,15 +862,8 @@ namespace dlech.SshAgentLib
                 case Message.SSH_AGENTC_LOCK:
                     try
                     {
-                        var passphrase = new PinnedArray<byte>(messageParser.ReadBlob());
-                        try
-                        {
-                            Lock(passphrase.Data);
-                        }
-                        finally
-                        {
-                            passphrase.Clear();
-                        }
+                        Lock(messageParser.ReadBlob());
+
                         if (IsLocked)
                         {
                             responseBuilder.InsertHeader(Message.SSH_AGENT_SUCCESS);
@@ -890,15 +883,8 @@ namespace dlech.SshAgentLib
                 case Message.SSH_AGENTC_UNLOCK:
                     try
                     {
-                        var passphrase = new PinnedArray<byte>(messageParser.ReadBlob());
-                        try
-                        {
-                            Unlock(passphrase.Data);
-                        }
-                        finally
-                        {
-                            passphrase.Clear();
-                        }
+                        Unlock(messageParser.ReadBlob());
+
                         if (!IsLocked)
                         {
                             responseBuilder.InsertHeader(Message.SSH_AGENT_SUCCESS);

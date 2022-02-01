@@ -65,15 +65,11 @@ namespace dlech.SshAgentLib
             {
                 pwFinder = new PasswordFinder(GetPassphraseCallbackMethod);
             }
-            PinnedArray<char> passphrase = null;
-            if (pwFinder != null)
-            {
-                passphrase = new PinnedArray<char>(0);
-                passphrase.Data = pwFinder.GetPassword();
-            }
+
+            var passphrase = pwFinder?.GetPassword();
 
             byte cipherType;
-            if (passphrase == null || passphrase.Data.Length == 0)
+            if (passphrase == null || passphrase.Length == 0)
             {
                 cipherType = SSH_CIPHER_NONE;
             }
@@ -121,14 +117,14 @@ namespace dlech.SshAgentLib
             if (cipherType == SSH_CIPHER_NONE)
             {
                 /* plain-text */
-                builder.AddBytes(privateKeyBuilder.GetBlobAsPinnedByteArray().Data);
+                builder.AddBytes(privateKeyBuilder.GetBlob());
             }
             else
             {
                 byte[] keydata;
                 using (MD5 md5 = MD5.Create())
                 {
-                    keydata = md5.ComputeHash(Encoding.ASCII.GetBytes(passphrase.Data));
+                    keydata = md5.ComputeHash(Encoding.ASCII.GetBytes(passphrase));
                 }
 
                 /* encryption */
@@ -136,18 +132,14 @@ namespace dlech.SshAgentLib
                 desEngine.Init(true, new KeyParameter(keydata));
 
                 BufferedBlockCipher bufferedBlockCipher = new BufferedBlockCipher(desEngine);
-                byte[] ouputBuffer = bufferedBlockCipher.ProcessBytes(
-                    privateKeyBuilder.GetBlobAsPinnedByteArray().Data
-                );
+                byte[] ouputBuffer = bufferedBlockCipher.ProcessBytes(privateKeyBuilder.GetBlob());
 
                 builder.AddBytes(ouputBuffer);
-
-                passphrase.Dispose();
             }
 
             /* writing result to file */
-            var builderOutput = builder.GetBlobAsPinnedByteArray();
-            aStream.Write(builderOutput.Data, 0, builderOutput.Data.Length);
+            var builderOutput = builder.GetBlob();
+            aStream.Write(builderOutput, 0, builderOutput.Length);
             aStream.Close();
         }
 

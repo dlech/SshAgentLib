@@ -334,13 +334,10 @@ namespace dlech.SshAgentLib
             return builder;
         }
 
-        private BlobParser SendMessage(BlobBuilder aBuilder)
+        private BlobParser SendMessage(BlobBuilder builder)
         {
-            byte[] reply;
-            using (var message = aBuilder.GetBlobAsPinnedByteArray())
-            {
-                reply = SendMessage(message.Data);
-            }
+            var reply = SendMessage(builder.GetBlob());
+
             try
             {
                 return new BlobParser(reply);

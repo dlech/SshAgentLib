@@ -50,18 +50,18 @@ namespace dlech.SshAgentLib
         /// </summary>
         /// <param name="ss"></param>
         /// <returns></returns>
-        public static PinnedArray<byte> ToAnsiArray(this SecureString ss)
+        public static byte[] ToAnsiArray(this SecureString ss)
         {
             if (ss == null)
             {
                 return null;
             }
 
-            PinnedArray<byte> pw = new PinnedArray<byte>(ss.Length);
+            var pw = new byte[ss.Length];
             IntPtr ptr = Marshal.SecureStringToGlobalAllocUnicode(ss);
-            for (int i = 0; i < pw.Data.Length; i++)
+            for (int i = 0; i < pw.Length; i++)
             {
-                pw.Data[i] = UnicodeToAnsi(Marshal.ReadInt16(ptr + i * 2));
+                pw[i] = UnicodeToAnsi(Marshal.ReadInt16(ptr + i * 2));
             }
             Marshal.ZeroFreeGlobalAllocUnicode(ptr);
 

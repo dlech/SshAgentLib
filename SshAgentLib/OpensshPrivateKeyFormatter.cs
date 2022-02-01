@@ -66,22 +66,11 @@ namespace dlech.SshAgentLib
                 throw new ArgumentNullException("obj");
             }
 
-            PinnedArray<char> passphrase = null;
-
-            string ciphername;
-            if (passphrase == null || passphrase.Data.Length == 0)
-            {
-                ciphername = KDFNAME_NONE;
-            }
-            else
-            {
-                ciphername = KDFNAME_BCRYPT;
-            }
+            var ciphername = KDFNAME_NONE;
 
             var builder = new BlobBuilder();
 
-            ISshKey sshKey = obj as ISshKey;
-            if (sshKey == null)
+            if (!(obj is ISshKey sshKey))
             {
                 throw new ArgumentException("Expected ISshKey", "obj");
             }
@@ -116,25 +105,25 @@ namespace dlech.SshAgentLib
             if (ciphername == KDFNAME_NONE)
             {
                 /* plain-text */
-                builder.AddBlob(privateKeyBuilder.GetBlobAsPinnedByteArray().Data);
+                builder.AddBlob(privateKeyBuilder.GetBlob());
             }
             else
             {
                 byte[] keydata;
                 using (MD5 md5 = MD5.Create())
                 {
-                    keydata = md5.ComputeHash(Encoding.ASCII.GetBytes(passphrase.Data));
+                    var passphrase = default(string); // TODO
+                    keydata = md5.ComputeHash(Encoding.ASCII.GetBytes(passphrase));
                 }
-                passphrase.Dispose();
             }
 
             /* writing result to file */
-            var builderOutput = builder.GetBlobAsPinnedByteArray();
+            var builderOutput = builder.GetBlob();
             using (var writer = new StreamWriter(stream))
             {
                 writer.NewLine = "\n";
                 writer.WriteLine(MARK_BEGIN);
-                var base64Data = Util.ToBase64(builderOutput.Data);
+                var base64Data = Util.ToBase64(builderOutput);
                 var base64String = Encoding.UTF8.GetString(base64Data);
                 var offset = 0;
                 while (offset < base64String.Length)
