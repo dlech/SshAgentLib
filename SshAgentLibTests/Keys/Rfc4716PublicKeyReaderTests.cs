@@ -90,5 +90,20 @@ namespace SshAgentLibTests.Keys
                 );
             }
         }
+
+        [Test]
+        public void TestThatCommentWithColonWorks()
+        {
+            using (
+                var file = OpenResourceFile(
+                    "RegressionTestData",
+                    "rfc4716-public-key-with-colon-in-comment"
+                )
+            )
+            {
+                var key = Rfc4716PublicKey.Read(file);
+                Assert.That(key.Comment, Is.EqualTo("PageantSharp test: SSH2-RSA, no passphrase"));
+            }
+        }
     }
 }

@@ -61,7 +61,7 @@ namespace SshAgentLib.Keys
         /// <remarks>
         /// Header is group 1, value is group 2 and trailing backslash is group 3.
         /// </remarks>
-        private static readonly Regex headerRegex = new Regex("^(.+):\\s*(.*?)(\\\\?)$");
+        private static readonly Regex headerRegex = new Regex("^([^:]+):\\s*(.*?)(\\\\?)$");
 
         /// <summary>
         /// Reads a RFC 4716 public key.
