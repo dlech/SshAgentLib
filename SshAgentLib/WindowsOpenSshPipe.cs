@@ -6,6 +6,8 @@ using System.Diagnostics;
 using System.IO;
 using System.IO.Pipes;
 using System.Runtime.InteropServices;
+using System.Security.AccessControl;
+using System.Security.Principal;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -58,6 +60,19 @@ namespace dlech.SshAgentLib
         {
             while (!cancellationToken.IsCancellationRequested)
             {
+                var security = new PipeSecurity();
+
+                // Limit access to the current user. This also has the effect
+                // of allowing non-elevated processes access the agent when the
+                // agent is running as an elevated process.
+                security.AddAccessRule(
+                    new PipeAccessRule(
+                        WindowsIdentity.GetCurrent().User,
+                        PipeAccessRights.ReadWrite,
+                        AccessControlType.Allow
+                    )
+                );
+
                 using (
                     var server = new NamedPipeServerStream(
                         agentPipeId,
@@ -66,7 +81,8 @@ namespace dlech.SshAgentLib
                         PipeTransmissionMode.Byte,
                         PipeOptions.WriteThrough | PipeOptions.Asynchronous,
                         bufferSize,
-                        bufferSize
+                        bufferSize,
+                        security
                     )
                 )
                 {
