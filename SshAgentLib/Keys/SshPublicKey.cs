@@ -1,9 +1,10 @@
-// SPDX-License-Identifier: MIT
+﻿// SPDX-License-Identifier: MIT
 // Copyright (c) 2022 David Lechner <david@lechnology.com>
 
 using System;
 using System.IO;
 using System.Security.Cryptography;
+using System.Text;
 using dlech.SshAgentLib;
 
 namespace SshAgentLib.Keys
@@ -45,6 +46,29 @@ namespace SshAgentLib.Keys
                     var hash = sha.ComputeHash(WithoutCertificate().KeyBlob);
                     return $"SHA256:{Convert.ToBase64String(hash).Trim('=')}";
                 }
+            }
+        }
+
+        /// <summary>
+        /// Gets a string suitable for pasting in an <c>authorized_keys</c> file.
+        /// </summary>
+        public string AuthorizedKeysString
+        {
+            get
+            {
+                var builder = new StringBuilder();
+
+                builder.Append(Algorithm.GetIdentifier());
+                builder.Append(' ');
+                builder.Append(Convert.ToBase64String(KeyBlob));
+
+                if (Comment != null)
+                {
+                    builder.Append(' ');
+                    builder.Append(Comment);
+                }
+
+                return builder.ToString();
             }
         }
 

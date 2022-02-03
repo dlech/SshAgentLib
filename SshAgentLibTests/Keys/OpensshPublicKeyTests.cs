@@ -28,6 +28,10 @@ namespace SshAgentLibTests.Keys
                     Is.EqualTo(ReadStringResourceFile("OpenSshTestData", "rsa_1.fp"))
                 );
                 Assert.That(key.Comment, Is.EqualTo("RSA test key #1"));
+                Assert.That(
+                    key.AuthorizedKeysString,
+                    Is.EqualTo(ReadStringResourceFile("OpenSshTestData", "rsa_1.pub"))
+                );
             }
         }
 
@@ -45,6 +49,10 @@ namespace SshAgentLibTests.Keys
                     Is.EqualTo(ReadStringResourceFile("OpenSshTestData", "rsa_1-cert.fp"))
                 );
                 Assert.That(key.Comment, Is.EqualTo("RSA test key #1"));
+                Assert.That(
+                    key.AuthorizedKeysString,
+                    Is.EqualTo(ReadStringResourceFile("OpenSshTestData", "rsa_1-cert.pub"))
+                );
             }
         }
 
@@ -62,6 +70,10 @@ namespace SshAgentLibTests.Keys
                     Is.EqualTo(ReadStringResourceFile("OpenSshTestData", "dsa_1.fp"))
                 );
                 Assert.That(key.Comment, Is.EqualTo("DSA test key #1"));
+                Assert.That(
+                    key.AuthorizedKeysString,
+                    Is.EqualTo(ReadStringResourceFile("OpenSshTestData", "dsa_1.pub"))
+                );
             }
         }
 
@@ -79,6 +91,10 @@ namespace SshAgentLibTests.Keys
                     Is.EqualTo(ReadStringResourceFile("OpenSshTestData", "dsa_1-cert.fp"))
                 );
                 Assert.That(key.Comment, Is.EqualTo("DSA test key #1"));
+                Assert.That(
+                    key.AuthorizedKeysString,
+                    Is.EqualTo(ReadStringResourceFile("OpenSshTestData", "dsa_1-cert.pub"))
+                );
             }
         }
 
@@ -96,6 +112,10 @@ namespace SshAgentLibTests.Keys
                     Is.EqualTo(ReadStringResourceFile("OpenSshTestData", "ecdsa_1.fp"))
                 );
                 Assert.That(key.Comment, Is.EqualTo("ECDSA test key #1"));
+                Assert.That(
+                    key.AuthorizedKeysString,
+                    Is.EqualTo(ReadStringResourceFile("OpenSshTestData", "ecdsa_1.pub"))
+                );
             }
         }
 
@@ -113,6 +133,10 @@ namespace SshAgentLibTests.Keys
                     Is.EqualTo(ReadStringResourceFile("OpenSshTestData", "ecdsa_1-cert.fp"))
                 );
                 Assert.That(key.Comment, Is.EqualTo("ECDSA test key #1"));
+                Assert.That(
+                    key.AuthorizedKeysString,
+                    Is.EqualTo(ReadStringResourceFile("OpenSshTestData", "ecdsa_1-cert.pub"))
+                );
             }
         }
 
@@ -130,6 +154,10 @@ namespace SshAgentLibTests.Keys
                     Is.EqualTo(ReadStringResourceFile("OpenSshTestData", "ecdsa_2.fp"))
                 );
                 Assert.That(key.Comment, Is.EqualTo("ECDSA test key #2"));
+                Assert.That(
+                    key.AuthorizedKeysString,
+                    Is.EqualTo(ReadStringResourceFile("OpenSshTestData", "ecdsa_2.pub"))
+                );
             }
         }
 
@@ -147,6 +175,10 @@ namespace SshAgentLibTests.Keys
                     Is.EqualTo(ReadStringResourceFile("OpenSshTestData", "ed25519_1.fp"))
                 );
                 Assert.That(key.Comment, Is.EqualTo("ED25519 test key #1"));
+                Assert.That(
+                    key.AuthorizedKeysString,
+                    Is.EqualTo(ReadStringResourceFile("OpenSshTestData", "ed25519_1.pub"))
+                );
             }
         }
 
@@ -164,6 +196,10 @@ namespace SshAgentLibTests.Keys
                     Is.EqualTo(ReadStringResourceFile("OpenSshTestData", "ed25519_1-cert.fp"))
                 );
                 Assert.That(key.Comment, Is.EqualTo("ED25519 test key #1"));
+                Assert.That(
+                    key.AuthorizedKeysString,
+                    Is.EqualTo(ReadStringResourceFile("OpenSshTestData", "ed25519_1-cert.pub"))
+                );
             }
         }
 
@@ -182,6 +218,10 @@ namespace SshAgentLibTests.Keys
                 );
                 // Upstream bug - comment says #1 instead of #1 in the source file
                 Assert.That(key.Comment, Is.EqualTo("ED25519 test key #1"));
+                Assert.That(
+                    key.AuthorizedKeysString,
+                    Is.EqualTo(ReadStringResourceFile("OpenSshTestData", "ed25519_2.pub"))
+                );
             }
         }
     }
