@@ -22,36 +22,39 @@ namespace dlech.SshAgentLib
     /// of the window. This is how putty "talks" to pageant. This window will not
     /// actually be shown, just used to receive messages from clients.
     /// </summary>
-    public class PageantAgent : Agent
+    public sealed class PageantAgent : Agent
     {
         #region /* constants */
 
         /* From WINAPI */
 
-        const int ERROR_CLASS_ALREADY_EXISTS = 1410;
-        const int WM_COPYDATA = 0x004A;
-        const int WSAECONNABORTED = 10053;
-        const int WSAECONNRESET = 10054;
+        private const int ERROR_CLASS_ALREADY_EXISTS = 1410;
+        private const int WM_COPYDATA = 0x004A;
+        private const int WSAECONNABORTED = 10053;
+        private const int WSAECONNRESET = 10054;
 
         /* From PuTTY source code */
 
-        const string className = "Pageant";
-        const long AGENT_COPYDATA_ID = 0x804e50ba;
+        private const string className = "Pageant";
+        private const uint AGENT_COPYDATA_ID = 0x804e50ba;
+
+        private static readonly IntPtr TRUE = new IntPtr(1);
+        private static readonly IntPtr FALSE = IntPtr.Zero;
 
         #endregion
 
 
         #region /* instance variables */
 
-        bool disposed;
-        WndProc customWndProc;
-        ApplicationContext appContext;
-        object lockObject = new object();
-        CygwinSocket cygwinSocket;
-        MsysSocket msysSocket;
-        WslSocket wslSocket;
-        WindowsOpenSshPipe opensshPipe;
-        Thread winThread;
+        private bool disposed;
+        private readonly WndProc customWndProc;
+        private ApplicationContext appContext;
+        private readonly object lockObject = new object();
+        private CygwinSocket cygwinSocket;
+        private MsysSocket msysSocket;
+        private WslSocket wslSocket;
+        private WindowsOpenSshPipe opensshPipe;
+        private readonly Thread winThread;
 
         #endregion
 
@@ -87,7 +90,7 @@ namespace dlech.SshAgentLib
         [StructLayout(LayoutKind.Sequential)]
         private struct COPYDATASTRUCT
         {
-            public IntPtr dwData;
+            public UIntPtr dwData;
             public int cbData;
             public IntPtr lpData;
         }
@@ -97,24 +100,27 @@ namespace dlech.SshAgentLib
 
         #region /* externs */
 
-        [DllImport("user32.dll")]
-        private static extern IntPtr FindWindow(String sClassName, String sAppName);
+        [DllImport("user32.dll", SetLastError = true)]
+        private static extern IntPtr FindWindowW(
+            [MarshalAs(UnmanagedType.LPWStr)] string lpClassName,
+            [MarshalAs(UnmanagedType.LPWStr)] string lpWindowName
+        );
 
         /// See http://msdn.microsoft.com/en-us/library/windows/desktop/ms633586%28v=vs.85%29.aspx
         [DllImport("user32.dll", SetLastError = true)]
-        private static extern System.UInt16 RegisterClassW([In] ref WNDCLASS lpWndClass);
+        private static extern ushort RegisterClassW([In] ref WNDCLASS lpWndClass);
 
         /// See http://msdn.microsoft.com/en-us/library/windows/desktop/ms632680%28v=vs.85%29.aspx
         [DllImport("user32.dll", SetLastError = true)]
         private static extern IntPtr CreateWindowExW(
-            UInt32 dwExStyle,
+            uint dwExStyle,
             [MarshalAs(UnmanagedType.LPWStr)] string lpClassName,
             [MarshalAs(UnmanagedType.LPWStr)] string lpWindowName,
-            UInt32 dwStyle,
-            Int32 x,
-            Int32 y,
-            Int32 nWidth,
-            Int32 nHeight,
+            uint dwStyle,
+            int x,
+            int y,
+            int nWidth,
+            int nHeight,
             IntPtr hWndParent,
             IntPtr hMenu,
             IntPtr hInstance,
@@ -122,7 +128,7 @@ namespace dlech.SshAgentLib
         );
 
         [DllImport("user32.dll", SetLastError = true)]
-        private static extern System.IntPtr DefWindowProcW(
+        private static extern IntPtr DefWindowProcW(
             IntPtr hWnd,
             uint msg,
             IntPtr wParam,
@@ -158,13 +164,15 @@ namespace dlech.SshAgentLib
             customWndProc = new WndProc(CustomWndProc);
 
             // Create WNDCLASS
-            WNDCLASS wind_class = new WNDCLASS();
-            wind_class.lpszClassName = className;
-            wind_class.lpfnWndProc = customWndProc;
+            var wind_class = new WNDCLASS
+            {
+                lpszClassName = className,
+                lpfnWndProc = customWndProc
+            };
 
-            UInt16 class_atom = RegisterClassW(ref wind_class);
+            var class_atom = RegisterClassW(ref wind_class);
+            var last_error = Marshal.GetLastWin32Error();
 
-            int last_error = Marshal.GetLastWin32Error();
             if (class_atom == 0 && last_error != ERROR_CLASS_ALREADY_EXISTS)
             {
                 throw new Exception("Could not register window class");
@@ -173,6 +181,7 @@ namespace dlech.SshAgentLib
             winThread = new Thread(RunWindowInNewAppcontext);
             winThread.SetApartmentState(ApartmentState.STA);
             winThread.Name = "PageantWindow";
+
             lock (lockObject)
             {
                 winThread.Start();
@@ -204,8 +213,8 @@ namespace dlech.SshAgentLib
         public static bool CheckPageantRunning()
         {
             DoOSCheck();
-            IntPtr hwnd = FindWindow(className, className);
-            return (hwnd != IntPtr.Zero);
+            var hwnd = FindWindowW(className, className);
+            return hwnd != IntPtr.Zero;
         }
 
         /// <summary>
@@ -219,10 +228,12 @@ namespace dlech.SshAgentLib
             {
                 throw new ObjectDisposedException("PagentAgent");
             }
+
             if (cygwinSocket != null)
             {
                 return;
             }
+
             // only overwrite a file if it looks like a CygwinSocket file.
             // TODO: Might be good to test that there are not network sockets using
             // the port specified in this file.
@@ -230,16 +241,22 @@ namespace dlech.SshAgentLib
             {
                 File.Delete(path);
             }
-            cygwinSocket = new CygwinSocket(path);
-            cygwinSocket.ConnectionHandler = connectionHandler;
+
+            cygwinSocket = new CygwinSocket(path) { ConnectionHandler = ConnectionHandler };
         }
 
         public void StopCygwinSocket()
         {
             if (disposed)
+            {
                 throw new ObjectDisposedException("PagentAgent");
+            }
+
             if (cygwinSocket == null)
+            {
                 return;
+            }
+
             cygwinSocket.Dispose();
             cygwinSocket = null;
         }
@@ -255,10 +272,12 @@ namespace dlech.SshAgentLib
             {
                 throw new ObjectDisposedException("PagentAgent");
             }
+
             if (msysSocket != null)
             {
                 return;
             }
+
             // only overwrite a file if it looks like a MsysSocket file.
             // TODO: Might be good to test that there are not network sockets using
             // the port specified in this file.
@@ -266,16 +285,22 @@ namespace dlech.SshAgentLib
             {
                 File.Delete(path);
             }
-            msysSocket = new MsysSocket(path);
-            msysSocket.ConnectionHandler = connectionHandler;
+
+            msysSocket = new MsysSocket(path) { ConnectionHandler = ConnectionHandler };
         }
 
         public void StopMsysSocket()
         {
             if (disposed)
+            {
                 throw new ObjectDisposedException("PagentAgent");
+            }
+
             if (msysSocket == null)
+            {
                 return;
+            }
+
             msysSocket.Dispose();
             msysSocket = null;
         }
@@ -291,24 +316,32 @@ namespace dlech.SshAgentLib
             {
                 throw new ObjectDisposedException("PagentAgent");
             }
+
             if (wslSocket != null)
             {
                 return;
             }
+
             // only overwrite a file if it looks like a WslSocket file.
             if (File.Exists(path) && WslSocket.TestFile(path))
             {
                 File.Delete(path);
             }
-            wslSocket = new WslSocket(path, connectionHandler);
+            wslSocket = new WslSocket(path, ConnectionHandler);
         }
 
         public void StopWslSocket()
         {
             if (disposed)
+            {
                 throw new ObjectDisposedException("PagentAgent");
+            }
+
             if (wslSocket == null)
+            {
                 return;
+            }
+
             wslSocket.Dispose();
             wslSocket = null;
         }
@@ -319,11 +352,13 @@ namespace dlech.SshAgentLib
             {
                 throw new ObjectDisposedException(null);
             }
+
             if (opensshPipe != null)
             {
                 return;
             }
-            opensshPipe = new WindowsOpenSshPipe(connectionHandler);
+
+            opensshPipe = new WindowsOpenSshPipe(ConnectionHandler);
         }
 
         public void StopWindowsOpenSshPipe()
@@ -332,10 +367,12 @@ namespace dlech.SshAgentLib
             {
                 throw new ObjectDisposedException(null);
             }
+
             if (opensshPipe == null)
             {
                 return;
             }
+
             opensshPipe.Dispose();
             opensshPipe = null;
         }
@@ -357,6 +394,7 @@ namespace dlech.SshAgentLib
         private void RunWindowInNewAppcontext()
         {
             IntPtr hwnd;
+
             lock (lockObject)
             {
                 // Create window
@@ -392,7 +430,6 @@ namespace dlech.SshAgentLib
             {
                 if (DestroyWindow(hwnd))
                 {
-                    hwnd = IntPtr.Zero;
                     disposed = true;
                 }
             }
@@ -414,34 +451,28 @@ namespace dlech.SshAgentLib
                 return DefWindowProcW(hWnd, msg, wParam, lParam);
             }
 
-            IntPtr result = IntPtr.Zero;
-
             // convert lParam to something usable
-            COPYDATASTRUCT copyData = (COPYDATASTRUCT)Marshal.PtrToStructure(
-                lParam,
-                typeof(COPYDATASTRUCT)
-            );
+            var copyData = Marshal.PtrToStructure<COPYDATASTRUCT>(lParam);
 
             if (
-                (
-                    (IntPtr.Size == 4)
-                    && (copyData.dwData.ToInt32() != (unchecked((int)AGENT_COPYDATA_ID)))
-                ) || ((IntPtr.Size == 8) && (copyData.dwData.ToInt64() != AGENT_COPYDATA_ID))
+                ((IntPtr.Size == 4) && (copyData.dwData.ToUInt32() != AGENT_COPYDATA_ID))
+                || ((IntPtr.Size == 8) && (copyData.dwData.ToUInt64() != AGENT_COPYDATA_ID))
             )
             {
-                return result; // failure
+                return FALSE;
             }
 
-            string mapname = Marshal.PtrToStringAnsi(copyData.lpData);
+            var mapname = Marshal.PtrToStringAnsi(copyData.lpData);
+
             if (mapname.Length != copyData.cbData - 1)
             {
-                return result; // failure
+                return FALSE;
             }
 
             try
             {
                 using (
-                    MemoryMappedFile fileMap = MemoryMappedFile.OpenExisting(
+                    var fileMap = MemoryMappedFile.OpenExisting(
                         mapname,
                         MemoryMappedFileRights.FullControl
                     )
@@ -449,7 +480,7 @@ namespace dlech.SshAgentLib
                 {
                     if (fileMap.SafeMemoryMappedFileHandle.IsInvalid)
                     {
-                        return result; // failure
+                        return FALSE;
                     }
 
                     var mapOwner = fileMap.GetAccessControl().GetOwner(typeof(SecurityIdentifier));
@@ -459,7 +490,8 @@ namespace dlech.SshAgentLib
 
                     var id = WindowsIdentity.GetCurrent();
 
-                    Process otherProcess = null;
+                    var otherProcess = default(Process);
+
                     try
                     {
                         otherProcess = WinInternals.FindProcessWithMatchingHandle(fileMap);
@@ -471,12 +503,12 @@ namespace dlech.SshAgentLib
 
                     if (id.User == mapOwner || id.Owner == mapOwner)
                     {
-                        using (MemoryMappedViewStream stream = fileMap.CreateViewStream())
+                        using (var stream = fileMap.CreateViewStream())
                         {
                             AnswerMessage(stream, otherProcess);
                         }
-                        result = new IntPtr(1);
-                        return result; // success
+
+                        return TRUE;
                     }
                 }
             }
@@ -484,7 +516,8 @@ namespace dlech.SshAgentLib
             {
                 Debug.Fail(ex.ToString());
             }
-            return result; // failure
+
+            return FALSE;
         }
 
         private static void DoOSCheck()
@@ -495,7 +528,7 @@ namespace dlech.SshAgentLib
             }
         }
 
-        void connectionHandler(Stream stream, Process process)
+        private void ConnectionHandler(Stream stream, Process process)
         {
             try
             {
@@ -506,9 +539,8 @@ namespace dlech.SshAgentLib
             }
             catch (IOException ex)
             {
-                var socketException = ex.InnerException as SocketException;
                 if (
-                    socketException != null
+                    ex.InnerException is SocketException socketException
                     && (
                         socketException.ErrorCode == WSAECONNABORTED
                         || socketException.ErrorCode == WSAECONNRESET
@@ -518,11 +550,13 @@ namespace dlech.SshAgentLib
                     // expected error
                     return;
                 }
+
                 if (stream is PipeStream)
                 {
                     // broken pipe is expected
                     return;
                 }
+
                 throw;
             }
         }
