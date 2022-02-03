@@ -1,7 +1,8 @@
-﻿// SPDX-License-Identifier: MIT
+// SPDX-License-Identifier: MIT
 // Copyright (c) 2022 David Lechner <david@lechnology.com>
 
 using System;
+using System.IO;
 using System.Security.Cryptography;
 using dlech.SshAgentLib;
 
@@ -103,6 +104,38 @@ namespace SshAgentLib.Keys
             var key = new SshKey(Version, parameters);
 
             return new SshPublicKey(Version, key.Algorithm, key.GetPublicKeyBlob(), Comment);
+        }
+
+        /// <summary>
+        /// Reads an SSH public key from a stream.
+        /// </summary>
+        /// <remarks>
+        /// The key format is determined by reading the first line of the file.
+        /// </remarks>
+        /// <param name="stream">The stream containing the key file.</param>
+        /// <returns>A new public key object</summary>.
+        public static SshPublicKey Read(Stream stream)
+        {
+            if (stream is null)
+            {
+                throw new ArgumentNullException(nameof(stream));
+            }
+
+            using (var reader = new StreamReader(stream))
+            {
+                var firstLine = reader.ReadLine();
+
+                // Rewind so next readers start at the beginning.
+                reader.BaseStream.Seek(0, SeekOrigin.Begin);
+
+                if (firstLine == Rfc4716PublicKey.FirstLine)
+                {
+                    return Rfc4716PublicKey.Read(reader.BaseStream);
+                }
+
+                // OpenSSH format doesn't have a fixed identifier, so use it as default.
+                return OpensshPublicKey.Read(reader.BaseStream);
+            }
         }
     }
 }

@@ -23,7 +23,7 @@ namespace SshAgentLib.Keys
         /// <summary>
         /// RFC specified first line of file.
         /// </summary>
-        private const string firstLine = "---- BEGIN SSH2 PUBLIC KEY ----";
+        public const string FirstLine = "---- BEGIN SSH2 PUBLIC KEY ----";
 
         /// <summary>
         /// RFC specified last line of file.
@@ -67,7 +67,7 @@ namespace SshAgentLib.Keys
         /// Reads a RFC 4716 public key.
         /// </summary>
         /// <param name="stream">
-        /// A stream containg the key data.
+        /// A stream containing the key data.
         /// </param>
         /// <returns>
         /// A new public key object.
@@ -84,9 +84,9 @@ namespace SshAgentLib.Keys
             {
                 var line = reader.ReadLine();
 
-                if (line != firstLine)
+                if (line != FirstLine)
                 {
-                    throw new SshKeyFileFormatException($"First line must be {firstLine}");
+                    throw new SshKeyFileFormatException($"First line must be {FirstLine}");
                 }
 
                 var headers = new Dictionary<string, string>();
