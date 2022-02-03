@@ -3,6 +3,7 @@
 
 using System.IO;
 using System.IO.Pipes;
+using System.Threading;
 using dlech.SshAgentLib;
 using NUnit.Framework;
 
@@ -55,12 +56,27 @@ namespace dlech.SshAgentLibTests
         [Test, NonParallelizable]
         public void TestThatDisposingWhileClientIsConnectedWorks()
         {
-            using (var pipe = new WindowsOpenSshPipe((s, p) => { }))
+            var callbackEvent = new AutoResetEvent(false);
+
+            using (
+                var pipe = new WindowsOpenSshPipe(
+                    (s, p) =>
+                    {
+                        s.ReadByte();
+                        callbackEvent.Set();
+                        s.ReadByte();
+                        callbackEvent.Set();
+                    }
+                )
+            )
             {
                 using (var client = new NamedPipeClientStream(pipeName))
                 {
                     client.Connect(1000);
                     client.WriteByte(0);
+                    // have to wait for callback, otherwise we might dispose server
+                    // before client connection is finished
+                    callbackEvent.WaitOne(1000);
                     pipe.Dispose();
                     Assert.That(() => client.WriteByte(0), Throws.TypeOf<IOException>());
                 }
