@@ -1,4 +1,4 @@
-﻿// SPDX-License-Identifier: MIT
+// SPDX-License-Identifier: MIT
 // Copyright (c) 2012-2015,2022 David Lechner <david@lechnology.com>
 
 using System;
@@ -412,6 +412,11 @@ namespace dlech.SshAgentLib
                     IntPtr.Zero, // hInstance
                     IntPtr.Zero // lpParam
                 );
+
+                if (hwnd == IntPtr.Zero)
+                {
+                    Marshal.ThrowExceptionForHR(Marshal.GetHRForLastWin32Error());
+                }
 
                 appContext = new ApplicationContext();
                 Monitor.Pulse(lockObject);
