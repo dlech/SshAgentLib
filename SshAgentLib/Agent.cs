@@ -449,7 +449,7 @@ namespace dlech.SshAgentLib
                 var builder = new BlobBuilder();
                 builder.AddUInt32(header.BlobLength);
                 builder.AddUInt8((byte)header.Message);
-                builder.AddBytes(messageParser.ReadBytes(header.BlobLength));
+                builder.AddBytes(messageParser.ReadBytes(header.BlobLength -1));
 
                 // replace the parser with the in-memory stream
                 messageParser = new BlobParser(builder.GetBlob());

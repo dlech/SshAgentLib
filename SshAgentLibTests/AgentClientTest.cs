@@ -64,8 +64,8 @@ namespace SshAgentLibTests
                 // after the message.
                 return new ArraySegment<byte>(
                     buffer,
-                    message.Length + 1,
-                    buffer.Length - message.Length - 1
+                    message.Length,
+                    buffer.Length - message.Length
                 ).ToArray();
             }
         }
