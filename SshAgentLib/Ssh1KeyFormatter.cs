@@ -152,11 +152,11 @@ namespace dlech.SshAgentLib
             }
 
             /* reading unencrypted part */
-            BlobParser parser = new BlobParser(aStream);
+            var parser = new BlobParser(aStream);
 
             parser.ReadBytes(FILE_HEADER_LINE.Length + 2); //Skipping header line
 
-            byte cipherType = parser.ReadUInt8();
+            byte cipherType = parser.ReadByte();
             if (cipherType != SSH_CIPHER_3DES && cipherType != SSH_CIPHER_NONE)
             {
                 //TripleDes is the only encryption supported
@@ -167,12 +167,12 @@ namespace dlech.SshAgentLib
 
             /* reading public key */
             AsymmetricKeyParameter aPublicKeyParameter = parser.ReadSsh1PublicKeyData(false);
-            String keyComment = parser.ReadString();
+            string keyComment = parser.ReadString();
 
             /* reading private key */
             byte[] inputBuffer = new byte[aStream.Length];
             aStream.Read(inputBuffer, 0, inputBuffer.Length);
-            byte[] ouputBuffer;
+            byte[] outputBuffer;
 
             try
             {
@@ -208,15 +208,15 @@ namespace dlech.SshAgentLib
                     desEngine.Init(false, new KeyParameter(keydata));
 
                     BufferedBlockCipher bufferedBlockCipher = new BufferedBlockCipher(desEngine);
-                    ouputBuffer = bufferedBlockCipher.ProcessBytes(inputBuffer);
+                    outputBuffer = bufferedBlockCipher.ProcessBytes(inputBuffer);
                 }
                 else
                 {
                     /* private key is stored in plain text */
-                    ouputBuffer = inputBuffer;
+                    outputBuffer = inputBuffer;
                 }
 
-                var privateKeyParser = new BlobParser(ouputBuffer);
+                var privateKeyParser = new BlobParser(outputBuffer);
 
                 /* checking result of decryption */
                 byte[] resultCheck = privateKeyParser.ReadBytes(4);
@@ -227,8 +227,7 @@ namespace dlech.SshAgentLib
 
                 /* reading private key */
                 var keyPair = privateKeyParser.ReadSsh1KeyData(aPublicKeyParameter);
-                SshKey key = new SshKey(SshVersion.SSH1, keyPair);
-                key.Comment = keyComment;
+                SshKey key = new SshKey(SshVersion.SSH1, keyPair, keyComment);
                 return key;
             }
             catch (KeyFormatterException)

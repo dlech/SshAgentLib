@@ -228,8 +228,9 @@ namespace dlech.SshAgentLib
                     {
                         var publicKeyBlob = replyParser.ReadBlob();
                         var publicKeyParser = new BlobParser(publicKeyBlob);
-                        OpensshCertificate cert;
-                        var publicKeyParams = publicKeyParser.ReadSsh2PublicKeyData(out cert);
+                        var publicKeyParams = publicKeyParser.ReadSsh2PublicKeyData(
+                            out OpensshCertificate cert
+                        );
                         var comment = replyParser.ReadString();
                         keyCollection.Add(
                             new SshKey(SshVersion.SSH2, publicKeyParams, null, comment, cert)
@@ -270,8 +271,10 @@ namespace dlech.SshAgentLib
                 default:
                     throw new Exception(cUnsupportedSshVersion);
             }
+
             BlobParser replyParser = SendMessage(builder);
             var header = replyParser.ReadHeader();
+
             switch (aKey.Version)
             {
                 case SshVersion.SSH1:
@@ -279,11 +282,14 @@ namespace dlech.SshAgentLib
                     {
                         throw new AgentFailureException();
                     }
+
                     byte[] response = new byte[16];
+
                     for (int i = 0; i < 16; i++)
                     {
-                        response[i] = replyParser.ReadUInt8();
+                        response[i] = replyParser.ReadByte();
                     }
+
                     return response;
                 case SshVersion.SSH2:
                     if (header.Message != Agent.Message.SSH2_AGENT_SIGN_RESPONSE)

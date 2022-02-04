@@ -1,28 +1,7 @@
-﻿//
-// BlobParser.cs
-//
-// Author(s): David Lechner <david@lechnology.com>
+﻿// SPDX-License-Identifier: MIT
+// Copyright (c) 2012-2015,2017,2022 David Lechner <david@lechnology.com>
+// Author(s): David Lechner
 //            Max Laverse
-//
-// Copyright (c) 2012-2015,2017,2022 David Lechner
-//
-// Permission is hereby granted, free of charge, to any person obtaining a copy
-// of this software and associated documentation files (the "Software"), to deal
-// in the Software without restriction, including without limitation the rights
-// to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-// copies of the Software, and to permit persons to whom the Software is
-// furnished to do so, subject to the following conditions:
-//
-// The above copyright notice and this permission notice shall be included in
-// all copies or substantial portions of the Software.
-//
-// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-// IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-// FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-// AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-// LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-// OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
-// THE SOFTWARE.
 
 using System;
 using System.Collections.Generic;
@@ -40,35 +19,33 @@ namespace dlech.SshAgentLib
     /// <summary>
     /// used to parse open-ssh blobs
     /// </summary>
-    public class BlobParser
+    public sealed class BlobParser : BinaryReader
     {
         static readonly DateTime epoch = new DateTime(1970, 1, 1, 0, 0, 0, DateTimeKind.Utc);
 
-        public Stream Stream { get; private set; }
-
         public BlobParser(byte[] blob) : this(new MemoryStream(blob)) { }
 
-        public BlobParser(Stream stream)
+        public BlobParser(Stream stream) : base(stream, Encoding.UTF8, leaveOpen: true) { }
+
+        public override short ReadInt16()
         {
-            Stream = stream ?? throw new ArgumentNullException(nameof(stream));
+            return unchecked((short)ReadUInt16());
         }
 
-        public byte ReadUInt8()
+        public override ushort ReadUInt16()
         {
-            return (byte)Stream.ReadByte();
-        }
-
-        public ushort ReadUInt16()
-        {
-            byte[] dataLengthBytes = new byte[2];
-            Stream.Read(dataLengthBytes, 0, dataLengthBytes.Length);
+            var dataLengthBytes = ReadBytes(sizeof(ushort));
             return (ushort)((dataLengthBytes[0] << 8) | dataLengthBytes[1]);
         }
 
-        public uint ReadUInt32()
+        public override int ReadInt32()
         {
-            byte[] dataLengthBytes = new byte[4];
-            Stream.Read(dataLengthBytes, 0, dataLengthBytes.Length);
+            return unchecked((int)ReadUInt32());
+        }
+
+        public override uint ReadUInt32()
+        {
+            var dataLengthBytes = ReadBytes(sizeof(uint));
             return (uint)(
                 (dataLengthBytes[0] << 24)
                 | (dataLengthBytes[1] << 16)
@@ -77,15 +54,20 @@ namespace dlech.SshAgentLib
             );
         }
 
-        public ulong ReadUInt64()
+        public override long ReadInt64()
         {
-            byte[] dataLengthBytes = new byte[8];
-            Stream.Read(dataLengthBytes, 0, dataLengthBytes.Length);
+            return unchecked((long)ReadUInt64());
+        }
+
+        public override ulong ReadUInt64()
+        {
+            var dataLengthBytes = ReadBytes(sizeof(ulong));
             return (ulong)(
                 (dataLengthBytes[0] << 56)
                 | (dataLengthBytes[1] << 48)
                 | (dataLengthBytes[2] << 40)
-                | (dataLengthBytes[3] << 32) + (dataLengthBytes[4] << 24)
+                | (dataLengthBytes[3] << 32)
+                | (dataLengthBytes[4] << 24)
                 | (dataLengthBytes[5] << 16)
                 | (dataLengthBytes[6] << 8)
                 | dataLengthBytes[7]
@@ -96,20 +78,20 @@ namespace dlech.SshAgentLib
         {
             Agent.BlobHeader header = new Agent.BlobHeader
             {
-                BlobLength = (int)ReadUInt32(),
-                Message = (Agent.Message)ReadUInt8()
+                BlobLength = ReadInt32(),
+                Message = (Agent.Message)ReadByte()
             };
             return header;
         }
 
-        public string ReadString()
+        public override string ReadString()
         {
             return Encoding.UTF8.GetString(ReadBlob());
         }
 
         public byte[] ReadBlob()
         {
-            return ReadBytes((int)ReadUInt32());
+            return ReadBytes(ReadInt32());
         }
 
         public byte[] ReadSsh1BigIntBlob()
@@ -120,22 +102,12 @@ namespace dlech.SshAgentLib
 
         public byte[] ReadBits(int bitCount)
         {
-            if (bitCount < 0) {
+            if (bitCount < 0)
+            {
                 throw new ArgumentOutOfRangeException(nameof(bitCount));
             }
 
             return ReadBytes((bitCount + 7) / 8);
-        }
-
-        public byte[] ReadBytes(int blobLength)
-        {
-            if (blobLength < 0) {
-                throw new ArgumentOutOfRangeException(nameof(blobLength));
-            }
-
-            var blob = new byte[blobLength];
-            Stream.Read(blob, 0, blob.Length);
-            return blob;
         }
 
         OpensshCertificate ReadCertificate(BlobBuilder builder)
@@ -165,7 +137,7 @@ namespace dlech.SshAgentLib
 
             var principalsParser = new BlobParser(validPrincipals);
             var principalsList = new List<string>();
-            while (principalsParser.Stream.Position < principalsParser.Stream.Length)
+            while (principalsParser.BaseStream.Position < principalsParser.BaseStream.Length)
             {
                 principalsList.Add(principalsParser.ReadString());
             }

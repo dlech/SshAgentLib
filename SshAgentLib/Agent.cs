@@ -436,7 +436,7 @@ namespace dlech.SshAgentLib
                 // There are some parts of the code below that rely on knowing the
                 // position in the stream. So if a stream is not seekable, we need
                 // to read the full length now to a copy in memory.
-                if (!messageParser.Stream.CanSeek)
+                if (!messageParser.BaseStream.CanSeek)
                 {
                     // make copy of data from stream
                     var builder = new BlobBuilder();
@@ -716,11 +716,11 @@ namespace dlech.SshAgentLib
 
                         if (ssh1constrained)
                         {
-                            while (messageParser.Stream.Position < header.BlobLength + 4)
+                            while (messageParser.BaseStream.Position < header.BlobLength + 4)
                             {
                                 var constraint = new KeyConstraint
                                 {
-                                    Type = (KeyConstraintType)messageParser.ReadUInt8()
+                                    Type = (KeyConstraintType)messageParser.ReadByte()
                                 };
 
                                 if (
@@ -778,11 +778,11 @@ namespace dlech.SshAgentLib
 
                         if (constrained)
                         {
-                            while (messageParser.Stream.Position < header.BlobLength + 4)
+                            while (messageParser.BaseStream.Position < header.BlobLength + 4)
                             {
                                 KeyConstraint constraint = new KeyConstraint
                                 {
-                                    Type = (KeyConstraintType)messageParser.ReadUInt8()
+                                    Type = (KeyConstraintType)messageParser.ReadByte()
                                 };
 
                                 if (
