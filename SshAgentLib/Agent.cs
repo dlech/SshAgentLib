@@ -432,30 +432,30 @@ namespace dlech.SshAgentLib
                         throw new Exception();
                     }
                 }
+
+                // There are some parts of the code below that rely on knowing the
+                // position in the stream. So if a stream is not seekable, we need
+                // to read the full length now to a copy in memory.
+                if (!messageParser.Stream.CanSeek)
+                {
+                    // make copy of data from stream
+                    var builder = new BlobBuilder();
+                    builder.AddUInt32(header.BlobLength);
+                    builder.AddUInt8((byte)header.Message);
+                    builder.AddBytes(messageParser.ReadBytes(header.BlobLength - 1));
+
+                    // replace the parser with the in-memory stream
+                    messageParser = new BlobParser(builder.GetBlob());
+
+                    // ensure the parser is in the same position it was previously
+                    messageParser.ReadHeader();
+                }
             }
             catch (Exception)
             {
                 header = new BlobHeader { Message = Message.UNKNOWN };
                 // this will cause the switch statement below to use the default case
                 // which returns an error to the stream.
-            }
-
-            // There are some parts of the code below that rely on knowing the
-            // position in the stream. So if a stream is not seekable, we need
-            // to read the full length now to a copy in memory.
-            if (!messageParser.Stream.CanSeek)
-            {
-                // make copy of data from stream
-                var builder = new BlobBuilder();
-                builder.AddUInt32(header.BlobLength);
-                builder.AddUInt8((byte)header.Message);
-                builder.AddBytes(messageParser.ReadBytes(header.BlobLength -1));
-
-                // replace the parser with the in-memory stream
-                messageParser = new BlobParser(builder.GetBlob());
-
-                // ensure the parser is in the same position it was previously
-                messageParser.ReadHeader();
             }
 
             switch (header.Message)
