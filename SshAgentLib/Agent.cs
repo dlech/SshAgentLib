@@ -298,6 +298,7 @@ namespace dlech.SshAgentLib
                     // confirm callback
                     throw new CallbackNullException();
                 }
+
                 if (constraint.Type == Agent.KeyConstraintType.SSH_AGENT_CONSTRAIN_LIFETIME)
                 {
                     UInt32 lifetime = (UInt32)constraint.Data * 1000;
@@ -342,6 +343,7 @@ namespace dlech.SshAgentLib
             }
 
             var removeKeyList = ListKeys(aVersion);
+
             foreach (ISshKey key in removeKeyList)
             {
                 RemoveKey(key);
@@ -354,6 +356,7 @@ namespace dlech.SshAgentLib
             {
                 return new List<ISshKey>();
             }
+
             return mKeyList.Where(key => key.Version == aVersion).ToList();
         }
 
@@ -364,7 +367,9 @@ namespace dlech.SshAgentLib
                 // can't lock if already locked
                 throw new AgentLockedException();
             }
+
             mLockedPassphrase = new SecureString();
+
             if (aPassphrase != null)
             {
                 foreach (byte b in aPassphrase)
@@ -372,6 +377,7 @@ namespace dlech.SshAgentLib
                     mLockedPassphrase.AppendChar((char)b);
                 }
             }
+
             IsLocked = true;
             FireLocked();
         }
@@ -383,25 +389,31 @@ namespace dlech.SshAgentLib
                 // can't unlock if not locked
                 throw new AgentLockedException();
             }
+
             if (aPassphrase == null)
             {
                 aPassphrase = new byte[0];
             }
+
             if (mLockedPassphrase.Length != aPassphrase.Length)
             {
                 // passwords definitely do not match
                 throw new PassphraseException();
             }
+
             IntPtr lockedPassPtr = Marshal.SecureStringToGlobalAllocUnicode(mLockedPassphrase);
+
             for (int i = 0; i < mLockedPassphrase.Length; i++)
             {
                 Int16 lockedPassChar = Marshal.ReadInt16(lockedPassPtr, i * 2);
+
                 if (lockedPassChar != aPassphrase[i])
                 {
                     Marshal.ZeroFreeGlobalAllocUnicode(lockedPassPtr);
                     throw new PassphraseException();
                 }
             }
+
             Marshal.ZeroFreeGlobalAllocUnicode(lockedPassPtr);
             mLockedPassphrase.Clear();
             IsLocked = false;
@@ -421,9 +433,11 @@ namespace dlech.SshAgentLib
             {
                 messageStream.ReadTimeout = 5000;
             }
+
             var messageParser = new BlobParser(messageStream);
             var responseBuilder = new BlobBuilder();
             BlobHeader header;
+
             try
             {
                 header = messageParser.ReadHeader();
@@ -462,20 +476,25 @@ namespace dlech.SshAgentLib
                             // stream, but it is not used for anything.
                             messageParser.ReadString();
                         }
+
                         var keyList = ListKeys(SshVersion.SSH1);
+
                         if (FilterKeyListCallback != null)
                         {
                             keyList = FilterKeyListCallback(keyList);
                         }
+
                         foreach (SshKey key in keyList)
                         {
                             responseBuilder.AddBytes(key.GetPublicKeyBlob());
                             responseBuilder.AddStringBlob(key.Comment);
                         }
+
                         responseBuilder.InsertHeader(
                             Message.SSH1_AGENT_RSA_IDENTITIES_ANSWER,
                             keyList.Count
                         );
+
                         // TODO may want to check that there is enough room in the message stream
                         break; // succeeded
                     }
@@ -483,6 +502,7 @@ namespace dlech.SshAgentLib
                     {
                         Debug.Fail(ex.ToString());
                     }
+
                     goto default; // failed
 
                 case Message.SSH2_AGENTC_REQUEST_IDENTITIES:
@@ -496,15 +516,18 @@ namespace dlech.SshAgentLib
                         {
                             keyList = FilterKeyListCallback(keyList);
                         }
+
                         foreach (SshKey key in keyList)
                         {
                             responseBuilder.AddBlob(key.GetPublicKeyBlob());
                             responseBuilder.AddStringBlob(key.Comment);
                         }
+
                         responseBuilder.InsertHeader(
                             Message.SSH2_AGENT_IDENTITIES_ANSWER,
                             keyList.Count
                         );
+
                         // TODO may want to check that there is enough room in the message stream
                         break; // succeeded
                     }
@@ -512,6 +535,7 @@ namespace dlech.SshAgentLib
                     {
                         Debug.Fail(ex.ToString());
                     }
+
                     goto default; // failed
 
                 case Message.SSH1_AGENTC_RSA_CHALLENGE:
@@ -609,6 +633,7 @@ namespace dlech.SshAgentLib
                             constraint =>
                                 constraint.Type == KeyConstraintType.SSH_AGENT_CONSTRAIN_CONFIRM
                         );
+
                         if (confirmConstraints.Any())
                         {
                             if (!ConfirmUserPermissionCallback.Invoke(matchingKey, process))
@@ -646,11 +671,13 @@ namespace dlech.SshAgentLib
                         signatureBuilder.AddBlob(signature);
                         responseBuilder.AddBlob(signatureBuilder.GetBlob());
                         responseBuilder.InsertHeader(Message.SSH2_AGENT_SIGN_RESPONSE);
+
                         try
                         {
                             KeyUsed(this, new KeyUsedEventArgs(signKey, process));
                         }
                         catch { }
+
                         break; // succeeded
                     }
                     catch (InvalidOperationException)
@@ -661,6 +688,7 @@ namespace dlech.SshAgentLib
                     {
                         Debug.Fail(ex.ToString());
                     }
+
                     goto default; // failure
 
                 case Message.SSH1_AGENTC_ADD_RSA_IDENTITY:
@@ -694,6 +722,7 @@ namespace dlech.SshAgentLib
                             {
                                 KeyConstraint constraint = new KeyConstraint();
                                 constraint.Type = (KeyConstraintType)messageParser.ReadUInt8();
+
                                 if (
                                     constraint.Type
                                     == KeyConstraintType.SSH_AGENT_CONSTRAIN_LIFETIME
@@ -704,6 +733,7 @@ namespace dlech.SshAgentLib
                                 key.AddConstraint(constraint);
                             }
                         }
+
                         AddKey(key);
                         responseBuilder.InsertHeader(Message.SSH_AGENT_SUCCESS);
                         break;
@@ -748,6 +778,7 @@ namespace dlech.SshAgentLib
                             {
                                 KeyConstraint constraint = new KeyConstraint();
                                 constraint.Type = (KeyConstraintType)messageParser.ReadUInt8();
+
                                 if (
                                     constraint.Type
                                     == KeyConstraintType.SSH_AGENT_CONSTRAIN_LIFETIME
@@ -755,11 +786,14 @@ namespace dlech.SshAgentLib
                                 {
                                     constraint.Data = messageParser.ReadUInt32();
                                 }
+
                                 key.AddConstraint(constraint);
                             }
                         }
+
                         AddKey(key);
                         responseBuilder.InsertHeader(Message.SSH_AGENT_SUCCESS);
+
                         break; // success!
                     }
                     catch (CallbackNullException)
@@ -770,6 +804,7 @@ namespace dlech.SshAgentLib
                     {
                         Debug.Fail(ex.ToString());
                     }
+
                     goto default; // failed
 
                 case Message.SSH1_AGENTC_REMOVE_RSA_IDENTITY:
@@ -787,6 +822,7 @@ namespace dlech.SshAgentLib
 
                     SshVersion removeVersion;
                     byte[] rKeyBlob;
+
                     if (header.Message == Message.SSH1_AGENTC_REMOVE_RSA_IDENTITY)
                     {
                         removeVersion = SshVersion.SSH1;
@@ -910,9 +946,12 @@ namespace dlech.SshAgentLib
                     responseBuilder.InsertHeader(Message.SSH_AGENT_FAILURE);
                     break;
             }
+
             /* write response to stream */
-            if (messageStream.CanSeek)
+            if (messageStream.CanSeek) {
                 messageStream.Position = 0;
+            }
+
             messageStream.Write(responseBuilder.GetBlob(), 0, responseBuilder.Length);
             messageStream.Flush();
         }
