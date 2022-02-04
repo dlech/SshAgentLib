@@ -1,28 +1,7 @@
-﻿//
-// Agent.cs
-//
-// Author(s): David Lechner <david@lechnology.com>
+// SPDX-License-Identifier: MIT
+// Copyright (c) 2012-2015,2017-2018,2022 David Lechner <david@lechnology.com>
+// Author(s): David Lechner
 //            Max Laverse
-//
-// Copyright (c) 2012-2015,2017-2018 David Lechner
-//
-// Permission is hereby granted, free of charge, to any person obtaining a copy
-// of this software and associated documentation files (the "Software"), to deal
-// in the Software without restriction, including without limitation the rights
-// to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-// copies of the Software, and to permit persons to whom the Software is
-// furnished to do so, subject to the following conditions:
-//
-// The above copyright notice and this permission notice shall be included in
-// all copies or substantial portions of the Software.
-//
-// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-// IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-// FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-// AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-// LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-// OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
-// THE SOFTWARE.
 
 using System;
 using System.Collections.Generic;
@@ -49,8 +28,8 @@ namespace dlech.SshAgentLib
     {
         #region Instance Variables
 
-        private List<ISshKey> mKeyList;
-        private SecureString mLockedPassphrase;
+        private readonly List<ISshKey> keyList;
+        private SecureString lockedPassphrase;
 
         #endregion
 
@@ -152,34 +131,35 @@ namespace dlech.SshAgentLib
 
         public struct KeyConstraint
         {
-            private object mData;
+            private object data;
 
             public KeyConstraintType Type { get; set; }
-            public Object Data
+
+            public object Data
             {
-                get { return mData; }
+                get { return data; }
                 set
                 {
                     if (value.GetType() != Type.GetDataType())
                     {
                         throw new Exception("Incorrect data type");
                     }
-                    mData = value;
+                    data = value;
                 }
             }
         }
 
         public struct BlobHeader
         {
-            public UInt32 BlobLength { get; set; }
-            public Agent.Message Message { get; set; }
+            public uint BlobLength { get; set; }
+            public Message Message { get; set; }
         }
 
         public class LockEventArgs : EventArgs
         {
-            public LockEventArgs(bool aIsLocked)
+            public LockEventArgs(bool isLocked)
             {
-                IsLocked = aIsLocked;
+                IsLocked = isLocked;
             }
 
             public bool IsLocked { get; private set; }
@@ -194,9 +174,9 @@ namespace dlech.SshAgentLib
 
         public class MessageReceivedEventArgs : EventArgs
         {
-            public MessageReceivedEventArgs(BlobHeader aMessageHeader)
+            public MessageReceivedEventArgs(BlobHeader messageHeader)
             {
-                MessageHeader = aMessageHeader;
+                MessageHeader = messageHeader;
                 Fail = false;
             }
 
@@ -258,7 +238,7 @@ namespace dlech.SshAgentLib
 
         public int KeyCount
         {
-            get { return mKeyList.Count; }
+            get { return keyList.Count; }
         }
 
         public ConfirmUserPermissionDelegate ConfirmUserPermissionCallback { get; set; }
@@ -271,7 +251,7 @@ namespace dlech.SshAgentLib
 
         protected Agent()
         {
-            mKeyList = new List<ISshKey>();
+            keyList = new List<ISshKey>();
         }
 
         #endregion
@@ -299,27 +279,28 @@ namespace dlech.SshAgentLib
                     throw new CallbackNullException();
                 }
 
-                if (constraint.Type == Agent.KeyConstraintType.SSH_AGENT_CONSTRAIN_LIFETIME)
+                if (constraint.Type == KeyConstraintType.SSH_AGENT_CONSTRAIN_LIFETIME)
                 {
-                    UInt32 lifetime = (UInt32)constraint.Data * 1000;
-                    Timer timer = new Timer(lifetime);
-                    ElapsedEventHandler onTimerElapsed = null;
-                    onTimerElapsed = (s, e) =>
+                    var lifetime = (uint)constraint.Data * 1000;
+                    var timer = new Timer(lifetime);
+
+                    void onTimerElapsed(object s, ElapsedEventArgs e)
                     {
                         timer.Elapsed -= onTimerElapsed;
                         RemoveKey(key);
-                    };
+                    }
+
                     timer.Elapsed += onTimerElapsed;
                     timer.Start();
                 }
             }
 
             /* first remove matching key if it exists */
-            ISshKey matchingKey = mKeyList.Get(key.Version, key.GetPublicKeyBlob());
+            ISshKey matchingKey = keyList.Get(key.Version, key.GetPublicKeyBlob());
             RemoveKey(matchingKey);
 
-            mKeyList.Add(key);
-            FireKeyAdded(key);
+            keyList.Add(key);
+            OnKeyAdded(key);
         }
 
         public void RemoveKey(ISshKey key)
@@ -329,9 +310,9 @@ namespace dlech.SshAgentLib
                 throw new AgentLockedException();
             }
 
-            if (mKeyList.Remove(key))
+            if (keyList.Remove(key))
             {
-                FireKeyRemoved(key);
+                OnKeyRemoved(key);
             }
         }
 
@@ -357,7 +338,7 @@ namespace dlech.SshAgentLib
                 return new List<ISshKey>();
             }
 
-            return mKeyList.Where(key => key.Version == aVersion).ToList();
+            return keyList.Where(key => key.Version == aVersion).ToList();
         }
 
         public void Lock(byte[] aPassphrase)
@@ -368,18 +349,18 @@ namespace dlech.SshAgentLib
                 throw new AgentLockedException();
             }
 
-            mLockedPassphrase = new SecureString();
+            lockedPassphrase = new SecureString();
 
             if (aPassphrase != null)
             {
                 foreach (byte b in aPassphrase)
                 {
-                    mLockedPassphrase.AppendChar((char)b);
+                    lockedPassphrase.AppendChar((char)b);
                 }
             }
 
             IsLocked = true;
-            FireLocked();
+            OnLocked();
         }
 
         public void Unlock(byte[] aPassphrase)
@@ -392,20 +373,20 @@ namespace dlech.SshAgentLib
 
             if (aPassphrase == null)
             {
-                aPassphrase = new byte[0];
+                aPassphrase = Array.Empty<byte>();
             }
 
-            if (mLockedPassphrase.Length != aPassphrase.Length)
+            if (lockedPassphrase.Length != aPassphrase.Length)
             {
                 // passwords definitely do not match
                 throw new PassphraseException();
             }
 
-            IntPtr lockedPassPtr = Marshal.SecureStringToGlobalAllocUnicode(mLockedPassphrase);
+            IntPtr lockedPassPtr = Marshal.SecureStringToGlobalAllocUnicode(lockedPassphrase);
 
-            for (int i = 0; i < mLockedPassphrase.Length; i++)
+            for (int i = 0; i < lockedPassphrase.Length; i++)
             {
-                Int16 lockedPassChar = Marshal.ReadInt16(lockedPassPtr, i * 2);
+                var lockedPassChar = Marshal.ReadInt16(lockedPassPtr, i * 2);
 
                 if (lockedPassChar != aPassphrase[i])
                 {
@@ -415,9 +396,9 @@ namespace dlech.SshAgentLib
             }
 
             Marshal.ZeroFreeGlobalAllocUnicode(lockedPassPtr);
-            mLockedPassphrase.Clear();
+            lockedPassphrase.Clear();
             IsLocked = false;
-            FireLocked();
+            OnLocked();
         }
 
         /// <summary>
@@ -454,8 +435,7 @@ namespace dlech.SshAgentLib
             }
             catch (Exception)
             {
-                header = new BlobHeader();
-                header.Message = Message.UNKNOWN;
+                header = new BlobHeader { Message = Message.UNKNOWN };
                 // this will cause the switch statement below to use the default case
                 // which returns an error to the stream.
             }
@@ -551,13 +531,11 @@ namespace dlech.SshAgentLib
                         var publicKeyParams = messageParser.ReadSsh1PublicKeyData(true);
 
                         //Searching for Key here
-                        var matchingKey = mKeyList
-                            .Where(
-                                key =>
-                                    key.Version == SshVersion.SSH1
-                                    && (key.GetPublicKeyParameters().Equals(publicKeyParams))
-                            )
-                            .Single();
+                        var matchingKey = keyList.Single(
+                            key =>
+                                key.Version == SshVersion.SSH1
+                                && key.GetPublicKeyParameters().Equals(publicKeyParams)
+                        );
 
                         //Reading challenge
                         var encryptedChallenge = messageParser.ReadSsh1BigIntBlob();
@@ -571,6 +549,7 @@ namespace dlech.SshAgentLib
 
                         //Answering to the challenge
                         var engine = new Pkcs1Encoding(new RsaEngine());
+
                         engine.Init(
                             false /* decrypt */
                             ,
@@ -622,13 +601,12 @@ namespace dlech.SshAgentLib
                         }
                         catch { }
 
-                        var matchingKey = mKeyList
-                            .Where(
-                                key =>
-                                    key.Version == SshVersion.SSH2
-                                    && key.GetPublicKeyBlob().SequenceEqual(keyBlob)
-                            )
-                            .First();
+                        var matchingKey = keyList.First(
+                            key =>
+                                key.Version == SshVersion.SSH2
+                                && key.GetPublicKeyBlob().SequenceEqual(keyBlob)
+                        );
+
                         var confirmConstraints = matchingKey.Constraints.Where(
                             constraint =>
                                 constraint.Type == KeyConstraintType.SSH_AGENT_CONSTRAIN_CONFIRM
@@ -647,9 +625,9 @@ namespace dlech.SshAgentLib
                         var signer = signKey.GetSigner(flags);
                         signer.Init(true, signKey.GetPrivateKeyParameters());
                         signer.BlockUpdate(reqData, 0, reqData.Length);
-                        byte[] signature = signer.GenerateSignature();
+                        var signature = signer.GenerateSignature();
                         signature = signKey.FormatSignature(signature);
-                        BlobBuilder signatureBuilder = new BlobBuilder();
+                        var signatureBuilder = new BlobBuilder();
 
                         if (!flags.HasFlag(SignRequestFlags.SSH_AGENT_OLD_SIGNATURE))
                         {
@@ -703,7 +681,7 @@ namespace dlech.SshAgentLib
                         goto default;
                     }
 
-                    bool ssh1constrained = (
+                    var ssh1constrained = (
                         header.Message == Message.SSH1_AGENTC_ADD_RSA_ID_CONSTRAINED
                     );
 
@@ -712,16 +690,20 @@ namespace dlech.SshAgentLib
                         var publicKeyParams = messageParser.ReadSsh1PublicKeyData(false);
                         var keyPair = messageParser.ReadSsh1KeyData(publicKeyParams);
 
-                        SshKey key = new SshKey(SshVersion.SSH1, keyPair);
-                        key.Comment = messageParser.ReadString();
-                        key.Source = "External client";
+                        var key = new SshKey(SshVersion.SSH1, keyPair)
+                        {
+                            Comment = messageParser.ReadString(),
+                            Source = "External client"
+                        };
 
                         if (ssh1constrained)
                         {
                             while (messageStream.Position < header.BlobLength + 4)
                             {
-                                KeyConstraint constraint = new KeyConstraint();
-                                constraint.Type = (KeyConstraintType)messageParser.ReadUInt8();
+                                var constraint = new KeyConstraint
+                                {
+                                    Type = (KeyConstraintType)messageParser.ReadUInt8()
+                                };
 
                                 if (
                                     constraint.Type
@@ -730,6 +712,7 @@ namespace dlech.SshAgentLib
                                 {
                                     constraint.Data = messageParser.ReadUInt32();
                                 }
+
                                 key.AddConstraint(constraint);
                             }
                         }
@@ -761,23 +744,28 @@ namespace dlech.SshAgentLib
                         goto default;
                     }
 
-                    bool constrained = (header.Message == Message.SSH2_AGENTC_ADD_ID_CONSTRAINED);
+                    bool constrained = header.Message == Message.SSH2_AGENTC_ADD_ID_CONSTRAINED;
 
                     try
                     {
-                        OpensshCertificate cert;
-                        var publicKeyParams = messageParser.ReadSsh2PublicKeyData(out cert);
+                        var publicKeyParams = messageParser.ReadSsh2PublicKeyData(
+                            out OpensshCertificate cert
+                        );
                         var keyPair = messageParser.ReadSsh2KeyData(publicKeyParams);
-                        SshKey key = new SshKey(SshVersion.SSH2, keyPair, null, cert);
-                        key.Comment = messageParser.ReadString();
-                        key.Source = "External client";
+                        SshKey key = new SshKey(SshVersion.SSH2, keyPair, null, cert)
+                        {
+                            Comment = messageParser.ReadString(),
+                            Source = "External client"
+                        };
 
                         if (constrained)
                         {
                             while (messageStream.Position < header.BlobLength + 4)
                             {
-                                KeyConstraint constraint = new KeyConstraint();
-                                constraint.Type = (KeyConstraintType)messageParser.ReadUInt8();
+                                KeyConstraint constraint = new KeyConstraint
+                                {
+                                    Type = (KeyConstraintType)messageParser.ReadUInt8()
+                                };
 
                                 if (
                                     constraint.Type
@@ -841,11 +829,11 @@ namespace dlech.SshAgentLib
 
                     try
                     {
-                        var matchingKey = mKeyList.Get(removeVersion, rKeyBlob);
-                        var startKeyListLength = mKeyList.Count;
+                        var matchingKey = keyList.Get(removeVersion, rKeyBlob);
+                        var startKeyListLength = keyList.Count;
                         RemoveKey(matchingKey);
                         // only succeed if key was removed
-                        if (mKeyList.Count == startKeyListLength - 1)
+                        if (keyList.Count == startKeyListLength - 1)
                         {
                             responseBuilder.InsertHeader(Message.SSH_AGENT_SUCCESS);
                             break; //success!
@@ -939,6 +927,7 @@ namespace dlech.SshAgentLib
                     {
                         Debug.Fail(ex.ToString());
                     }
+
                     goto default;
 
                 default:
@@ -947,8 +936,9 @@ namespace dlech.SshAgentLib
                     break;
             }
 
-            /* write response to stream */
-            if (messageStream.CanSeek) {
+            // write response to stream
+            if (messageStream.CanSeek)
+            {
                 messageStream.Position = 0;
             }
 
@@ -962,34 +952,22 @@ namespace dlech.SshAgentLib
 
         #region Private Methods
 
-        private void FireKeyAdded(ISshKey key)
+        private void OnKeyAdded(ISshKey key)
         {
-            if (KeyAdded != null)
-            {
-                SshKeyEventArgs args = new SshKeyEventArgs(key);
-                KeyAdded(this, args);
-            }
+            KeyAdded?.Invoke(this, new SshKeyEventArgs(key));
         }
 
-        private void FireKeyRemoved(ISshKey key)
+        private void OnKeyRemoved(ISshKey key)
         {
-            if (KeyRemoved != null)
-            {
-                SshKeyEventArgs args = new SshKeyEventArgs(key);
-                KeyRemoved(this, args);
-            }
+            KeyRemoved?.Invoke(this, new SshKeyEventArgs(key));
         }
 
         /// <summary>
         /// Fires lock event for listeners
         /// </summary>
-        private void FireLocked()
+        private void OnLocked()
         {
-            if (Locked != null)
-            {
-                LockEventArgs args = new LockEventArgs(IsLocked);
-                Locked(this, args);
-            }
+            Locked?.Invoke(this, new LockEventArgs(IsLocked));
         }
 
         #endregion
