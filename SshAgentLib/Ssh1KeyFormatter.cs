@@ -154,7 +154,7 @@ namespace dlech.SshAgentLib
             /* reading unencrypted part */
             BlobParser parser = new BlobParser(aStream);
 
-            parser.ReadBytes((uint)FILE_HEADER_LINE.Length + 2); //Skipping header line
+            parser.ReadBytes(FILE_HEADER_LINE.Length + 2); //Skipping header line
 
             byte cipherType = parser.ReadUInt8();
             if (cipherType != SSH_CIPHER_3DES && cipherType != SSH_CIPHER_NONE)

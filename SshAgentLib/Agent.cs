@@ -151,7 +151,7 @@ namespace dlech.SshAgentLib
 
         public struct BlobHeader
         {
-            public uint BlobLength { get; set; }
+            public int BlobLength { get; set; }
             public Message Message { get; set; }
         }
 
@@ -440,7 +440,7 @@ namespace dlech.SshAgentLib
                 {
                     // make copy of data from stream
                     var builder = new BlobBuilder();
-                    builder.AddUInt32(header.BlobLength);
+                    builder.AddUInt32((uint)header.BlobLength);
                     builder.AddUInt8((byte)header.Message);
                     builder.AddBytes(messageParser.ReadBytes(header.BlobLength - 1));
 

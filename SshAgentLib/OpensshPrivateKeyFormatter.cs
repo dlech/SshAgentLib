@@ -177,7 +177,7 @@ namespace dlech.SshAgentLib
                     Convert.FromBase64String(base64String.ToString())
                 );
 
-                var magicBytes = parser.ReadBytes((uint)AUTH_MAGIC.Length);
+                var magicBytes = parser.ReadBytes(AUTH_MAGIC.Length);
                 if (Encoding.UTF8.GetString(magicBytes) != AUTH_MAGIC)
                 {
                     throw new KeyFormatterException("Bad data - missing AUTH_MAGIC.");

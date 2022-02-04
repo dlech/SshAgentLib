@@ -96,7 +96,7 @@ namespace dlech.SshAgentLib
         {
             Agent.BlobHeader header = new Agent.BlobHeader
             {
-                BlobLength = ReadUInt32(),
+                BlobLength = (int)ReadUInt32(),
                 Message = (Agent.Message)ReadUInt8()
             };
             return header;
@@ -109,7 +109,7 @@ namespace dlech.SshAgentLib
 
         public byte[] ReadBlob()
         {
-            return ReadBytes(ReadUInt32());
+            return ReadBytes((int)ReadUInt32());
         }
 
         public byte[] ReadSsh1BigIntBlob()
@@ -118,14 +118,22 @@ namespace dlech.SshAgentLib
             return ReadBits(bitCount);
         }
 
-        public byte[] ReadBits(uint bitCount)
+        public byte[] ReadBits(int bitCount)
         {
+            if (bitCount < 0) {
+                throw new ArgumentOutOfRangeException(nameof(bitCount));
+            }
+
             return ReadBytes((bitCount + 7) / 8);
         }
 
-        public byte[] ReadBytes(uint blobLength)
+        public byte[] ReadBytes(int blobLength)
         {
-            var blob = new byte[(int)blobLength];
+            if (blobLength < 0) {
+                throw new ArgumentOutOfRangeException(nameof(blobLength));
+            }
+
+            var blob = new byte[blobLength];
             Stream.Read(blob, 0, blob.Length);
             return blob;
         }
