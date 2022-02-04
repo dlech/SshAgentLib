@@ -1,61 +1,40 @@
-﻿//
-// AgentClientTest.cs
-//
-// Author(s): David Lechner <david@lechnology.com>
-//
-// Copyright (c) 2012-2013,2015,2017,2022 David Lechner
-//
-// Permission is hereby granted, free of charge, to any person obtaining a copy
-// of this software and associated documentation files (the "Software"), to deal
-// in the Software without restriction, including without limitation the rights
-// to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-// copies of the Software, and to permit persons to whom the Software is
-// furnished to do so, subject to the following conditions:
-//
-// The above copyright notice and this permission notice shall be included in
-// all copies or substantial portions of the Software.
-//
-// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-// IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-// FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-// AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-// LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-// OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
-// THE SOFTWARE.
+﻿// SPDX-License-Identifier: MIT
+// Copyright (c) 2012-2013,2015,2017,2022 David Lechner <david@lechnology.com>
 
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
-using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Security.Cryptography;
 using System.Text;
 
 using dlech.SshAgentLib;
+using dlech.SshAgentLibTests;
 using NUnit.Framework;
 using Org.BouncyCastle.Asn1;
 using Org.BouncyCastle.Math;
 
-namespace dlech.SshAgentLibTests
+namespace SshAgentLibTests
 {
-    [TestFixture]
-    public class AgentClientTest
+    [TestFixture(typeof(MemoryStream))]
+    [TestFixture(typeof(NonSeekableMemoryStream))]
+    public class AgentClientTest<TStream> where TStream : MemoryStream
     {
-        static SshKey rsa1Key,
-            rsaKey,
-            rsaCert,
-            dsaKey,
-            dsaCert,
-            ecdsa256Key,
-            ecdsa256Cert,
-            ecdsa384Key,
-            ecdsa384Cert,
-            ecdsa521Key,
-            ecdsa521Cert,
-            ed25519Key,
-            ed25519Cert;
-        static ReadOnlyCollection<SshKey> allKeys;
+        private static readonly SshKey rsa1Key;
+        private static readonly SshKey rsaKey;
+        private static readonly SshKey rsaCert;
+        private static readonly SshKey dsaKey;
+        private static readonly SshKey dsaCert;
+        private static readonly SshKey ecdsa256Key;
+        private static readonly SshKey ecdsa256Cert;
+        private static readonly SshKey ecdsa384Key;
+        private static readonly SshKey ecdsa384Cert;
+        private static readonly SshKey ecdsa521Key;
+        private static readonly SshKey ecdsa521Cert;
+        private static readonly SshKey ed25519Key;
+        private static readonly SshKey ed25519Cert;
+        private static readonly ReadOnlyCollection<SshKey> allKeys;
 
         class TestAgentClient : AgentClient
         {
@@ -70,11 +49,24 @@ namespace dlech.SshAgentLibTests
             {
                 var buffer = new byte[4096];
                 Array.Copy(message, buffer, message.Length);
-                var messageStream = new MemoryStream(buffer);
+                var messageStream = (TStream)Activator.CreateInstance(typeof(TStream), buffer);
+
                 Agent.AnswerMessage(messageStream);
-                var reply = new byte[messageStream.Position];
-                Array.Copy(buffer, reply, reply.Length);
-                return reply;
+
+                // If the stream is seekable, it should have been rewound and
+                // the reply written to the start of the buffer.
+                if (messageStream.CanSeek)
+                {
+                    return buffer;
+                }
+
+                // Otherwise the reply is written to the buffer immediately
+                // after the message.
+                return new ArraySegment<byte>(
+                    buffer,
+                    message.Length + 1,
+                    buffer.Length - message.Length - 1
+                ).ToArray();
             }
         }
 
@@ -151,20 +143,23 @@ namespace dlech.SshAgentLibTests
                 "SSH2 Ed25519 test key + cert"
             );
 
-            List<SshKey> keyList = new List<SshKey>();
-            keyList.Add(rsa1Key);
-            keyList.Add(rsaKey);
-            keyList.Add(rsaCert);
-            keyList.Add(dsaKey);
-            keyList.Add(dsaCert);
-            keyList.Add(ecdsa256Key);
-            keyList.Add(ecdsa256Cert);
-            keyList.Add(ecdsa384Key);
-            keyList.Add(ecdsa384Cert);
-            keyList.Add(ecdsa521Key);
-            keyList.Add(ecdsa521Cert);
-            keyList.Add(ed25519Key);
-            keyList.Add(ed25519Cert);
+            var keyList = new List<SshKey>
+            {
+                rsa1Key,
+                rsaKey,
+                rsaCert,
+                dsaKey,
+                dsaCert,
+                ecdsa256Key,
+                ecdsa256Cert,
+                ecdsa384Key,
+                ecdsa384Cert,
+                ecdsa521Key,
+                ecdsa521Cert,
+                ed25519Key,
+                ed25519Cert
+            };
+
             allKeys = keyList.AsReadOnly();
         }
 
@@ -172,17 +167,19 @@ namespace dlech.SshAgentLibTests
         public void TestAddConstrainedKey()
         {
             var agentClient = new TestAgentClient();
-            agentClient.Agent.ConfirmUserPermissionCallback = delegate
-            {
-                return true;
-            };
+            agentClient.Agent.ConfirmUserPermissionCallback = (k, p) => true;
+
             Agent.KeyConstraint constraint;
             List<Agent.KeyConstraint> constraints = new List<Agent.KeyConstraint>();
 
-            constraint = new Agent.KeyConstraint();
-            constraint.Type = Agent.KeyConstraintType.SSH_AGENT_CONSTRAIN_CONFIRM;
+            constraint = new Agent.KeyConstraint
+            {
+                Type = Agent.KeyConstraintType.SSH_AGENT_CONSTRAIN_CONFIRM
+            };
+
             constraints.Add(constraint);
             agentClient.AddKey(rsaKey, constraints);
+
             Assert.That(agentClient.Agent.KeyCount, Is.EqualTo(1));
             Assert.That(agentClient.Agent.GetAllKeys().First().Constraints.Count, Is.EqualTo(1));
             Assert.That(
@@ -190,12 +187,16 @@ namespace dlech.SshAgentLibTests
                 Is.EqualTo(Agent.KeyConstraintType.SSH_AGENT_CONSTRAIN_CONFIRM)
             );
 
-            constraint = new Agent.KeyConstraint();
-            constraint.Type = Agent.KeyConstraintType.SSH_AGENT_CONSTRAIN_LIFETIME;
-            constraint.Data = (uint)10;
+            constraint = new Agent.KeyConstraint
+            {
+                Type = Agent.KeyConstraintType.SSH_AGENT_CONSTRAIN_LIFETIME,
+                Data = (uint)10
+            };
+
             constraints.Clear();
             constraints.Add(constraint);
             agentClient.AddKey(rsaKey, constraints);
+
             Assert.That(agentClient.Agent.KeyCount, Is.EqualTo(1));
             Assert.That(agentClient.Agent.GetAllKeys().First().Constraints.Count, Is.EqualTo(1));
             Assert.That(
@@ -324,8 +325,8 @@ namespace dlech.SshAgentLibTests
                             var md5Buffer = new byte[48];
                             data.CopyTo(md5Buffer, 0);
                             agentClient.SessionId.CopyTo(md5Buffer, 32);
-                            var expctedSignature = md5.ComputeHash(md5Buffer);
-                            Assert.That(signature, Is.EqualTo(expctedSignature));
+                            var expectedSignature = md5.ComputeHash(md5Buffer);
+                            Assert.That(signature, Is.EqualTo(expectedSignature));
                         }
                         break;
                     case SshVersion.SSH2:
@@ -397,15 +398,47 @@ namespace dlech.SshAgentLibTests
             );
 
             /* try with null passphrase */
-            Assert.That(() => agentClient.Lock(null), Throws.Nothing);
-            Assert.That(() => agentClient.Unlock(null), Throws.Nothing);
+            Assert.That(() => agentClient.Lock(null), Throws.ArgumentNullException);
+            Assert.That(() => agentClient.Unlock(null), Throws.ArgumentNullException);
 
             /* verify that bad passphrase fails */
             Assert.That(() => agentClient.Lock(passphrase), Throws.Nothing);
             Assert.That(
-                () => agentClient.Unlock(null),
+                () => agentClient.Unlock(Array.Empty<byte>()),
                 Throws.Exception.TypeOf<AgentFailureException>()
             );
+        }
+    }
+
+    /// <summary>
+    /// Memory stream with seek function disabled.
+    /// </summary>
+    /// <remarks>
+    /// This is used to simulate an agent that uses a network stream
+    /// that doesn't support seeking.
+    /// </remarks>
+    internal class NonSeekableMemoryStream : MemoryStream
+    {
+        public NonSeekableMemoryStream(byte[] buffer) : base(buffer) { }
+
+        public override bool CanSeek => false;
+
+        public override long Length => throw new NotSupportedException();
+
+        public override void SetLength(long value)
+        {
+            throw new NotSupportedException();
+        }
+
+        public override long Position
+        {
+            get => throw new NotSupportedException();
+            set => throw new NotSupportedException();
+        }
+
+        public override long Seek(long offset, SeekOrigin loc)
+        {
+            throw new NotSupportedException();
         }
     }
 }

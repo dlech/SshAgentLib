@@ -50,78 +50,55 @@ namespace dlech.SshAgentLib
 
         public BlobParser(Stream stream)
         {
-            if (stream == null)
-            {
-                throw new ArgumentNullException("stream");
-            }
-            Stream = stream;
+            Stream = stream ?? throw new ArgumentNullException(nameof(stream));
         }
 
         public byte ReadUInt8()
         {
-            if (Stream.CanSeek && Stream.Length - Stream.Position < 1)
-            {
-                throw new Exception("Not enough data");
-            }
             return (byte)Stream.ReadByte();
         }
 
         public ushort ReadUInt16()
         {
-            byte[] dataLegthBytes = new byte[2];
-            if (Stream.CanSeek && Stream.Length - Stream.Position < dataLegthBytes.Length)
-            {
-                throw new Exception("Not enough data");
-            }
-            Stream.Read(dataLegthBytes, 0, dataLegthBytes.Length);
-            return (ushort)((dataLegthBytes[0] << 8) | dataLegthBytes[1]);
+            byte[] dataLengthBytes = new byte[2];
+            Stream.Read(dataLengthBytes, 0, dataLengthBytes.Length);
+            return (ushort)((dataLengthBytes[0] << 8) | dataLengthBytes[1]);
         }
 
         public uint ReadUInt32()
         {
-            byte[] dataLegthBytes = new byte[4];
-            if (Stream.CanSeek && Stream.Length - Stream.Position < dataLegthBytes.Length)
-            {
-                throw new Exception("Not enough data");
-            }
-            Stream.Read(dataLegthBytes, 0, dataLegthBytes.Length);
+            byte[] dataLengthBytes = new byte[4];
+            Stream.Read(dataLengthBytes, 0, dataLengthBytes.Length);
             return (uint)(
-                (dataLegthBytes[0] << 24)
-                | (dataLegthBytes[1] << 16)
-                | (dataLegthBytes[2] << 8)
-                | dataLegthBytes[3]
+                (dataLengthBytes[0] << 24)
+                | (dataLengthBytes[1] << 16)
+                | (dataLengthBytes[2] << 8)
+                | dataLengthBytes[3]
             );
         }
 
         public ulong ReadUInt64()
         {
-            byte[] dataLegthBytes = new byte[8];
-            if (Stream.CanSeek && Stream.Length - Stream.Position < dataLegthBytes.Length)
-            {
-                throw new Exception("Not enough data");
-            }
-            Stream.Read(dataLegthBytes, 0, dataLegthBytes.Length);
+            byte[] dataLengthBytes = new byte[8];
+            Stream.Read(dataLengthBytes, 0, dataLengthBytes.Length);
             return (ulong)(
-                (dataLegthBytes[0] << 56)
-                | (dataLegthBytes[1] << 48)
-                | (dataLegthBytes[2] << 40)
-                | (dataLegthBytes[3] << 32) + (dataLegthBytes[4] << 24)
-                | (dataLegthBytes[5] << 16)
-                | (dataLegthBytes[6] << 8)
-                | dataLegthBytes[7]
+                (dataLengthBytes[0] << 56)
+                | (dataLengthBytes[1] << 48)
+                | (dataLengthBytes[2] << 40)
+                | (dataLengthBytes[3] << 32) + (dataLengthBytes[4] << 24)
+                | (dataLengthBytes[5] << 16)
+                | (dataLengthBytes[6] << 8)
+                | dataLengthBytes[7]
             );
         }
 
         public Agent.BlobHeader ReadHeader()
         {
-            Agent.BlobHeader header = new Agent.BlobHeader();
-
-            header.BlobLength = ReadUInt32();
-            if (Stream.CanSeek && Stream.Length - Stream.Position < header.BlobLength)
+            Agent.BlobHeader header = new Agent.BlobHeader
             {
-                throw new Exception("Not enough data");
-            }
-            header.Message = (Agent.Message)ReadUInt8();
+                BlobLength = ReadUInt32(),
+                Message = (Agent.Message)ReadUInt8()
+            };
             return header;
         }
 
@@ -148,10 +125,6 @@ namespace dlech.SshAgentLib
 
         public byte[] ReadBytes(uint blobLength)
         {
-            if (Stream.CanSeek && Stream.Length - Stream.Position < blobLength)
-            {
-                throw new Exception("Not enough data");
-            }
             var blob = new byte[(int)blobLength];
             Stream.Read(blob, 0, blob.Length);
             return blob;
@@ -193,8 +166,7 @@ namespace dlech.SshAgentLib
             var validBeforeDateTime =
                 validBefore == ulong.MaxValue ? DateTime.MaxValue : epoch.AddSeconds(validBefore);
             var signatureKeyParser = new BlobParser(signatureKey);
-            OpensshCertificate unused;
-            var sigKey = signatureKeyParser.ReadSsh2PublicKeyData(out unused);
+            var sigKey = signatureKeyParser.ReadSsh2PublicKeyData(out _);
 
             return new OpensshCertificate(
                 builder.GetBlob(),
@@ -492,10 +464,7 @@ namespace dlech.SshAgentLib
         /// <returns>AsymmetricKeyParameter containing the public key</returns>
         public AsymmetricKeyParameter ReadSsh1PublicKeyData(bool reverseRsaParameters = false)
         {
-            // ignore not used warning
-#pragma warning disable 0219
-            uint keyLength = ReadUInt32();
-#pragma warning restore 0219
+            _ = ReadUInt32(); // key_bits - unused
             var rsaN = new BigInteger(1, ReadSsh1BigIntBlob());
             var rsaE = new BigInteger(1, ReadSsh1BigIntBlob());
 

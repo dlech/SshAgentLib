@@ -1,4 +1,4 @@
-﻿//
+//
 // AgentClient.cs
 //
 // Author(s): David Lechner <david@lechnology.com>
@@ -296,24 +296,28 @@ namespace dlech.SshAgentLib
             }
         }
 
-        public void Lock(byte[] aPassphrase)
+        public void Lock(byte[] passphrase)
         {
-            BlobBuilder builder = new BlobBuilder();
-            if (aPassphrase != null)
+            if (passphrase is null)
             {
-                builder.AddBlob(aPassphrase);
+                throw new ArgumentNullException(nameof(passphrase));
             }
+
+            BlobBuilder builder = new BlobBuilder();
+            builder.AddBlob(passphrase);
             builder.InsertHeader(Agent.Message.SSH_AGENTC_LOCK);
             SendMessageAndCheckSuccess(builder);
         }
 
-        public void Unlock(byte[] aPassphrase)
+        public void Unlock(byte[] passphrase)
         {
-            BlobBuilder builder = new BlobBuilder();
-            if (aPassphrase != null)
+            if (passphrase is null)
             {
-                builder.AddBlob(aPassphrase);
+                throw new ArgumentNullException(nameof(passphrase));
             }
+
+            BlobBuilder builder = new BlobBuilder();
+            builder.AddBlob(passphrase);
             builder.InsertHeader(Agent.Message.SSH_AGENTC_UNLOCK);
             SendMessageAndCheckSuccess(builder);
         }

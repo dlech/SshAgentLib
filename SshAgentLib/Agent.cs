@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: MIT
+﻿// SPDX-License-Identifier: MIT
 // Copyright (c) 2012-2015,2017-2018,2022 David Lechner <david@lechnology.com>
 // Author(s): David Lechner
 //            Max Laverse
@@ -440,6 +440,24 @@ namespace dlech.SshAgentLib
                 // which returns an error to the stream.
             }
 
+            // There are some parts of the code below that rely on knowing the
+            // position in the stream. So if a stream is not seekable, we need
+            // to read the full length now to a copy in memory.
+            if (!messageParser.Stream.CanSeek)
+            {
+                // make copy of data from stream
+                var builder = new BlobBuilder();
+                builder.AddUInt32(header.BlobLength);
+                builder.AddUInt8((byte)header.Message);
+                builder.AddBytes(messageParser.ReadBytes(header.BlobLength));
+
+                // replace the parser with the in-memory stream
+                messageParser = new BlobParser(builder.GetBlob());
+
+                // ensure the parser is in the same position it was previously
+                messageParser.ReadHeader();
+            }
+
             switch (header.Message)
             {
                 case Message.SSH1_AGENTC_REQUEST_RSA_IDENTITIES:
@@ -698,7 +716,7 @@ namespace dlech.SshAgentLib
 
                         if (ssh1constrained)
                         {
-                            while (messageStream.Position < header.BlobLength + 4)
+                            while (messageParser.Stream.Position < header.BlobLength + 4)
                             {
                                 var constraint = new KeyConstraint
                                 {
@@ -760,7 +778,7 @@ namespace dlech.SshAgentLib
 
                         if (constrained)
                         {
-                            while (messageStream.Position < header.BlobLength + 4)
+                            while (messageParser.Stream.Position < header.BlobLength + 4)
                             {
                                 KeyConstraint constraint = new KeyConstraint
                                 {
