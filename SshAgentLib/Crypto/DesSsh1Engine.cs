@@ -68,14 +68,14 @@ namespace dlech.SshAgentLib.Crypto
 
             this.encrypting = encrypting;
 
-            byte[] passphraseKey = (parameters as KeyParameter).GetKey();
+            var passphraseKey = (parameters as KeyParameter).GetKey();
             if (passphraseKey.Length != 16)
             {
                 throw new ArgumentException("key size different than 16 bytes");
             }
 
-            byte[] keyPart1 = new byte[8];
-            byte[] keyPart2 = new byte[8];
+            var keyPart1 = new byte[8];
+            var keyPart2 = new byte[8];
 
             Array.Copy(passphraseKey, keyPart1, 8);
             Array.Copy(passphraseKey, 8, keyPart2, 0, 8);

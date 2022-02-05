@@ -41,7 +41,7 @@ namespace dlech.SshAgentLibTests
         [Test()]
         public void TestAddBytes()
         {
-            BlobBuilder builder = new BlobBuilder();
+            var builder = new BlobBuilder();
             byte[] value = { 0, 1, 2, 3, 4, 5 };
             builder.AddBytes(value);
             Assert.That(builder.GetBlob(), Is.EqualTo(value));
@@ -50,7 +50,7 @@ namespace dlech.SshAgentLibTests
         [Test()]
         public void TestAddInt()
         {
-            BlobBuilder builder = new BlobBuilder();
+            var builder = new BlobBuilder();
             UInt32 value = 12345;
             builder.AddUInt32(value);
             Assert.That(builder.GetBlob(), Is.EqualTo(value.ToBytes()));
@@ -59,10 +59,10 @@ namespace dlech.SshAgentLibTests
         [Test()]
         public void TestAddBlob()
         {
-            BlobBuilder builder = new BlobBuilder();
+            var builder = new BlobBuilder();
             byte[] blob = { 0, 1, 2, 3, 4, 5 };
             builder.AddBlob(blob);
-            byte[] expected = new byte[blob.Length + 4];
+            var expected = new byte[blob.Length + 4];
             Array.Copy(blob.Length.ToBytes(), expected, 4);
             Array.Copy(blob, 0, expected, 4, blob.Length);
             Assert.That(builder.GetBlob(), Is.EqualTo(expected));
@@ -71,11 +71,11 @@ namespace dlech.SshAgentLibTests
         [Test()]
         public void TestAddString()
         {
-            BlobBuilder builder = new BlobBuilder();
-            string value = "test string";
+            var builder = new BlobBuilder();
+            var value = "test string";
             builder.AddStringBlob(value);
-            byte[] valueBytes = Encoding.UTF8.GetBytes(value);
-            byte[] expected = new byte[valueBytes.Length + 4];
+            var valueBytes = Encoding.UTF8.GetBytes(value);
+            var expected = new byte[valueBytes.Length + 4];
             Array.Copy(valueBytes.Length.ToBytes(), expected, 4);
             Array.Copy(valueBytes, 0, expected, 4, valueBytes.Length);
             Assert.That(builder.GetBlob(), Is.EqualTo(expected));
@@ -84,12 +84,12 @@ namespace dlech.SshAgentLibTests
         [Test()]
         public void TestAddBigInt()
         {
-            BlobBuilder builder = new BlobBuilder();
-            BigInteger value = new BigInteger("12398259028592293582039293420948023");
+            var builder = new BlobBuilder();
+            var value = new BigInteger("12398259028592293582039293420948023");
             builder.AddBigIntBlob(value);
-            byte[] valueBytes = value.ToByteArrayUnsigned();
+            var valueBytes = value.ToByteArrayUnsigned();
             //Assert.That(valueBytes[0], Is.EqualTo(0));
-            byte[] expected = new byte[valueBytes.Length + 4];
+            var expected = new byte[valueBytes.Length + 4];
             Array.Copy(valueBytes.Length.ToBytes(), expected, 4);
             Array.Copy(valueBytes, 0, expected, 4, valueBytes.Length);
             Assert.That(builder.GetBlob(), Is.EqualTo(expected));
@@ -98,13 +98,13 @@ namespace dlech.SshAgentLibTests
         [Test()]
         public void TestAddSsh1BigIntBlob()
         {
-            BlobBuilder builder = new BlobBuilder();
-            BigInteger value = new BigInteger("12398259028592293582039293420948023");
+            var builder = new BlobBuilder();
+            var value = new BigInteger("12398259028592293582039293420948023");
             builder.AddSsh1BigIntBlob(value);
-            byte[] valueBytes = value.ToByteArrayUnsigned();
-            byte[] expected = new byte[valueBytes.Length + 2];
+            var valueBytes = value.ToByteArrayUnsigned();
+            var expected = new byte[valueBytes.Length + 2];
 
-            ushort size = (ushort)(value.BitLength);
+            var size = (ushort)(value.BitLength);
             expected[0] = (byte)((size >> 8) & 0xFF);
             expected[1] = (byte)(size & 0xFF);
 
@@ -115,13 +115,13 @@ namespace dlech.SshAgentLibTests
         [Test()]
         public void TestInsertHeader()
         {
-            BlobBuilder builder = new BlobBuilder();
+            var builder = new BlobBuilder();
             builder.InsertHeader(Agent.Message.SSH_AGENT_SUCCESS);
             byte[] expected = { 0, 0, 0, 1, (byte)Agent.Message.SSH_AGENT_SUCCESS };
             Assert.That(builder.GetBlob(), Is.EqualTo(expected));
 
             builder = new BlobBuilder();
-            int value1 = 12345;
+            var value1 = 12345;
             builder.InsertHeader(Agent.Message.SSH_AGENT_SUCCESS, value1);
             expected = new byte[9];
             Array.Copy((5).ToBytes(), expected, 4);
@@ -134,7 +134,7 @@ namespace dlech.SshAgentLibTests
             builder.AddBytes(value2);
             builder.InsertHeader(Agent.Message.SSH_AGENT_SUCCESS);
             expected = new byte[5 + value2.Length];
-            int length = value2.Length + 1;
+            var length = value2.Length + 1;
             Array.Copy(length.ToBytes(), expected, 4);
             expected[4] = (byte)Agent.Message.SSH_AGENT_SUCCESS;
             Array.Copy(value2, 0, expected, 5, value2.Length);

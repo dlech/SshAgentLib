@@ -56,24 +56,24 @@ namespace dlech.SshAgentLibTests
         public void PpkDeserializeNonAsciiPassphraseTest()
         {
             ISshKey key;
-            PpkFormatter formatter = new PpkFormatter();
+            var formatter = new PpkFormatter();
             formatter.WarnOldFileFormatCallbackMethod = delegate()
             {
                 Assert.Fail("Warn old file format was not expected");
             };
 
-            string passphrase = "Ŧéşť";
+            var passphrase = "Ŧéşť";
             formatter.GetPassphraseCallbackMethod = delegate(string comment)
             {
-                SecureString result = new SecureString();
-                foreach (char c in passphrase)
+                var result = new SecureString();
+                foreach (var c in passphrase)
                 {
                     result.AppendChar(c);
                 }
                 return result;
             };
 
-            string expectedComment = "rsa-key-20120818";
+            var expectedComment = "rsa-key-20120818";
 
             /* test for successful method call */
             var path = Path.Combine(
@@ -92,12 +92,12 @@ namespace dlech.SshAgentLibTests
         {
             ISshKey target;
 
-            PpkFormatter formatter = new PpkFormatter()
+            var formatter = new PpkFormatter()
             {
                 GetPassphraseCallbackMethod = _ =>
                 {
-                    SecureString result = new SecureString();
-                    foreach (char c in "PageantSharp")
+                    var result = new SecureString();
+                    foreach (var c in "PageantSharp")
                     {
                         result.AppendChar(c);
                     }
@@ -118,7 +118,7 @@ namespace dlech.SshAgentLibTests
                     + "bf:e4:06:fc:4a:1b:da:e3:0b:1f:5d:df:37:6a:d1:1d:b3:31:39:60:20:61:"
                     + "b7:ac:bd:a1:e4:39:fc:b1:b0:a3:4c:9c:8c:02:f2:e1:2d:1c:9e:c8"
             };
-            for (int i = 0; i < keys.Length; ++i)
+            for (var i = 0; i < keys.Length; ++i)
             {
                 var path = Path.Combine(DllDirectory, keys[i]);
                 target = (ISshKey)formatter.DeserializeFile(path);
@@ -137,12 +137,12 @@ namespace dlech.SshAgentLibTests
         {
             ISshKey target;
 
-            PpkFormatter formatter = new PpkFormatter()
+            var formatter = new PpkFormatter()
             {
                 GetPassphraseCallbackMethod = _ =>
                 {
-                    SecureString result = new SecureString();
-                    foreach (char c in "PageantSharp")
+                    var result = new SecureString();
+                    foreach (var c in "PageantSharp")
                     {
                         result.AppendChar(c);
                     }
@@ -170,7 +170,7 @@ namespace dlech.SshAgentLibTests
                 "ef41441bc21c20ee38a8169855b618e5c76f34b067d8bbd85276de982aec60fc9"
                     + "0114acad5fc599e83c8d6fc535fb36c5244908577b1138ff4eed7d7b6c9eb2d01"
             };
-            for (int i = 0; i < keys.Length; ++i)
+            for (var i = 0; i < keys.Length; ++i)
             {
                 var path = Path.Combine(DllDirectory, keys[i]);
                 target = formatter.DeserializeFile(path);
@@ -197,11 +197,11 @@ namespace dlech.SshAgentLibTests
                 warnCallbackCalled = true;
             };
 
-            string passphrase = "PageantSharp";
+            var passphrase = "PageantSharp";
             PpkFormatter.GetPassphraseCallback getPassphrase = delegate(string comment)
             {
-                SecureString result = new SecureString();
-                foreach (char c in passphrase)
+                var result = new SecureString();
+                foreach (var c in passphrase)
                 {
                     result.AppendChar(c);
                 }
@@ -210,15 +210,15 @@ namespace dlech.SshAgentLibTests
 
             PpkFormatter.GetPassphraseCallback getBadPassphrase = delegate(string comment)
             {
-                SecureString result = new SecureString();
-                foreach (char c in "badword")
+                var result = new SecureString();
+                foreach (var c in "badword")
                 {
                     result.AppendChar(c);
                 }
                 return result;
             };
 
-            int expectedKeySize = 1024; // all test keys
+            var expectedKeySize = 1024; // all test keys
 
             //      string expectedSsh2RsaPublicKeyAlgorithm = PpkFile.PublicKeyAlgorithms.ssh_rsa;
             //      string expectedSsh2RsaWithoutPassPublicKeyString =
@@ -232,7 +232,7 @@ namespace dlech.SshAgentLibTests
             //        "pgu7dbOyHKK0LczCx/IHBm8jrpzrJeB0rg+0ym7XgEcGYgdRj7wFo93PEtx1T4kF" +
             //        "gNLsE3k=";
             //      string expectedSsh2RsaWithoutPassComment = "PageantSharp test: SSH2-RSA, no passphrase";
-            string expectedSsh2RsaWithPassComment = "PageantSharp test: SSH2-RSA, with passphrase";
+            var expectedSsh2RsaWithPassComment = "PageantSharp test: SSH2-RSA, with passphrase";
             //      string expectedSsh2RsaWithoutPassPrivateKeyString =
             //        "AAAAgCQO+gUVmA6HSf8S/IqywEqQ/rEoI+A285IjlCMZZNDq8DeXimlDug3VPN2v" +
             //        "lE29/8/sLUXIDSjCtciiUOB2Ypb5Y7AtjDDGg4Yk4v034Mxp0Db6ygDrBuSXbV1U" +
@@ -251,17 +251,17 @@ namespace dlech.SshAgentLibTests
             //        "rq3Dva/y7n0UBRqJ8Y+mdkKQW6oO0usEsEXrVxz1AAAAQF3U8ibnexxDTxhUZdw5" +
             //        "4nzukrnamPWqbZf2RyvQAMA0vw6uW1YNcN6qJxAkt7K5rLg9fsV2ft1FFBcPy+C+" +
             //        "BDw=";
-            string expectedSsh2RsaWithoutPassPrivateMACString =
+            var expectedSsh2RsaWithoutPassPrivateMACString =
                 "77bfa6dc141ed17e4c850d3a95cd6f4ec89cd86b";
-            string oldFileFormatSsh2RsaWithoutPassPrivateMACString =
+            var oldFileFormatSsh2RsaWithoutPassPrivateMACString =
                 "dc54d9b526e6d5aeb4832811f2b825e735b218f7";
             //      string expectedSsh2RsaWithPassPrivateMACString =
             //        "e71a6a7b6271875a8264d9d8995f7c81508d6a6c";
 
-            string expectedSsh2DsaWithPassComment = "PageantSharp SSH2-DSA, with passphrase";
+            var expectedSsh2DsaWithPassComment = "PageantSharp SSH2-DSA, with passphrase";
             //      string expectedSsh2DsaPrivateKey = "AAAAFQCMF35lBnFwFWyl40y0wTf4lfdhNQ==";
 
-            PpkFormatter formatter = new PpkFormatter();
+            var formatter = new PpkFormatter();
 
             /* test for successful method call */
             formatter.GetPassphraseCallbackMethod = getPassphrase;
@@ -274,7 +274,7 @@ namespace dlech.SshAgentLibTests
 
             /* read file to string for modification by subsequent tests */
             path = Path.Combine(DllDirectory, "../../../Resources/ssh2-rsa-no-passphrase.ppk");
-            byte[] fileData = File.ReadAllBytes(path);
+            var fileData = File.ReadAllBytes(path);
             string withoutPassFileContents;
             byte[] modifiedFileContents;
             MemoryStream modifiedFileContentsStream;
@@ -500,7 +500,7 @@ namespace dlech.SshAgentLibTests
             int[] sizes = { 256, 256, 384, 384, 521, 521, 256, 256 };
             formatter.GetPassphraseCallbackMethod = getPassphrase;
             formatter.WarnOldFileFormatCallbackMethod = warnOldFileNotExpected;
-            for (int i = 0; i < keys.Length; ++i)
+            for (var i = 0; i < keys.Length; ++i)
             {
                 path = Path.Combine(DllDirectory, keys[i]);
                 target = (ISshKey)formatter.DeserializeFile(path);
@@ -529,8 +529,8 @@ namespace dlech.SshAgentLibTests
                     {
                         return null;
                     }
-                    SecureString result = new SecureString();
-                    foreach (char c in v)
+                    var result = new SecureString();
+                    foreach (var c in v)
                     {
                         result.AppendChar(c);
                     }
@@ -538,15 +538,15 @@ namespace dlech.SshAgentLibTests
                 };
             };
 
-            string passphraseNonAscii = "Ŧéşť";
-            string passphraseGood = "PageantSharp";
+            var passphraseNonAscii = "Ŧéşť";
+            var passphraseGood = "PageantSharp";
             // string passphraseBad = "badword";
             string passphraseNull = null;
 
-            int expectedKeySize = 1024; // all test keys
+            var expectedKeySize = 1024; // all test keys
 
             string path;
-            PpkFormatter formatter = new PpkFormatter();
+            var formatter = new PpkFormatter();
 
             /* test for successful method call */
             formatter.GetPassphraseCallbackMethod = GetPassphrase(passphraseGood);

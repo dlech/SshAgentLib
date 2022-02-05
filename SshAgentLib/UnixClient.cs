@@ -56,7 +56,7 @@ namespace dlech.SshAgentLib
                 using (var stream = client.GetStream())
                 {
                     stream.Write(aMessage, 0, aMessage.Length);
-                    byte[] reply = new byte[BufferSize];
+                    var reply = new byte[BufferSize];
                     stream.Read(reply, 0, reply.Length);
                     return reply;
                 }

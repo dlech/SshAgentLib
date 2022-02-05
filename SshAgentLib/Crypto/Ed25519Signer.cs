@@ -44,7 +44,7 @@ namespace dlech.SshAgentLib.Crypto
 
         public void BlockUpdate(byte[] input, int inOff, int length)
         {
-            for (int i = 0; i < length; i++)
+            for (var i = 0; i < length; i++)
             {
                 message.Add(input[inOff + i]);
             }

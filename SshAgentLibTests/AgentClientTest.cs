@@ -170,7 +170,7 @@ namespace SshAgentLibTests
             agentClient.Agent.ConfirmUserPermissionCallback = (k, p) => true;
 
             Agent.KeyConstraint constraint;
-            List<Agent.KeyConstraint> constraints = new List<Agent.KeyConstraint>();
+            var constraints = new List<Agent.KeyConstraint>();
 
             constraint = new Agent.KeyConstraint
             {
@@ -209,7 +209,7 @@ namespace SshAgentLibTests
         public void TestAddKey()
         {
             var agentClient = new TestAgentClient();
-            int keyCount = 0;
+            var keyCount = 0;
 
             foreach (var key in allKeys)
             {
@@ -320,7 +320,7 @@ namespace SshAgentLibTests
                 switch (key.Version)
                 {
                     case SshVersion.SSH1:
-                        using (MD5 md5 = MD5.Create())
+                        using (var md5 = MD5.Create())
                         {
                             var md5Buffer = new byte[48];
                             data.CopyTo(md5Buffer, 0);
@@ -330,7 +330,7 @@ namespace SshAgentLibTests
                         }
                         break;
                     case SshVersion.SSH2:
-                        BlobParser signatureParser = new BlobParser(signature);
+                        var signatureParser = new BlobParser(signature);
                         var algorithm = signatureParser.ReadString();
                         Assert.That(algorithm, Is.EqualTo(key.Algorithm.GetIdentifier()));
                         signature = signatureParser.ReadBlob();
@@ -354,7 +354,7 @@ namespace SshAgentLibTests
                         {
                             Assert.That(signature.Length, Is.AtLeast(key.Size / 4 + 8));
                             Assert.That(signature.Length, Is.AtMost(key.Size / 4 + 10));
-                            BlobParser parser = new BlobParser(signature);
+                            var parser = new BlobParser(signature);
                             var r = new BigInteger(parser.ReadBlob());
                             var s = new BigInteger(parser.ReadBlob());
                             var seq = new DerSequence(new DerInteger(r), new DerInteger(s));

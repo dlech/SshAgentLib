@@ -237,7 +237,7 @@ namespace dlech.SshAgentLib
         /// </exception>
         public override object Deserialize(Stream aStream)
         {
-            FileData fileData = new FileData();
+            var fileData = new FileData();
 
             /* check for required parameters */
             if (aStream == null)
@@ -246,11 +246,11 @@ namespace dlech.SshAgentLib
             }
 
             string line;
-            string[] pair = new string[2];
+            var pair = new string[2];
             int lineCount,
                 i;
 
-            StreamReader reader = new StreamReader(aStream, Encoding.GetEncoding(1252));
+            var reader = new StreamReader(aStream, Encoding.GetEncoding(1252));
             char[] delimArray = { cDelimeter };
 
             try
@@ -265,7 +265,7 @@ namespace dlech.SshAgentLib
                         puttyUserKeyFileKey + " expected"
                     );
                 }
-                string ppkFileVersion = pair[0].Remove(0, puttyUserKeyFileKey.Length);
+                var ppkFileVersion = pair[0].Remove(0, puttyUserKeyFileKey.Length);
                 if (!ppkFileVersion.TryParseVersion(ref fileData.ppkFileVersion))
                 {
                     throw new PpkFormatterException(PpkFormatterException.PpkErrorType.FileVersion);
@@ -279,7 +279,7 @@ namespace dlech.SshAgentLib
                 }
 
                 /* read public key encryption algorithm type */
-                string algorithm = pair[1].Trim();
+                var algorithm = pair[1].Trim();
 
                 try
                 {
@@ -339,7 +339,7 @@ namespace dlech.SshAgentLib
                         "integer expected"
                     );
                 }
-                string publicKeyString = string.Empty;
+                var publicKeyString = string.Empty;
                 for (i = 0; i < lineCount; i++)
                 {
                     publicKeyString += reader.ReadLine();
@@ -503,7 +503,7 @@ namespace dlech.SshAgentLib
                         "integer expected"
                     );
                 }
-                string privateKeyString = string.Empty;
+                var privateKeyString = string.Empty;
                 for (i = 0; i < lineCount; i++)
                 {
                     privateKeyString += reader.ReadLine();
@@ -528,7 +528,7 @@ namespace dlech.SshAgentLib
                 {
                     fileData.isHMAC = true;
                 }
-                string privateMACString = pair[1].Trim();
+                var privateMACString = pair[1].Trim();
                 fileData.privateMAC = Util.FromHex(privateMACString);
 
                 /* get passphrase and decrypt private key if required */
@@ -544,12 +544,12 @@ namespace dlech.SshAgentLib
 
                 VerifyIntegrity(fileData);
 
-                AsymmetricCipherKeyPair cipherKeyPair = CreateCipherKeyPair(
+                var cipherKeyPair = CreateCipherKeyPair(
                     fileData.publicKeyAlgorithm,
                     fileData.publicKeyBlob,
                     fileData.privateKeyBlob
                 );
-                SshKey key = new SshKey(SshVersion.SSH2, cipherKeyPair, fileData.comment);
+                var key = new SshKey(SshVersion.SSH2, cipherKeyPair, fileData.comment);
                 return key;
             }
             catch (PpkFormatterException)
@@ -595,9 +595,9 @@ namespace dlech.SshAgentLib
             out byte[] macKey
         )
         {
-            int cipherLength = 32;
-            int ivLength = 16;
-            int macLength = 32;
+            var cipherLength = 32;
+            var ivLength = 16;
+            var macLength = 32;
 
             if (fileData.privateKeyAlgorithm == PrivateKeyAlgorithm.None)
             {
@@ -634,7 +634,7 @@ namespace dlech.SshAgentLib
             // means they aren't explicitly zeroed unless we do it.
             // and then cipher.Clear() and mac.Clear() need to be
             // called once they're no longer in use.
-            byte[] kdf = hasher.GetBytes(cipherLength + ivLength + macLength);
+            var kdf = hasher.GetBytes(cipherLength + ivLength + macLength);
             cipherKey = kdf.Skip(0).Take(cipherLength).ToArray();
             iv = kdf.Skip(cipherLength).Take(ivLength).ToArray();
             macKey = kdf.Skip(cipherLength + ivLength).Take(macLength).ToArray();
@@ -658,9 +658,9 @@ namespace dlech.SshAgentLib
                     {
                         case Version.V1:
                         case Version.V2:
-                            SHA1 sha = SHA1.Create();
+                            var sha = SHA1.Create();
                             sha.Initialize();
-                            List<byte> key = new List<byte>();
+                            var key = new List<byte>();
                             iv = new byte[16];
 
                             var hashData = new byte[
@@ -673,14 +673,14 @@ namespace dlech.SshAgentLib
                                 cPrivateKeyDecryptSalt1.Length
                             );
 
-                            IntPtr passphrasePtr = Marshal.SecureStringToGlobalAllocUnicode(
+                            var passphrasePtr = Marshal.SecureStringToGlobalAllocUnicode(
                                 fileData.passphrase
                             );
 
-                            for (int i = 0; i < fileData.passphrase.Length; i++)
+                            for (var i = 0; i < fileData.passphrase.Length; i++)
                             {
                                 int unicodeChar = Marshal.ReadInt16(passphrasePtr + i * 2);
-                                byte ansiChar = Util.UnicodeToAnsi(unicodeChar);
+                                var ansiChar = Util.UnicodeToAnsi(unicodeChar);
                                 hashData[cPrivateKeyDecryptSalt1.Length + i] = ansiChar;
                                 Marshal.WriteByte(passphrasePtr, i, 0);
                             }
@@ -697,7 +697,7 @@ namespace dlech.SshAgentLib
 
                             sha.ComputeHash(hashData);
                             key.AddRange(sha.Hash);
-                            int keySize = 256 / 8; // convert bits to bytes
+                            var keySize = 256 / 8; // convert bits to bytes
                             key.RemoveRange(keySize, key.Count - keySize); // remove extra bytes
                             cipherKey = key.ToArray();
 
@@ -713,14 +713,14 @@ namespace dlech.SshAgentLib
 
                     /* decrypt private key */
 
-                    Aes aes = Aes.Create();
+                    var aes = Aes.Create();
                     aes.KeySize = 256;
                     aes.Mode = CipherMode.CBC;
                     aes.Padding = PaddingMode.None;
                     aes.Key = cipherKey;
                     Array.Clear(cipherKey, 0, cipherKey.Length);
                     aes.IV = iv;
-                    ICryptoTransform decryptor = aes.CreateDecryptor();
+                    var decryptor = aes.CreateDecryptor();
                     fileData.privateKeyBlob = Util.GenericTransform(
                         decryptor,
                         fileData.privateKeyBlob
@@ -738,7 +738,7 @@ namespace dlech.SshAgentLib
 
         private static void VerifyIntegrity(FileData fileData)
         {
-            BlobBuilder builder = new BlobBuilder();
+            var builder = new BlobBuilder();
             if (fileData.ppkFileVersion != Version.V1)
             {
                 builder.AddStringBlob(fileData.publicKeyAlgorithm.GetIdentifier());
@@ -754,10 +754,10 @@ namespace dlech.SshAgentLib
             {
                 case Version.V1:
                 case Version.V2:
-                    SHA1 sha = SHA1.Create();
+                    var sha = SHA1.Create();
                     if (fileData.isHMAC)
                     {
-                        HMAC hmac = HMACSHA1.Create();
+                        var hmac = HMACSHA1.Create();
                         if (fileData.passphrase != null)
                         {
                             var hashData = new byte[
@@ -770,14 +770,14 @@ namespace dlech.SshAgentLib
                                 cMACKeySalt.Length
                             );
 
-                            IntPtr passphrasePtr = Marshal.SecureStringToGlobalAllocUnicode(
+                            var passphrasePtr = Marshal.SecureStringToGlobalAllocUnicode(
                                 fileData.passphrase
                             );
 
-                            for (int i = 0; i < fileData.passphrase.Length; i++)
+                            for (var i = 0; i < fileData.passphrase.Length; i++)
                             {
                                 int unicodeChar = Marshal.ReadInt16(passphrasePtr + i * 2);
-                                byte ansiChar = Util.UnicodeToAnsi(unicodeChar);
+                                var ansiChar = Util.UnicodeToAnsi(unicodeChar);
                                 hashData[cMACKeySalt.Length + i] = ansiChar;
                                 Marshal.WriteByte(passphrasePtr, i * 2, 0);
                             }
@@ -805,7 +805,7 @@ namespace dlech.SshAgentLib
                         iv,
                         macKey;
                     argonKeys(fileData, out cipherKey, out iv, out macKey);
-                    HMACSHA256 hmacsha256 = new HMACSHA256(macKey);
+                    var hmacsha256 = new HMACSHA256(macKey);
                     computedHash = hmacsha256.ComputeHash(builder.GetBlob());
                     break;
                 default:
@@ -875,7 +875,7 @@ namespace dlech.SshAgentLib
                     var dp = d.Remainder(p.Subtract(BigInteger.One));
                     var dq = d.Remainder(q.Subtract(BigInteger.One));
 
-                    RsaPrivateCrtKeyParameters rsaPrivateKeyParams = new RsaPrivateCrtKeyParameters(
+                    var rsaPrivateKeyParams = new RsaPrivateCrtKeyParameters(
                         rsaPublicKeyParams.Modulus,
                         rsaPublicKeyParams.Exponent,
                         d,
@@ -892,7 +892,7 @@ namespace dlech.SshAgentLib
                     var dsaPublicKeyParams = (DsaPublicKeyParameters)publicKey;
 
                     var x = new BigInteger(1, parser.ReadBlob());
-                    DsaPrivateKeyParameters dsaPrivateKeyParams = new DsaPrivateKeyParameters(
+                    var dsaPrivateKeyParams = new DsaPrivateKeyParameters(
                         x,
                         dsaPublicKeyParams.Parameters
                     );
@@ -901,8 +901,8 @@ namespace dlech.SshAgentLib
                 case PublicKeyAlgorithm.SshEd25519:
                     var ed25596PublicKey = (Ed25519PublicKeyParameter)publicKey;
 
-                    byte[] privBlob = parser.ReadBlob();
-                    byte[] privSig = new byte[64];
+                    var privBlob = parser.ReadBlob();
+                    var privSig = new byte[64];
                     // OpenSSH's "private key" is actually the private key with the public key tacked on ...
                     Array.Copy(privBlob, 0, privSig, 0, 32);
                     Array.Copy(ed25596PublicKey.Key, 0, privSig, 32, 32);
@@ -915,7 +915,7 @@ namespace dlech.SshAgentLib
                     var ecPublicKeyParams = (ECPublicKeyParameters)publicKey;
 
                     var ecdsaPrivate = new BigInteger(1, parser.ReadBlob());
-                    ECPrivateKeyParameters ecPrivateKeyParams = new ECPrivateKeyParameters(
+                    var ecPrivateKeyParams = new ECPrivateKeyParameters(
                         ecdsaPrivate,
                         ecPublicKeyParams.Parameters
                     );

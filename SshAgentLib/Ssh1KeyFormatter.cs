@@ -78,12 +78,11 @@ namespace dlech.SshAgentLib
                 cipherType = SSH_CIPHER_3DES;
             }
 
-            BlobBuilder builder = new BlobBuilder();
+            var builder = new BlobBuilder();
 
-            ISshKey sshKey = aObject as ISshKey;
-            RsaKeyParameters publicKeyParams = sshKey.GetPublicKeyParameters() as RsaKeyParameters;
-            RsaPrivateCrtKeyParameters privateKeyParams =
-                sshKey.GetPrivateKeyParameters() as RsaPrivateCrtKeyParameters;
+            var sshKey = aObject as ISshKey;
+            var publicKeyParams = sshKey.GetPublicKeyParameters() as RsaKeyParameters;
+            var privateKeyParams = sshKey.GetPrivateKeyParameters() as RsaPrivateCrtKeyParameters;
 
             /* writing info headers */
             builder.AddBytes(Encoding.ASCII.GetBytes(FILE_HEADER_LINE + "\n"));
@@ -98,11 +97,11 @@ namespace dlech.SshAgentLib
             builder.AddStringBlob(sshKey.Comment);
 
             /* writing private key */
-            BlobBuilder privateKeyBuilder = new BlobBuilder();
+            var privateKeyBuilder = new BlobBuilder();
 
             /* adding some control values */
-            Random random = new Random();
-            byte[] resultCheck = new byte[2];
+            var random = new Random();
+            var resultCheck = new byte[2];
             random.NextBytes(resultCheck);
 
             privateKeyBuilder.AddUInt8(resultCheck[0]);
@@ -122,17 +121,17 @@ namespace dlech.SshAgentLib
             else
             {
                 byte[] keydata;
-                using (MD5 md5 = MD5.Create())
+                using (var md5 = MD5.Create())
                 {
                     keydata = md5.ComputeHash(Encoding.ASCII.GetBytes(passphrase));
                 }
 
                 /* encryption */
-                DesSsh1Engine desEngine = new DesSsh1Engine();
+                var desEngine = new DesSsh1Engine();
                 desEngine.Init(true, new KeyParameter(keydata));
 
-                BufferedBlockCipher bufferedBlockCipher = new BufferedBlockCipher(desEngine);
-                byte[] ouputBuffer = bufferedBlockCipher.ProcessBytes(privateKeyBuilder.GetBlob());
+                var bufferedBlockCipher = new BufferedBlockCipher(desEngine);
+                var ouputBuffer = bufferedBlockCipher.ProcessBytes(privateKeyBuilder.GetBlob());
 
                 builder.AddBytes(ouputBuffer);
             }
@@ -156,7 +155,7 @@ namespace dlech.SshAgentLib
 
             parser.ReadBytes(FILE_HEADER_LINE.Length + 2); //Skipping header line
 
-            byte cipherType = parser.ReadByte();
+            var cipherType = parser.ReadByte();
             if (cipherType != SSH_CIPHER_3DES && cipherType != SSH_CIPHER_NONE)
             {
                 //TripleDes is the only encryption supported
@@ -166,11 +165,11 @@ namespace dlech.SshAgentLib
             parser.ReadUInt32(); //reserved
 
             /* reading public key */
-            AsymmetricKeyParameter aPublicKeyParameter = parser.ReadSsh1PublicKeyData(false);
-            string keyComment = parser.ReadString();
+            var aPublicKeyParameter = parser.ReadSsh1PublicKeyData(false);
+            var keyComment = parser.ReadString();
 
             /* reading private key */
-            byte[] inputBuffer = new byte[aStream.Length];
+            var inputBuffer = new byte[aStream.Length];
             aStream.Read(inputBuffer, 0, inputBuffer.Length);
             byte[] outputBuffer;
 
@@ -188,9 +187,9 @@ namespace dlech.SshAgentLib
                     byte[] keydata;
                     try
                     {
-                        using (MD5 md5 = MD5.Create())
+                        using (var md5 = MD5.Create())
                         {
-                            char[] md5Buffer = pwFinder.GetPassword();
+                            var md5Buffer = pwFinder.GetPassword();
                             keydata = md5.ComputeHash(Encoding.ASCII.GetBytes(md5Buffer));
                         }
                     }
@@ -204,10 +203,10 @@ namespace dlech.SshAgentLib
                     }
 
                     /* decryption */
-                    DesSsh1Engine desEngine = new DesSsh1Engine();
+                    var desEngine = new DesSsh1Engine();
                     desEngine.Init(false, new KeyParameter(keydata));
 
-                    BufferedBlockCipher bufferedBlockCipher = new BufferedBlockCipher(desEngine);
+                    var bufferedBlockCipher = new BufferedBlockCipher(desEngine);
                     outputBuffer = bufferedBlockCipher.ProcessBytes(inputBuffer);
                 }
                 else
@@ -219,7 +218,7 @@ namespace dlech.SshAgentLib
                 var privateKeyParser = new BlobParser(outputBuffer);
 
                 /* checking result of decryption */
-                byte[] resultCheck = privateKeyParser.ReadBytes(4);
+                var resultCheck = privateKeyParser.ReadBytes(4);
                 if (resultCheck[0] != resultCheck[2] || resultCheck[1] != resultCheck[3])
                 {
                     throw new KeyFormatterException("bad passphrase");
@@ -227,7 +226,7 @@ namespace dlech.SshAgentLib
 
                 /* reading private key */
                 var keyPair = privateKeyParser.ReadSsh1KeyData(aPublicKeyParameter);
-                SshKey key = new SshKey(SshVersion.SSH1, keyPair, keyComment);
+                var key = new SshKey(SshVersion.SSH1, keyPair, keyComment);
                 return key;
             }
             catch (KeyFormatterException)
@@ -251,10 +250,10 @@ namespace dlech.SshAgentLib
 
             public char[] GetPassword()
             {
-                SecureString passphrase = mCallback.Invoke(null);
-                char[] passwordChars = new char[passphrase.Length];
-                IntPtr passphrasePtr = Marshal.SecureStringToGlobalAllocUnicode(passphrase);
-                for (int i = 0; i < passphrase.Length; i++)
+                var passphrase = mCallback.Invoke(null);
+                var passwordChars = new char[passphrase.Length];
+                var passphrasePtr = Marshal.SecureStringToGlobalAllocUnicode(passphrase);
+                for (var i = 0; i < passphrase.Length; i++)
                 {
                     passwordChars[i] = (char)Marshal.ReadInt16(passphrasePtr, i * 2);
                 }

@@ -33,8 +33,8 @@ namespace dlech.SshAgentLibTests
                 )
             );
             // test that dsa signature works when values are not full 20 bytes.
-            byte[] r_bytes = new byte[19];
-            byte[] s_bytes = new byte[19];
+            var r_bytes = new byte[19];
+            var s_bytes = new byte[19];
             random.NextBytes(r_bytes);
             random.NextBytes(s_bytes);
             var r = new DerInteger(r_bytes);

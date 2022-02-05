@@ -142,12 +142,12 @@ namespace dlech.SshAgentLibTests
         {
             Trace.Write("BCrypt.HashPassword(): ");
             var sw = Stopwatch.StartNew();
-            for (int i = 0; i < _TestVectors.Length / 3; i++)
+            for (var i = 0; i < _TestVectors.Length / 3; i++)
             {
-                string plain = _TestVectors[i, 0];
-                string salt = _TestVectors[i, 1];
-                string expected = _TestVectors[i, 2];
-                string hashed = BCrypt.HashPassword(plain, salt);
+                var plain = _TestVectors[i, 0];
+                var salt = _TestVectors[i, 1];
+                var expected = _TestVectors[i, 2];
+                var hashed = BCrypt.HashPassword(plain, salt);
                 Assert.AreEqual(hashed, expected);
                 Trace.Write(".");
             }
@@ -162,15 +162,15 @@ namespace dlech.SshAgentLibTests
         public void TestGenerateSaltWithWorkFactor()
         {
             Trace.Write("BCrypt.GenerateSalt(log_rounds):");
-            for (int i = 4; i <= 12; i++)
+            for (var i = 4; i <= 12; i++)
             {
                 Trace.Write(" " + i + ":");
-                for (int j = 0; j < _TestVectors.Length / 3; j++)
+                for (var j = 0; j < _TestVectors.Length / 3; j++)
                 {
-                    string plain = _TestVectors[j, 0];
-                    string salt = BCrypt.GenerateSalt(i);
-                    string hashed1 = BCrypt.HashPassword(plain, salt);
-                    string hashed2 = BCrypt.HashPassword(plain, hashed1);
+                    var plain = _TestVectors[j, 0];
+                    var salt = BCrypt.GenerateSalt(i);
+                    var hashed1 = BCrypt.HashPassword(plain, salt);
+                    var hashed2 = BCrypt.HashPassword(plain, hashed1);
                     Assert.AreEqual(hashed1, hashed2);
                     Trace.Write(".");
                 }
@@ -182,12 +182,12 @@ namespace dlech.SshAgentLibTests
         public void TestGenerateSaltWithMaxWorkFactor()
         {
             Trace.Write("BCrypt.GenerateSalt(31):");
-            for (int j = 0; j < _TestVectors.Length / 3; j++)
+            for (var j = 0; j < _TestVectors.Length / 3; j++)
             {
-                string plain = _TestVectors[j, 0];
-                string salt = BCrypt.GenerateSalt(31);
-                string hashed1 = BCrypt.HashPassword(plain, salt);
-                string hashed2 = BCrypt.HashPassword(plain, hashed1);
+                var plain = _TestVectors[j, 0];
+                var salt = BCrypt.GenerateSalt(31);
+                var hashed1 = BCrypt.HashPassword(plain, salt);
+                var hashed2 = BCrypt.HashPassword(plain, hashed1);
                 Assert.AreEqual(hashed1, hashed2);
                 Trace.Write(".");
             }
@@ -201,12 +201,12 @@ namespace dlech.SshAgentLibTests
         public void TestGenerateSalt()
         {
             Trace.Write("BCrypt.GenerateSalt(): ");
-            for (int i = 0; i < _TestVectors.Length / 3; i++)
+            for (var i = 0; i < _TestVectors.Length / 3; i++)
             {
-                string plain = _TestVectors[i, 0];
-                string salt = BCrypt.GenerateSalt();
-                string hashed1 = BCrypt.HashPassword(plain, salt);
-                string hashed2 = BCrypt.HashPassword(plain, hashed1);
+                var plain = _TestVectors[i, 0];
+                var salt = BCrypt.GenerateSalt();
+                var hashed1 = BCrypt.HashPassword(plain, salt);
+                var hashed2 = BCrypt.HashPassword(plain, hashed1);
                 Assert.AreEqual(hashed1, hashed2);
                 Trace.Write(".");
             }
@@ -221,10 +221,10 @@ namespace dlech.SshAgentLibTests
         public void TestVerifyPasswordSuccess()
         {
             Trace.Write("BCrypt.Verify w/ good passwords: ");
-            for (int i = 0; i < _TestVectors.Length / 3; i++)
+            for (var i = 0; i < _TestVectors.Length / 3; i++)
             {
-                string plain = _TestVectors[i, 0];
-                string expected = _TestVectors[i, 2];
+                var plain = _TestVectors[i, 0];
+                var expected = _TestVectors[i, 2];
                 Assert.IsTrue(BCrypt.Verify(plain, expected));
                 Trace.Write(".");
             }
@@ -239,11 +239,11 @@ namespace dlech.SshAgentLibTests
         public void TestVerifyPasswordFailure()
         {
             Trace.Write("BCrypt.Verify w/ bad passwords: ");
-            for (int i = 0; i < _TestVectors.Length / 3; i++)
+            for (var i = 0; i < _TestVectors.Length / 3; i++)
             {
-                int brokenIndex = (i + 4) % (_TestVectors.Length / 3);
-                string plain = _TestVectors[i, 0];
-                string expected = _TestVectors[brokenIndex, 2];
+                var brokenIndex = (i + 4) % (_TestVectors.Length / 3);
+                var plain = _TestVectors[i, 0];
+                var expected = _TestVectors[brokenIndex, 2];
                 Assert.IsFalse(BCrypt.Verify(plain, expected));
                 Trace.Write(".");
             }
@@ -257,14 +257,14 @@ namespace dlech.SshAgentLibTests
         public void TestInternationalChars()
         {
             Trace.Write("BCrypt.HashPassword w/ international chars: ");
-            string pw1 = "ππππππππ";
-            string pw2 = "????????";
+            var pw1 = "ππππππππ";
+            var pw2 = "????????";
 
-            string h1 = BCrypt.HashPassword(pw1, BCrypt.GenerateSalt());
+            var h1 = BCrypt.HashPassword(pw1, BCrypt.GenerateSalt());
             Assert.IsFalse(BCrypt.Verify(pw2, h1));
             Trace.Write(".");
 
-            string h2 = BCrypt.HashPassword(pw2, BCrypt.GenerateSalt());
+            var h2 = BCrypt.HashPassword(pw2, BCrypt.GenerateSalt());
             Assert.IsFalse(BCrypt.Verify(pw1, h2));
             Trace.Write(".");
             Trace.WriteLine("");

@@ -1411,7 +1411,7 @@ namespace dlech.SshAgentLib.Crypto
 
             // Determinthe starting offset and validate the salt
             int startingOffset;
-            char minor = (char)0;
+            var minor = (char)0;
             if (salt[0] != '$' || salt[1] != '2')
                 throw new SaltParseException("Invalid salt version");
             if (salt[2] == '$')
@@ -1429,17 +1429,17 @@ namespace dlech.SshAgentLib.Crypto
                 throw new SaltParseException("Missing salt rounds");
 
             // Extract details from salt
-            int logRounds = Convert.ToInt32(salt.Substring(startingOffset, 2));
-            string extractedSalt = salt.Substring(startingOffset + 3, 22);
+            var logRounds = Convert.ToInt32(salt.Substring(startingOffset, 2));
+            var extractedSalt = salt.Substring(startingOffset + 3, 22);
 
-            byte[] inputBytes = Encoding.UTF8.GetBytes((input + (minor >= 'a' ? "\0" : "")));
-            byte[] saltBytes = DecodeBase64(extractedSalt, BCRYPT_SALT_LEN);
+            var inputBytes = Encoding.UTF8.GetBytes((input + (minor >= 'a' ? "\0" : "")));
+            var saltBytes = DecodeBase64(extractedSalt, BCRYPT_SALT_LEN);
 
-            BCrypt bCrypt = new BCrypt();
-            byte[] hashed = bCrypt.CryptRaw(inputBytes, saltBytes, logRounds);
+            var bCrypt = new BCrypt();
+            var hashed = bCrypt.CryptRaw(inputBytes, saltBytes, logRounds);
 
             // Generate result string
-            StringBuilder result = new StringBuilder();
+            var result = new StringBuilder();
             result.Append("$2");
             if (minor >= 'a')
                 result.Append(minor);
@@ -1464,11 +1464,11 @@ namespace dlech.SshAgentLib.Crypto
                     "The work factor must be between 4 and 31 (inclusive)"
                 );
 
-            byte[] rnd = new byte[BCRYPT_SALT_LEN];
-            RandomNumberGenerator rng = RandomNumberGenerator.Create();
+            var rnd = new byte[BCRYPT_SALT_LEN];
+            var rng = RandomNumberGenerator.Create();
             rng.GetBytes(rnd);
 
-            StringBuilder rs = new StringBuilder();
+            var rs = new StringBuilder();
             rs.AppendFormat("$2a${0:00}$", workFactor);
             rs.Append(EncodeBase64(rnd, rnd.Length));
             return rs.ToString();
@@ -1510,11 +1510,11 @@ namespace dlech.SshAgentLib.Crypto
             if (length <= 0 || length > byteArray.Length)
                 throw new ArgumentException("Invalid length", "length");
 
-            int off = 0;
-            StringBuilder rs = new StringBuilder();
+            var off = 0;
+            var rs = new StringBuilder();
             while (off < length)
             {
-                int c1 = byteArray[off++] & 0xff;
+                var c1 = byteArray[off++] & 0xff;
                 rs.Append(_Base64Code[(c1 >> 2) & 0x3f]);
                 c1 = (c1 & 0x03) << 4;
                 if (off >= length)
@@ -1522,7 +1522,7 @@ namespace dlech.SshAgentLib.Crypto
                     rs.Append(_Base64Code[c1 & 0x3f]);
                     break;
                 }
-                int c2 = byteArray[off++] & 0xff;
+                var c2 = byteArray[off++] & 0xff;
                 c1 |= (c2 >> 4) & 0x0f;
                 rs.Append(_Base64Code[c1 & 0x3f]);
                 c1 = (c2 & 0x0f) << 2;
@@ -1558,11 +1558,11 @@ namespace dlech.SshAgentLib.Crypto
                 throw new ArgumentException("Invalid maximum bytes value", "maximumBytes");
 
             // TODO: update to use a List<byte> - it's only ever 16 bytes, so it's not a big deal
-            StringBuilder rs = new StringBuilder();
+            var rs = new StringBuilder();
             while (position < sourceLength - 1 && outputLength < maximumBytes)
             {
-                int c1 = Char64(encodedstring[position++]);
-                int c2 = Char64(encodedstring[position++]);
+                var c1 = Char64(encodedstring[position++]);
+                var c2 = Char64(encodedstring[position++]);
                 if (c1 == -1 || c2 == -1)
                     break;
 
@@ -1570,7 +1570,7 @@ namespace dlech.SshAgentLib.Crypto
                 if (++outputLength >= maximumBytes || position >= sourceLength)
                     break;
 
-                int c3 = Char64(encodedstring[position++]);
+                var c3 = Char64(encodedstring[position++]);
                 if (c3 == -1)
                     break;
 
@@ -1578,13 +1578,13 @@ namespace dlech.SshAgentLib.Crypto
                 if (++outputLength >= maximumBytes || position >= sourceLength)
                     break;
 
-                int c4 = Char64(encodedstring[position++]);
+                var c4 = Char64(encodedstring[position++]);
                 rs.Append((char)(((c3 & 0x03) << 6) | c4));
 
                 ++outputLength;
             }
 
-            byte[] ret = new byte[outputLength];
+            var ret = new byte[outputLength];
             for (position = 0; position < outputLength; position++)
                 ret[position] = (byte)rs[position];
             return ret;
@@ -1668,7 +1668,7 @@ namespace dlech.SshAgentLib.Crypto
         private void Key(byte[] keyBytes)
         {
             int i;
-            int koffp = 0;
+            var koffp = 0;
             uint[] lr = { 0, 0 };
             int plen = _P.Length,
                 slen = _S.Length;
@@ -1737,9 +1737,9 @@ namespace dlech.SshAgentLib.Crypto
         /// <returns>A byte array containing the hashed result.</returns>
         private byte[] CryptRaw(byte[] inputBytes, byte[] saltBytes, int logRounds)
         {
-            uint[] cdata = new uint[_BfCryptCiphertext.Length];
+            var cdata = new uint[_BfCryptCiphertext.Length];
             Array.Copy(_BfCryptCiphertext, cdata, _BfCryptCiphertext.Length);
-            int clen = cdata.Length;
+            var clen = cdata.Length;
 
             if (logRounds < 4 || logRounds > 31)
                 throw new ArgumentException("Bad number of rounds", "logRounds");
@@ -1747,25 +1747,25 @@ namespace dlech.SshAgentLib.Crypto
             if (saltBytes.Length != BCRYPT_SALT_LEN)
                 throw new ArgumentException("Bad salt Length", "saltBytes");
 
-            uint rounds = 1u << logRounds;
+            var rounds = 1u << logRounds;
             Debug.Assert(rounds > 0, "Rounds must be > 0"); // We overflowed rounds at 31 - added safety check
 
             InitializeKey();
             EKSKey(saltBytes, inputBytes);
 
-            for (int i = 0; i < rounds; i++)
+            for (var i = 0; i < rounds; i++)
             {
                 Key(inputBytes);
                 Key(saltBytes);
             }
 
-            for (int i = 0; i < 64; i++)
+            for (var i = 0; i < 64; i++)
             {
-                for (int j = 0; j < (clen >> 1); j++)
+                for (var j = 0; j < (clen >> 1); j++)
                     Encipher(cdata, j << 1);
             }
 
-            byte[] ret = new byte[clen * 4];
+            var ret = new byte[clen * 4];
             for (int i = 0, j = 0; i < clen; i++)
             {
                 ret[j++] = (byte)((cdata[i] >> 24) & 0xff);
@@ -1786,7 +1786,7 @@ namespace dlech.SshAgentLib.Crypto
         {
             var ciphertext = Encoding.UTF8.GetBytes("OxychromaticBlowfishSwatDynamite");
             var cdata = new uint[BCRYPT_WORDS];
-            int clen = cdata.Length;
+            var clen = cdata.Length;
 
             /* key expansion */
 
@@ -1802,7 +1802,7 @@ namespace dlech.SshAgentLib.Crypto
 
             /* encryption */
 
-            int j = 0;
+            var j = 0;
             for (i = 0; i < BCRYPT_WORDS; i++)
             {
                 cdata[i] = StreamToWord(ciphertext, ref j);
@@ -1816,7 +1816,7 @@ namespace dlech.SshAgentLib.Crypto
                 }
             }
 
-            byte[] @out = new byte[BCRYPT_HASHSIZE];
+            var @out = new byte[BCRYPT_HASHSIZE];
             for (i = 0; i < BCRYPT_WORDS; i++)
             {
                 @out[4 * i + 3] = (byte)((cdata[i] >> 24) & 0xff);
@@ -1906,7 +1906,7 @@ namespace dlech.SshAgentLib.Crypto
             Array.Clear(passBytes, 0, passBytes.Length);
 
             /* generate key, sizeof(out) at a time */
-            int keylen = key.Length;
+            var keylen = key.Length;
             for (uint count = 1; keylen > 0; count++)
             {
                 countsalt[salt.Length + 0] = (byte)((count >> 24) & 0xff);
@@ -1926,7 +1926,7 @@ namespace dlech.SshAgentLib.Crypto
                     /* subsequent rounds, salt is previous output */
                     sha2salt = sha512.ComputeHash(tmpout);
                     tmpout = bcrypt.CryptUsingOpensshBcryptHash(sha2pass, sha2salt);
-                    for (int j = 0; j < @out.Length; j++)
+                    for (var j = 0; j < @out.Length; j++)
                         @out[j] ^= tmpout[j];
                 }
 

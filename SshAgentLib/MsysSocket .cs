@@ -105,7 +105,7 @@ namespace dlech.SshAgentLib
                     writer.Write(" ");
                     var guidBytes = guid.ToByteArray();
                     var builder = new StringBuilder();
-                    for (int i = 0; i < 4; i++)
+                    for (var i = 0; i < 4; i++)
                     {
                         builder.Append(
                             string.Format("{0:X8}", BitConverter.ToUInt32(guidBytes, i * 4))

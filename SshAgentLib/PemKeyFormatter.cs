@@ -54,8 +54,8 @@ namespace dlech.SshAgentLib
             {
                 pwFinder = new PasswordFinder(GetPassphraseCallbackMethod);
             }
-            StreamWriter streamWriter = new StreamWriter(aStream);
-            PemWriter writer = new PemWriter(streamWriter);
+            var streamWriter = new StreamWriter(aStream);
+            var writer = new PemWriter(streamWriter);
 
             var passphrase = pwFinder?.GetPassword();
 
@@ -83,9 +83,9 @@ namespace dlech.SshAgentLib
             }
             try
             {
-                StreamReader streamReader = new StreamReader(aStream);
-                PemReader reader = new PemReader(streamReader, pwFinder);
-                object data = reader.ReadObject();
+                var streamReader = new StreamReader(aStream);
+                var reader = new PemReader(streamReader, pwFinder);
+                var data = reader.ReadObject();
 
                 if (data is AsymmetricCipherKeyPair)
                 {
@@ -125,10 +125,10 @@ namespace dlech.SshAgentLib
 
             public char[] GetPassword()
             {
-                SecureString passphrase = mCallback.Invoke(null);
-                char[] passwordChars = new char[passphrase.Length];
-                IntPtr passphrasePtr = Marshal.SecureStringToGlobalAllocUnicode(passphrase);
-                for (int i = 0; i < passphrase.Length; i++)
+                var passphrase = mCallback.Invoke(null);
+                var passwordChars = new char[passphrase.Length];
+                var passphrasePtr = Marshal.SecureStringToGlobalAllocUnicode(passphrase);
+                for (var i = 0; i < passphrase.Length; i++)
                 {
                     passwordChars[i] = (char)Marshal.ReadInt16(passphrasePtr, i * 2);
                 }

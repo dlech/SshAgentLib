@@ -75,30 +75,30 @@ namespace dlech.SshAgentLibTests
 
             /* code based on agent_query function in winpgntc.c from PuTTY */
 
-            using (PageantAgent agent = new PageantAgent())
+            using (var agent = new PageantAgent())
             {
                 /* try starting a second instance */
 
                 Assert.That(
                     delegate()
                     {
-                        using (PageantAgent agent2 = new PageantAgent()) { }
+                        using (var agent2 = new PageantAgent()) { }
                     },
                     Throws.InstanceOf<PageantRunningException>()
                 );
 
                 /* test WndProc callback */
 
-                IntPtr hwnd = FindWindow("Pageant", "Pageant");
+                var hwnd = FindWindow("Pageant", "Pageant");
                 Assert.That(hwnd, Is.Not.EqualTo(IntPtr.Zero));
-                int threadId = Thread.CurrentThread.ManagedThreadId;
-                string mapName = String.Format("PageantRequest{0:x8}", threadId);
-                using (MemoryMappedFile mappedFile = MemoryMappedFile.CreateNew(mapName, 4096))
+                var threadId = Thread.CurrentThread.ManagedThreadId;
+                var mapName = String.Format("PageantRequest{0:x8}", threadId);
+                using (var mappedFile = MemoryMappedFile.CreateNew(mapName, 4096))
                 {
                     Assert.That(mappedFile.SafeMemoryMappedFileHandle.IsInvalid, Is.False);
-                    using (MemoryMappedViewStream stream = mappedFile.CreateViewStream())
+                    using (var stream = mappedFile.CreateViewStream())
                     {
-                        byte[] message = new byte[]
+                        var message = new byte[]
                         {
                             0,
                             0,
@@ -107,7 +107,7 @@ namespace dlech.SshAgentLibTests
                             (byte)Agent.Message.SSH2_AGENTC_REMOVE_ALL_IDENTITIES
                         };
                         stream.Write(message, 0, message.Length);
-                        COPYDATASTRUCT copyData = new COPYDATASTRUCT();
+                        var copyData = new COPYDATASTRUCT();
                         if (IntPtr.Size == 4)
                         {
                             copyData.dwData = new IntPtr(unchecked((int)AGENT_COPYDATA_ID));
@@ -118,13 +118,13 @@ namespace dlech.SshAgentLibTests
                         }
                         copyData.cbData = mapName.Length + 1;
                         copyData.lpData = Marshal.StringToCoTaskMemAnsi(mapName);
-                        IntPtr copyDataPtr = Marshal.AllocHGlobal(Marshal.SizeOf(copyData));
+                        var copyDataPtr = Marshal.AllocHGlobal(Marshal.SizeOf(copyData));
                         Marshal.StructureToPtr(copyData, copyDataPtr, false);
-                        IntPtr resultPtr = SendMessage(hwnd, WM_COPYDATA, IntPtr.Zero, copyDataPtr);
+                        var resultPtr = SendMessage(hwnd, WM_COPYDATA, IntPtr.Zero, copyDataPtr);
                         Marshal.FreeCoTaskMem(copyData.lpData);
                         Marshal.FreeHGlobal(copyDataPtr);
                         Assert.That(resultPtr, Is.Not.EqualTo(IntPtr.Zero));
-                        byte[] reply = new byte[5];
+                        var reply = new byte[5];
                         stream.Position = 0;
                         stream.Read(reply, 0, reply.Length);
                         byte[] expected = { 0, 0, 0, 1, (byte)Agent.Message.SSH_AGENT_SUCCESS };

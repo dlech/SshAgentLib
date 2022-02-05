@@ -331,15 +331,15 @@ namespace wyDay.Controls
             if (!showSplit)
                 return;
 
-            Graphics g = pevent.Graphics;
-            Rectangle bounds = ClientRectangle;
+            var g = pevent.Graphics;
+            var bounds = ClientRectangle;
 
             // draw the button background as according to the current state.
             if (
                 State != PushButtonState.Pressed && IsDefault && !Application.RenderWithVisualStyles
             )
             {
-                Rectangle backgroundBounds = bounds;
+                var backgroundBounds = bounds;
                 backgroundBounds.Inflate(-1, -1);
                 ButtonRenderer.DrawButton(g, backgroundBounds, State);
 
@@ -359,15 +359,15 @@ namespace wyDay.Controls
                 bounds.Height
             );
 
-            int internalBorder = BorderSize;
-            Rectangle focusRect = new Rectangle(
+            var internalBorder = BorderSize;
+            var focusRect = new Rectangle(
                 internalBorder - 1,
                 internalBorder - 1,
                 bounds.Width - dropDownRectangle.Width - internalBorder,
                 bounds.Height - (internalBorder * 2) + 2
             );
 
-            bool drawSplitLine = (
+            var drawSplitLine = (
                 State == PushButtonState.Hot
                 || State == PushButtonState.Pressed
                 || !Application.RenderWithVisualStyles
@@ -501,7 +501,7 @@ namespace wyDay.Controls
 
         private void PaintArrow(Graphics g, Rectangle dropDownRect)
         {
-            Point middle = new Point(
+            var middle = new Point(
                 Convert.ToInt32(dropDownRect.Left + dropDownRect.Width / 2),
                 Convert.ToInt32(dropDownRect.Top + dropDownRect.Height / 2)
             );
@@ -509,7 +509,7 @@ namespace wyDay.Controls
             //if the width is odd - favor pushing it over one pixel right.
             middle.X += (dropDownRect.Width % 2);
 
-            Point[] arrow = new[]
+            var arrow = new[]
             {
                 new Point(middle.X - 2, middle.Y - 1),
                 new Point(middle.X + 3, middle.Y - 1),
@@ -524,7 +524,7 @@ namespace wyDay.Controls
 
         public override Size GetPreferredSize(Size proposedSize)
         {
-            Size preferredSize = base.GetPreferredSize(proposedSize);
+            var preferredSize = base.GetPreferredSize(proposedSize);
 
             //autosize correctly for splitbuttons
             if (showSplit)
@@ -545,9 +545,9 @@ namespace wyDay.Controls
 
         private Size CalculateButtonAutoSize()
         {
-            Size ret_size = Size.Empty;
-            Size text_size = TextRenderer.MeasureText(Text, Font);
-            Size image_size = Image == null ? Size.Empty : Image.Size;
+            var ret_size = Size.Empty;
+            var text_size = TextRenderer.MeasureText(Text, Font);
+            var image_size = Image == null ? Size.Empty : Image.Size;
 
             // Pad the text size
             if (Text.Length != 0)
@@ -600,13 +600,13 @@ namespace wyDay.Controls
             out Rectangle imageRectangle
         )
         {
-            Size text_size = TextRenderer.MeasureText(
+            var text_size = TextRenderer.MeasureText(
                 Text,
                 Font,
                 content_rect.Size,
                 textFormatFlags
             );
-            Size image_size = Image == null ? Size.Empty : Image.Size;
+            var image_size = Image == null ? Size.Empty : Image.Size;
 
             textRectangle = Rectangle.Empty;
             imageRectangle = Rectangle.Empty;
@@ -742,8 +742,8 @@ namespace wyDay.Controls
             out Rectangle imageRect
         )
         {
-            int element_spacing = 0; // Spacing between the Text and the Image
-            int total_width = textSize.Width + element_spacing + imageSize.Width;
+            var element_spacing = 0; // Spacing between the Text and the Image
+            var total_width = textSize.Width + element_spacing + imageSize.Width;
 
             if (!textFirst)
                 element_spacing += 2;
@@ -755,14 +755,14 @@ namespace wyDay.Controls
                 total_width = totalArea.Width;
             }
 
-            int excess_width = totalArea.Width - total_width;
-            int offset = 0;
+            var excess_width = totalArea.Width - total_width;
+            var offset = 0;
 
             Rectangle final_text_rect;
             Rectangle final_image_rect;
 
-            HorizontalAlignment h_text = GetHorizontalAlignment(TextAlign);
-            HorizontalAlignment h_image = GetHorizontalAlignment(ImageAlign);
+            var h_text = GetHorizontalAlignment(TextAlign);
+            var h_image = GetHorizontalAlignment(ImageAlign);
 
             if (h_image == HorizontalAlignment.Left)
                 offset = 0;
@@ -820,8 +820,8 @@ namespace wyDay.Controls
             out Rectangle imageRect
         )
         {
-            int element_spacing = 0; // Spacing between the Text and the Image
-            int total_height = textSize.Height + element_spacing + imageSize.Height;
+            var element_spacing = 0; // Spacing between the Text and the Image
+            var total_height = textSize.Height + element_spacing + imageSize.Height;
 
             if (textFirst)
                 element_spacing += 2;
@@ -836,14 +836,14 @@ namespace wyDay.Controls
                 total_height = totalArea.Height;
             }
 
-            int excess_height = totalArea.Height - total_height;
-            int offset = 0;
+            var excess_height = totalArea.Height - total_height;
+            var offset = 0;
 
             Rectangle final_text_rect;
             Rectangle final_image_rect;
 
-            VerticalAlignment v_text = GetVerticalAlignment(TextAlign);
-            VerticalAlignment v_image = GetVerticalAlignment(ImageAlign);
+            var v_text = GetVerticalAlignment(TextAlign);
+            var v_image = GetVerticalAlignment(ImageAlign);
 
             if (v_image == VerticalAlignment.Top)
                 offset = 0;
@@ -945,8 +945,8 @@ namespace wyDay.Controls
             System.Drawing.ContentAlignment align
         )
         {
-            int x = 0;
-            int y = 0;
+            var x = 0;
+            var y = 0;
 
             if (
                 align == System.Drawing.ContentAlignment.BottomLeft

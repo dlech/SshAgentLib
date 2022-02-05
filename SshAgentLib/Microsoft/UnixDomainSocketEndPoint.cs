@@ -33,8 +33,8 @@ namespace System.Net.Sockets
 
             // Pathname socket addresses should be null-terminated.
             // Linux abstract socket addresses start with a zero byte, they must not be null-terminated.
-            bool isAbstract = IsAbstract(path);
-            int bufferLength = Encoding.UTF8.GetByteCount(path);
+            var isAbstract = IsAbstract(path);
+            var bufferLength = Encoding.UTF8.GetByteCount(path);
             if (!isAbstract)
             {
                 // for null terminator
@@ -54,7 +54,7 @@ namespace System.Net.Sockets
 
             _path = path;
             _encodedPath = new byte[bufferLength];
-            int bytesEncoded = Encoding.UTF8.GetBytes(path, 0, path.Length, _encodedPath, 0);
+            var bytesEncoded = Encoding.UTF8.GetBytes(path, 0, path.Length, _encodedPath, 0);
             Debug.Assert(bufferLength - (isAbstract ? 0 : 1) == bytesEncoded);
 
             // FIXME: see https://github.com/dotnet/runtime/blob/f85ea976f81945ea18cd5dc71959cccecdc93cd2/src/libraries/Common/src/System/Net/SocketProtocolSupportPal.Windows.cs#L14
@@ -82,13 +82,13 @@ namespace System.Net.Sockets
             if (socketAddress.Size > s_nativePathOffset)
             {
                 _encodedPath = new byte[socketAddress.Size - s_nativePathOffset];
-                for (int i = 0; i < _encodedPath.Length; i++)
+                for (var i = 0; i < _encodedPath.Length; i++)
                 {
                     _encodedPath[i] = socketAddress[s_nativePathOffset + i];
                 }
 
                 // Strip trailing null of pathname socket addresses.
-                int length = _encodedPath.Length;
+                var length = _encodedPath.Length;
                 if (!IsAbstract(_encodedPath))
                 {
                     // Since this isn't an abstract path, we're sure our first byte isn't 0.
@@ -108,9 +108,9 @@ namespace System.Net.Sockets
 
         public override SocketAddress Serialize()
         {
-            SocketAddress result = CreateSocketAddressForSerialize();
+            var result = CreateSocketAddressForSerialize();
 
-            for (int index = 0; index < _encodedPath.Length; index++)
+            for (var index = 0; index < _encodedPath.Length; index++)
             {
                 result[s_nativePathOffset + index] = _encodedPath[index];
             }
@@ -124,7 +124,7 @@ namespace System.Net.Sockets
 
         public override string ToString()
         {
-            bool isAbstract = IsAbstract(_path);
+            var isAbstract = IsAbstract(_path);
             if (isAbstract)
             {
                 // return string.Concat("@", _path.AsSpan(1));

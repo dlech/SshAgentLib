@@ -130,9 +130,9 @@ namespace dlech.SshAgentLib
             byte[] aPublicKeyBlob
         )
         {
-            foreach (ISshKey key in aKeyList.Where(key => key.Version == aVersion))
+            foreach (var key in aKeyList.Where(key => key.Version == aVersion))
             {
-                byte[] keyBlob = key.GetPublicKeyBlob();
+                var keyBlob = key.GetPublicKeyBlob();
                 if (keyBlob.SequenceEqual(aPublicKeyBlob))
                 {
                     return key;
@@ -153,8 +153,8 @@ namespace dlech.SshAgentLib
             {
                 return key.Certificate.Blob;
             }
-            AsymmetricKeyParameter parameters = key.GetPublicKeyParameters();
-            BlobBuilder builder = new BlobBuilder();
+            var parameters = key.GetPublicKeyParameters();
+            var builder = new BlobBuilder();
             if (parameters is RsaKeyParameters rsaPublicKeyParameters)
             {
                 if (key.Version == SshVersion.SSH1)
@@ -210,19 +210,19 @@ namespace dlech.SshAgentLib
             {
                 throw new ArgumentException(parameters.GetType() + " is not supported");
             }
-            byte[] result = builder.GetBlob();
+            var result = builder.GetBlob();
             builder.Clear();
             return result;
         }
 
         public static string GetAuthorizedKeyString(this ISshKey aKey)
         {
-            string result = "";
+            var result = "";
             switch (aKey.Version)
             {
                 case SshVersion.SSH1:
-                    AsymmetricKeyParameter parameters = aKey.GetPublicKeyParameters();
-                    RsaKeyParameters rsaPublicKeyParameters = (RsaKeyParameters)parameters;
+                    var parameters = aKey.GetPublicKeyParameters();
+                    var rsaPublicKeyParameters = (RsaKeyParameters)parameters;
                     result =
                         aKey.Size
                         + " "
@@ -265,9 +265,9 @@ namespace dlech.SshAgentLib
                     && key.GetPublicKeyParameters() is RsaKeyParameters rsaKeyParameters
                 )
                 {
-                    int modSize = rsaKeyParameters.Modulus.ToByteArrayUnsigned().Length;
-                    int expSize = rsaKeyParameters.Exponent.ToByteArrayUnsigned().Length;
-                    byte[] md5Buffer = new byte[modSize + expSize];
+                    var modSize = rsaKeyParameters.Modulus.ToByteArrayUnsigned().Length;
+                    var expSize = rsaKeyParameters.Exponent.ToByteArrayUnsigned().Length;
+                    var md5Buffer = new byte[modSize + expSize];
 
                     rsaKeyParameters.Modulus.ToByteArrayUnsigned().CopyTo(md5Buffer, 0);
                     rsaKeyParameters.Exponent.ToByteArrayUnsigned().CopyTo(md5Buffer, modSize);
@@ -286,13 +286,13 @@ namespace dlech.SshAgentLib
 
         public static byte[] FormatSignature(this ISshKey key, byte[] signature)
         {
-            AsymmetricKeyParameter publicKey = key.GetPublicKeyParameters();
+            var publicKey = key.GetPublicKeyParameters();
             if (publicKey is DsaPublicKeyParameters || publicKey is ECPublicKeyParameters)
             {
-                Asn1Sequence seq = (Asn1Sequence)Asn1Object.FromByteArray(signature);
-                BigInteger r = ((DerInteger)seq[0]).PositiveValue;
-                BigInteger s = ((DerInteger)seq[1]).PositiveValue;
-                BlobBuilder formatedSignature = new BlobBuilder();
+                var seq = (Asn1Sequence)Asn1Object.FromByteArray(signature);
+                var r = ((DerInteger)seq[0]).PositiveValue;
+                var s = ((DerInteger)seq[1]).PositiveValue;
+                var formatedSignature = new BlobBuilder();
                 if (publicKey is ECPublicKeyParameters)
                 {
                     var bytes = r.ToByteArray().ToList();

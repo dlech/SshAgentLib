@@ -168,7 +168,7 @@ namespace dlech.SshAgentLib.WinForms
                 sourceDataGridViewTextBoxColumn.Visible = false;
             }
 
-            for (int i = 0; i < buttonTableLayoutPanel.ColumnCount; i++)
+            for (var i = 0; i < buttonTableLayoutPanel.ColumnCount; i++)
             {
                 if (Type.GetType("Mono.Runtime") == null)
                 {
@@ -193,7 +193,7 @@ namespace dlech.SshAgentLib.WinForms
         public void ShowFileOpenDialog()
         {
             string[] fileNames;
-            List<Agent.KeyConstraint> constraints = new List<Agent.KeyConstraint>();
+            var constraints = new List<Agent.KeyConstraint>();
             if (mAgent is PageantClient)
             {
                 // Client Mode with Pageant - Show standard file dialog since we don't
@@ -333,7 +333,7 @@ namespace dlech.SshAgentLib.WinForms
                 if (lifetimeConstraintCheckBox.IsChecked)
                 {
                     // error checking for parse done in fileOK event handler
-                    uint lifetime = uint.Parse(lifetimeConstraintTextBox.Text);
+                    var lifetime = uint.Parse(lifetimeConstraintTextBox.Text);
                     var constraint = new Agent.KeyConstraint();
                     constraint.Type = Agent.KeyConstraintType.SSH_AGENT_CONSTRAIN_LIFETIME;
                     constraint.Data = lifetime;

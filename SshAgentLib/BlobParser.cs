@@ -76,7 +76,7 @@ namespace dlech.SshAgentLib
 
         public Agent.BlobHeader ReadHeader()
         {
-            Agent.BlobHeader header = new Agent.BlobHeader
+            var header = new Agent.BlobHeader
             {
                 BlobLength = ReadInt32(),
                 Message = (Agent.Message)ReadByte()
@@ -401,7 +401,7 @@ namespace dlech.SshAgentLib
                 var dsaX = new BigInteger(1, ReadBlob()); // private key
 
                 var dsaPublicKeyParams = publicKeyParameter as DsaPublicKeyParameters;
-                DsaPrivateKeyParameters dsaPrivateKeyParams = new DsaPrivateKeyParameters(
+                var dsaPrivateKeyParams = new DsaPrivateKeyParameters(
                     dsaX,
                     dsaPublicKeyParams.Parameters
                 );
@@ -413,7 +413,7 @@ namespace dlech.SshAgentLib
                 var ecdsaPrivate = new BigInteger(1, ReadBlob());
 
                 var ecPublicKeyParams = publicKeyParameter as ECPublicKeyParameters;
-                ECPrivateKeyParameters ecPrivateKeyParams = new ECPrivateKeyParameters(
+                var ecPrivateKeyParams = new ECPrivateKeyParameters(
                     ecdsaPrivate,
                     ecPublicKeyParams.Parameters
                 );

@@ -108,7 +108,7 @@ namespace dlech.SshAgentLib
         /// <param name="value"></param>
         public void AddBigIntBlob(BigInteger value)
         {
-            byte[] bytes = value.ToByteArray();
+            var bytes = value.ToByteArray();
             AddBlob(bytes);
         }
 
@@ -118,10 +118,10 @@ namespace dlech.SshAgentLib
         /// <param name="value"></param>
         public void AddSsh1BigIntBlob(BigInteger value)
         {
-            ushort size = (ushort)(value.BitLength);
+            var size = (ushort)(value.BitLength);
             AddUInt8((byte)((size >> 8) & 0xFF));
             AddUInt8((byte)(size & 0xFF));
-            byte[] bytes = value.ToByteArrayUnsigned();
+            var bytes = value.ToByteArrayUnsigned();
             byteList.AddRange(bytes);
         }
 
@@ -153,7 +153,7 @@ namespace dlech.SshAgentLib
         public void InsertHeader(Agent.Message message)
         {
             byteList.Insert(0, (byte)message);
-            byte[] blobLength = byteList.Count.ToBytes();
+            var blobLength = byteList.Count.ToBytes();
             byteList.InsertRange(0, blobLength);
         }
 

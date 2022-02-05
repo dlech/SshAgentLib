@@ -102,7 +102,7 @@ namespace dlech.SshAgentLib
                     writer.Write(actualPort);
                     writer.Write(" s ");
                     var guidBytes = guid.ToByteArray();
-                    for (int i = 0; i < 4; i++)
+                    for (var i = 0; i < 4; i++)
                     {
                         writer.Write(
                             string.Format("{0:X8}", BitConverter.ToUInt32(guidBytes, i * 4))

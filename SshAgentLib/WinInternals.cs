@@ -194,7 +194,7 @@ namespace dlech.SshAgentLib
                 var tablePtr = buf + sizeof(int);
                 var rowSize = Marshal.SizeOf(typeof(MIB_TCPROW_OWNER_PID));
                 var match = (MIB_TCPROW_OWNER_PID?)null;
-                for (int i = 0; i < count; i++)
+                for (var i = 0; i < count; i++)
                 {
                     var row = (MIB_TCPROW_OWNER_PID)Marshal.PtrToStructure(
                         tablePtr,
@@ -291,7 +291,7 @@ namespace dlech.SshAgentLib
                 var pid = Process.GetCurrentProcess().Id;
                 var handle = (ushort)mmf.SafeMemoryMappedFileHandle.DangerousGetHandle();
                 var match = IntPtr.Zero;
-                for (int i = 0; i < info.Count; i++)
+                for (var i = 0; i < info.Count; i++)
                 {
                     var entry = (SYSTEM_HANDLE_ENTRY)Marshal.PtrToStructure(
                         entryPtr,

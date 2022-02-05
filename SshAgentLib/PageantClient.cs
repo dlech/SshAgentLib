@@ -88,7 +88,7 @@ namespace dlech.SshAgentLib
                     }
                     copyData.cbData = mapName.Length + 1;
                     copyData.lpData = Marshal.StringToCoTaskMemAnsi(mapName);
-                    IntPtr copyDataPtr = Marshal.AllocHGlobal(Marshal.SizeOf(copyData));
+                    var copyDataPtr = Marshal.AllocHGlobal(Marshal.SizeOf(copyData));
                     Marshal.StructureToPtr(copyData, copyDataPtr, false);
                     var resultPtr = SendMessage(hwnd, WM_COPYDATA, IntPtr.Zero, copyDataPtr);
                     Marshal.FreeCoTaskMem(copyData.lpData);

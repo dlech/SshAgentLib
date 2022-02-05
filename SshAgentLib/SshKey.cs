@@ -140,19 +140,17 @@ namespace dlech.SshAgentLib
             {
                 if (publicKeyParameter is RsaKeyParameters)
                 {
-                    RsaKeyParameters rsaKeyParameters = (RsaKeyParameters)publicKeyParameter;
+                    var rsaKeyParameters = (RsaKeyParameters)publicKeyParameter;
                     return rsaKeyParameters.Modulus.BitLength;
                 }
                 else if (publicKeyParameter is DsaPublicKeyParameters)
                 {
-                    DsaPublicKeyParameters dsaKeyParameters =
-                        (DsaPublicKeyParameters)publicKeyParameter;
+                    var dsaKeyParameters = (DsaPublicKeyParameters)publicKeyParameter;
                     return dsaKeyParameters.Parameters.P.BitLength;
                 }
                 else if (publicKeyParameter is ECPublicKeyParameters)
                 {
-                    ECPublicKeyParameters ecdsaParameters =
-                        (ECPublicKeyParameters)publicKeyParameter;
+                    var ecdsaParameters = (ECPublicKeyParameters)publicKeyParameter;
                     return ecdsaParameters.Q.Curve.FieldSize;
                 }
                 else if (publicKeyParameter is Ed25519PublicKeyParameter)
@@ -216,13 +214,13 @@ namespace dlech.SshAgentLib
 
         public SshKey Clone()
         {
-            AsymmetricCipherKeyPair keyPair = new AsymmetricCipherKeyPair(
+            var keyPair = new AsymmetricCipherKeyPair(
                 GetPublicKeyParameters(),
                 GetPrivateKeyParameters()
             );
-            SshKey newKey = new SshKey(Version, keyPair, Comment);
+            var newKey = new SshKey(Version, keyPair, Comment);
             newKey.Source = Source;
-            foreach (Agent.KeyConstraint constraint in keyConstraints)
+            foreach (var constraint in keyConstraints)
             {
                 newKey.AddConstraint(constraint);
             }

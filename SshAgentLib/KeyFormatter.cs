@@ -72,9 +72,7 @@ namespace dlech.SshAgentLib
         /// <param name="aFileName">target file</param>
         public void SerializeToFile(ISshKey aKey, string aFileName)
         {
-            using (
-                FileStream stream = new FileStream(aFileName, FileMode.CreateNew, FileAccess.Write)
-            )
+            using (var stream = new FileStream(aFileName, FileMode.CreateNew, FileAccess.Write))
             {
                 Serialize(stream, aKey);
             }
@@ -100,7 +98,7 @@ namespace dlech.SshAgentLib
         /// </exception>
         public ISshKey DeserializeFile(string fileName)
         {
-            using (FileStream stream = new FileStream(fileName, FileMode.Open, FileAccess.Read))
+            using (var stream = new FileStream(fileName, FileMode.Open, FileAccess.Read))
             {
                 var key = Deserialize(stream) as ISshKey;
                 if (string.IsNullOrEmpty(key.Comment))
@@ -134,7 +132,7 @@ namespace dlech.SshAgentLib
         /// </exception>
         public ISshKey Deserialize(byte[] aBytes)
         {
-            using (MemoryStream stream = new MemoryStream(aBytes))
+            using (var stream = new MemoryStream(aBytes))
             {
                 return (ISshKey)Deserialize(stream);
             }

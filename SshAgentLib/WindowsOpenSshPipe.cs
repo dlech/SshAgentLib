@@ -106,7 +106,8 @@ namespace dlech.SshAgentLib
 
                     using (cancellationToken.Register(() => server.Disconnect()))
                     {
-                        await Task.Run(() => connectionHandler(server, proc), cancellationToken).ConfigureAwait(false);
+                        await Task.Run(() => connectionHandler(server, proc), cancellationToken)
+                            .ConfigureAwait(false);
                     }
                 }
             }

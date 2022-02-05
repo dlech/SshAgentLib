@@ -33,7 +33,7 @@ namespace SshAgentLib.GTK
         public static void Main(string[] args)
         {
             Application.Init();
-            KeyManagerWindow win = new KeyManagerWindow();
+            var win = new KeyManagerWindow();
             win.SetAgent(new UnixClient());
             win.Show();
             Application.Run();

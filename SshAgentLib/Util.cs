@@ -58,8 +58,8 @@ namespace dlech.SshAgentLib
             }
 
             var pw = new byte[ss.Length];
-            IntPtr ptr = Marshal.SecureStringToGlobalAllocUnicode(ss);
-            for (int i = 0; i < pw.Length; i++)
+            var ptr = Marshal.SecureStringToGlobalAllocUnicode(ss);
+            for (var i = 0; i < pw.Length; i++)
             {
                 pw[i] = UnicodeToAnsi(Marshal.ReadInt16(ptr + i * 2));
             }
@@ -138,7 +138,7 @@ namespace dlech.SshAgentLib
         /// <returns>four bytes</returns>
         public static byte[] ToBytes(this uint n)
         {
-            byte[] result = BitConverter.GetBytes(n);
+            var result = BitConverter.GetBytes(n);
             if (BitConverter.IsLittleEndian)
             {
                 result = result.Reverse().ToArray();
@@ -153,7 +153,7 @@ namespace dlech.SshAgentLib
         /// <returns>eight bytes</returns>
         public static byte[] ToBytes(this ulong n)
         {
-            byte[] result = BitConverter.GetBytes(n);
+            var result = BitConverter.GetBytes(n);
             if (BitConverter.IsLittleEndian)
             {
                 result = result.Reverse().ToArray();
@@ -193,7 +193,7 @@ namespace dlech.SshAgentLib
             {
                 throw new ArgumentNullException("bytes");
             }
-            byte[] wokingBytes = new byte[4];
+            var wokingBytes = new byte[4];
             Array.Copy(bytes, offset, wokingBytes, 0, 4);
             if (BitConverter.IsLittleEndian)
             {
@@ -239,7 +239,7 @@ namespace dlech.SshAgentLib
                 base16String = base16String.Replace(delimeter, string.Empty);
             }
 
-            int stringLength = base16String.Length;
+            var stringLength = base16String.Length;
 
             if ((stringLength % 2) != 0)
             {
@@ -250,8 +250,8 @@ namespace dlech.SshAgentLib
                 throw new ArgumentException("must contain only hex characters", "base16String");
             }
 
-            byte[] result = new byte[stringLength / 2];
-            for (int i = 0; i < stringLength; i += 2)
+            var result = new byte[stringLength / 2];
+            for (var i = 0; i < stringLength; i += 2)
             {
                 result[i / 2] = Convert.ToByte(base16String.Substring(i, 2), 16);
             }
@@ -271,7 +271,7 @@ namespace dlech.SshAgentLib
 
         public static byte[] FromBase64(byte[] base64Data)
         {
-            using (FromBase64Transform base64Transform = new FromBase64Transform())
+            using (var base64Transform = new FromBase64Transform())
             {
                 return GenericTransform(base64Transform, base64Data);
             }
@@ -279,7 +279,7 @@ namespace dlech.SshAgentLib
 
         public static byte[] ToBase64(this byte[] binaryData)
         {
-            using (ToBase64Transform base64Transform = new ToBase64Transform())
+            using (var base64Transform = new ToBase64Transform())
             {
                 return GenericTransform(base64Transform, binaryData);
             }
@@ -287,17 +287,17 @@ namespace dlech.SshAgentLib
 
         internal static byte[] GenericTransform(ICryptoTransform transform, byte[] data)
         {
-            List<byte> byteList = new List<byte>();
+            var byteList = new List<byte>();
             byte[] outputBytes;
-            int inputLength = data.Length;
-            int inputBlockSize = transform.InputBlockSize;
+            var inputLength = data.Length;
+            var inputBlockSize = transform.InputBlockSize;
             if (typeof(FromBase64Transform).IsInstanceOfType(transform))
             {
                 // workaround for apparent bug where FromBase64Transform.InputBlockSize
                 // returns 1 when it should return 4
                 inputBlockSize = 4;
             }
-            int inputOffset = 0;
+            var inputOffset = 0;
             outputBytes = new byte[transform.OutputBlockSize];
             if (!transform.CanTransformMultipleBlocks)
             {
@@ -314,7 +314,7 @@ namespace dlech.SshAgentLib
                 inputLength - inputOffset
             );
             byteList.AddRange(outputBytes);
-            byte[] result = byteList.ToArray();
+            var result = byteList.ToArray();
             ClearByteList(byteList);
             return result;
         }
@@ -325,8 +325,8 @@ namespace dlech.SshAgentLib
         /// <param name="list">list to be cleared</param>
         public static void ClearByteList(List<byte> list)
         {
-            int length = list.Count;
-            for (int i = 0; i < length; i++)
+            var length = list.Count;
+            for (var i = 0; i < length; i++)
             {
                 list[i] = 0;
             }
@@ -1787,16 +1787,14 @@ namespace dlech.SshAgentLib
                 if (assemblyTitle == null)
                 {
                     // Get all Title attributes on this assembly
-                    object[] attributes = Assembly
+                    var attributes = Assembly
                         .GetEntryAssembly()
                         .GetCustomAttributes(typeof(AssemblyTitleAttribute), false);
                     // If there is at least one Title attribute
                     if (attributes.Length > 0)
                     {
                         // Select the first one
-                        AssemblyTitleAttribute titleAttribute = (AssemblyTitleAttribute)attributes[
-                            0
-                        ];
+                        var titleAttribute = (AssemblyTitleAttribute)attributes[0];
                         // If it is not an empty string, return it
                         if (titleAttribute.Title != "")
                             return titleAttribute.Title;

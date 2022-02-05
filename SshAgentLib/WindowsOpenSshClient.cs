@@ -43,7 +43,7 @@ namespace dlech.SshAgentLib
                 pipe.Connect(500);
                 pipe.Write(message, 0, message.Length);
                 pipe.Flush();
-                byte[] reply = new byte[BufferSize];
+                var reply = new byte[BufferSize];
                 pipe.Read(reply, 0, reply.Length);
                 return reply;
             }

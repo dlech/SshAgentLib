@@ -60,10 +60,7 @@ namespace dlech.SshAgentLibTests
             {
                 case PublicKeyAlgorithm.SshRsa:
                 case PublicKeyAlgorithm.SshRsaCertV1:
-                    KeyGenerationParameters keyGenParam = new KeyGenerationParameters(
-                        secureRandom,
-                        512
-                    );
+                    var keyGenParam = new KeyGenerationParameters(secureRandom, 512);
 
                     var rsaKeyPairGen = new RsaKeyPairGenerator();
                     rsaKeyPairGen.Init(keyGenParam);
@@ -73,14 +70,11 @@ namespace dlech.SshAgentLibTests
 
                 case PublicKeyAlgorithm.SshDss:
                 case PublicKeyAlgorithm.SshDssCertV1:
-                    DsaParametersGenerator dsaParamGen = new DsaParametersGenerator();
+                    var dsaParamGen = new DsaParametersGenerator();
                     dsaParamGen.Init(512, 10, secureRandom);
-                    DsaParameters dsaParam = dsaParamGen.GenerateParameters();
-                    DsaKeyGenerationParameters dsaKeyGenParam = new DsaKeyGenerationParameters(
-                        secureRandom,
-                        dsaParam
-                    );
-                    DsaKeyPairGenerator dsaKeyPairGen = new DsaKeyPairGenerator();
+                    var dsaParam = dsaParamGen.GenerateParameters();
+                    var dsaKeyGenParam = new DsaKeyGenerationParameters(secureRandom, dsaParam);
+                    var dsaKeyPairGen = new DsaKeyPairGenerator();
                     dsaKeyPairGen.Init(dsaKeyGenParam);
                     keyPair = dsaKeyPairGen.GenerateKeyPair();
                     var dsaKey = new SshKey(SshVersion.SSH2, keyPair, comment);
@@ -88,18 +82,18 @@ namespace dlech.SshAgentLibTests
 
                 case PublicKeyAlgorithm.EcdsaSha2Nistp256:
                 case PublicKeyAlgorithm.EcdsaSha2Nistp256CertV1:
-                    X9ECParameters ecdsa256X9Params = SecNamedCurves.GetByName("secp256r1");
-                    ECDomainParameters ecdsa256DomainParams = new ECDomainParameters(
+                    var ecdsa256X9Params = SecNamedCurves.GetByName("secp256r1");
+                    var ecdsa256DomainParams = new ECDomainParameters(
                         ecdsa256X9Params.Curve,
                         ecdsa256X9Params.G,
                         ecdsa256X9Params.N,
                         ecdsa256X9Params.H
                     );
-                    ECKeyGenerationParameters ecdsa256GenParams = new ECKeyGenerationParameters(
+                    var ecdsa256GenParams = new ECKeyGenerationParameters(
                         ecdsa256DomainParams,
                         secureRandom
                     );
-                    ECKeyPairGenerator ecdsa256Gen = new ECKeyPairGenerator();
+                    var ecdsa256Gen = new ECKeyPairGenerator();
                     ecdsa256Gen.Init(ecdsa256GenParams);
                     keyPair = ecdsa256Gen.GenerateKeyPair();
                     var ecdsa256Key = new SshKey(SshVersion.SSH2, keyPair, comment);
@@ -107,18 +101,18 @@ namespace dlech.SshAgentLibTests
 
                 case PublicKeyAlgorithm.EcdsaSha2Nistp384:
                 case PublicKeyAlgorithm.EcdsaSha2Nistp384CertV1:
-                    X9ECParameters ecdsa384X9Params = SecNamedCurves.GetByName("secp384r1");
-                    ECDomainParameters ecdsa384DomainParams = new ECDomainParameters(
+                    var ecdsa384X9Params = SecNamedCurves.GetByName("secp384r1");
+                    var ecdsa384DomainParams = new ECDomainParameters(
                         ecdsa384X9Params.Curve,
                         ecdsa384X9Params.G,
                         ecdsa384X9Params.N,
                         ecdsa384X9Params.H
                     );
-                    ECKeyGenerationParameters ecdsa384GenParams = new ECKeyGenerationParameters(
+                    var ecdsa384GenParams = new ECKeyGenerationParameters(
                         ecdsa384DomainParams,
                         secureRandom
                     );
-                    ECKeyPairGenerator ecdsa384Gen = new ECKeyPairGenerator();
+                    var ecdsa384Gen = new ECKeyPairGenerator();
                     ecdsa384Gen.Init(ecdsa384GenParams);
                     keyPair = ecdsa384Gen.GenerateKeyPair();
                     var ecdsa384Key = new SshKey(SshVersion.SSH2, keyPair, comment);
@@ -126,18 +120,18 @@ namespace dlech.SshAgentLibTests
 
                 case PublicKeyAlgorithm.EcdsaSha2Nistp521:
                 case PublicKeyAlgorithm.EcdsaSha2Nistp521CertV1:
-                    X9ECParameters ecdsa521X9Params = SecNamedCurves.GetByName("secp521r1");
-                    ECDomainParameters ecdsa521DomainParams = new ECDomainParameters(
+                    var ecdsa521X9Params = SecNamedCurves.GetByName("secp521r1");
+                    var ecdsa521DomainParams = new ECDomainParameters(
                         ecdsa521X9Params.Curve,
                         ecdsa521X9Params.G,
                         ecdsa521X9Params.N,
                         ecdsa521X9Params.H
                     );
-                    ECKeyGenerationParameters ecdsa521GenParams = new ECKeyGenerationParameters(
+                    var ecdsa521GenParams = new ECKeyGenerationParameters(
                         ecdsa521DomainParams,
                         secureRandom
                     );
-                    ECKeyPairGenerator ecdsa521Gen = new ECKeyPairGenerator();
+                    var ecdsa521Gen = new ECKeyPairGenerator();
                     ecdsa521Gen.Init(ecdsa521GenParams);
                     keyPair = ecdsa521Gen.GenerateKeyPair();
                     var ecdsa521Key = new SshKey(SshVersion.SSH2, keyPair, comment);

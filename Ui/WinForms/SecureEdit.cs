@@ -193,8 +193,8 @@ namespace dlech.SshAgentLib.WinForms
             if (m_bBlockTextChanged)
                 return;
 
-            int nSelPos = m_tbPassword.SelectionStart;
-            int nSelLen = m_tbPassword.SelectionLength;
+            var nSelPos = m_tbPassword.SelectionStart;
+            var nSelLen = m_tbPassword.SelectionLength;
 
             if (m_tbPassword.UseSystemPasswordChar == false)
             {
@@ -203,13 +203,13 @@ namespace dlech.SshAgentLib.WinForms
                 return;
             }
 
-            string strText = m_tbPassword.Text;
+            var strText = m_tbPassword.Text;
 
             int inxLeft = -1,
                 inxRight = 0;
-            StringBuilder sbNewPart = new StringBuilder();
+            var sbNewPart = new StringBuilder();
 
-            for (int i = 0; i < strText.Length; ++i)
+            for (var i = 0; i < strText.Length; ++i)
             {
                 if (strText[i] != m_chPasswordChar)
                 {
@@ -274,13 +274,13 @@ namespace dlech.SshAgentLib.WinForms
 
             if (m_secString != null)
             {
-                char[] vChars = new char[m_secString.Length];
-                IntPtr p = Marshal.SecureStringToGlobalAllocUnicode(m_secString);
-                for (int i = 0; i < m_secString.Length; ++i)
+                var vChars = new char[m_secString.Length];
+                var p = Marshal.SecureStringToGlobalAllocUnicode(m_secString);
+                for (var i = 0; i < m_secString.Length; ++i)
                     vChars[i] = (char)Marshal.ReadInt16(p, i * 2);
                 Marshal.ZeroFreeGlobalAllocUnicode(p);
 
-                byte[] pb = Encoding.UTF8.GetBytes(vChars);
+                var pb = Encoding.UTF8.GetBytes(vChars);
                 Array.Clear(vChars, 0, vChars.Length);
 
                 return pb;
@@ -293,8 +293,8 @@ namespace dlech.SshAgentLib.WinForms
         {
             if (m_secString != null)
             {
-                IntPtr p = Marshal.SecureStringToGlobalAllocUnicode(m_secString);
-                string str = Marshal.PtrToStringUni(p);
+                var p = Marshal.SecureStringToGlobalAllocUnicode(m_secString);
+                var str = Marshal.PtrToStringUni(p);
                 Marshal.ZeroFreeGlobalAllocUnicode(p);
 
                 return str;
@@ -312,12 +312,12 @@ namespace dlech.SshAgentLib.WinForms
                 while (m_secString.Length > (nLeftRem + nRightRem))
                     m_secString.RemoveAt(nLeftRem);
 
-                for (int i = 0; i < strInsert.Length; ++i)
+                for (var i = 0; i < strInsert.Length; ++i)
                     m_secString.InsertAt(nLeftRem + i, strInsert[i]);
             }
             else
             {
-                StringBuilder sb = new StringBuilder(m_strAlternativeSecString);
+                var sb = new StringBuilder(m_strAlternativeSecString);
 
                 while (sb.Length > (nLeftRem + nRightRem))
                     sb.Remove(nLeftRem, 1);
@@ -334,16 +334,16 @@ namespace dlech.SshAgentLib.WinForms
             if (secOther == null)
                 return false;
 
-            byte[] pbThis = this.ToUtf8();
-            byte[] pbOther = secOther.ToUtf8();
+            var pbThis = this.ToUtf8();
+            var pbOther = secOther.ToUtf8();
 
-            bool bEqual = true;
+            var bEqual = true;
 
             if (pbThis.Length != pbOther.Length)
                 bEqual = false;
             else
             {
-                for (int i = 0; i < pbThis.Length; ++i)
+                for (var i = 0; i < pbThis.Length; ++i)
                 {
                     if (pbThis[i] != pbOther[i])
                     {
@@ -368,9 +368,9 @@ namespace dlech.SshAgentLib.WinForms
             {
                 m_secString.Clear();
 
-                char[] vChars = Encoding.UTF8.GetChars(pbUtf8);
+                var vChars = Encoding.UTF8.GetChars(pbUtf8);
 
-                for (int i = 0; i < vChars.Length; ++i)
+                for (var i = 0; i < vChars.Length; ++i)
                 {
                     m_secString.AppendChar(vChars[i]);
                     vChars[i] = char.MinValue;
@@ -408,7 +408,7 @@ namespace dlech.SshAgentLib.WinForms
         {
             if (e.Data.GetDataPresent(typeof(string)))
             {
-                string strData = e.Data.GetData(typeof(string)) as string;
+                var strData = e.Data.GetData(typeof(string)) as string;
                 if (strData == null)
                 {
                     Debug.Assert(false);

@@ -72,7 +72,7 @@ namespace dlech.SshAgentLibTests
         {
             byte[] actual,
                 expected;
-            PpkFormatter formatter = new PpkFormatter();
+            var formatter = new PpkFormatter();
             ISshKey target;
 
             /* test RSA key */

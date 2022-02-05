@@ -1,4 +1,4 @@
-//
+﻿//
 // AgentClient.cs
 //
 // Author(s): David Lechner <david@lechnology.com>
@@ -161,7 +161,7 @@ namespace dlech.SshAgentLib
 
         public void RemoveAllKeys(SshVersion version)
         {
-            BlobBuilder builder = new BlobBuilder();
+            var builder = new BlobBuilder();
             ICollection<ISshKey> keys = null;
             if (KeyRemoved != null)
                 keys = ListKeys(version);
@@ -186,7 +186,7 @@ namespace dlech.SshAgentLib
 
         public ICollection<ISshKey> ListKeys(SshVersion aVersion)
         {
-            BlobBuilder builder = new BlobBuilder();
+            var builder = new BlobBuilder();
             switch (aVersion)
             {
                 case SshVersion.SSH1:
@@ -198,7 +198,7 @@ namespace dlech.SshAgentLib
                 default:
                     throw new Exception(cUnsupportedSshVersion);
             }
-            BlobParser replyParser = SendMessage(builder);
+            var replyParser = SendMessage(builder);
             var keyCollection = new List<ISshKey>();
             var header = replyParser.ReadHeader();
             switch (aVersion)
@@ -228,9 +228,7 @@ namespace dlech.SshAgentLib
                     {
                         var publicKeyBlob = replyParser.ReadBlob();
                         var publicKeyParser = new BlobParser(publicKeyBlob);
-                        var publicKeyParams = publicKeyParser.ReadSsh2PublicKeyData(
-                            out OpensshCertificate cert
-                        );
+                        var publicKeyParams = publicKeyParser.ReadSsh2PublicKeyData(out var cert);
                         var comment = replyParser.ReadString();
                         keyCollection.Add(
                             new SshKey(SshVersion.SSH2, publicKeyParams, null, comment, cert)
@@ -245,7 +243,7 @@ namespace dlech.SshAgentLib
 
         public byte[] SignRequest(ISshKey aKey, byte[] aSignData)
         {
-            BlobBuilder builder = new BlobBuilder();
+            var builder = new BlobBuilder();
             switch (aKey.Version)
             {
                 case SshVersion.SSH1:
@@ -272,7 +270,7 @@ namespace dlech.SshAgentLib
                     throw new Exception(cUnsupportedSshVersion);
             }
 
-            BlobParser replyParser = SendMessage(builder);
+            var replyParser = SendMessage(builder);
             var header = replyParser.ReadHeader();
 
             switch (aKey.Version)
@@ -283,9 +281,9 @@ namespace dlech.SshAgentLib
                         throw new AgentFailureException();
                     }
 
-                    byte[] response = new byte[16];
+                    var response = new byte[16];
 
-                    for (int i = 0; i < 16; i++)
+                    for (var i = 0; i < 16; i++)
                     {
                         response[i] = replyParser.ReadByte();
                     }
@@ -309,7 +307,7 @@ namespace dlech.SshAgentLib
                 throw new ArgumentNullException(nameof(passphrase));
             }
 
-            BlobBuilder builder = new BlobBuilder();
+            var builder = new BlobBuilder();
             builder.AddBlob(passphrase);
             builder.InsertHeader(Agent.Message.SSH_AGENTC_LOCK);
             SendMessageAndCheckSuccess(builder);
@@ -322,7 +320,7 @@ namespace dlech.SshAgentLib
                 throw new ArgumentNullException(nameof(passphrase));
             }
 
-            BlobBuilder builder = new BlobBuilder();
+            var builder = new BlobBuilder();
             builder.AddBlob(passphrase);
             builder.InsertHeader(Agent.Message.SSH_AGENTC_UNLOCK);
             SendMessageAndCheckSuccess(builder);
@@ -450,7 +448,7 @@ namespace dlech.SshAgentLib
         {
             if (KeyAdded != null)
             {
-                SshKeyEventArgs args = new SshKeyEventArgs(key);
+                var args = new SshKeyEventArgs(key);
                 KeyAdded(this, args);
             }
         }
@@ -459,7 +457,7 @@ namespace dlech.SshAgentLib
         {
             if (KeyRemoved != null)
             {
-                SshKeyEventArgs args = new SshKeyEventArgs(key);
+                var args = new SshKeyEventArgs(key);
                 KeyRemoved(this, args);
             }
         }

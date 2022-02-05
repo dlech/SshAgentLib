@@ -50,8 +50,8 @@ namespace dlech.SshAgentLibTests
         {
             passphraseCallback = delegate(string comment)
             {
-                SecureString passphrase = new SecureString();
-                foreach (char c in Resources.pw.Trim())
+                var passphrase = new SecureString();
+                foreach (var c in Resources.pw.Trim())
                 {
                     passphrase.AppendChar(c);
                 }

@@ -1,4 +1,4 @@
-# To learn more about .editorconfig see https://aka.ms/editorconfigdocs
+﻿# To learn more about .editorconfig see https://aka.ms/editorconfigdocs
 ###############################
 # Core EditorConfig Options   #
 ###############################
@@ -14,4 +14,8 @@ indent_style = space
 indent_size = 4
 insert_final_newline = true
 trim_trailing_whitespace = true
-charset = utf-8-bom
+
+[*.cs]
+
+# IDE0007: Use implicit type
+dotnet_diagnostic.IDE0007.severity = suggestion

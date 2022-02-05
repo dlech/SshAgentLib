@@ -92,7 +92,7 @@ namespace dlech.SshAgentLib
 
             /* writing private key */
 
-            BlobBuilder privateKeyBuilder = new BlobBuilder();
+            var privateKeyBuilder = new BlobBuilder();
             var checkint = new SecureRandom().NextInt();
             privateKeyBuilder.AddInt(checkint);
             privateKeyBuilder.AddInt(checkint);
@@ -110,7 +110,7 @@ namespace dlech.SshAgentLib
             else
             {
                 byte[] keydata;
-                using (MD5 md5 = MD5.Create())
+                using (var md5 = MD5.Create())
                 {
                     var passphrase = default(string); // TODO
                     keydata = md5.ComputeHash(Encoding.ASCII.GetBytes(passphrase));
@@ -173,9 +173,7 @@ namespace dlech.SshAgentLib
                 }
 
                 /* reading unencrypted part */
-                BlobParser parser = new BlobParser(
-                    Convert.FromBase64String(base64String.ToString())
-                );
+                var parser = new BlobParser(Convert.FromBase64String(base64String.ToString()));
 
                 var magicBytes = parser.ReadBytes(AUTH_MAGIC.Length);
                 if (Encoding.UTF8.GetString(magicBytes) != AUTH_MAGIC)
@@ -207,7 +205,7 @@ namespace dlech.SshAgentLib
                 }
 
                 var publicKeys = new List<byte[]>();
-                for (int i = 0; i < keyCount; i++)
+                for (var i = 0; i < keyCount; i++)
                 {
                     publicKeys.Add(parser.ReadBlob());
                 }
@@ -223,7 +221,7 @@ namespace dlech.SshAgentLib
                     var passphrase = GetPassphraseCallbackMethod(null);
                     var passphraseChars = new char[passphrase.Length];
                     var passphrasePtr = Marshal.SecureStringToGlobalAllocUnicode(passphrase);
-                    for (int i = 0; i < passphrase.Length; i++)
+                    for (var i = 0; i < passphrase.Length; i++)
                     {
                         passphraseChars[i] = (char)Marshal.ReadInt16(passphrasePtr, i * 2);
                     }
@@ -255,7 +253,7 @@ namespace dlech.SshAgentLib
                             throw new KeyFormatterException("Bad private key encrypted length.");
                         }
 
-                        using (ICryptoTransform decryptor = aes.CreateDecryptor())
+                        using (var decryptor = aes.CreateDecryptor())
                         {
                             privateKeys = Util.GenericTransform(decryptor, privateKeys);
                         }
@@ -277,7 +275,7 @@ namespace dlech.SshAgentLib
                     throw new KeyFormatterException("checkint does not match in private key.");
                 }
                 var keys = new List<SshKey>();
-                for (int i = 0; i < keyCount; i++)
+                for (var i = 0; i < keyCount; i++)
                 {
                     OpensshCertificate cert;
                     var publicKey = parser.ReadSsh2PublicKeyData(out cert);

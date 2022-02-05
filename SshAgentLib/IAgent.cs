@@ -122,7 +122,7 @@ namespace dlech.SshAgentLib
 
         public static ICollection<ISshKey> GetAllKeys(this IAgent aAgent)
         {
-            List<ISshKey> allKeysList = new List<ISshKey>();
+            var allKeysList = new List<ISshKey>();
             foreach (SshVersion version in Enum.GetValues(typeof(SshVersion)))
             {
                 try

@@ -61,7 +61,7 @@ namespace AsyncSocketSample
             // preallocate pool of SocketAsyncEventArgs objects
             SocketAsyncEventArgs readWriteEventArg;
 
-            for (int i = 0; i < m_numConnections; i++)
+            for (var i = 0; i < m_numConnections; i++)
             {
                 //Pre-allocate a set of reusable SocketAsyncEventArgs
                 readWriteEventArg = new SocketAsyncEventArgs();
@@ -117,7 +117,7 @@ namespace AsyncSocketSample
             }
 
             m_maxNumberAcceptedClients.WaitOne();
-            bool willRaiseEvent = listenSocket.AcceptAsync(acceptEventArg);
+            var willRaiseEvent = listenSocket.AcceptAsync(acceptEventArg);
             if (!willRaiseEvent)
             {
                 ProcessAccept(acceptEventArg);
@@ -141,11 +141,11 @@ namespace AsyncSocketSample
 
             // Get the socket for the accepted client connection and put it into the 
             //ReadEventArg object user token
-            SocketAsyncEventArgs readEventArgs = m_readWritePool.Pop();
+            var readEventArgs = m_readWritePool.Pop();
             ((AsyncUserToken)readEventArgs.UserToken).Socket = e.AcceptSocket;
 
             // As soon as the client is connected, post a receive to the connection
-            bool willRaiseEvent = e.AcceptSocket.ReceiveAsync(readEventArgs);
+            var willRaiseEvent = e.AcceptSocket.ReceiveAsync(readEventArgs);
             if(!willRaiseEvent){
                 ProcessReceive(readEventArgs);
             }
@@ -183,7 +183,7 @@ namespace AsyncSocketSample
         private void ProcessReceive(SocketAsyncEventArgs e)
         {
             // check if the remote host closed the connection
-            AsyncUserToken token = (AsyncUserToken)e.UserToken;
+            var token = (AsyncUserToken)e.UserToken;
             if (e.BytesTransferred > 0 && e.SocketError == SocketError.Success)
             {
                 //increment the count of the total bytes receive by the server
@@ -191,7 +191,7 @@ namespace AsyncSocketSample
                 Console.WriteLine("The server has read a total of {0} bytes", m_totalBytesRead);
                 
                 //echo the data received back to the client
-                bool willRaiseEvent = token.Socket.SendAsync(e);
+                var willRaiseEvent = token.Socket.SendAsync(e);
                 if (!willRaiseEvent)
                 {
                     ProcessSend(e);
@@ -214,9 +214,9 @@ namespace AsyncSocketSample
             if (e.SocketError == SocketError.Success)
             {
                 // done echoing data back to the client
-                AsyncUserToken token = (AsyncUserToken)e.UserToken;
+                var token = (AsyncUserToken)e.UserToken;
                 // read the next block of data send from the client
-                bool willRaiseEvent = token.Socket.ReceiveAsync(e);
+                var willRaiseEvent = token.Socket.ReceiveAsync(e);
                 if (!willRaiseEvent)
                 {
                     ProcessReceive(e);
@@ -230,7 +230,7 @@ namespace AsyncSocketSample
 
         private void CloseClientSocket(SocketAsyncEventArgs e)
         {
-            AsyncUserToken token = e.UserToken as AsyncUserToken;
+            var token = e.UserToken as AsyncUserToken;
 
             // close the socket associated with the client
             try

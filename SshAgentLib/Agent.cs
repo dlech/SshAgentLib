@@ -267,7 +267,7 @@ namespace dlech.SshAgentLib
 
             /* handle constraints */
 
-            foreach (KeyConstraint constraint in key.Constraints)
+            foreach (var constraint in key.Constraints)
             {
                 if (
                     constraint.Type == KeyConstraintType.SSH_AGENT_CONSTRAIN_CONFIRM
@@ -296,7 +296,7 @@ namespace dlech.SshAgentLib
             }
 
             /* first remove matching key if it exists */
-            ISshKey matchingKey = keyList.Get(key.Version, key.GetPublicKeyBlob());
+            var matchingKey = keyList.Get(key.Version, key.GetPublicKeyBlob());
             RemoveKey(matchingKey);
 
             keyList.Add(key);
@@ -325,7 +325,7 @@ namespace dlech.SshAgentLib
 
             var removeKeyList = ListKeys(aVersion);
 
-            foreach (ISshKey key in removeKeyList)
+            foreach (var key in removeKeyList)
             {
                 RemoveKey(key);
             }
@@ -353,7 +353,7 @@ namespace dlech.SshAgentLib
 
             if (aPassphrase != null)
             {
-                foreach (byte b in aPassphrase)
+                foreach (var b in aPassphrase)
                 {
                     lockedPassphrase.AppendChar((char)b);
                 }
@@ -382,9 +382,9 @@ namespace dlech.SshAgentLib
                 throw new PassphraseException();
             }
 
-            IntPtr lockedPassPtr = Marshal.SecureStringToGlobalAllocUnicode(lockedPassphrase);
+            var lockedPassPtr = Marshal.SecureStringToGlobalAllocUnicode(lockedPassphrase);
 
-            for (int i = 0; i < lockedPassphrase.Length; i++)
+            for (var i = 0; i < lockedPassphrase.Length; i++)
             {
                 var lockedPassChar = Marshal.ReadInt16(lockedPassPtr, i * 2);
 
@@ -580,7 +580,7 @@ namespace dlech.SshAgentLib
                             encryptedChallenge.Length
                         );
 
-                        using (MD5 md5 = MD5.Create())
+                        using (var md5 = MD5.Create())
                         {
                             var md5Buffer = new byte[48];
                             decryptedChallenge.CopyTo(md5Buffer, 0);
@@ -762,15 +762,13 @@ namespace dlech.SshAgentLib
                         goto default;
                     }
 
-                    bool constrained = header.Message == Message.SSH2_AGENTC_ADD_ID_CONSTRAINED;
+                    var constrained = header.Message == Message.SSH2_AGENTC_ADD_ID_CONSTRAINED;
 
                     try
                     {
-                        var publicKeyParams = messageParser.ReadSsh2PublicKeyData(
-                            out OpensshCertificate cert
-                        );
+                        var publicKeyParams = messageParser.ReadSsh2PublicKeyData(out var cert);
                         var keyPair = messageParser.ReadSsh2KeyData(publicKeyParams);
-                        SshKey key = new SshKey(SshVersion.SSH2, keyPair, null, cert)
+                        var key = new SshKey(SshVersion.SSH2, keyPair, null, cert)
                         {
                             Comment = messageParser.ReadString(),
                             Source = "External client"
@@ -780,7 +778,7 @@ namespace dlech.SshAgentLib
                         {
                             while (messageParser.BaseStream.Position < header.BlobLength + 4)
                             {
-                                KeyConstraint constraint = new KeyConstraint
+                                var constraint = new KeyConstraint
                                 {
                                     Type = (KeyConstraintType)messageParser.ReadByte()
                                 };
