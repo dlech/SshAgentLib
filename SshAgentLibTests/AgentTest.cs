@@ -403,7 +403,7 @@ namespace dlech.SshAgentLibTests
                 (ECPrivateKeyParameters)ecdsa256Key.GetPrivateKeyParameters();
 
             var certBuilder = new BlobBuilder();
-            certBuilder.AddStringBlob("ecdsa-sha2");
+            certBuilder.AddStringBlob("ecdsa-sha2-nistp256-cert-v01@openssh.com");
             certBuilder.AddBlob(new byte[32]); // nonce
             certBuilder.AddStringBlob("nistp256"); // curve
             certBuilder.AddBlob(ecdsaPublicParameters.Q.GetEncoded()); // public key
