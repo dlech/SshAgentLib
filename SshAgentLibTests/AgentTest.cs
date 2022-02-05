@@ -56,20 +56,18 @@ namespace dlech.SshAgentLibTests
     [TestFixture]
     public class AgentTest
     {
-        private const string cTestNotImplemented = "Test not implemented";
-
         /* instance variables */
-        static byte[] buffer;
-        static MemoryStream stream;
-        static BlobParser parser;
-        static SshKey rsa1Key;
-        static SshKey rsaKey;
-        static SshKey dsaKey;
-        static SshKey ecdsa256Key;
-        static SshKey ecdsa384Key;
-        static SshKey ecdsa521Key;
-        static SshKey ed25519Key;
-        static ReadOnlyCollection<ISshKey> allKeys;
+        private static readonly byte[] buffer;
+        private static readonly MemoryStream stream;
+        private static readonly BlobParser parser;
+        private static readonly SshKey rsa1Key;
+        private static readonly SshKey rsaKey;
+        private static readonly SshKey dsaKey;
+        private static readonly SshKey ecdsa256Key;
+        private static readonly SshKey ecdsa384Key;
+        private static readonly SshKey ecdsa521Key;
+        private static readonly SshKey ed25519Key;
+        private static readonly ReadOnlyCollection<ISshKey> allKeys;
 
         // since Agent is an abstract class, we need to create a trivial
         // implementation
@@ -130,15 +128,16 @@ namespace dlech.SshAgentLibTests
                 "SSH2 ED25519 test key"
             );
 
-            List<ISshKey> allKeysList = new List<ISshKey>();
-            allKeysList.Add(rsa1Key);
-            allKeysList.Add(rsaKey);
-            allKeysList.Add(dsaKey);
-            allKeysList.Add(ecdsa256Key);
-            allKeysList.Add(ecdsa384Key);
-            allKeysList.Add(ecdsa521Key);
-            allKeysList.Add(ed25519Key);
-            allKeys = allKeysList.AsReadOnly();
+            allKeys = new List<ISshKey>
+            {
+                rsa1Key,
+                rsaKey,
+                dsaKey,
+                ecdsa256Key,
+                ecdsa384Key,
+                ecdsa521Key,
+                ed25519Key
+            }.AsReadOnly();
         }
 
         [Test()]
@@ -231,14 +230,14 @@ namespace dlech.SshAgentLibTests
             certBuilder.AddUInt64(0); // serial
             certBuilder.AddUInt32((uint)Ssh2CertType.User); // type
             certBuilder.AddStringBlob("rsa-test-cert"); // key id
-            certBuilder.AddBlob(new byte[0]); // valid principals
+            certBuilder.AddBlob(Array.Empty<byte>()); // valid principals
             certBuilder.AddUInt64(0); // valid after
             certBuilder.AddUInt64(ulong.MaxValue); // valid before
-            certBuilder.AddBlob(new byte[0]); //critical options
-            certBuilder.AddBlob(new byte[0]); // extensions
-            certBuilder.AddBlob(new byte[0]); // reserved
+            certBuilder.AddBlob(Array.Empty<byte>()); //critical options
+            certBuilder.AddBlob(Array.Empty<byte>()); // extensions
+            certBuilder.AddBlob(Array.Empty<byte>()); // reserved
             certBuilder.AddBlob(rsaKey.GetPublicKeyBlob()); // signature key
-            certBuilder.AddBlob(new byte[0]); // signature
+            certBuilder.AddBlob(Array.Empty<byte>()); // signature
 
             var builder = new BlobBuilder();
             builder.AddStringBlob("ssh-rsa-cert-v01@openssh.com");
@@ -316,14 +315,14 @@ namespace dlech.SshAgentLibTests
             certBuilder.AddUInt64(0); // serial
             certBuilder.AddUInt32((uint)Ssh2CertType.User); // type
             certBuilder.AddStringBlob("dsa-test-cert"); // key id
-            certBuilder.AddBlob(new byte[0]); // valid principals
+            certBuilder.AddBlob(Array.Empty<byte>()); // valid principals
             certBuilder.AddUInt64(0); // valid after
             certBuilder.AddUInt64(ulong.MaxValue); // valid before
-            certBuilder.AddBlob(new byte[0]); //critical options
-            certBuilder.AddBlob(new byte[0]); // extensions
-            certBuilder.AddBlob(new byte[0]); // reserved
+            certBuilder.AddBlob(Array.Empty<byte>()); //critical options
+            certBuilder.AddBlob(Array.Empty<byte>()); // extensions
+            certBuilder.AddBlob(Array.Empty<byte>()); // reserved
             certBuilder.AddBlob(dsaKey.GetPublicKeyBlob()); // signature key
-            certBuilder.AddBlob(new byte[0]); // signature
+            certBuilder.AddBlob(Array.Empty<byte>()); // signature
 
             var builder = new BlobBuilder();
             builder.AddStringBlob("ssh-dss-cert-v01@openssh.com");
@@ -352,17 +351,18 @@ namespace dlech.SshAgentLibTests
         [Test]
         public void TestAnswerSSH2_AGENTC_ADD_IDENTITY_ECDSA()
         {
-            var agent = new TestAgent();
-            var builder = new BlobBuilder();
+            List<ISshKey> ecdsaKeysList = new List<ISshKey>
+            {
+                ecdsa256Key,
+                ecdsa384Key,
+                ecdsa521Key
+            };
 
-            List<ISshKey> ecdsaKeysList = new List<ISshKey>();
-            ecdsaKeysList.Add(ecdsa256Key);
-            ecdsaKeysList.Add(ecdsa384Key);
-            ecdsaKeysList.Add(ecdsa521Key);
             foreach (ISshKey key in ecdsaKeysList)
             {
-                agent = new TestAgent();
-                builder.Clear();
+                var agent = new TestAgent();
+                var builder = new BlobBuilder();
+
                 ECPublicKeyParameters ecdsaPublicParameters =
                     (ECPublicKeyParameters)key.GetPublicKeyParameters();
                 ECPrivateKeyParameters ecdsaPrivateParameters =
@@ -410,14 +410,14 @@ namespace dlech.SshAgentLibTests
             certBuilder.AddUInt64(0); // serial
             certBuilder.AddUInt32((uint)Ssh2CertType.User); // type
             certBuilder.AddStringBlob("ecdsa-test-cert"); // key id
-            certBuilder.AddBlob(new byte[0]); // valid principals
+            certBuilder.AddBlob(Array.Empty<byte>()); // valid principals
             certBuilder.AddUInt64(0); // valid after
             certBuilder.AddUInt64(ulong.MaxValue); // valid before
-            certBuilder.AddBlob(new byte[0]); //critical options
-            certBuilder.AddBlob(new byte[0]); // extensions
-            certBuilder.AddBlob(new byte[0]); // reserved
+            certBuilder.AddBlob(Array.Empty<byte>()); //critical options
+            certBuilder.AddBlob(Array.Empty<byte>()); // extensions
+            certBuilder.AddBlob(Array.Empty<byte>()); // reserved
             certBuilder.AddBlob(dsaKey.GetPublicKeyBlob()); // signature key
-            certBuilder.AddBlob(new byte[0]); // signature
+            certBuilder.AddBlob(Array.Empty<byte>()); // signature
 
             var builder = new BlobBuilder();
             builder.AddStringBlob("ecdsa-sha2-nistp256-cert-v01@openssh.com");
@@ -505,14 +505,14 @@ namespace dlech.SshAgentLibTests
             certBuilder.AddUInt64(0); // serial
             certBuilder.AddUInt32((uint)Ssh2CertType.User); // type
             certBuilder.AddStringBlob("ed25519-test-cert"); // key id
-            certBuilder.AddBlob(new byte[0]); // valid principals
+            certBuilder.AddBlob(Array.Empty<byte>()); // valid principals
             certBuilder.AddUInt64(0); // valid after
             certBuilder.AddUInt64(ulong.MaxValue); // valid before
-            certBuilder.AddBlob(new byte[0]); //critical options
-            certBuilder.AddBlob(new byte[0]); // extensions
-            certBuilder.AddBlob(new byte[0]); // reserved
+            certBuilder.AddBlob(Array.Empty<byte>()); //critical options
+            certBuilder.AddBlob(Array.Empty<byte>()); // extensions
+            certBuilder.AddBlob(Array.Empty<byte>()); // reserved
             certBuilder.AddBlob(ed25519Key.GetPublicKeyBlob()); // signature key
-            certBuilder.AddBlob(new byte[0]); // signature
+            certBuilder.AddBlob(Array.Empty<byte>()); // signature
 
             var builder = new BlobBuilder();
             builder.AddStringBlob("ssh-ed25519-cert-v01@openssh.com");
@@ -588,7 +588,7 @@ namespace dlech.SshAgentLibTests
             var builder = new BlobBuilder();
 
             /* test locked => failure */
-            agent.Lock(new byte[0]);
+            agent.Lock(Array.Empty<byte>());
             PrepareMessage(builder);
             agent.AnswerMessage(stream);
             RewindStream();
@@ -604,10 +604,10 @@ namespace dlech.SshAgentLibTests
             /* most code is shared with SSH1_AGENTC_ADD_RSA_IDENTITY, so we just
              * need to test the differences */
 
-            Agent.ConfirmUserPermissionDelegate confirmCallback = delegate(ISshKey k, Process p)
+            bool confirmCallback(ISshKey k, Process p)
             {
                 return true;
-            };
+            }
 
             Agent agent = new TestAgent();
 
@@ -637,8 +637,7 @@ namespace dlech.SshAgentLibTests
 
             /* test adding key with confirm constraint */
 
-            agent = new TestAgent();
-            agent.ConfirmUserPermissionCallback = confirmCallback;
+            agent = new TestAgent { ConfirmUserPermissionCallback = confirmCallback };
             PrepareMessage(builder);
             agent.AnswerMessage(stream);
             RewindStream();
@@ -681,8 +680,7 @@ namespace dlech.SshAgentLibTests
 
             /* test adding key with multiple constraints */
 
-            agent = new TestAgent();
-            agent.ConfirmUserPermissionCallback = confirmCallback;
+            agent = new TestAgent { ConfirmUserPermissionCallback = confirmCallback };
             builder.Clear();
             builder.AddBytes(commonBlob);
             builder.AddUInt8((byte)Agent.KeyConstraintType.SSH_AGENT_CONSTRAIN_CONFIRM);
@@ -710,8 +708,7 @@ namespace dlech.SshAgentLibTests
 
             /* test adding key with multiple constraints in different order */
 
-            agent = new TestAgent();
-            agent.ConfirmUserPermissionCallback = confirmCallback;
+            agent = new TestAgent { ConfirmUserPermissionCallback = confirmCallback };
             builder.Clear();
             builder.AddBytes(commonBlob);
             builder.AddUInt8((byte)Agent.KeyConstraintType.SSH_AGENT_CONSTRAIN_LIFETIME);
@@ -744,10 +741,10 @@ namespace dlech.SshAgentLibTests
             /* most code is shared with SSH2_AGENTC_ADD_IDENTITY, so we just
              * need to test the differences */
 
-            Agent.ConfirmUserPermissionDelegate confirmCallback = delegate(ISshKey k, Process p)
+            bool confirmCallback(ISshKey k, Process p)
             {
                 return true;
-            };
+            }
 
             Agent agent = new TestAgent();
 
@@ -777,8 +774,7 @@ namespace dlech.SshAgentLibTests
 
             /* test adding key with confirm constraint */
 
-            agent = new TestAgent();
-            agent.ConfirmUserPermissionCallback = confirmCallback;
+            agent = new TestAgent { ConfirmUserPermissionCallback = confirmCallback };
             PrepareMessage(builder);
             agent.AnswerMessage(stream);
             RewindStream();
@@ -821,8 +817,7 @@ namespace dlech.SshAgentLibTests
 
             /* test adding key with multiple constraints */
 
-            agent = new TestAgent();
-            agent.ConfirmUserPermissionCallback = confirmCallback;
+            agent = new TestAgent { ConfirmUserPermissionCallback = confirmCallback };
             builder.Clear();
             builder.AddBytes(commonBlob);
             builder.AddUInt8((byte)Agent.KeyConstraintType.SSH_AGENT_CONSTRAIN_CONFIRM);
@@ -850,8 +845,7 @@ namespace dlech.SshAgentLibTests
 
             /* test adding key with multiple constraints in different order */
 
-            agent = new TestAgent();
-            agent.ConfirmUserPermissionCallback = confirmCallback;
+            agent = new TestAgent { ConfirmUserPermissionCallback = confirmCallback };
             builder.Clear();
             builder.AddBytes(commonBlob);
             builder.AddUInt8((byte)Agent.KeyConstraintType.SSH_AGENT_CONSTRAIN_LIFETIME);
@@ -997,8 +991,8 @@ namespace dlech.SshAgentLibTests
                 decryptedChallenge.Length
             );
 
-            BigInteger chal = new BigInteger(encryptedChallenge);
-            builder.AddSsh1BigIntBlob(chal);
+            var challenge = new BigInteger(encryptedChallenge);
+            builder.AddSsh1BigIntBlob(challenge);
             builder.AddBytes(sessionId);
             builder.AddInt(1);
 
@@ -1146,11 +1140,13 @@ namespace dlech.SshAgentLibTests
             /* test confirm constraint */
 
             agent = new TestAgent();
-            Agent.KeyConstraint testConstraint = new Agent.KeyConstraint();
-            testConstraint.Type = Agent.KeyConstraintType.SSH_AGENT_CONSTRAIN_CONFIRM;
+            var testConstraint = new Agent.KeyConstraint
+            {
+                Type = Agent.KeyConstraintType.SSH_AGENT_CONSTRAIN_CONFIRM
+            };
             SshKey testKey = dsaKey.Clone();
             bool confirmCallbackReturnValue = false;
-            agent.ConfirmUserPermissionCallback = delegate(ISshKey k, Process p)
+            agent.ConfirmUserPermissionCallback = (k, p) =>
             {
                 return confirmCallbackReturnValue;
             };
@@ -1206,7 +1202,7 @@ namespace dlech.SshAgentLibTests
 
             /* test returns failure when locked */
 
-            agent.Lock(new byte[0]);
+            agent.Lock(Array.Empty<byte>());
             startCount = agent.GetAllKeys().Count;
             builder.AddBlob(dsaKey.GetPublicKeyBlob());
             builder.InsertHeader(Agent.Message.SSH2_AGENTC_REMOVE_IDENTITY);
@@ -1250,7 +1246,7 @@ namespace dlech.SshAgentLibTests
 
             /* test returns failure when locked */
 
-            agent.Lock(new byte[0]);
+            agent.Lock(Array.Empty<byte>());
             startCount = agent.GetAllKeys().Count;
             builder.AddBlob(dsaKey.GetPublicKeyBlob());
             builder.InsertHeader(Agent.Message.SSH2_AGENTC_REMOVE_IDENTITY);
@@ -1290,7 +1286,7 @@ namespace dlech.SshAgentLibTests
             Assert.That(header.Message, Is.EqualTo(Agent.Message.SSH_AGENT_SUCCESS));
 
             /* test that returns failure when locked */
-            agent.Lock(new byte[0]);
+            agent.Lock(Array.Empty<byte>());
             PrepareSimpleMessage(Agent.Message.SSH2_AGENTC_REMOVE_ALL_IDENTITIES);
             agent.AnswerMessage(stream);
             RewindStream();
@@ -1310,7 +1306,7 @@ namespace dlech.SshAgentLibTests
             bool agentLockedCalled = false;
             Agent.BlobHeader replyHeader;
 
-            Agent.LockEventHandler agentLocked = (s, e) =>
+            void agentLocked(object s, Agent.LockEventArgs e)
             {
                 Assert.That(
                     agentLockedCalled,
@@ -1318,7 +1314,7 @@ namespace dlech.SshAgentLibTests
                     "LockEvent fired without resetting agentLockedCalled"
                 );
                 agentLockedCalled = true;
-            };
+            }
 
             agent.Locked += new Agent.LockEventHandler(agentLocked);
 
@@ -1425,9 +1421,11 @@ namespace dlech.SshAgentLibTests
                 rsaKey.GetPrivateKeyParameters()
             );
             ISshKey key = new SshKey(SshVersion.SSH2, keyPair);
-            Agent.KeyConstraint constraint = new Agent.KeyConstraint();
-            constraint.Type = Agent.KeyConstraintType.SSH_AGENT_CONSTRAIN_LIFETIME;
-            constraint.Data = (UInt32)1;
+            var constraint = new Agent.KeyConstraint
+            {
+                Type = Agent.KeyConstraintType.SSH_AGENT_CONSTRAIN_LIFETIME,
+                Data = 1
+            };
             key.AddConstraint(constraint);
             agent.AddKey(key);
             Thread.Sleep(500);
@@ -1441,31 +1439,31 @@ namespace dlech.SshAgentLibTests
         /// <summary>
         /// writes BlobBuilder data to beginning of Stream and resets Stream
         /// </summary>
-        private void PrepareMessage(BlobBuilder aBuilder)
+        private static void PrepareMessage(BlobBuilder builder)
         {
             ResetStream();
-            stream.WriteBlob(aBuilder);
+            stream.WriteBlob(builder);
             RewindStream();
         }
 
         /// <summary>
         /// prepares a message with no data
         /// </summary>
-        private void PrepareSimpleMessage(Agent.Message aMessage)
+        private static void PrepareSimpleMessage(Agent.Message message)
         {
             BlobBuilder builder = new BlobBuilder();
-            builder.InsertHeader(aMessage);
+            builder.InsertHeader(message);
             PrepareMessage(builder);
         }
 
         /// <summary>
         /// prepares a lock or unlock message with specified password
         /// </summary>
-        private void PrepareLockMessage(bool aLock, string aPassword)
+        private static void PrepareLockMessage(bool @lock, string password)
         {
             BlobBuilder builder = new BlobBuilder();
-            builder.AddStringBlob(aPassword);
-            if (aLock)
+            builder.AddStringBlob(password);
+            if (@lock)
             {
                 builder.InsertHeader(Agent.Message.SSH_AGENTC_LOCK);
             }
@@ -1476,13 +1474,13 @@ namespace dlech.SshAgentLibTests
             PrepareMessage(builder);
         }
 
-        private void ResetStream()
+        private static void ResetStream()
         {
             Array.Clear(buffer, 0, buffer.Length);
             RewindStream();
         }
 
-        private void RewindStream()
+        private static void RewindStream()
         {
             stream.Position = 0;
         }
