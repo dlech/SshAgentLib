@@ -25,7 +25,6 @@
 
 using System;
 using System.IO;
-using System.Linq;
 using System.Reflection;
 using System.Security;
 using System.Text;
@@ -33,7 +32,6 @@ using dlech.SshAgentLib;
 using dlech.SshAgentLib.Crypto;
 using NUnit.Framework;
 using Org.BouncyCastle.Crypto.Parameters;
-using Org.BouncyCastle.Math;
 
 namespace dlech.SshAgentLibTests
 {
@@ -44,7 +42,7 @@ namespace dlech.SshAgentLibTests
     [TestFixture()]
     public class PpkFormatterTest
     {
-        string DllDirectory
+        static string DllDirectory
         {
             get { return Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location); }
         }
@@ -56,10 +54,10 @@ namespace dlech.SshAgentLibTests
         public void PpkDeserializeNonAsciiPassphraseTest()
         {
             ISshKey key;
-            var formatter = new PpkFormatter();
-            formatter.WarnOldFileFormatCallbackMethod = delegate()
+            var formatter = new PpkFormatter
             {
-                Assert.Fail("Warn old file format was not expected");
+                WarnOldFileFormatCallbackMethod = () =>
+                    Assert.Fail("Warn old file format was not expected")
             };
 
             var passphrase = "Ŧéşť";
@@ -187,18 +185,21 @@ namespace dlech.SshAgentLibTests
         {
             ISshKey target;
 
-            PpkFormatter.WarnOldFileFormatCallback warnOldFileNotExpected = delegate()
+            void warnOldFileNotExpected()
             {
                 Assert.Fail("Warn old file format was not expected");
-            };
-            bool warnCallbackCalled; // set to false before calling warnOldFileExpceted
-            PpkFormatter.WarnOldFileFormatCallback warnOldFileExpected = delegate()
+            }
+
+            bool warnCallbackCalled; // set to false before calling warnOldFileExpected
+
+            void warnOldFileExpected()
             {
                 warnCallbackCalled = true;
-            };
+            }
 
             var passphrase = "PageantSharp";
-            PpkFormatter.GetPassphraseCallback getPassphrase = delegate(string comment)
+
+            SecureString getPassphrase(string comment)
             {
                 var result = new SecureString();
                 foreach (var c in passphrase)
@@ -206,9 +207,9 @@ namespace dlech.SshAgentLibTests
                     result.AppendChar(c);
                 }
                 return result;
-            };
+            }
 
-            PpkFormatter.GetPassphraseCallback getBadPassphrase = delegate(string comment)
+            SecureString getBadPassphrase(string comment)
             {
                 var result = new SecureString();
                 foreach (var c in "badword")
@@ -216,7 +217,7 @@ namespace dlech.SshAgentLibTests
                     result.AppendChar(c);
                 }
                 return result;
-            };
+            }
 
             var expectedKeySize = 1024; // all test keys
 
@@ -261,11 +262,12 @@ namespace dlech.SshAgentLibTests
             var expectedSsh2DsaWithPassComment = "PageantSharp SSH2-DSA, with passphrase";
             //      string expectedSsh2DsaPrivateKey = "AAAAFQCMF35lBnFwFWyl40y0wTf4lfdhNQ==";
 
-            var formatter = new PpkFormatter();
-
-            /* test for successful method call */
-            formatter.GetPassphraseCallbackMethod = getPassphrase;
-            formatter.WarnOldFileFormatCallbackMethod = warnOldFileNotExpected;
+            var formatter = new PpkFormatter
+            {
+                /* test for successful method call */
+                GetPassphraseCallbackMethod = getPassphrase,
+                WarnOldFileFormatCallbackMethod = warnOldFileNotExpected
+            };
             var path = Path.Combine(DllDirectory, "../../../Resources/ssh2-rsa.ppk");
             target = formatter.DeserializeFile(path);
             Assert.AreEqual(expectedSsh2RsaWithPassComment, target.Comment);
@@ -516,12 +518,12 @@ namespace dlech.SshAgentLibTests
         {
             ISshKey target;
 
-            PpkFormatter.WarnOldFileFormatCallback warnOldFileNotExpected = () =>
+            void warnOldFileNotExpected()
             {
                 Assert.Fail("Warn old file format was not expected");
-            };
+            }
 
-            Func<string, PpkFormatter.GetPassphraseCallback> GetPassphrase = v =>
+            KeyFormatter.GetPassphraseCallback getPassphrase(string v)
             {
                 return (comment) =>
                 {
@@ -536,7 +538,7 @@ namespace dlech.SshAgentLibTests
                     }
                     return result;
                 };
-            };
+            }
 
             var passphraseNonAscii = "Ŧéşť";
             var passphraseGood = "PageantSharp";
@@ -546,18 +548,19 @@ namespace dlech.SshAgentLibTests
             var expectedKeySize = 1024; // all test keys
 
             string path;
-            var formatter = new PpkFormatter();
-
-            /* test for successful method call */
-            formatter.GetPassphraseCallbackMethod = GetPassphrase(passphraseGood);
-            formatter.WarnOldFileFormatCallbackMethod = warnOldFileNotExpected;
+            var formatter = new PpkFormatter
+            {
+                /* test for successful method call */
+                GetPassphraseCallbackMethod = getPassphrase(passphraseGood),
+                WarnOldFileFormatCallbackMethod = warnOldFileNotExpected
+            };
             path = Path.Combine(DllDirectory, "../../../Resources/ssh2-rsa-v3.ppk");
             target = formatter.DeserializeFile(path);
             Assert.AreEqual("PageantSharp test: SSH2-RSA PPKv3, with passphrase", target.Comment);
             Assert.AreEqual(expectedKeySize, target.Size);
             Assert.That(target.Version, Is.EqualTo(SshVersion.SSH2));
 
-            formatter.GetPassphraseCallbackMethod = GetPassphrase(passphraseNonAscii);
+            formatter.GetPassphraseCallbackMethod = getPassphrase(passphraseNonAscii);
             formatter.WarnOldFileFormatCallbackMethod = warnOldFileNotExpected;
             path = Path.Combine(
                 DllDirectory,
@@ -571,7 +574,7 @@ namespace dlech.SshAgentLibTests
             Assert.AreEqual(expectedKeySize, target.Size);
             Assert.That(target.Version, Is.EqualTo(SshVersion.SSH2));
 
-            formatter.GetPassphraseCallbackMethod = GetPassphrase(passphraseNull);
+            formatter.GetPassphraseCallbackMethod = getPassphrase(passphraseNull);
             formatter.WarnOldFileFormatCallbackMethod = warnOldFileNotExpected;
             path = Path.Combine(DllDirectory, "../../../Resources/ssh2-rsa-v3-no-passphrase.ppk");
             target = formatter.DeserializeFile(path);
