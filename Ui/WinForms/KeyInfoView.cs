@@ -48,7 +48,6 @@ namespace dlech.SshAgentLib.WinForms
 
         private IAgent mAgent;
         private BindingList<KeyWrapper> mKeyCollection;
-        private PasswordDialog mPasswordDialog;
         private readonly bool mSelectionChangedBroken;
         private readonly Dictionary<OpenFileDialog, XPOpenFileDialog> mOpenFileDialogMap;
 
@@ -59,18 +58,6 @@ namespace dlech.SshAgentLib.WinForms
             {
                 addKeyButton.DropDown = value;
                 addKeyButton.ShowDropDownArrow = value != null;
-            }
-        }
-
-        private PasswordDialog PasswordDialog
-        {
-            get
-            {
-                if (mPasswordDialog == null)
-                {
-                    mPasswordDialog = new PasswordDialog();
-                }
-                return mPasswordDialog;
             }
         }
 
@@ -632,12 +619,15 @@ namespace dlech.SshAgentLib.WinForms
 
         private void lockAgentButton_Click(object sender, EventArgs e)
         {
-            var result = PasswordDialog.ShowDialog();
+            var dialog = new PasswordDialog();
+            var result = dialog.ShowDialog(ParentForm);
+
             if (result != DialogResult.OK)
             {
                 return;
             }
-            if (PasswordDialog.SecureEdit.TextLength == 0)
+
+            if (dialog.SecureEdit.TextLength == 0)
             {
                 result = MessageBox.Show(
                     Strings.keyManagerAreYouSureLockPassphraseEmpty,
@@ -651,9 +641,10 @@ namespace dlech.SshAgentLib.WinForms
                     return;
                 }
             }
+
             try
             {
-                mAgent.Lock(PasswordDialog.SecureEdit.ToUtf8());
+                mAgent.Lock(dialog.SecureEdit.ToUtf8());
             }
             catch (AgentLockedException)
             {
@@ -695,14 +686,17 @@ namespace dlech.SshAgentLib.WinForms
 
         private void unlockAgentButton_Click(object sender, EventArgs e)
         {
-            var result = PasswordDialog.ShowDialog();
+            var dialog = new PasswordDialog();
+            var result = dialog.ShowDialog(ParentForm);
+
             if (result != DialogResult.OK)
             {
                 return;
             }
+
             try
             {
-                mAgent.Unlock(PasswordDialog.SecureEdit.ToUtf8());
+                mAgent.Unlock(dialog.SecureEdit.ToUtf8());
             }
             catch (PassphraseException)
             {
