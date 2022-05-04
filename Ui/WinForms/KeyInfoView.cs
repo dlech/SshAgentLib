@@ -49,17 +49,16 @@ namespace dlech.SshAgentLib.WinForms
         private IAgent mAgent;
         private BindingList<KeyWrapper> mKeyCollection;
         private PasswordDialog mPasswordDialog;
-        private bool mSelectionChangedBroken;
-        private int mButtonLayoutInitialColumnCount;
-        private Dictionary<OpenFileDialog, XPOpenFileDialog> mOpenFileDialogMap;
+        private readonly bool mSelectionChangedBroken;
+        private readonly Dictionary<OpenFileDialog, XPOpenFileDialog> mOpenFileDialogMap;
 
-        public ContextMenuStrip AddButtonSplitMenu
+        public ToolStripDropDown AddButtonSplitMenu
         {
-            get { return addKeyButton.SplitMenuStrip; }
+            get { return addKeyButton.DropDown; }
             set
             {
-                addKeyButton.SplitMenuStrip = value;
-                addKeyButton.ShowSplit = (value != null);
+                addKeyButton.DropDown = value;
+                addKeyButton.ShowDropDownArrow = value != null;
             }
         }
 
@@ -103,11 +102,6 @@ namespace dlech.SshAgentLib.WinForms
             }
 
             InitializeComponent();
-            mButtonLayoutInitialColumnCount = buttonTableLayoutPanel.ColumnCount;
-            if (monoRuntimeType != null)
-            {
-                buttonTableLayoutPanel.Margin = new Padding();
-            }
         }
 
         public void SetAgent(IAgent aAgent)
@@ -124,67 +118,38 @@ namespace dlech.SshAgentLib.WinForms
                 }
             }
 
-            buttonTableLayoutPanel.ColumnCount = mButtonLayoutInitialColumnCount;
-            buttonTableLayoutPanel.Controls.Clear();
-
             mAgent = aAgent;
             if (mAgent is Agent)
             {
                 var agent = mAgent as Agent;
+                refreshAgentButton.Visible = false;
+                lockAgentButton.Visible = true;
+                unlockAgentButton.Visible = true;
                 confirmDataGridViewCheckBoxColumn.Visible = true;
                 lifetimeDataGridViewCheckBoxColumn.Visible = true;
                 sourceDataGridViewTextBoxColumn.Visible = true;
                 agent.KeyAdded += AgentKeyAddedHandler;
                 agent.KeyRemoved += AgentKeyRemovedHandler;
                 agent.Locked += AgentLockHandler;
-                buttonTableLayoutPanel.ColumnCount -= 1;
-
-                buttonTableLayoutPanel.Controls.Add(lockButton, 0, 0);
-                buttonTableLayoutPanel.Controls.Add(unlockButton, 1, 0);
-                buttonTableLayoutPanel.Controls.Add(addKeyButton, 2, 0);
-                buttonTableLayoutPanel.Controls.Add(removeKeyButton, 3, 0);
-                buttonTableLayoutPanel.Controls.Add(removeAllButton, 4, 0);
             }
             else
             {
+                refreshAgentButton.Visible = true;
                 // hide lock/unlock buttons if using Pageant since they are not supported
                 if (mAgent is PageantClient)
                 {
-                    buttonTableLayoutPanel.ColumnCount -= 2;
+                    lockAgentButton.Visible = false;
+                    unlockAgentButton.Visible = false;
                 }
                 else
                 {
-                    buttonTableLayoutPanel.Controls.Add(lockButton, 0, 0);
-                    buttonTableLayoutPanel.Controls.Add(unlockButton, 1, 0);
+                    lockAgentButton.Visible = true;
+                    unlockAgentButton.Visible = true;
                 }
-                var colCount = buttonTableLayoutPanel.ColumnCount;
-                buttonTableLayoutPanel.Controls.Add(addKeyButton, colCount - 4, 0);
-                buttonTableLayoutPanel.Controls.Add(removeKeyButton, colCount - 3, 0);
-                buttonTableLayoutPanel.Controls.Add(removeAllButton, colCount - 2, 0);
-                buttonTableLayoutPanel.Controls.Add(refreshButton, colCount - 1, 0);
 
                 confirmDataGridViewCheckBoxColumn.Visible = false;
                 lifetimeDataGridViewCheckBoxColumn.Visible = false;
                 sourceDataGridViewTextBoxColumn.Visible = false;
-            }
-
-            for (var i = 0; i < buttonTableLayoutPanel.ColumnCount; i++)
-            {
-                if (Type.GetType("Mono.Runtime") == null)
-                {
-                    buttonTableLayoutPanel.ColumnStyles[i] = new ColumnStyle(
-                        SizeType.Percent,
-                        100F / buttonTableLayoutPanel.ColumnCount
-                    );
-                }
-                else
-                {
-                    // Mono doens't do automatic layouts correctly, so use fixed width
-                    buttonTableLayoutPanel.ColumnStyles[i] = new ColumnStyle(
-                        SizeType.Absolute,
-                        buttonTableLayoutPanel.Width / buttonTableLayoutPanel.ColumnCount
-                    );
-                }
             }
 
             ReloadKeyListView();
@@ -487,16 +452,18 @@ namespace dlech.SshAgentLib.WinForms
         {
             var isLocked = false;
             var agent = mAgent as Agent;
+
             if (agent != null)
             {
                 isLocked = agent.IsLocked;
             }
-            lockButton.Enabled = !isLocked;
-            unlockButton.Enabled = agent == null || isLocked;
+
+            lockAgentButton.Enabled = !isLocked;
+            unlockAgentButton.Enabled = agent == null || isLocked;
             addKeyButton.Enabled = !isLocked;
-            removeKeyButton.Enabled =
+            removeKeyButton.Enabled = copyPublicKeyButton.Enabled =
                 mSelectionChangedBroken || (dataGridView.SelectedRows.Count > 0 && !isLocked);
-            removeAllButton.Enabled = dataGridView.Rows.Count > 0 && !isLocked;
+            removeAllKeysButton.Enabled = dataGridView.Rows.Count > 0 && !isLocked;
         }
 
         private void AgentLockHandler(object sender, Agent.LockEventArgs e)
@@ -630,10 +597,6 @@ namespace dlech.SshAgentLib.WinForms
             {
                 ShowFileOpenDialog();
             }
-            else
-            {
-                addKeyButton.ShowContextMenuStrip();
-            }
         }
 
         private void removeRow(DataGridViewRow row)
@@ -655,7 +618,7 @@ namespace dlech.SshAgentLib.WinForms
             }
         }
 
-        private void removeButton_Click(object sender, EventArgs e)
+        private void removeKeyButton_Click(object sender, EventArgs e)
         {
             foreach (DataGridViewRow row in dataGridView.SelectedRows)
             {
@@ -667,7 +630,7 @@ namespace dlech.SshAgentLib.WinForms
             }
         }
 
-        private void lockButton_Click(object sender, EventArgs e)
+        private void lockAgentButton_Click(object sender, EventArgs e)
         {
             var result = PasswordDialog.ShowDialog();
             if (result != DialogResult.OK)
@@ -730,7 +693,7 @@ namespace dlech.SshAgentLib.WinForms
             }
         }
 
-        private void unlockButton_Click(object sender, EventArgs e)
+        private void unlockAgentButton_Click(object sender, EventArgs e)
         {
             var result = PasswordDialog.ShowDialog();
             if (result != DialogResult.OK)
@@ -786,7 +749,7 @@ namespace dlech.SshAgentLib.WinForms
             ReloadKeyListView();
         }
 
-        private void removeAllButton_Click(object sender, EventArgs e)
+        private void removeAllKeysButton_Click(object sender, EventArgs e)
         {
             mAgent.RemoveAllKeys();
             if (!(mAgent is Agent))
@@ -795,7 +758,7 @@ namespace dlech.SshAgentLib.WinForms
             }
         }
 
-        private void refreshButton_Click(object sender, EventArgs e)
+        private void refreshAgentButton_Click(object sender, EventArgs e)
         {
             ReloadKeyListView();
         }
@@ -1026,6 +989,19 @@ namespace dlech.SshAgentLib.WinForms
         {
             var row = contextMenuStrip1.Tag as DataGridViewRow;
             Debug.Assert(row != null);
+            var keyWrapper = row.DataBoundItem as KeyWrapper;
+            var key = keyWrapper.GetKey();
+            Clipboard.SetText(key.GetAuthorizedKeyString());
+        }
+
+        private void copyPublicKeyButton_Click(object sender, EventArgs e)
+        {
+            if (dataGridView.SelectedRows.Count < 1)
+            {
+                return;
+            }
+
+            var row = dataGridView.SelectedRows[0];
             var keyWrapper = row.DataBoundItem as KeyWrapper;
             var key = keyWrapper.GetKey();
             Clipboard.SetText(key.GetAuthorizedKeyString());

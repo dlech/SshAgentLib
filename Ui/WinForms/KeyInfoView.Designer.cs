@@ -27,61 +27,64 @@
     /// </summary>
     private void InitializeComponent()
     {
-      this.components = new System.ComponentModel.Container();
-      this.messageLabel = new System.Windows.Forms.Label();
-      this.dataGridView = new System.Windows.Forms.DataGridView();
-      this.sourceDataGridViewTextBoxColumn = new System.Windows.Forms.DataGridViewTextBoxColumn();
-      this.mainTableLayoutPanel = new System.Windows.Forms.TableLayoutPanel();
-      this.dataGridViewPanel = new System.Windows.Forms.Panel();
-      this.buttonTableLayoutPanel = new System.Windows.Forms.TableLayoutPanel();
-      this.lockButton = new System.Windows.Forms.Button();
-      this.unlockButton = new System.Windows.Forms.Button();
-      this.removeKeyButton = new System.Windows.Forms.Button();
-      this.removeAllButton = new System.Windows.Forms.Button();
-      this.refreshButton = new System.Windows.Forms.Button();
-      this.contextMenuStrip1 = new System.Windows.Forms.ContextMenuStrip(this.components);
-      this.removeKeyToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
-      this.toolStripMenuItemCopyAuthorizedKeys = new System.Windows.Forms.ToolStripMenuItem();
-      this.confirmDataGridViewCheckBoxColumn = new System.Windows.Forms.DataGridViewCheckBoxColumn();
-      this.lifetimeDataGridViewCheckBoxColumn = new System.Windows.Forms.DataGridViewCheckBoxColumn();
-      this.commentDataGridViewTextBoxColumn = new System.Windows.Forms.DataGridViewTextBoxColumn();
-      this.typeDataGridViewTextBoxColumn = new System.Windows.Forms.DataGridViewTextBoxColumn();
-      this.sizeDataGridViewTextBoxColumn = new System.Windows.Forms.DataGridViewTextBoxColumn();
-      this.fingerprintDataGridViewTextBoxColumn = new System.Windows.Forms.DataGridViewTextBoxColumn();
-      this.keyWrapperBindingSource = new System.Windows.Forms.BindingSource(this.components);
-      this.addKeyButton = new wyDay.Controls.SplitButton();
-      ((System.ComponentModel.ISupportInitialize)(this.dataGridView)).BeginInit();
-      this.mainTableLayoutPanel.SuspendLayout();
-      this.dataGridViewPanel.SuspendLayout();
-      this.buttonTableLayoutPanel.SuspendLayout();
-      this.contextMenuStrip1.SuspendLayout();
-      ((System.ComponentModel.ISupportInitialize)(this.keyWrapperBindingSource)).BeginInit();
-      this.SuspendLayout();
-      // 
-      // messageLabel
-      // 
-      this.messageLabel.AllowDrop = true;
-      this.messageLabel.BorderStyle = System.Windows.Forms.BorderStyle.Fixed3D;
-      this.messageLabel.Dock = System.Windows.Forms.DockStyle.Fill;
-      this.messageLabel.Location = new System.Drawing.Point(0, 0);
-      this.messageLabel.Margin = new System.Windows.Forms.Padding(4, 0, 4, 0);
-      this.messageLabel.Name = "messageLabel";
-      this.messageLabel.Size = new System.Drawing.Size(729, 249);
-      this.messageLabel.TabIndex = 0;
-      this.messageLabel.Text = "Message";
-      this.messageLabel.TextAlign = System.Drawing.ContentAlignment.MiddleCenter;
-      this.messageLabel.DragDrop += new System.Windows.Forms.DragEventHandler(this.dataGridView_DragDrop);
-      this.messageLabel.DragEnter += new System.Windows.Forms.DragEventHandler(this.dataGridView_DragEnter);
-      // 
-      // dataGridView
-      // 
-      this.dataGridView.AllowDrop = true;
-      this.dataGridView.AllowUserToAddRows = false;
-      this.dataGridView.AllowUserToDeleteRows = false;
-      this.dataGridView.AllowUserToResizeRows = false;
-      this.dataGridView.AutoGenerateColumns = false;
-      this.dataGridView.ColumnHeadersHeightSizeMode = System.Windows.Forms.DataGridViewColumnHeadersHeightSizeMode.AutoSize;
-      this.dataGridView.Columns.AddRange(new System.Windows.Forms.DataGridViewColumn[] {
+            this.components = new System.ComponentModel.Container();
+            System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(KeyInfoView));
+            this.messageLabel = new System.Windows.Forms.Label();
+            this.dataGridView = new System.Windows.Forms.DataGridView();
+            this.confirmDataGridViewCheckBoxColumn = new System.Windows.Forms.DataGridViewCheckBoxColumn();
+            this.lifetimeDataGridViewCheckBoxColumn = new System.Windows.Forms.DataGridViewCheckBoxColumn();
+            this.commentDataGridViewTextBoxColumn = new System.Windows.Forms.DataGridViewTextBoxColumn();
+            this.sourceDataGridViewTextBoxColumn = new System.Windows.Forms.DataGridViewTextBoxColumn();
+            this.typeDataGridViewTextBoxColumn = new System.Windows.Forms.DataGridViewTextBoxColumn();
+            this.sizeDataGridViewTextBoxColumn = new System.Windows.Forms.DataGridViewTextBoxColumn();
+            this.fingerprintDataGridViewTextBoxColumn = new System.Windows.Forms.DataGridViewTextBoxColumn();
+            this.keyWrapperBindingSource = new System.Windows.Forms.BindingSource(this.components);
+            this.mainTableLayoutPanel = new System.Windows.Forms.TableLayoutPanel();
+            this.dataGridViewPanel = new System.Windows.Forms.Panel();
+            this.toolStrip = new System.Windows.Forms.ToolStrip();
+            this.addKeyButton = new System.Windows.Forms.ToolStripDropDownButton();
+            this.removeKeyButton = new System.Windows.Forms.ToolStripButton();
+            this.removeAllKeysButton = new System.Windows.Forms.ToolStripButton();
+            this.toolStripSeparator1 = new System.Windows.Forms.ToolStripSeparator();
+            this.refreshAgentButton = new System.Windows.Forms.ToolStripButton();
+            this.lockAgentButton = new System.Windows.Forms.ToolStripButton();
+            this.unlockAgentButton = new System.Windows.Forms.ToolStripButton();
+            this.contextMenuStrip1 = new System.Windows.Forms.ContextMenuStrip(this.components);
+            this.removeKeyToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.toolStripMenuItemCopyAuthorizedKeys = new System.Windows.Forms.ToolStripMenuItem();
+            this.toolStripSeparator2 = new System.Windows.Forms.ToolStripSeparator();
+            this.copyPublicKeyButton = new System.Windows.Forms.ToolStripButton();
+            ((System.ComponentModel.ISupportInitialize)(this.dataGridView)).BeginInit();
+            ((System.ComponentModel.ISupportInitialize)(this.keyWrapperBindingSource)).BeginInit();
+            this.mainTableLayoutPanel.SuspendLayout();
+            this.dataGridViewPanel.SuspendLayout();
+            this.toolStrip.SuspendLayout();
+            this.contextMenuStrip1.SuspendLayout();
+            this.SuspendLayout();
+            // 
+            // messageLabel
+            // 
+            this.messageLabel.AllowDrop = true;
+            this.messageLabel.BorderStyle = System.Windows.Forms.BorderStyle.Fixed3D;
+            this.messageLabel.Dock = System.Windows.Forms.DockStyle.Fill;
+            this.messageLabel.Location = new System.Drawing.Point(0, 0);
+            this.messageLabel.Name = "messageLabel";
+            this.messageLabel.Size = new System.Drawing.Size(547, 231);
+            this.messageLabel.TabIndex = 0;
+            this.messageLabel.Text = "Message";
+            this.messageLabel.TextAlign = System.Drawing.ContentAlignment.MiddleCenter;
+            this.messageLabel.DragDrop += new System.Windows.Forms.DragEventHandler(this.dataGridView_DragDrop);
+            this.messageLabel.DragEnter += new System.Windows.Forms.DragEventHandler(this.dataGridView_DragEnter);
+            // 
+            // dataGridView
+            // 
+            this.dataGridView.AllowDrop = true;
+            this.dataGridView.AllowUserToAddRows = false;
+            this.dataGridView.AllowUserToDeleteRows = false;
+            this.dataGridView.AllowUserToResizeRows = false;
+            this.dataGridView.AutoGenerateColumns = false;
+            this.dataGridView.ColumnHeadersHeightSizeMode = System.Windows.Forms.DataGridViewColumnHeadersHeightSizeMode.AutoSize;
+            this.dataGridView.Columns.AddRange(new System.Windows.Forms.DataGridViewColumn[] {
             this.confirmDataGridViewCheckBoxColumn,
             this.lifetimeDataGridViewCheckBoxColumn,
             this.commentDataGridViewTextBoxColumn,
@@ -89,264 +92,265 @@
             this.typeDataGridViewTextBoxColumn,
             this.sizeDataGridViewTextBoxColumn,
             this.fingerprintDataGridViewTextBoxColumn});
-      this.dataGridView.DataSource = this.keyWrapperBindingSource;
-      this.dataGridView.Dock = System.Windows.Forms.DockStyle.Fill;
-      this.dataGridView.Location = new System.Drawing.Point(0, 0);
-      this.dataGridView.Margin = new System.Windows.Forms.Padding(4, 4, 4, 4);
-      this.dataGridView.Name = "dataGridView";
-      this.dataGridView.ReadOnly = true;
-      this.dataGridView.RowHeadersVisible = false;
-      this.dataGridView.SelectionMode = System.Windows.Forms.DataGridViewSelectionMode.FullRowSelect;
-      this.dataGridView.Size = new System.Drawing.Size(729, 249);
-      this.dataGridView.TabIndex = 0;
-      this.dataGridView.CellContextMenuStripNeeded += new System.Windows.Forms.DataGridViewCellContextMenuStripNeededEventHandler(this.dataGridView_CellContextMenuStripNeeded);
-      this.dataGridView.CellPainting += new System.Windows.Forms.DataGridViewCellPaintingEventHandler(this.dataGridView_CellPainting);
-      this.dataGridView.SelectionChanged += new System.EventHandler(this.dataGridView_SelectionChanged);
-      this.dataGridView.DragDrop += new System.Windows.Forms.DragEventHandler(this.dataGridView_DragDrop);
-      this.dataGridView.DragEnter += new System.Windows.Forms.DragEventHandler(this.dataGridView_DragEnter);
-      // 
-      // sourceDataGridViewTextBoxColumn
-      // 
-      this.sourceDataGridViewTextBoxColumn.AutoSizeMode = System.Windows.Forms.DataGridViewAutoSizeColumnMode.AllCells;
-      this.sourceDataGridViewTextBoxColumn.DataPropertyName = "Source";
-      this.sourceDataGridViewTextBoxColumn.HeaderText = "Source";
-      this.sourceDataGridViewTextBoxColumn.Name = "sourceDataGridViewTextBoxColumn";
-      this.sourceDataGridViewTextBoxColumn.ReadOnly = true;
-      this.sourceDataGridViewTextBoxColumn.Width = 82;
-      // 
-      // mainTableLayoutPanel
-      // 
-      this.mainTableLayoutPanel.ColumnCount = 1;
-      this.mainTableLayoutPanel.ColumnStyles.Add(new System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Percent, 50F));
-      this.mainTableLayoutPanel.ColumnStyles.Add(new System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Percent, 50F));
-      this.mainTableLayoutPanel.Controls.Add(this.dataGridViewPanel, 0, 0);
-      this.mainTableLayoutPanel.Controls.Add(this.buttonTableLayoutPanel, 0, 1);
-      this.mainTableLayoutPanel.Dock = System.Windows.Forms.DockStyle.Fill;
-      this.mainTableLayoutPanel.Location = new System.Drawing.Point(0, 0);
-      this.mainTableLayoutPanel.Margin = new System.Windows.Forms.Padding(4, 4, 4, 4);
-      this.mainTableLayoutPanel.Name = "mainTableLayoutPanel";
-      this.mainTableLayoutPanel.RowCount = 2;
-      this.mainTableLayoutPanel.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Percent, 100F));
-      this.mainTableLayoutPanel.RowStyles.Add(new System.Windows.Forms.RowStyle());
-      this.mainTableLayoutPanel.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 27F));
-      this.mainTableLayoutPanel.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 24F));
-      this.mainTableLayoutPanel.Size = new System.Drawing.Size(737, 316);
-      this.mainTableLayoutPanel.TabIndex = 0;
-      // 
-      // dataGridViewPanel
-      // 
-      this.dataGridViewPanel.Controls.Add(this.dataGridView);
-      this.dataGridViewPanel.Controls.Add(this.messageLabel);
-      this.dataGridViewPanel.Dock = System.Windows.Forms.DockStyle.Fill;
-      this.dataGridViewPanel.Location = new System.Drawing.Point(4, 4);
-      this.dataGridViewPanel.Margin = new System.Windows.Forms.Padding(4, 4, 4, 4);
-      this.dataGridViewPanel.Name = "dataGridViewPanel";
-      this.dataGridViewPanel.Size = new System.Drawing.Size(729, 249);
-      this.dataGridViewPanel.TabIndex = 9;
-      // 
-      // buttonTableLayoutPanel
-      // 
-      this.buttonTableLayoutPanel.Anchor = System.Windows.Forms.AnchorStyles.Bottom;
-      this.buttonTableLayoutPanel.AutoSize = true;
-      this.buttonTableLayoutPanel.ColumnCount = 6;
-      this.buttonTableLayoutPanel.ColumnStyles.Add(new System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Percent, 16.66667F));
-      this.buttonTableLayoutPanel.ColumnStyles.Add(new System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Percent, 16.66667F));
-      this.buttonTableLayoutPanel.ColumnStyles.Add(new System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Percent, 16.66667F));
-      this.buttonTableLayoutPanel.ColumnStyles.Add(new System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Percent, 16.66667F));
-      this.buttonTableLayoutPanel.ColumnStyles.Add(new System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Percent, 16.66667F));
-      this.buttonTableLayoutPanel.ColumnStyles.Add(new System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Percent, 16.66667F));
-      this.buttonTableLayoutPanel.Controls.Add(this.lockButton, 0, 0);
-      this.buttonTableLayoutPanel.Controls.Add(this.unlockButton, 1, 0);
-      this.buttonTableLayoutPanel.Controls.Add(this.addKeyButton, 2, 0);
-      this.buttonTableLayoutPanel.Controls.Add(this.removeKeyButton, 3, 0);
-      this.buttonTableLayoutPanel.Controls.Add(this.removeAllButton, 4, 0);
-      this.buttonTableLayoutPanel.Controls.Add(this.refreshButton, 5, 0);
-      this.buttonTableLayoutPanel.Location = new System.Drawing.Point(0, 265);
-      this.buttonTableLayoutPanel.Margin = new System.Windows.Forms.Padding(0, 8, 0, 0);
-      this.buttonTableLayoutPanel.Name = "buttonTableLayoutPanel";
-      this.buttonTableLayoutPanel.RowCount = 1;
-      this.buttonTableLayoutPanel.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Percent, 100F));
-      this.buttonTableLayoutPanel.Size = new System.Drawing.Size(737, 51);
-      this.buttonTableLayoutPanel.TabIndex = 0;
-      // 
-      // lockButton
-      // 
-      this.lockButton.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Left | System.Windows.Forms.AnchorStyles.Right)));
-      this.lockButton.AutoSize = true;
-      this.lockButton.Location = new System.Drawing.Point(4, 4);
-      this.lockButton.Margin = new System.Windows.Forms.Padding(4, 4, 4, 4);
-      this.lockButton.Name = "lockButton";
-      this.lockButton.Size = new System.Drawing.Size(114, 43);
-      this.lockButton.TabIndex = 0;
-      this.lockButton.Text = "&Lock";
-      this.lockButton.UseVisualStyleBackColor = true;
-      this.lockButton.Click += new System.EventHandler(this.lockButton_Click);
-      // 
-      // unlockButton
-      // 
-      this.unlockButton.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Left | System.Windows.Forms.AnchorStyles.Right)));
-      this.unlockButton.AutoSize = true;
-      this.unlockButton.Location = new System.Drawing.Point(126, 4);
-      this.unlockButton.Margin = new System.Windows.Forms.Padding(4, 4, 4, 4);
-      this.unlockButton.Name = "unlockButton";
-      this.unlockButton.Size = new System.Drawing.Size(114, 43);
-      this.unlockButton.TabIndex = 1;
-      this.unlockButton.Text = "&Unlock";
-      this.unlockButton.UseVisualStyleBackColor = true;
-      this.unlockButton.Click += new System.EventHandler(this.unlockButton_Click);
-      // 
-      // removeKeyButton
-      // 
-      this.removeKeyButton.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Left | System.Windows.Forms.AnchorStyles.Right)));
-      this.removeKeyButton.AutoSize = true;
-      this.removeKeyButton.Location = new System.Drawing.Point(370, 4);
-      this.removeKeyButton.Margin = new System.Windows.Forms.Padding(4, 4, 4, 4);
-      this.removeKeyButton.Name = "removeKeyButton";
-      this.removeKeyButton.Size = new System.Drawing.Size(114, 43);
-      this.removeKeyButton.TabIndex = 3;
-      this.removeKeyButton.Text = "&Remove";
-      this.removeKeyButton.UseVisualStyleBackColor = true;
-      this.removeKeyButton.Click += new System.EventHandler(this.removeButton_Click);
-      // 
-      // removeAllButton
-      // 
-      this.removeAllButton.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Left | System.Windows.Forms.AnchorStyles.Right)));
-      this.removeAllButton.AutoSize = true;
-      this.removeAllButton.Location = new System.Drawing.Point(492, 4);
-      this.removeAllButton.Margin = new System.Windows.Forms.Padding(4, 4, 4, 4);
-      this.removeAllButton.Name = "removeAllButton";
-      this.removeAllButton.Size = new System.Drawing.Size(114, 43);
-      this.removeAllButton.TabIndex = 4;
-      this.removeAllButton.Text = "R&emove All";
-      this.removeAllButton.UseVisualStyleBackColor = true;
-      this.removeAllButton.Click += new System.EventHandler(this.removeAllButton_Click);
-      // 
-      // refreshButton
-      // 
-      this.refreshButton.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Left | System.Windows.Forms.AnchorStyles.Right)));
-      this.refreshButton.AutoSize = true;
-      this.refreshButton.Location = new System.Drawing.Point(614, 4);
-      this.refreshButton.Margin = new System.Windows.Forms.Padding(4, 4, 4, 4);
-      this.refreshButton.Name = "refreshButton";
-      this.refreshButton.Size = new System.Drawing.Size(119, 43);
-      this.refreshButton.TabIndex = 5;
-      this.refreshButton.Text = "Re&fresh";
-      this.refreshButton.UseVisualStyleBackColor = true;
-      this.refreshButton.Click += new System.EventHandler(this.refreshButton_Click);
-      // 
-      // contextMenuStrip1
-      // 
-      this.contextMenuStrip1.ImageScalingSize = new System.Drawing.Size(20, 20);
-      this.contextMenuStrip1.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
+            this.dataGridView.DataSource = this.keyWrapperBindingSource;
+            this.dataGridView.Dock = System.Windows.Forms.DockStyle.Fill;
+            this.dataGridView.Location = new System.Drawing.Point(0, 0);
+            this.dataGridView.Name = "dataGridView";
+            this.dataGridView.ReadOnly = true;
+            this.dataGridView.RowHeadersVisible = false;
+            this.dataGridView.RowHeadersWidth = 82;
+            this.dataGridView.SelectionMode = System.Windows.Forms.DataGridViewSelectionMode.FullRowSelect;
+            this.dataGridView.Size = new System.Drawing.Size(547, 231);
+            this.dataGridView.TabIndex = 0;
+            this.dataGridView.CellContextMenuStripNeeded += new System.Windows.Forms.DataGridViewCellContextMenuStripNeededEventHandler(this.dataGridView_CellContextMenuStripNeeded);
+            this.dataGridView.CellPainting += new System.Windows.Forms.DataGridViewCellPaintingEventHandler(this.dataGridView_CellPainting);
+            this.dataGridView.SelectionChanged += new System.EventHandler(this.dataGridView_SelectionChanged);
+            this.dataGridView.DragDrop += new System.Windows.Forms.DragEventHandler(this.dataGridView_DragDrop);
+            this.dataGridView.DragEnter += new System.Windows.Forms.DragEventHandler(this.dataGridView_DragEnter);
+            // 
+            // confirmDataGridViewCheckBoxColumn
+            // 
+            this.confirmDataGridViewCheckBoxColumn.AutoSizeMode = System.Windows.Forms.DataGridViewAutoSizeColumnMode.AllCells;
+            this.confirmDataGridViewCheckBoxColumn.DataPropertyName = "Confirm";
+            this.confirmDataGridViewCheckBoxColumn.HeaderText = "C";
+            this.confirmDataGridViewCheckBoxColumn.MinimumWidth = 10;
+            this.confirmDataGridViewCheckBoxColumn.Name = "confirmDataGridViewCheckBoxColumn";
+            this.confirmDataGridViewCheckBoxColumn.ReadOnly = true;
+            this.confirmDataGridViewCheckBoxColumn.ToolTipText = "Confirm Constraint";
+            this.confirmDataGridViewCheckBoxColumn.Width = 20;
+            // 
+            // lifetimeDataGridViewCheckBoxColumn
+            // 
+            this.lifetimeDataGridViewCheckBoxColumn.AutoSizeMode = System.Windows.Forms.DataGridViewAutoSizeColumnMode.AllCells;
+            this.lifetimeDataGridViewCheckBoxColumn.DataPropertyName = "Lifetime";
+            this.lifetimeDataGridViewCheckBoxColumn.HeaderText = "L";
+            this.lifetimeDataGridViewCheckBoxColumn.MinimumWidth = 10;
+            this.lifetimeDataGridViewCheckBoxColumn.Name = "lifetimeDataGridViewCheckBoxColumn";
+            this.lifetimeDataGridViewCheckBoxColumn.ReadOnly = true;
+            this.lifetimeDataGridViewCheckBoxColumn.ToolTipText = "Lifetime Constraint";
+            this.lifetimeDataGridViewCheckBoxColumn.Width = 19;
+            // 
+            // commentDataGridViewTextBoxColumn
+            // 
+            this.commentDataGridViewTextBoxColumn.AutoSizeMode = System.Windows.Forms.DataGridViewAutoSizeColumnMode.AllCells;
+            this.commentDataGridViewTextBoxColumn.DataPropertyName = "Comment";
+            this.commentDataGridViewTextBoxColumn.HeaderText = "Comment";
+            this.commentDataGridViewTextBoxColumn.MinimumWidth = 10;
+            this.commentDataGridViewTextBoxColumn.Name = "commentDataGridViewTextBoxColumn";
+            this.commentDataGridViewTextBoxColumn.ReadOnly = true;
+            this.commentDataGridViewTextBoxColumn.Width = 76;
+            // 
+            // sourceDataGridViewTextBoxColumn
+            // 
+            this.sourceDataGridViewTextBoxColumn.AutoSizeMode = System.Windows.Forms.DataGridViewAutoSizeColumnMode.AllCells;
+            this.sourceDataGridViewTextBoxColumn.DataPropertyName = "Source";
+            this.sourceDataGridViewTextBoxColumn.HeaderText = "Source";
+            this.sourceDataGridViewTextBoxColumn.MinimumWidth = 10;
+            this.sourceDataGridViewTextBoxColumn.Name = "sourceDataGridViewTextBoxColumn";
+            this.sourceDataGridViewTextBoxColumn.ReadOnly = true;
+            this.sourceDataGridViewTextBoxColumn.Width = 66;
+            // 
+            // typeDataGridViewTextBoxColumn
+            // 
+            this.typeDataGridViewTextBoxColumn.AutoSizeMode = System.Windows.Forms.DataGridViewAutoSizeColumnMode.AllCells;
+            this.typeDataGridViewTextBoxColumn.DataPropertyName = "Type";
+            this.typeDataGridViewTextBoxColumn.HeaderText = "Type";
+            this.typeDataGridViewTextBoxColumn.MinimumWidth = 10;
+            this.typeDataGridViewTextBoxColumn.Name = "typeDataGridViewTextBoxColumn";
+            this.typeDataGridViewTextBoxColumn.ReadOnly = true;
+            this.typeDataGridViewTextBoxColumn.Width = 56;
+            // 
+            // sizeDataGridViewTextBoxColumn
+            // 
+            this.sizeDataGridViewTextBoxColumn.AutoSizeMode = System.Windows.Forms.DataGridViewAutoSizeColumnMode.AllCells;
+            this.sizeDataGridViewTextBoxColumn.DataPropertyName = "Size";
+            this.sizeDataGridViewTextBoxColumn.HeaderText = "Size";
+            this.sizeDataGridViewTextBoxColumn.MinimumWidth = 10;
+            this.sizeDataGridViewTextBoxColumn.Name = "sizeDataGridViewTextBoxColumn";
+            this.sizeDataGridViewTextBoxColumn.ReadOnly = true;
+            this.sizeDataGridViewTextBoxColumn.Width = 52;
+            // 
+            // fingerprintDataGridViewTextBoxColumn
+            // 
+            this.fingerprintDataGridViewTextBoxColumn.AutoSizeMode = System.Windows.Forms.DataGridViewAutoSizeColumnMode.AllCells;
+            this.fingerprintDataGridViewTextBoxColumn.DataPropertyName = "Fingerprint";
+            this.fingerprintDataGridViewTextBoxColumn.HeaderText = "Fingerprint";
+            this.fingerprintDataGridViewTextBoxColumn.MinimumWidth = 10;
+            this.fingerprintDataGridViewTextBoxColumn.Name = "fingerprintDataGridViewTextBoxColumn";
+            this.fingerprintDataGridViewTextBoxColumn.ReadOnly = true;
+            this.fingerprintDataGridViewTextBoxColumn.Width = 81;
+            // 
+            // keyWrapperBindingSource
+            // 
+            this.keyWrapperBindingSource.DataSource = typeof(dlech.SshAgentLib.KeyWrapper);
+            // 
+            // mainTableLayoutPanel
+            // 
+            this.mainTableLayoutPanel.ColumnCount = 1;
+            this.mainTableLayoutPanel.ColumnStyles.Add(new System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Percent, 100F));
+            this.mainTableLayoutPanel.Controls.Add(this.dataGridViewPanel, 0, 1);
+            this.mainTableLayoutPanel.Controls.Add(this.toolStrip, 0, 0);
+            this.mainTableLayoutPanel.Dock = System.Windows.Forms.DockStyle.Fill;
+            this.mainTableLayoutPanel.Location = new System.Drawing.Point(0, 0);
+            this.mainTableLayoutPanel.Name = "mainTableLayoutPanel";
+            this.mainTableLayoutPanel.RowCount = 2;
+            this.mainTableLayoutPanel.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 20F));
+            this.mainTableLayoutPanel.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Percent, 100F));
+            this.mainTableLayoutPanel.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 10F));
+            this.mainTableLayoutPanel.Size = new System.Drawing.Size(553, 257);
+            this.mainTableLayoutPanel.TabIndex = 0;
+            // 
+            // dataGridViewPanel
+            // 
+            this.dataGridViewPanel.Controls.Add(this.dataGridView);
+            this.dataGridViewPanel.Controls.Add(this.messageLabel);
+            this.dataGridViewPanel.Dock = System.Windows.Forms.DockStyle.Fill;
+            this.dataGridViewPanel.Location = new System.Drawing.Point(3, 23);
+            this.dataGridViewPanel.Name = "dataGridViewPanel";
+            this.dataGridViewPanel.Size = new System.Drawing.Size(547, 231);
+            this.dataGridViewPanel.TabIndex = 9;
+            // 
+            // toolStrip
+            // 
+            this.toolStrip.Dock = System.Windows.Forms.DockStyle.Fill;
+            this.toolStrip.GripStyle = System.Windows.Forms.ToolStripGripStyle.Hidden;
+            this.toolStrip.ImageScalingSize = new System.Drawing.Size(32, 32);
+            this.toolStrip.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
+            this.addKeyButton,
+            this.removeKeyButton,
+            this.removeAllKeysButton,
+            this.toolStripSeparator1,
+            this.refreshAgentButton,
+            this.lockAgentButton,
+            this.unlockAgentButton,
+            this.toolStripSeparator2,
+            this.copyPublicKeyButton});
+            this.toolStrip.Location = new System.Drawing.Point(0, 0);
+            this.toolStrip.Name = "toolStrip";
+            this.toolStrip.Padding = new System.Windows.Forms.Padding(0, 0, 2, 0);
+            this.toolStrip.RenderMode = System.Windows.Forms.ToolStripRenderMode.System;
+            this.toolStrip.Size = new System.Drawing.Size(553, 20);
+            this.toolStrip.TabIndex = 10;
+            // 
+            // addKeyButton
+            // 
+            this.addKeyButton.DisplayStyle = System.Windows.Forms.ToolStripItemDisplayStyle.Image;
+            this.addKeyButton.Image = ((System.Drawing.Image)(resources.GetObject("addKeyButton.Image")));
+            this.addKeyButton.ImageTransparentColor = System.Drawing.Color.Magenta;
+            this.addKeyButton.Name = "addKeyButton";
+            this.addKeyButton.Size = new System.Drawing.Size(45, 17);
+            this.addKeyButton.Text = "Add Key";
+            this.addKeyButton.Click += new System.EventHandler(this.addKeyButton_Click);
+            // 
+            // removeKeyButton
+            // 
+            this.removeKeyButton.DisplayStyle = System.Windows.Forms.ToolStripItemDisplayStyle.Image;
+            this.removeKeyButton.Image = ((System.Drawing.Image)(resources.GetObject("removeKeyButton.Image")));
+            this.removeKeyButton.ImageTransparentColor = System.Drawing.Color.Magenta;
+            this.removeKeyButton.Name = "removeKeyButton";
+            this.removeKeyButton.Size = new System.Drawing.Size(36, 17);
+            this.removeKeyButton.Text = "Remove Key";
+            this.removeKeyButton.Click += new System.EventHandler(this.removeKeyButton_Click);
+            // 
+            // removeAllKeysButton
+            // 
+            this.removeAllKeysButton.DisplayStyle = System.Windows.Forms.ToolStripItemDisplayStyle.Image;
+            this.removeAllKeysButton.Image = ((System.Drawing.Image)(resources.GetObject("removeAllKeysButton.Image")));
+            this.removeAllKeysButton.ImageTransparentColor = System.Drawing.Color.Magenta;
+            this.removeAllKeysButton.Name = "removeAllKeysButton";
+            this.removeAllKeysButton.Size = new System.Drawing.Size(36, 17);
+            this.removeAllKeysButton.Text = "Remove All Keys";
+            this.removeAllKeysButton.Click += new System.EventHandler(this.removeAllKeysButton_Click);
+            // 
+            // toolStripSeparator1
+            // 
+            this.toolStripSeparator1.Name = "toolStripSeparator1";
+            this.toolStripSeparator1.Size = new System.Drawing.Size(6, 20);
+            // 
+            // refreshAgentButton
+            // 
+            this.refreshAgentButton.DisplayStyle = System.Windows.Forms.ToolStripItemDisplayStyle.Image;
+            this.refreshAgentButton.Image = ((System.Drawing.Image)(resources.GetObject("refreshAgentButton.Image")));
+            this.refreshAgentButton.ImageTransparentColor = System.Drawing.Color.Magenta;
+            this.refreshAgentButton.Name = "refreshAgentButton";
+            this.refreshAgentButton.Size = new System.Drawing.Size(36, 17);
+            this.refreshAgentButton.Text = "Refresh Keys From Agent";
+            this.refreshAgentButton.Click += new System.EventHandler(this.refreshAgentButton_Click);
+            // 
+            // lockAgentButton
+            // 
+            this.lockAgentButton.DisplayStyle = System.Windows.Forms.ToolStripItemDisplayStyle.Image;
+            this.lockAgentButton.Image = ((System.Drawing.Image)(resources.GetObject("lockAgentButton.Image")));
+            this.lockAgentButton.ImageTransparentColor = System.Drawing.Color.Magenta;
+            this.lockAgentButton.Name = "lockAgentButton";
+            this.lockAgentButton.Size = new System.Drawing.Size(36, 17);
+            this.lockAgentButton.Text = "Lock Agent";
+            this.lockAgentButton.Click += new System.EventHandler(this.lockAgentButton_Click);
+            // 
+            // unlockAgentButton
+            // 
+            this.unlockAgentButton.DisplayStyle = System.Windows.Forms.ToolStripItemDisplayStyle.Image;
+            this.unlockAgentButton.Image = ((System.Drawing.Image)(resources.GetObject("unlockAgentButton.Image")));
+            this.unlockAgentButton.ImageTransparentColor = System.Drawing.Color.Magenta;
+            this.unlockAgentButton.Name = "unlockAgentButton";
+            this.unlockAgentButton.Size = new System.Drawing.Size(36, 17);
+            this.unlockAgentButton.Text = "Unlock Agent";
+            this.unlockAgentButton.Click += new System.EventHandler(this.unlockAgentButton_Click);
+            // 
+            // contextMenuStrip1
+            // 
+            this.contextMenuStrip1.ImageScalingSize = new System.Drawing.Size(20, 20);
+            this.contextMenuStrip1.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
             this.removeKeyToolStripMenuItem,
             this.toolStripMenuItemCopyAuthorizedKeys});
-      this.contextMenuStrip1.Name = "contextMenuStrip1";
-      this.contextMenuStrip1.Size = new System.Drawing.Size(259, 80);
-      // 
-      // removeKeyToolStripMenuItem
-      // 
-      this.removeKeyToolStripMenuItem.Name = "removeKeyToolStripMenuItem";
-      this.removeKeyToolStripMenuItem.Size = new System.Drawing.Size(258, 24);
-      this.removeKeyToolStripMenuItem.Text = "&Remove";
-      this.removeKeyToolStripMenuItem.Click += new System.EventHandler(this.removeKeyToolStripMenuItem_Click);
-      // 
-      // toolStripMenuItemCopyAuthorizedKeys
-      // 
-      this.toolStripMenuItemCopyAuthorizedKeys.Name = "toolStripMenuItemCopyAuthorizedKeys";
-      this.toolStripMenuItemCopyAuthorizedKeys.Size = new System.Drawing.Size(258, 24);
-      this.toolStripMenuItemCopyAuthorizedKeys.Text = "Copy &authorized_keys Entry";
-      this.toolStripMenuItemCopyAuthorizedKeys.Click += new System.EventHandler(this.toolStripMenuItemCopyAuthorizedKeys_Click);
-      // 
-      // confirmDataGridViewCheckBoxColumn
-      // 
-      this.confirmDataGridViewCheckBoxColumn.AutoSizeMode = System.Windows.Forms.DataGridViewAutoSizeColumnMode.AllCells;
-      this.confirmDataGridViewCheckBoxColumn.DataPropertyName = "Confirm";
-      this.confirmDataGridViewCheckBoxColumn.HeaderText = "C";
-      this.confirmDataGridViewCheckBoxColumn.Name = "confirmDataGridViewCheckBoxColumn";
-      this.confirmDataGridViewCheckBoxColumn.ReadOnly = true;
-      this.confirmDataGridViewCheckBoxColumn.ToolTipText = "Confirm Constraint";
-      this.confirmDataGridViewCheckBoxColumn.Width = 23;
-      // 
-      // lifetimeDataGridViewCheckBoxColumn
-      // 
-      this.lifetimeDataGridViewCheckBoxColumn.AutoSizeMode = System.Windows.Forms.DataGridViewAutoSizeColumnMode.AllCells;
-      this.lifetimeDataGridViewCheckBoxColumn.DataPropertyName = "Lifetime";
-      this.lifetimeDataGridViewCheckBoxColumn.HeaderText = "L";
-      this.lifetimeDataGridViewCheckBoxColumn.Name = "lifetimeDataGridViewCheckBoxColumn";
-      this.lifetimeDataGridViewCheckBoxColumn.ReadOnly = true;
-      this.lifetimeDataGridViewCheckBoxColumn.ToolTipText = "Lifetime Constraint";
-      this.lifetimeDataGridViewCheckBoxColumn.Width = 22;
-      // 
-      // commentDataGridViewTextBoxColumn
-      // 
-      this.commentDataGridViewTextBoxColumn.AutoSizeMode = System.Windows.Forms.DataGridViewAutoSizeColumnMode.AllCells;
-      this.commentDataGridViewTextBoxColumn.DataPropertyName = "Comment";
-      this.commentDataGridViewTextBoxColumn.HeaderText = "Comment";
-      this.commentDataGridViewTextBoxColumn.Name = "commentDataGridViewTextBoxColumn";
-      this.commentDataGridViewTextBoxColumn.ReadOnly = true;
-      this.commentDataGridViewTextBoxColumn.Width = 96;
-      // 
-      // typeDataGridViewTextBoxColumn
-      // 
-      this.typeDataGridViewTextBoxColumn.AutoSizeMode = System.Windows.Forms.DataGridViewAutoSizeColumnMode.AllCells;
-      this.typeDataGridViewTextBoxColumn.DataPropertyName = "Type";
-      this.typeDataGridViewTextBoxColumn.HeaderText = "Type";
-      this.typeDataGridViewTextBoxColumn.Name = "typeDataGridViewTextBoxColumn";
-      this.typeDataGridViewTextBoxColumn.ReadOnly = true;
-      this.typeDataGridViewTextBoxColumn.Width = 69;
-      // 
-      // sizeDataGridViewTextBoxColumn
-      // 
-      this.sizeDataGridViewTextBoxColumn.AutoSizeMode = System.Windows.Forms.DataGridViewAutoSizeColumnMode.AllCells;
-      this.sizeDataGridViewTextBoxColumn.DataPropertyName = "Size";
-      this.sizeDataGridViewTextBoxColumn.HeaderText = "Size";
-      this.sizeDataGridViewTextBoxColumn.Name = "sizeDataGridViewTextBoxColumn";
-      this.sizeDataGridViewTextBoxColumn.ReadOnly = true;
-      this.sizeDataGridViewTextBoxColumn.Width = 64;
-      // 
-      // fingerprintDataGridViewTextBoxColumn
-      // 
-      this.fingerprintDataGridViewTextBoxColumn.AutoSizeMode = System.Windows.Forms.DataGridViewAutoSizeColumnMode.AllCells;
-      this.fingerprintDataGridViewTextBoxColumn.DataPropertyName = "Fingerprint";
-      this.fingerprintDataGridViewTextBoxColumn.HeaderText = "Fingerprint";
-      this.fingerprintDataGridViewTextBoxColumn.Name = "fingerprintDataGridViewTextBoxColumn";
-      this.fingerprintDataGridViewTextBoxColumn.ReadOnly = true;
-      this.fingerprintDataGridViewTextBoxColumn.Width = 105;
-      // 
-      // keyWrapperBindingSource
-      // 
-      this.keyWrapperBindingSource.DataSource = typeof(dlech.SshAgentLib.KeyWrapper);
-      // 
-      // addKeyButton
-      // 
-      this.addKeyButton.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Left | System.Windows.Forms.AnchorStyles.Right)));
-      this.addKeyButton.AutoSize = true;
-      this.addKeyButton.Location = new System.Drawing.Point(248, 4);
-      this.addKeyButton.Margin = new System.Windows.Forms.Padding(4);
-      this.addKeyButton.Name = "addKeyButton";
-      this.addKeyButton.Size = new System.Drawing.Size(114, 43);
-      this.addKeyButton.TabIndex = 2;
-      this.addKeyButton.Text = "&Add...";
-      this.addKeyButton.UseVisualStyleBackColor = true;
-      this.addKeyButton.Click += new System.EventHandler(this.addKeyButton_Click);
-      // 
-      // KeyInfoView
-      // 
-      this.AutoScaleDimensions = new System.Drawing.SizeF(8F, 16F);
-      this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-      this.Controls.Add(this.mainTableLayoutPanel);
-      this.Margin = new System.Windows.Forms.Padding(4, 4, 4, 4);
-      this.Name = "KeyInfoView";
-      this.Size = new System.Drawing.Size(737, 316);
-      ((System.ComponentModel.ISupportInitialize)(this.dataGridView)).EndInit();
-      this.mainTableLayoutPanel.ResumeLayout(false);
-      this.mainTableLayoutPanel.PerformLayout();
-      this.dataGridViewPanel.ResumeLayout(false);
-      this.buttonTableLayoutPanel.ResumeLayout(false);
-      this.buttonTableLayoutPanel.PerformLayout();
-      this.contextMenuStrip1.ResumeLayout(false);
-      ((System.ComponentModel.ISupportInitialize)(this.keyWrapperBindingSource)).EndInit();
-      this.ResumeLayout(false);
+            this.contextMenuStrip1.Name = "contextMenuStrip1";
+            this.contextMenuStrip1.Size = new System.Drawing.Size(220, 48);
+            // 
+            // removeKeyToolStripMenuItem
+            // 
+            this.removeKeyToolStripMenuItem.Name = "removeKeyToolStripMenuItem";
+            this.removeKeyToolStripMenuItem.Size = new System.Drawing.Size(219, 22);
+            this.removeKeyToolStripMenuItem.Text = "&Remove";
+            this.removeKeyToolStripMenuItem.Click += new System.EventHandler(this.removeKeyToolStripMenuItem_Click);
+            // 
+            // toolStripMenuItemCopyAuthorizedKeys
+            // 
+            this.toolStripMenuItemCopyAuthorizedKeys.Name = "toolStripMenuItemCopyAuthorizedKeys";
+            this.toolStripMenuItemCopyAuthorizedKeys.Size = new System.Drawing.Size(219, 22);
+            this.toolStripMenuItemCopyAuthorizedKeys.Text = "Copy &authorized_keys Entry";
+            this.toolStripMenuItemCopyAuthorizedKeys.Click += new System.EventHandler(this.toolStripMenuItemCopyAuthorizedKeys_Click);
+            // 
+            // toolStripSeparator2
+            // 
+            this.toolStripSeparator2.Name = "toolStripSeparator2";
+            this.toolStripSeparator2.Size = new System.Drawing.Size(6, 20);
+            // 
+            // copyPublicKeyButton
+            // 
+            this.copyPublicKeyButton.DisplayStyle = System.Windows.Forms.ToolStripItemDisplayStyle.Image;
+            this.copyPublicKeyButton.Image = ((System.Drawing.Image)(resources.GetObject("copyPublicKeyButton.Image")));
+            this.copyPublicKeyButton.ImageTransparentColor = System.Drawing.Color.Magenta;
+            this.copyPublicKeyButton.Name = "copyPublicKeyButton";
+            this.copyPublicKeyButton.Size = new System.Drawing.Size(36, 17);
+            this.copyPublicKeyButton.Text = "Copy Public Key";
+            this.copyPublicKeyButton.Click += new System.EventHandler(this.copyPublicKeyButton_Click);
+            // 
+            // KeyInfoView
+            // 
+            this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
+            this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
+            this.Controls.Add(this.mainTableLayoutPanel);
+            this.Name = "KeyInfoView";
+            this.Size = new System.Drawing.Size(553, 257);
+            ((System.ComponentModel.ISupportInitialize)(this.dataGridView)).EndInit();
+            ((System.ComponentModel.ISupportInitialize)(this.keyWrapperBindingSource)).EndInit();
+            this.mainTableLayoutPanel.ResumeLayout(false);
+            this.mainTableLayoutPanel.PerformLayout();
+            this.dataGridViewPanel.ResumeLayout(false);
+            this.toolStrip.ResumeLayout(false);
+            this.toolStrip.PerformLayout();
+            this.contextMenuStrip1.ResumeLayout(false);
+            this.ResumeLayout(false);
 
     }
 
@@ -356,14 +360,7 @@
     private System.Windows.Forms.BindingSource keyWrapperBindingSource;
     public System.Windows.Forms.DataGridView dataGridView;
     private System.Windows.Forms.TableLayoutPanel mainTableLayoutPanel;
-    private System.Windows.Forms.TableLayoutPanel buttonTableLayoutPanel;
-    private System.Windows.Forms.Button lockButton;
-    private System.Windows.Forms.Button unlockButton;
-    private System.Windows.Forms.Button removeKeyButton;
-    private System.Windows.Forms.Button removeAllButton;
-    private System.Windows.Forms.Button refreshButton;
     private System.Windows.Forms.Panel dataGridViewPanel;
-    private wyDay.Controls.SplitButton addKeyButton;
     private System.Windows.Forms.DataGridViewCheckBoxColumn confirmDataGridViewCheckBoxColumn;
     private System.Windows.Forms.DataGridViewCheckBoxColumn lifetimeDataGridViewCheckBoxColumn;
     private System.Windows.Forms.DataGridViewTextBoxColumn commentDataGridViewTextBoxColumn;
@@ -374,5 +371,15 @@
     private System.Windows.Forms.ContextMenuStrip contextMenuStrip1;
     private System.Windows.Forms.ToolStripMenuItem removeKeyToolStripMenuItem;
     private System.Windows.Forms.ToolStripMenuItem toolStripMenuItemCopyAuthorizedKeys;
-  }
+        private System.Windows.Forms.ToolStrip toolStrip;
+        private System.Windows.Forms.ToolStripButton lockAgentButton;
+        private System.Windows.Forms.ToolStripButton unlockAgentButton;
+        private System.Windows.Forms.ToolStripButton refreshAgentButton;
+        private System.Windows.Forms.ToolStripSeparator toolStripSeparator1;
+        private System.Windows.Forms.ToolStripDropDownButton addKeyButton;
+        private System.Windows.Forms.ToolStripButton removeKeyButton;
+        private System.Windows.Forms.ToolStripButton removeAllKeysButton;
+        private System.Windows.Forms.ToolStripSeparator toolStripSeparator2;
+        private System.Windows.Forms.ToolStripButton copyPublicKeyButton;
+    }
 }

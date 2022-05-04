@@ -162,9 +162,6 @@
       <DependentUpon>Resources.resx</DependentUpon>
     </Compile>
     <Compile Include="SecureEdit.cs" />
-    <Compile Include="SplitButton.cs">
-      <SubType>Component</SubType>
-    </Compile>
     <Compile Include="Strings.Designer.cs">
       <DependentUpon>Strings.resx</DependentUpon>
       <AutoGen>True</AutoGen>
