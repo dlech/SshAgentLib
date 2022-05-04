@@ -3,7 +3,7 @@
 //
 // Author(s): David Lechner <david@lechnology.com>
 //
-// Copyright (c) 2012-2014 David Lechner
+// Copyright (c) 2012-2014,2022 David Lechner
 //
 // Permission is hereby granted, free of charge, to any person obtaining a copy
 // of this software and associated documentation files (the "Software"), to deal
@@ -38,17 +38,17 @@ namespace dlech.SshAgentLib
 
         event SshKeyEventHandler KeyRemoved;
 
-        void AddKey(ISshKey aKey);
+        void AddKey(ISshKey key);
 
-        void RemoveKey(ISshKey aKey);
+        void RemoveKey(ISshKey key);
 
-        void RemoveAllKeys(SshVersion aVersion);
+        void RemoveAllKeys(SshVersion version);
 
-        ICollection<ISshKey> ListKeys(SshVersion aVersion);
+        ICollection<ISshKey> ListKeys(SshVersion version);
 
-        void Lock(byte[] aPassphrase);
+        void Lock(byte[] passphrase);
 
-        void Unlock(byte[] aPassphrase);
+        void Unlock(byte[] passphrase);
     }
 
     public static class IAgentExt
@@ -56,10 +56,10 @@ namespace dlech.SshAgentLib
         /// <summary>
         /// Reads file and loads key into agent
         /// </summary>
-        /// <param name="aAgent">the agent</param>
-        /// <param name="aFileName">pathname of file to read</param>
-        /// <param name="aGetPassPhraseCallback">method that returns passphrase</param>
-        /// <param name="aConstraints">additional constraints</param>
+        /// <param name="agent">the agent</param>
+        /// <param name="fileName">pathname of file to read</param>
+        /// <param name="getPassPhraseCallback">method that returns passphrase</param>
+        /// <param name="constraints">additional constraints</param>
         /// <exception cref="AgentFailureException">
         /// Agent returned SSH_AGENT_FAILURE
         /// </exception>
@@ -75,64 +75,71 @@ namespace dlech.SshAgentLib
         /// <exception cref="NotSupportedException"></exception>
         /// <returns>The ssh key that was read from the file</returns>
         public static ISshKey AddKeyFromFile(
-            this IAgent aAgent,
-            string aFileName,
-            KeyFormatter.GetPassphraseCallback aGetPassPhraseCallback,
-            ICollection<Agent.KeyConstraint> aConstraints = null
+            this IAgent agent,
+            string fileName,
+            KeyFormatter.GetPassphraseCallback getPassPhraseCallback,
+            ICollection<Agent.KeyConstraint> constraints = null
         )
         {
             string firstLine;
-            using (var fileReader = File.OpenText(aFileName))
+            using (var fileReader = File.OpenText(fileName))
             {
                 firstLine = fileReader.ReadLine();
             }
+
             var formatter = KeyFormatter.GetFormatter(firstLine);
-            formatter.GetPassphraseCallbackMethod = aGetPassPhraseCallback;
-            var key = formatter.DeserializeFile(aFileName);
-            if (aConstraints != null)
+            formatter.GetPassphraseCallbackMethod = getPassPhraseCallback;
+            var key = formatter.DeserializeFile(fileName);
+
+            if (constraints != null)
             {
-                foreach (var constraint in aConstraints)
+                foreach (var constraint in constraints)
                 {
                     key.AddConstraint(constraint);
                 }
             }
+
             // prevent error in Pageant by attempting to remove key before adding it
             // this makes behavior more consistent with OpenSSH
-            if (aAgent is PageantClient)
+            if (agent is PageantClient)
             {
                 try
                 {
-                    aAgent.RemoveKey(key);
+                    agent.RemoveKey(key);
                 }
                 catch (Exception)
                 { /* error will occur if key is not loaded */
                 }
             }
-            aAgent.AddKey(key);
+
+            agent.AddKey(key);
+
             return key;
         }
 
-        public static void RemoveAllKeys(this IAgent aAgent)
+        public static void RemoveAllKeys(this IAgent agent)
         {
             foreach (SshVersion version in Enum.GetValues(typeof(SshVersion)))
             {
-                aAgent.RemoveAllKeys(version);
+                agent.RemoveAllKeys(version);
             }
         }
 
-        public static ICollection<ISshKey> GetAllKeys(this IAgent aAgent)
+        public static ICollection<ISshKey> GetAllKeys(this IAgent agent)
         {
             var allKeysList = new List<ISshKey>();
+
             foreach (SshVersion version in Enum.GetValues(typeof(SshVersion)))
             {
                 try
                 {
-                    var versionList = aAgent.ListKeys(version);
+                    var versionList = agent.ListKeys(version);
                     allKeysList.AddRange(versionList);
                 }
                 catch (Exception) { }
                 // TODO something better with exceptions
             }
+
             return allKeysList;
         }
     }
