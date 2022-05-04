@@ -22,6 +22,8 @@ jobs:
       run: dotnet tool install --global coverlet.console
 
     - name: Run unit tests
+      env:
+        TEST_RANDOM_SEED: ${{ github.run_id}}
       run: |
         $vsDevPath = "${env:ProgramFiles}\Microsoft Visual Studio\2022\Enterprise"
         Import-Module "${vsDevPath}\Common7\Tools\Microsoft.VisualStudio.DevShell.dll"

@@ -24,11 +24,12 @@
 // THE SOFTWARE.
 
 using System;
+using System.Text;
+
 using Chaos.NaCl;
 using dlech.SshAgentLib;
 using dlech.SshAgentLib.Crypto;
 using Org.BouncyCastle.Asn1.Sec;
-using Org.BouncyCastle.Asn1.X9;
 using Org.BouncyCastle.Crypto;
 using Org.BouncyCastle.Crypto.Generators;
 using Org.BouncyCastle.Crypto.Parameters;
@@ -38,13 +39,18 @@ namespace dlech.SshAgentLibTests
 {
     public static class KeyGenerator
     {
-        private static readonly SecureRandom secureRandom;
-
-        static KeyGenerator()
-        {
-            secureRandom = new SecureRandom();
-        }
-
+        /// <summary>
+        /// Creates a random key for testing purposes.
+        /// </summary
+        /// <remarks>
+        /// The <c>TEST_RANDOM_SEED</c> environment variable is used to seed the random number
+        /// generator for repeatable tests.
+        /// </remarks>
+        /// <param name="version">The SSH key version.</param>
+        /// <param name="algorithm">The SSH key signing algorithm.</param>
+        /// <param name="comment">An optional comment.</param>
+        /// <returns>The new key.</returns>
+        /// <exception cref="Exception"></exception>
         public static SshKey CreateKey(
             SshVersion version,
             PublicKeyAlgorithm algorithm,
@@ -55,6 +61,10 @@ namespace dlech.SshAgentLibTests
             {
                 throw new Exception("unsupported version/algorithm combination");
             }
+
+            var seed = Environment.GetEnvironmentVariable("TEST_RANDOM_SEED");
+            var secureRandom = SecureRandom.GetInstance("SHA256PRNG");
+            secureRandom.SetSeed(Encoding.Unicode.GetBytes(seed ?? "default"));
 
             switch (algorithm)
             {
