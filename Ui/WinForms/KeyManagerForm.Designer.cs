@@ -27,50 +27,50 @@
     /// </summary>
     private void InitializeComponent()
     {
-      this.mainTableLayoutPanel = new System.Windows.Forms.TableLayoutPanel();
-      this.keyInfoViewer = new dlech.SshAgentLib.WinForms.KeyInfoView();
-      this.mainTableLayoutPanel.SuspendLayout();
-      this.SuspendLayout();
-      // 
-      // mainTableLayoutPanel
-      // 
-      this.mainTableLayoutPanel.ColumnCount = 1;
-      this.mainTableLayoutPanel.ColumnStyles.Add(new System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Percent, 100F));
-      this.mainTableLayoutPanel.Controls.Add(this.keyInfoViewer, 0, 0);
-      this.mainTableLayoutPanel.Dock = System.Windows.Forms.DockStyle.Fill;
-      this.mainTableLayoutPanel.Location = new System.Drawing.Point(12, 12);
-      this.mainTableLayoutPanel.Name = "mainTableLayoutPanel";
-      this.mainTableLayoutPanel.RowCount = 2;
-      this.mainTableLayoutPanel.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Percent, 100F));
-      this.mainTableLayoutPanel.RowStyles.Add(new System.Windows.Forms.RowStyle());
-      this.mainTableLayoutPanel.Size = new System.Drawing.Size(580, 187);
-      this.mainTableLayoutPanel.TabIndex = 7;
-      // 
-      // keyInfoViewer
-      // 
-      this.keyInfoViewer.AddButtonSplitMenu = null;
-      this.keyInfoViewer.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
+            this.mainTableLayoutPanel = new System.Windows.Forms.TableLayoutPanel();
+            this.keyInfoViewer = new dlech.SshAgentLib.WinForms.KeyInfoView();
+            this.mainTableLayoutPanel.SuspendLayout();
+            this.SuspendLayout();
+            // 
+            // mainTableLayoutPanel
+            // 
+            this.mainTableLayoutPanel.ColumnCount = 1;
+            this.mainTableLayoutPanel.ColumnStyles.Add(new System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Percent, 100F));
+            this.mainTableLayoutPanel.Controls.Add(this.keyInfoViewer, 0, 0);
+            this.mainTableLayoutPanel.Dock = System.Windows.Forms.DockStyle.Fill;
+            this.mainTableLayoutPanel.Location = new System.Drawing.Point(12, 12);
+            this.mainTableLayoutPanel.Name = "mainTableLayoutPanel";
+            this.mainTableLayoutPanel.RowCount = 2;
+            this.mainTableLayoutPanel.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Percent, 100F));
+            this.mainTableLayoutPanel.RowStyles.Add(new System.Windows.Forms.RowStyle());
+            this.mainTableLayoutPanel.Size = new System.Drawing.Size(580, 187);
+            this.mainTableLayoutPanel.TabIndex = 7;
+            // 
+            // keyInfoViewer
+            // 
+            this.keyInfoViewer.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
             | System.Windows.Forms.AnchorStyles.Left) 
             | System.Windows.Forms.AnchorStyles.Right)));
-      this.keyInfoViewer.AutoSize = true;
-      this.keyInfoViewer.Location = new System.Drawing.Point(3, 3);
-      this.keyInfoViewer.Name = "keyInfoViewer";
-      this.keyInfoViewer.Size = new System.Drawing.Size(574, 181);
-      this.keyInfoViewer.TabIndex = 0;
-      // 
-      // KeyManagerForm
-      // 
-      this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
-      this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-      this.ClientSize = new System.Drawing.Size(604, 211);
-      this.Controls.Add(this.mainTableLayoutPanel);
-      this.Name = "KeyManagerForm";
-      this.Padding = new System.Windows.Forms.Padding(12);
-      this.Text = "SSH Agent";
-      this.FormClosing += new System.Windows.Forms.FormClosingEventHandler(this.MainForm_FormClosing);
-      this.mainTableLayoutPanel.ResumeLayout(false);
-      this.mainTableLayoutPanel.PerformLayout();
-      this.ResumeLayout(false);
+            this.keyInfoViewer.AutoSize = true;
+            this.keyInfoViewer.Location = new System.Drawing.Point(3, 3);
+            this.keyInfoViewer.Name = "keyInfoViewer";
+            this.keyInfoViewer.Size = new System.Drawing.Size(574, 181);
+            this.keyInfoViewer.TabIndex = 0;
+            // 
+            // KeyManagerForm
+            // 
+            this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
+            this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
+            this.ClientSize = new System.Drawing.Size(604, 211);
+            this.Controls.Add(this.mainTableLayoutPanel);
+            this.Name = "KeyManagerForm";
+            this.Padding = new System.Windows.Forms.Padding(12);
+            this.SizeGripStyle = System.Windows.Forms.SizeGripStyle.Show;
+            this.Text = "SSH Agent";
+            this.FormClosing += new System.Windows.Forms.FormClosingEventHandler(this.MainForm_FormClosing);
+            this.mainTableLayoutPanel.ResumeLayout(false);
+            this.mainTableLayoutPanel.PerformLayout();
+            this.ResumeLayout(false);
 
     }
 
