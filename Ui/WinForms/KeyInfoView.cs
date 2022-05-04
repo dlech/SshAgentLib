@@ -1000,6 +1000,13 @@ namespace dlech.SshAgentLib.WinForms
             DataGridViewCellContextMenuStripNeededEventArgs e
         )
         {
+            if (e.RowIndex < 0)
+            {
+                // header was right-clicked
+                contextMenuStrip1.Tag = null;
+                return;
+            }
+
             e.ContextMenuStrip = contextMenuStrip1;
             contextMenuStrip1.Tag = dataGridView.Rows[e.RowIndex];
         }
