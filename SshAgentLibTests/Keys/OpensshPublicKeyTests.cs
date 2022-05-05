@@ -25,7 +25,7 @@ namespace SshAgentLibTests.Keys
         {
             using (var file = OpenResourceFile("OpenSshTestData", "rsa_1.pub"))
             {
-                var key = OpensshPublicKey.Read(file);
+                var key = SshPublicKey.Read(file);
 
                 Assert.That(key.Version, Is.EqualTo(SshVersion.SSH2));
                 Assert.That(key.Parameter.IsPrivate, Is.False);
@@ -53,7 +53,7 @@ namespace SshAgentLibTests.Keys
         {
             using (var file = OpenResourceFile("OpenSshTestData", "rsa_1-cert.pub"))
             {
-                var key = OpensshPublicKey.Read(file);
+                var key = SshPublicKey.Read(file);
 
                 Assert.That(key.Version, Is.EqualTo(SshVersion.SSH2));
                 Assert.That(key.Parameter.IsPrivate, Is.False);
@@ -81,7 +81,7 @@ namespace SshAgentLibTests.Keys
         {
             using (var file = OpenResourceFile("OpenSshTestData", "dsa_1.pub"))
             {
-                var key = OpensshPublicKey.Read(file);
+                var key = SshPublicKey.Read(file);
 
                 Assert.That(key.Version, Is.EqualTo(SshVersion.SSH2));
                 Assert.That(key.Parameter, Is.TypeOf<DsaPublicKeyParameters>());
@@ -110,7 +110,7 @@ namespace SshAgentLibTests.Keys
         {
             using (var file = OpenResourceFile("OpenSshTestData", "dsa_1-cert.pub"))
             {
-                var key = OpensshPublicKey.Read(file);
+                var key = SshPublicKey.Read(file);
 
                 Assert.That(key.Version, Is.EqualTo(SshVersion.SSH2));
                 Assert.That(key.Parameter, Is.TypeOf<DsaPublicKeyParameters>());
@@ -139,7 +139,7 @@ namespace SshAgentLibTests.Keys
         {
             using (var file = OpenResourceFile("OpenSshTestData", "ecdsa_1.pub"))
             {
-                var key = OpensshPublicKey.Read(file);
+                var key = SshPublicKey.Read(file);
 
                 Assert.That(key.Version, Is.EqualTo(SshVersion.SSH2));
                 Assert.That(key.Parameter, Is.TypeOf<ECPublicKeyParameters>());
@@ -171,7 +171,7 @@ namespace SshAgentLibTests.Keys
         {
             using (var file = OpenResourceFile("OpenSshTestData", "ecdsa_1-cert.pub"))
             {
-                var key = OpensshPublicKey.Read(file);
+                var key = SshPublicKey.Read(file);
 
                 Assert.That(key.Version, Is.EqualTo(SshVersion.SSH2));
                 Assert.That(key.Parameter, Is.TypeOf<ECPublicKeyParameters>());
@@ -203,7 +203,7 @@ namespace SshAgentLibTests.Keys
         {
             using (var file = OpenResourceFile("OpenSshTestData", "ecdsa_2.pub"))
             {
-                var key = OpensshPublicKey.Read(file);
+                var key = SshPublicKey.Read(file);
 
                 Assert.That(key.Version, Is.EqualTo(SshVersion.SSH2));
                 Assert.That(key.Parameter, Is.TypeOf<ECPublicKeyParameters>());
@@ -232,7 +232,7 @@ namespace SshAgentLibTests.Keys
         {
             using (var file = OpenResourceFile("OpenSshTestData", "ed25519_1.pub"))
             {
-                var key = OpensshPublicKey.Read(file);
+                var key = SshPublicKey.Read(file);
 
                 Assert.That(key.Version, Is.EqualTo(SshVersion.SSH2));
                 Assert.That(key.Parameter, Is.TypeOf<Ed25519PublicKeyParameter>());
@@ -254,7 +254,7 @@ namespace SshAgentLibTests.Keys
         {
             using (var file = OpenResourceFile("OpenSshTestData", "ed25519_1-cert.pub"))
             {
-                var key = OpensshPublicKey.Read(file);
+                var key = SshPublicKey.Read(file);
 
                 Assert.That(key.Version, Is.EqualTo(SshVersion.SSH2));
                 Assert.That(key.Parameter, Is.TypeOf<Ed25519PublicKeyParameter>());
@@ -276,7 +276,7 @@ namespace SshAgentLibTests.Keys
         {
             using (var file = OpenResourceFile("OpenSshTestData", "ed25519_2.pub"))
             {
-                var key = OpensshPublicKey.Read(file);
+                var key = SshPublicKey.Read(file);
 
                 Assert.That(key.Version, Is.EqualTo(SshVersion.SSH2));
                 Assert.That(key.Parameter, Is.TypeOf<Ed25519PublicKeyParameter>());

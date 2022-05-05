@@ -20,7 +20,7 @@ namespace SshAgentLibTests.Keys
         {
             using (var file = OpenResourceFile("Rfc4716PublicKey", "example1"))
             {
-                var key = Rfc4716PublicKey.Read(file);
+                var key = SshPublicKey.Read(file);
 
                 Assert.That(key.Version, Is.EqualTo(SshVersion.SSH2));
                 Assert.That(key.Parameter.IsPrivate, Is.False);
@@ -41,7 +41,7 @@ namespace SshAgentLibTests.Keys
         {
             using (var file = OpenResourceFile("Rfc4716PublicKey", "example2"))
             {
-                var key = Rfc4716PublicKey.Read(file);
+                var key = SshPublicKey.Read(file);
 
                 Assert.That(key.Version, Is.EqualTo(SshVersion.SSH2));
                 Assert.That(key.Parameter.IsPrivate, Is.False);
@@ -62,7 +62,7 @@ namespace SshAgentLibTests.Keys
         {
             using (var file = OpenResourceFile("Rfc4716PublicKey", "example3"))
             {
-                var key = Rfc4716PublicKey.Read(file);
+                var key = SshPublicKey.Read(file);
 
                 Assert.That(key.Version, Is.EqualTo(SshVersion.SSH2));
                 Assert.That(key.Parameter.IsPrivate, Is.False);
@@ -80,7 +80,7 @@ namespace SshAgentLibTests.Keys
         {
             using (var file = OpenResourceFile("Rfc4716PublicKey", "example4"))
             {
-                var key = Rfc4716PublicKey.Read(file);
+                var key = SshPublicKey.Read(file);
 
                 Assert.That(key.Version, Is.EqualTo(SshVersion.SSH2));
                 Assert.That(key.Parameter.IsPrivate, Is.False);
@@ -106,7 +106,7 @@ namespace SshAgentLibTests.Keys
                 )
             )
             {
-                var key = Rfc4716PublicKey.Read(file);
+                var key = SshPublicKey.Read(file);
                 Assert.That(key.Comment, Is.EqualTo("PageantSharp test: SSH2-RSA, no passphrase"));
             }
         }

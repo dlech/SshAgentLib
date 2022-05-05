@@ -10,7 +10,7 @@ namespace SshAgentLib.Keys
 {
     public static class OpensshPublicKey
     {
-        public static SshPublicKey Read(Stream stream)
+        internal static SshPublicKey Read(Stream stream)
         {
             if (stream == null)
             {

@@ -18,7 +18,7 @@ namespace SshAgentLib.Keys
     /// This is the public key format exported by PuTTGen.
     /// </remarks>
     /// <seealso cref="https://datatracker.ietf.org/doc/html/rfc4716"/>
-    public static class Rfc4716PublicKey
+    internal static class Rfc4716PublicKey
     {
         /// <summary>
         /// RFC specified first line of file.
