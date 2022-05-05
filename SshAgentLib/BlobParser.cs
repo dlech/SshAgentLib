@@ -8,7 +8,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Text;
 using dlech.SshAgentLib.Crypto;
-using Org.BouncyCastle.Asn1.Sec;
+using Org.BouncyCastle.Asn1.Nist;
 using Org.BouncyCastle.Crypto;
 using Org.BouncyCastle.Crypto.Parameters;
 using Org.BouncyCastle.Math;
@@ -260,7 +260,7 @@ namespace dlech.SshAgentLib
                     var curveName = ReadString();
                     var publicKey = ReadBlob();
 
-                    var x9Params = SecNamedCurves.GetByName(EcCurveToAlgorithm(curveName));
+                    var x9Params = NistNamedCurves.GetByName(curveName.Replace("nistp", "P-"));
                     var domainParams = new ECDomainParameters(
                         x9Params.Curve,
                         x9Params.G,
@@ -293,7 +293,7 @@ namespace dlech.SshAgentLib
 
                         cert = ReadCertificate(certBuilder);
 
-                        var x9Params = SecNamedCurves.GetByName(EcCurveToAlgorithm(curveName));
+                        var x9Params = NistNamedCurves.GetByName(curveName.Replace("nistp", "P-"));
                         var domainParams = new ECDomainParameters(
                             x9Params.Curve,
                             x9Params.G,
@@ -340,24 +340,6 @@ namespace dlech.SshAgentLib
                 default:
                     // unsupported encryption algorithm
                     throw new Exception("Unsupported algorithm");
-            }
-        }
-
-        /// <summary>
-        /// Convert the Openssh curve name to the BouncyCastle curve name
-        /// </summary>
-        static string EcCurveToAlgorithm(string name)
-        {
-            switch (name)
-            {
-                case "nistp256":
-                    return "secp256r1";
-                case "nistp384":
-                    return "secp384r1";
-                case "nistp521":
-                    return "secp521r1";
-                default:
-                    throw new ArgumentException($"Unsupported EC algorithm: {name}", nameof(name));
             }
         }
 
