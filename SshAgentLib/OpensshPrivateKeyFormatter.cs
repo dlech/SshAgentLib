@@ -277,11 +277,10 @@ namespace dlech.SshAgentLib
                 var keys = new List<SshKey>();
                 for (var i = 0; i < keyCount; i++)
                 {
-                    OpensshCertificate cert;
-                    var publicKey = parser.ReadSsh2PublicKeyData(out cert);
-                    var keyPair = parser.ReadSsh2KeyData(publicKey);
+                    var publicKey = parser.ReadSsh2PublicKeyData(out var cert);
+                    var privateKey = parser.ReadSsh2KeyData(publicKey);
                     var comment = parser.ReadString();
-                    var sshKey = new SshKey(SshVersion.SSH2, keyPair, comment, cert);
+                    var sshKey = new SshKey(SshVersion.SSH2, publicKey, privateKey, comment, cert);
                     keys.Add(sshKey);
                 }
                 return keys[0];

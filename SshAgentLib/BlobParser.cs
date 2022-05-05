@@ -365,13 +365,13 @@ namespace dlech.SshAgentLib
         /// reads private key portion of OpenSSH formatted key blob from stream and
         /// creates a key pair
         /// </summary>
-        /// <returns>key pair</returns>
+        /// <returns>the private key</returns>
         /// <remarks>
         /// intended to be called immediately after ParseSsh2PublicKeyData
         /// </remarks>
-        public AsymmetricCipherKeyPair ReadSsh2KeyData(AsymmetricKeyParameter publicKeyParameter)
+        public AsymmetricKeyParameter ReadSsh2KeyData(AsymmetricKeyParameter publicKeyParameter)
         {
-            if (publicKeyParameter is RsaKeyParameters)
+            if (publicKeyParameter is RsaKeyParameters rsaPublicKeyParams)
             {
                 var rsaD = new BigInteger(1, ReadBlob());
                 var rsaIQMP = new BigInteger(1, ReadBlob());
@@ -382,7 +382,6 @@ namespace dlech.SshAgentLib
                 var rsaDP = rsaD.Remainder(rsaP.Subtract(BigInteger.One));
                 var rsaDQ = rsaD.Remainder(rsaQ.Subtract(BigInteger.One));
 
-                var rsaPublicKeyParams = publicKeyParameter as RsaKeyParameters;
                 var rsaPrivateKeyParams = new RsaPrivateCrtKeyParameters(
                     rsaPublicKeyParams.Modulus,
                     rsaPublicKeyParams.Exponent,
@@ -394,43 +393,42 @@ namespace dlech.SshAgentLib
                     rsaIQMP
                 );
 
-                return new AsymmetricCipherKeyPair(rsaPublicKeyParams, rsaPrivateKeyParams);
+                return rsaPrivateKeyParams;
             }
-            else if (publicKeyParameter is DsaPublicKeyParameters)
+
+            if (publicKeyParameter is DsaPublicKeyParameters dsaPublicKeyParams)
             {
                 var dsaX = new BigInteger(1, ReadBlob()); // private key
 
-                var dsaPublicKeyParams = publicKeyParameter as DsaPublicKeyParameters;
                 var dsaPrivateKeyParams = new DsaPrivateKeyParameters(
                     dsaX,
                     dsaPublicKeyParams.Parameters
                 );
 
-                return new AsymmetricCipherKeyPair(dsaPublicKeyParams, dsaPrivateKeyParams);
+                return dsaPrivateKeyParams;
             }
-            else if (publicKeyParameter is ECPublicKeyParameters)
+
+            if (publicKeyParameter is ECPublicKeyParameters ecPublicKeyParams)
             {
                 var ecdsaPrivate = new BigInteger(1, ReadBlob());
 
-                var ecPublicKeyParams = publicKeyParameter as ECPublicKeyParameters;
                 var ecPrivateKeyParams = new ECPrivateKeyParameters(
                     ecdsaPrivate,
                     ecPublicKeyParams.Parameters
                 );
 
-                return new AsymmetricCipherKeyPair(ecPublicKeyParams, ecPrivateKeyParams);
+                return ecPrivateKeyParams;
             }
-            else if (publicKeyParameter is Ed25519PublicKeyParameter)
+
+            if (publicKeyParameter is Ed25519PublicKeyParameter)
             {
                 var ed25519Signature = ReadBlob();
                 var ed25519PrivateKey = new Ed25519PrivateKeyParameter(ed25519Signature);
-                return new AsymmetricCipherKeyPair(publicKeyParameter, ed25519PrivateKey);
+                return ed25519PrivateKey;
             }
-            else
-            {
-                // unsupported encryption algorithm
-                throw new Exception("Unsupported algorithm");
-            }
+
+            // unsupported encryption algorithm
+            throw new Exception("Unsupported algorithm");
         }
 
         /// <summary>

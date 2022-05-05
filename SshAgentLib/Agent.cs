@@ -767,8 +767,14 @@ namespace dlech.SshAgentLib
                     try
                     {
                         var publicKeyParams = messageParser.ReadSsh2PublicKeyData(out var cert);
-                        var keyPair = messageParser.ReadSsh2KeyData(publicKeyParams);
-                        var key = new SshKey(SshVersion.SSH2, keyPair, null, cert)
+                        var privateKeyParams = messageParser.ReadSsh2KeyData(publicKeyParams);
+                        var key = new SshKey(
+                            SshVersion.SSH2,
+                            publicKeyParams,
+                            privateKeyParams,
+                            null,
+                            cert
+                        )
                         {
                             Comment = messageParser.ReadString(),
                             Source = "External client"
