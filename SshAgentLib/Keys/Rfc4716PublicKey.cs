@@ -145,14 +145,10 @@ namespace SshAgentLib.Keys
 
                 var keyData = Convert.FromBase64String(base64Key.ToString());
 
-                // have to peek at the data to get the algorithm
-                var parser = new BlobParser(keyData);
-                var algorithm = KeyFormatIdentifier.Parse(parser.ReadString());
-
                 // comment is only header currently used
                 headers.TryGetValue(commentHeader, out var comment);
 
-                return new SshPublicKey(SshVersion.SSH2, algorithm, keyData, comment);
+                return new SshPublicKey(SshVersion.SSH2, keyData, comment);
             }
         }
     }

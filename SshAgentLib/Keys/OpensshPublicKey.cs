@@ -26,10 +26,8 @@ namespace SshAgentLib.Keys
                 line = line.Substring(data.Length).Trim();
                 var comment = line;
 
-                var algorithm = KeyFormatIdentifier.Parse(keyType);
                 var keyData = Convert.FromBase64String(data);
-
-                var key = new SshPublicKey(SshVersion.SSH2, algorithm, keyData, comment);
+                var key = new SshPublicKey(SshVersion.SSH2, keyData, comment);
 
                 return key;
             }

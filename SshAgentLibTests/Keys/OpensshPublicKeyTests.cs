@@ -5,7 +5,13 @@
 // Expected hashes come from `ssh-keygen -l -f <file>`.
 
 using dlech.SshAgentLib;
+using dlech.SshAgentLib.Crypto;
 using NUnit.Framework;
+using Org.BouncyCastle.Asn1.Sec;
+using Org.BouncyCastle.Asn1.X9;
+using Org.BouncyCastle.Crypto.Parameters;
+using Org.BouncyCastle.Math;
+using Org.BouncyCastle.Utilities.Encoders;
 using SshAgentLib.Keys;
 using static SshAgentLibTests.Helpers;
 
@@ -22,7 +28,14 @@ namespace SshAgentLibTests.Keys
                 var key = OpensshPublicKey.Read(file);
 
                 Assert.That(key.Version, Is.EqualTo(SshVersion.SSH2));
-                Assert.That(key.Algorithm, Is.EqualTo(PublicKeyAlgorithm.SshRsa));
+                Assert.That(key.Parameter.IsPrivate, Is.False);
+                Assert.That(key.Parameter, Is.TypeOf<RsaKeyParameters>());
+
+                var rsa = (RsaKeyParameters)key.Parameter;
+                var n = ReadStringResourceFile("OpenSshTestData", "rsa_1.param.n");
+
+                Assert.That(rsa.Modulus, Is.EqualTo(new BigInteger(n, 16)));
+
                 Assert.That(
                     key.Sha256Hash,
                     Is.EqualTo(ReadStringResourceFile("OpenSshTestData", "rsa_1.fp"))
@@ -43,7 +56,14 @@ namespace SshAgentLibTests.Keys
                 var key = OpensshPublicKey.Read(file);
 
                 Assert.That(key.Version, Is.EqualTo(SshVersion.SSH2));
-                Assert.That(key.Algorithm, Is.EqualTo(PublicKeyAlgorithm.SshRsaCertV1));
+                Assert.That(key.Parameter.IsPrivate, Is.False);
+                Assert.That(key.Parameter, Is.TypeOf<RsaKeyParameters>());
+
+                var rsa = (RsaKeyParameters)key.Parameter;
+                var n = ReadStringResourceFile("OpenSshTestData", "rsa_1.param.n");
+
+                Assert.That(rsa.Modulus, Is.EqualTo(new BigInteger(n, 16)));
+
                 Assert.That(
                     key.Sha256Hash,
                     Is.EqualTo(ReadStringResourceFile("OpenSshTestData", "rsa_1-cert.fp"))
@@ -64,7 +84,15 @@ namespace SshAgentLibTests.Keys
                 var key = OpensshPublicKey.Read(file);
 
                 Assert.That(key.Version, Is.EqualTo(SshVersion.SSH2));
-                Assert.That(key.Algorithm, Is.EqualTo(PublicKeyAlgorithm.SshDss));
+                Assert.That(key.Parameter, Is.TypeOf<DsaPublicKeyParameters>());
+
+                var dsa = (DsaPublicKeyParameters)key.Parameter;
+                var g = ReadStringResourceFile("OpenSshTestData", "dsa_1.param.g");
+                var pub = ReadStringResourceFile("OpenSshTestData", "dsa_1.param.pub");
+
+                Assert.That(dsa.Parameters.G, Is.EqualTo(new BigInteger(g, 16)));
+                Assert.That(dsa.Y, Is.EqualTo(new BigInteger(pub, 16)));
+
                 Assert.That(
                     key.Sha256Hash,
                     Is.EqualTo(ReadStringResourceFile("OpenSshTestData", "dsa_1.fp"))
@@ -85,7 +113,15 @@ namespace SshAgentLibTests.Keys
                 var key = OpensshPublicKey.Read(file);
 
                 Assert.That(key.Version, Is.EqualTo(SshVersion.SSH2));
-                Assert.That(key.Algorithm, Is.EqualTo(PublicKeyAlgorithm.SshDssCertV1));
+                Assert.That(key.Parameter, Is.TypeOf<DsaPublicKeyParameters>());
+
+                var dsa = (DsaPublicKeyParameters)key.Parameter;
+                var g = ReadStringResourceFile("OpenSshTestData", "dsa_1.param.g");
+                var pub = ReadStringResourceFile("OpenSshTestData", "dsa_1.param.pub");
+
+                Assert.That(dsa.Parameters.G, Is.EqualTo(new BigInteger(g, 16)));
+                Assert.That(dsa.Y, Is.EqualTo(new BigInteger(pub, 16)));
+
                 Assert.That(
                     key.Sha256Hash,
                     Is.EqualTo(ReadStringResourceFile("OpenSshTestData", "dsa_1-cert.fp"))
@@ -106,7 +142,18 @@ namespace SshAgentLibTests.Keys
                 var key = OpensshPublicKey.Read(file);
 
                 Assert.That(key.Version, Is.EqualTo(SshVersion.SSH2));
-                Assert.That(key.Algorithm, Is.EqualTo(PublicKeyAlgorithm.EcdsaSha2Nistp256));
+                Assert.That(key.Parameter, Is.TypeOf<ECPublicKeyParameters>());
+
+                var ec = (ECPublicKeyParameters)key.Parameter;
+                var curve = ReadStringResourceFile("OpenSshTestData", "ecdsa_1.param.curve");
+                var pub = ReadStringResourceFile("OpenSshTestData", "ecdsa_1.param.pub");
+
+                Assert.That(
+                    ec.Parameters.Curve,
+                    Is.EqualTo(X962NamedCurves.GetByName(curve).Curve)
+                );
+                Assert.That(ec.Q, Is.EqualTo(ec.Parameters.Curve.DecodePoint(Hex.Decode(pub))));
+
                 Assert.That(
                     key.Sha256Hash,
                     Is.EqualTo(ReadStringResourceFile("OpenSshTestData", "ecdsa_1.fp"))
@@ -127,7 +174,18 @@ namespace SshAgentLibTests.Keys
                 var key = OpensshPublicKey.Read(file);
 
                 Assert.That(key.Version, Is.EqualTo(SshVersion.SSH2));
-                Assert.That(key.Algorithm, Is.EqualTo(PublicKeyAlgorithm.EcdsaSha2Nistp256CertV1));
+                Assert.That(key.Parameter, Is.TypeOf<ECPublicKeyParameters>());
+
+                var ec = (ECPublicKeyParameters)key.Parameter;
+                var curve = ReadStringResourceFile("OpenSshTestData", "ecdsa_1.param.curve");
+                var pub = ReadStringResourceFile("OpenSshTestData", "ecdsa_1.param.pub");
+
+                Assert.That(
+                    ec.Parameters.Curve,
+                    Is.EqualTo(X962NamedCurves.GetByName(curve).Curve)
+                );
+                Assert.That(ec.Q, Is.EqualTo(ec.Parameters.Curve.DecodePoint(Hex.Decode(pub))));
+
                 Assert.That(
                     key.Sha256Hash,
                     Is.EqualTo(ReadStringResourceFile("OpenSshTestData", "ecdsa_1-cert.fp"))
@@ -148,7 +206,15 @@ namespace SshAgentLibTests.Keys
                 var key = OpensshPublicKey.Read(file);
 
                 Assert.That(key.Version, Is.EqualTo(SshVersion.SSH2));
-                Assert.That(key.Algorithm, Is.EqualTo(PublicKeyAlgorithm.EcdsaSha2Nistp521));
+                Assert.That(key.Parameter, Is.TypeOf<ECPublicKeyParameters>());
+
+                var ec = (ECPublicKeyParameters)key.Parameter;
+                var curve = ReadStringResourceFile("OpenSshTestData", "ecdsa_2.param.curve");
+                var pub = ReadStringResourceFile("OpenSshTestData", "ecdsa_2.param.pub");
+
+                Assert.That(ec.Parameters.Curve, Is.EqualTo(SecNamedCurves.GetByName(curve).Curve));
+                Assert.That(ec.Q, Is.EqualTo(ec.Parameters.Curve.DecodePoint(Hex.Decode(pub))));
+
                 Assert.That(
                     key.Sha256Hash,
                     Is.EqualTo(ReadStringResourceFile("OpenSshTestData", "ecdsa_2.fp"))
@@ -169,7 +235,8 @@ namespace SshAgentLibTests.Keys
                 var key = OpensshPublicKey.Read(file);
 
                 Assert.That(key.Version, Is.EqualTo(SshVersion.SSH2));
-                Assert.That(key.Algorithm, Is.EqualTo(PublicKeyAlgorithm.SshEd25519));
+                Assert.That(key.Parameter, Is.TypeOf<Ed25519PublicKeyParameter>());
+
                 Assert.That(
                     key.Sha256Hash,
                     Is.EqualTo(ReadStringResourceFile("OpenSshTestData", "ed25519_1.fp"))
@@ -190,7 +257,8 @@ namespace SshAgentLibTests.Keys
                 var key = OpensshPublicKey.Read(file);
 
                 Assert.That(key.Version, Is.EqualTo(SshVersion.SSH2));
-                Assert.That(key.Algorithm, Is.EqualTo(PublicKeyAlgorithm.SshEd25519CertV1));
+                Assert.That(key.Parameter, Is.TypeOf<Ed25519PublicKeyParameter>());
+
                 Assert.That(
                     key.Sha256Hash,
                     Is.EqualTo(ReadStringResourceFile("OpenSshTestData", "ed25519_1-cert.fp"))
@@ -211,7 +279,8 @@ namespace SshAgentLibTests.Keys
                 var key = OpensshPublicKey.Read(file);
 
                 Assert.That(key.Version, Is.EqualTo(SshVersion.SSH2));
-                Assert.That(key.Algorithm, Is.EqualTo(PublicKeyAlgorithm.SshEd25519));
+                Assert.That(key.Parameter, Is.TypeOf<Ed25519PublicKeyParameter>());
+
                 Assert.That(
                     key.Sha256Hash,
                     Is.EqualTo(ReadStringResourceFile("OpenSshTestData", "ed25519_2.fp"))

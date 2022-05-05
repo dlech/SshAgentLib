@@ -2,10 +2,15 @@
 // Copyright (c) 2022 David Lechner <david@lechnology.com>
 
 using System;
+using System.Diagnostics;
 using System.IO;
 using System.Security.Cryptography;
 using System.Text;
 using dlech.SshAgentLib;
+using dlech.SshAgentLib.Crypto;
+using Org.BouncyCastle.Asn1.Nist;
+using Org.BouncyCastle.Crypto;
+using Org.BouncyCastle.Crypto.Parameters;
 
 namespace SshAgentLib.Keys
 {
@@ -14,20 +19,22 @@ namespace SshAgentLib.Keys
     /// </summary>
     public sealed class SshPublicKey
     {
+        private readonly OpensshCertificate certificate;
+
         /// <summary>
         /// Gets the SSH protocol version.
         /// </summary>
         public SshVersion Version { get; }
 
         /// <summary>
-        /// Gets the public key algorithm.
+        /// Gets the public key encryption parameters.
         /// </summary>
-        public PublicKeyAlgorithm Algorithm { get; }
+        public AsymmetricKeyParameter Parameter { get; }
 
         /// <summary>
         /// Gets the encryption parameter.
         /// </summary>
-        public byte[] KeyBlob { get; }
+        private byte[] KeyBlob { get; }
 
         /// <summary>
         /// Gets the optional comment.
@@ -58,7 +65,7 @@ namespace SshAgentLib.Keys
             {
                 var builder = new StringBuilder();
 
-                builder.Append(Algorithm.GetIdentifier());
+                builder.Append(GetAlgorithmIdentifier(Parameter, certificate != null));
                 builder.Append(' ');
                 builder.Append(Convert.ToBase64String(KeyBlob));
 
@@ -76,20 +83,27 @@ namespace SshAgentLib.Keys
         /// Creates a new public key.
         /// </summary>
         /// <param name="version">The SSH version.</param>
-        /// <param name="algorithm">The SSH key encryption algorithm.</param>
         /// <param name="keyBlob">The public key binary data.</param>
         /// <param name="comment">Optional comment.</param>
-        public SshPublicKey(
-            SshVersion version,
-            PublicKeyAlgorithm algorithm,
-            byte[] keyBlob,
-            string comment = null
-        )
+        public SshPublicKey(SshVersion version, byte[] keyBlob, string comment = null)
         {
             Version = version;
-            Algorithm = algorithm;
             KeyBlob = keyBlob ?? throw new ArgumentNullException(nameof(keyBlob));
             Comment = comment;
+
+            var parser = new BlobParser(keyBlob);
+
+            switch (version)
+            {
+                case SshVersion.SSH1:
+                    Parameter = parser.ReadSsh1PublicKeyData();
+                    break;
+                case SshVersion.SSH2:
+                    Parameter = parser.ReadSsh2PublicKeyData(out certificate);
+                    break;
+                default:
+                    throw new ArgumentException("unsupported SSH version", nameof(version));
+            }
         }
 
         /// <summary>
@@ -99,7 +113,7 @@ namespace SshAgentLib.Keys
         /// <returns>A new key.</returns>
         public SshPublicKey WithComment(string comment)
         {
-            return new SshPublicKey(Version, Algorithm, KeyBlob, comment);
+            return new SshPublicKey(Version, KeyBlob, comment);
         }
 
         /// <summary>
@@ -108,26 +122,20 @@ namespace SshAgentLib.Keys
         public SshPublicKey WithoutCertificate()
         {
             // if there is already no certificate, just return self
-            if (
-                !Algorithm
-                    .GetIdentifier()
-                    .EndsWith("-cert-v01@openssh.com", StringComparison.Ordinal)
-            )
+            if (certificate == null)
             {
                 return this;
             }
 
-            if (Version == SshVersion.SSH1)
-            {
-                throw new InvalidOperationException("SSH v1 keys do not support certificates.");
-            }
+            // SSH1 does not support certificates
+            Debug.Assert(Version != SshVersion.SSH1);
 
             // separate the key from the certificate
             var parser = new BlobParser(KeyBlob);
             var parameters = parser.ReadSsh2PublicKeyData(out var _);
             var key = new SshKey(Version, parameters);
 
-            return new SshPublicKey(Version, key.Algorithm, key.GetPublicKeyBlob(), Comment);
+            return new SshPublicKey(Version, key.GetPublicKeyBlob(), Comment);
         }
 
         /// <summary>
@@ -160,6 +168,69 @@ namespace SshAgentLib.Keys
                 // OpenSSH format doesn't have a fixed identifier, so use it as default.
                 return OpensshPublicKey.Read(reader.BaseStream);
             }
+        }
+
+        private static string GetAlgorithmIdentifier(
+            AsymmetricKeyParameter parameters,
+            bool hasCertificate
+        )
+        {
+            var algorithm = GetBaseAlgorithmIdentifier(parameters);
+
+            if (hasCertificate)
+            {
+                algorithm += "-cert-v01@openssh.com";
+            }
+
+            return algorithm;
+        }
+
+        private static string GetBaseAlgorithmIdentifier(AsymmetricKeyParameter parameters)
+        {
+            if (parameters is null)
+            {
+                throw new ArgumentNullException(nameof(parameters));
+            }
+
+            if (parameters is RsaKeyParameters)
+            {
+                return "ssh-rsa";
+            }
+
+            if (parameters is DsaPublicKeyParameters)
+            {
+                return "ssh-dss";
+            }
+
+            if (parameters is ECPublicKeyParameters ecParams)
+            {
+                if (ecParams.Parameters.Curve.Equals(NistNamedCurves.GetByName("P-256").Curve))
+                {
+                    return "ecdsa-sha2-nistp256";
+                }
+
+                if (ecParams.Parameters.Curve.Equals(NistNamedCurves.GetByName("P-384").Curve))
+                {
+                    return "ecdsa-sha2-nistp384";
+                }
+
+                if (ecParams.Parameters.Curve.Equals(NistNamedCurves.GetByName("P-521").Curve))
+                {
+                    return "ecdsa-sha2-nistp521";
+                }
+
+                throw new ArgumentException("invalid ECDSA curve", nameof(parameters));
+            }
+
+            if (parameters is Ed25519PublicKeyParameter)
+            {
+                return "ssh-ed25519";
+            }
+
+            throw new ArgumentException(
+                $"unsupported parameter type: {parameters}",
+                nameof(parameters)
+            );
         }
     }
 }

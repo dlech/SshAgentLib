@@ -3,6 +3,7 @@
 
 using dlech.SshAgentLib;
 using NUnit.Framework;
+using Org.BouncyCastle.Crypto.Parameters;
 using SshAgentLib.Keys;
 
 using static SshAgentLibTests.Helpers;
@@ -22,7 +23,8 @@ namespace SshAgentLibTests.Keys
                 var key = Rfc4716PublicKey.Read(file);
 
                 Assert.That(key.Version, Is.EqualTo(SshVersion.SSH2));
-                Assert.That(key.Algorithm, Is.EqualTo(PublicKeyAlgorithm.SshRsa));
+                Assert.That(key.Parameter.IsPrivate, Is.False);
+                Assert.That(key.Parameter, Is.TypeOf<RsaKeyParameters>());
                 Assert.That(
                     key.Sha256Hash,
                     Is.EqualTo("SHA256:csG+ujEVjJLZpYPqLUDdw20LVTQMjD4FWsNmsr1etGE")
@@ -42,7 +44,8 @@ namespace SshAgentLibTests.Keys
                 var key = Rfc4716PublicKey.Read(file);
 
                 Assert.That(key.Version, Is.EqualTo(SshVersion.SSH2));
-                Assert.That(key.Algorithm, Is.EqualTo(PublicKeyAlgorithm.SshDss));
+                Assert.That(key.Parameter.IsPrivate, Is.False);
+                Assert.That(key.Parameter, Is.TypeOf<DsaPublicKeyParameters>());
                 Assert.That(
                     key.Sha256Hash,
                     Is.EqualTo("SHA256:UPFxqc1qGwD5OpK2pgb6Y1YxpiMS+XZeSbYhgyw6LiE")
@@ -62,7 +65,8 @@ namespace SshAgentLibTests.Keys
                 var key = Rfc4716PublicKey.Read(file);
 
                 Assert.That(key.Version, Is.EqualTo(SshVersion.SSH2));
-                Assert.That(key.Algorithm, Is.EqualTo(PublicKeyAlgorithm.SshDss));
+                Assert.That(key.Parameter.IsPrivate, Is.False);
+                Assert.That(key.Parameter, Is.TypeOf<DsaPublicKeyParameters>());
                 Assert.That(
                     key.Sha256Hash,
                     Is.EqualTo("SHA256:UPFxqc1qGwD5OpK2pgb6Y1YxpiMS+XZeSbYhgyw6LiE")
@@ -79,7 +83,8 @@ namespace SshAgentLibTests.Keys
                 var key = Rfc4716PublicKey.Read(file);
 
                 Assert.That(key.Version, Is.EqualTo(SshVersion.SSH2));
-                Assert.That(key.Algorithm, Is.EqualTo(PublicKeyAlgorithm.SshRsa));
+                Assert.That(key.Parameter.IsPrivate, Is.False);
+                Assert.That(key.Parameter, Is.TypeOf<RsaKeyParameters>());
                 Assert.That(
                     key.Sha256Hash,
                     Is.EqualTo("SHA256:MQHWhS9nhzUezUdD42ytxubZoBKrZLbyBZzxCkmnxXc")
