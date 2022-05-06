@@ -4,6 +4,7 @@
 using System;
 using System.Diagnostics;
 using System.IO;
+using System.Linq;
 using System.Security.Cryptography;
 using System.Text;
 using dlech.SshAgentLib;
@@ -182,6 +183,24 @@ namespace SshAgentLib.Keys
             }
 
             return algorithm;
+        }
+
+        /// <summary>
+        /// Tests if this key matches <paramref name="blob"/>.
+        /// </summary>
+        /// <param name="blob">An OpenSSH formatted public key blob.</param>
+        /// <returns>
+        /// <c>true</c> if this key matches, otherwise <c>false</c>.
+        /// </returns>
+        /// <exception cref="ArgumentNullException"></exception>
+        internal bool Matches(byte[] blob)
+        {
+            if (blob is null)
+            {
+                throw new ArgumentNullException(nameof(blob));
+            }
+
+            return WithoutCertificate().KeyBlob.SequenceEqual(blob);
         }
 
         private static string GetBaseAlgorithmIdentifier(AsymmetricKeyParameter parameters)

@@ -26,6 +26,8 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
+using SshAgentLib.Keys;
 
 namespace dlech.SshAgentLib
 {
@@ -141,6 +143,29 @@ namespace dlech.SshAgentLib
             }
 
             return allKeysList;
+        }
+
+        /// <summary>
+        /// Checks if a matching key is loaded in the agent.
+        /// </summary>
+        /// <param name="agent">The agent.</param>
+        /// <param name="key">The key to match against.</param>
+        /// <returns>
+        /// <c>true</c> if a matching key was found, otherwise <c>false</c>
+        /// </returns>
+        /// <exception cref="ArgumentNullException"></exception>
+        public static bool Contains(this IAgent agent, SshPublicKey key) {
+            if (agent is null)
+            {
+                throw new ArgumentNullException(nameof(agent));
+            }
+
+            if (key is null)
+            {
+                throw new ArgumentNullException(nameof(key));
+            }
+
+            return agent.ListKeys(key.Version).Any(k =>key.Matches(k.GetPublicKeyBlob()));
         }
     }
 }
