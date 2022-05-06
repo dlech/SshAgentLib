@@ -64,6 +64,10 @@ namespace dlech.SshAgentLib
         SshEd25519,
         [KeyFormatIdentifier("ssh-ed25519-cert-v01@openssh.com")]
         SshEd25519CertV1,
+        [KeyFormatIdentifier("ssh-ed448")]
+        SshEd448,
+        [KeyFormatIdentifier("ssh-ed448-cert-v01@openssh.com")]
+        SshEd448CertV1,
     }
 
     public static class PublicKeyAlgorithmExt
@@ -122,6 +126,10 @@ namespace dlech.SshAgentLib
                 case PublicKeyAlgorithm.SshEd25519:
                 case PublicKeyAlgorithm.SshEd25519CertV1:
                     return new Ed25519Signer();
+                case PublicKeyAlgorithm.SshEd448:
+                case PublicKeyAlgorithm.SshEd448CertV1:
+                    // TODO: what is the context?
+                    return new Ed448Signer(null);
                 default:
                     Debug.Fail("Unknown algorithm");
                     throw new Exception("Unknown algorithm");

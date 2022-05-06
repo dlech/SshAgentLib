@@ -243,6 +243,62 @@ namespace SshAgentLibTests.Keys
 
             var privKey = (Ed25519PrivateKeyParameters)key.PrivateKey;
             Assert.That(privKey.GetEncoded(), Is.EqualTo(Util.FromHex(priv)));
+            Assert.That(privKey.GeneratePublicKey(), Is.EqualTo(pubKey));
+        }
+
+        [TestCase("v2", "none", null)]
+        [TestCase("v2", "aes256cbc", null)]
+        [TestCase("v3", "none", "none")]
+        [TestCase("v3", "aes256cbc", "argon2id")]
+        public void TestThatReadingEd448KeyWorks(
+            string version,
+            string encryption,
+            string keyDerivation
+        )
+        {
+            var pub = ReadStringResourceFile("PuttyTestData", $"eddsa-ed448.param.pub");
+            var priv = ReadStringResourceFile("PuttyTestData", $"eddsa-ed448.param.priv");
+
+            var kdf = keyDerivation == null ? "" : $"-{keyDerivation}";
+            var file = OpenResourceFile(
+                "PuttyTestData",
+                $"eddsa-ed448-{version}-{encryption}{kdf}.ppk"
+            );
+            var key = SshPrivateKey.Read(file);
+
+            Assert.That(() => file.ReadByte(), Throws.TypeOf<ObjectDisposedException>());
+            Assert.That(() => key.PrivateKey, Throws.InvalidOperationException);
+
+            Assert.That(key.PublicKey.Parameter.IsPrivate, Is.False);
+            Assert.That(key.PublicKey.Parameter, Is.TypeOf<Ed448PublicKeyParameters>());
+
+            var pubKey = (Ed448PublicKeyParameters)key.PublicKey.Parameter;
+            Assert.That(pubKey.GetEncoded(), Is.EqualTo(Util.FromHex(pub)));
+
+            var getPassphrase = default(SshPrivateKey.GetPassphraseFunc);
+
+            if (encryption != "none")
+            {
+                var pw = ReadStringResourceFile("PuttyTestData", "pass");
+
+                var passphrase = new SecureString();
+
+                foreach (var c in pw)
+                {
+                    passphrase.AppendChar(c);
+                }
+
+                getPassphrase = (_) => passphrase;
+            }
+
+            key.Decrypt(getPassphrase);
+
+            Assert.That(key.PrivateKey.IsPrivate);
+            Assert.That(key.PrivateKey, Is.TypeOf<Ed448PrivateKeyParameters>());
+
+            var privKey = (Ed448PrivateKeyParameters)key.PrivateKey;
+            Assert.That(privKey.GetEncoded(), Is.EqualTo(Util.FromHex(priv)));
+            Assert.That(privKey.GeneratePublicKey(), Is.EqualTo(pubKey));
         }
     }
 }

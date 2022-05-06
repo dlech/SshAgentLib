@@ -337,6 +337,37 @@ namespace dlech.SshAgentLib
                     }
                 }
 
+                case PublicKeyAlgorithm.SshEd448:
+                {
+                    var publicKey = ReadBlob();
+                    return new Ed448PublicKeyParameters(publicKey);
+                }
+
+                case PublicKeyAlgorithm.SshEd448CertV1:
+                {
+                    var nonce = ReadBlob();
+                    if (nonce.Length != 32)
+                    {
+                        // we are being called from SSH2_AGENTC_ADD_IDENTITY and this blob
+                        // is the whole certificate, not the nonce
+                        var certParser = new BlobParser(nonce);
+                        certParser.ReadSsh2PublicKeyData(out cert);
+                        var publicKey = ReadBlob();
+
+                        return new Ed448PublicKeyParameters(publicKey);
+                    }
+                    else
+                    {
+                        certBuilder.AddBlob(nonce);
+                        var publicKey = ReadBlob();
+                        certBuilder.AddBlob(publicKey);
+
+                        cert = ReadCertificate(certBuilder);
+
+                        return new Ed448PublicKeyParameters(publicKey);
+                    }
+                }
+
                 default:
                     // unsupported encryption algorithm
                     throw new Exception("Unsupported algorithm");
@@ -395,6 +426,14 @@ namespace dlech.SshAgentLib
                 var ed25596PrivateKey = new Ed25519PrivateKeyParameters(privBlob);
 
                 return ed25596PrivateKey;
+            }
+
+            if (publicKeyParameter is Ed448PublicKeyParameters)
+            {
+                var privBlob = ReadBlob();
+                var ed448PrivateKey = new Ed448PrivateKeyParameters(privBlob);
+
+                return ed448PrivateKey;
             }
 
             if (publicKeyParameter is ECPublicKeyParameters ecPublicKeyParams)

@@ -226,6 +226,11 @@ namespace SshAgentLib.Keys
                 return "ssh-ed25519";
             }
 
+            if (parameters is Ed448PublicKeyParameters)
+            {
+                return "ssh-ed448";
+            }
+
             throw new ArgumentException(
                 $"unsupported parameter type: {parameters}",
                 nameof(parameters)
