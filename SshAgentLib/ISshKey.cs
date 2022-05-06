@@ -278,6 +278,20 @@ namespace dlech.SshAgentLib
             }
         }
 
+        public static string GetSha256Fingerprint(this ISshKey key)
+        {
+            if (key == null)
+            {
+                throw new ArgumentNullException(nameof(key));
+            }
+
+            using (var sha = SHA256.Create())
+            {
+                var hash = sha.ComputeHash(key.GetPublicKeyBlob());
+                return $"SHA256:{Convert.ToBase64String(hash).Trim('=')}";
+            }
+        }
+
         public static bool HasConstraint(this ISshKey aKey, Agent.KeyConstraintType aType)
         {
             return aKey.Constraints.Count(c => c.Type == aType) > 0;
