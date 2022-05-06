@@ -4,7 +4,6 @@
 using System;
 using System.Security;
 using dlech.SshAgentLib;
-using dlech.SshAgentLib.Crypto;
 using NUnit.Framework;
 using Org.BouncyCastle.Asn1.Nist;
 using Org.BouncyCastle.Crypto.Parameters;
@@ -203,8 +202,8 @@ namespace SshAgentLibTests.Keys
             string keyDerivation
         )
         {
-            var pkey = ReadStringResourceFile("PuttyTestData", $"eddsa-{curve}.param.key");
-            var sig = ReadStringResourceFile("PuttyTestData", $"eddsa-{curve}.param.sig");
+            var pub = ReadStringResourceFile("PuttyTestData", $"eddsa-{curve}.param.pub");
+            var priv = ReadStringResourceFile("PuttyTestData", $"eddsa-{curve}.param.priv");
 
             var kdf = keyDerivation == null ? "" : $"-{keyDerivation}";
             var file = OpenResourceFile(
@@ -217,10 +216,10 @@ namespace SshAgentLibTests.Keys
             Assert.That(() => key.PrivateKey, Throws.InvalidOperationException);
 
             Assert.That(key.PublicKey.Parameter.IsPrivate, Is.False);
-            Assert.That(key.PublicKey.Parameter, Is.TypeOf<Ed25519PublicKeyParameter>());
+            Assert.That(key.PublicKey.Parameter, Is.TypeOf<Ed25519PublicKeyParameters>());
 
-            var pubKey = (Ed25519PublicKeyParameter)key.PublicKey.Parameter;
-            Assert.That(pubKey.Key, Is.EqualTo(Util.FromHex(pkey)));
+            var pubKey = (Ed25519PublicKeyParameters)key.PublicKey.Parameter;
+            Assert.That(pubKey.GetEncoded(), Is.EqualTo(Util.FromHex(pub)));
 
             var getPassphrase = default(SshPrivateKey.GetPassphraseFunc);
 
@@ -241,10 +240,10 @@ namespace SshAgentLibTests.Keys
             key.Decrypt(getPassphrase);
 
             Assert.That(key.PrivateKey.IsPrivate);
-            Assert.That(key.PrivateKey, Is.TypeOf<Ed25519PrivateKeyParameter>());
+            Assert.That(key.PrivateKey, Is.TypeOf<Ed25519PrivateKeyParameters>());
 
-            var privKey = (Ed25519PrivateKeyParameter)key.PrivateKey;
-            Assert.That(privKey.Signature, Is.EqualTo(Util.FromHex(sig)));
+            var privKey = (Ed25519PrivateKeyParameters)key.PrivateKey;
+            Assert.That(privKey.GetEncoded(), Is.EqualTo(Util.FromHex(priv)));
         }
     }
 }

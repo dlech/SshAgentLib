@@ -26,10 +26,10 @@
 using System;
 using System.Diagnostics;
 using System.Reflection;
-using dlech.SshAgentLib.Crypto;
 using Org.BouncyCastle.Asn1.Pkcs;
 using Org.BouncyCastle.Asn1.X9;
 using Org.BouncyCastle.Crypto;
+using Org.BouncyCastle.Crypto.Signers;
 using Org.BouncyCastle.Security;
 using SshAgentLib;
 

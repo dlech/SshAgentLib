@@ -23,7 +23,6 @@
 
 using System.Security;
 using dlech.SshAgentLib;
-using dlech.SshAgentLib.Crypto;
 using SshAgentLibTests.Properties;
 using NUnit.Framework;
 using Org.BouncyCastle.Asn1.X9;
@@ -171,8 +170,8 @@ namespace dlech.SshAgentLibTests
             var key = formatter.Deserialize(Resources.ed25519_1);
             Assert.That(key.Version, Is.EqualTo(SshVersion.SSH2));
             Assert.That(key.Algorithm, Is.EqualTo(PublicKeyAlgorithm.SshEd25519));
-            var publicKey = (Ed25519PublicKeyParameter)key.GetPublicKeyParameters();
-            var privateKey = (Ed25519PrivateKeyParameter)key.GetPrivateKeyParameters();
+            var publicKey = (Ed25519PublicKeyParameters)key.GetPublicKeyParameters();
+            var privateKey = (Ed25519PrivateKeyParameters)key.GetPrivateKeyParameters();
         }
 
         [Test]
@@ -183,8 +182,8 @@ namespace dlech.SshAgentLibTests
             var key = formatter.Deserialize(Resources.ed25519_1_pw);
             Assert.That(key.Version, Is.EqualTo(SshVersion.SSH2));
             Assert.That(key.Algorithm, Is.EqualTo(PublicKeyAlgorithm.SshEd25519));
-            var publicKey = (Ed25519PublicKeyParameter)key.GetPublicKeyParameters();
-            var privateKey = (Ed25519PrivateKeyParameter)key.GetPrivateKeyParameters();
+            var publicKey = (Ed25519PublicKeyParameters)key.GetPublicKeyParameters();
+            var privateKey = (Ed25519PrivateKeyParameters)key.GetPrivateKeyParameters();
         }
     }
 }

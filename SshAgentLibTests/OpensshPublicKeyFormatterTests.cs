@@ -24,7 +24,6 @@
 using System;
 using System.Linq;
 using dlech.SshAgentLib;
-using dlech.SshAgentLib.Crypto;
 using SshAgentLibTests.Properties;
 using NUnit.Framework;
 using Org.BouncyCastle.Crypto.Parameters;
@@ -69,9 +68,9 @@ namespace dlech.SshAgentLibTests
             var fp = FormatFingerprint(key.GetMD5Fingerprint());
             Assert.That(fp, Is.EqualTo(Resources.rsa_1_cert_fp.Trim()));
 
-            var certSigningKey = (Ed25519PublicKeyParameter)key.Certificate.SignatureKey;
+            var certSigningKey = (Ed25519PublicKeyParameters)key.Certificate.SignatureKey;
             var param_pub = new BigInteger(Resources.ed25519_1_param_pub.Trim(), 16);
-            var k = new BigInteger(1, certSigningKey.Key);
+            var k = new BigInteger(1, certSigningKey.GetEncoded());
             Assert.That(k, Is.EqualTo(param_pub));
             Assert.That(key.Certificate.Type, Is.EqualTo(Ssh2CertType.Host));
             Assert.That(key.Certificate.KeyId, Is.EqualTo("julius"));
@@ -116,9 +115,9 @@ namespace dlech.SshAgentLibTests
             var fp = FormatFingerprint(key.GetMD5Fingerprint());
             Assert.That(fp, Is.EqualTo(Resources.dsa_1_fp.Trim()));
 
-            var certSigningKey = (Ed25519PublicKeyParameter)key.Certificate.SignatureKey;
+            var certSigningKey = (Ed25519PublicKeyParameters)key.Certificate.SignatureKey;
             var param_pub2 = new BigInteger(Resources.ed25519_1_param_pub.Trim(), 16);
-            var k = new BigInteger(1, certSigningKey.Key);
+            var k = new BigInteger(1, certSigningKey.GetEncoded());
             Assert.That(k, Is.EqualTo(param_pub2));
             Assert.That(key.Certificate.Type, Is.EqualTo(Ssh2CertType.Host));
             Assert.That(key.Certificate.KeyId, Is.EqualTo("julius"));
@@ -206,9 +205,9 @@ namespace dlech.SshAgentLibTests
             var key = formatter.Deserialize(keyFile);
             Assert.That(key.Version, Is.EqualTo(SshVersion.SSH2));
             Assert.That(key.Algorithm, Is.EqualTo(PublicKeyAlgorithm.SshEd25519));
-            var publicKey = (Ed25519PublicKeyParameter)key.GetPublicKeyParameters();
+            var publicKey = (Ed25519PublicKeyParameters)key.GetPublicKeyParameters();
             var param_pub = new BigInteger(Resources.ed25519_1_param_pub.Trim(), 16);
-            var k = new BigInteger(1, publicKey.Key);
+            var k = new BigInteger(1, publicKey.GetEncoded());
             Assert.That(k, Is.EqualTo(param_pub));
             var fp = FormatFingerprint(key.GetMD5Fingerprint());
             Assert.That(fp, Is.EqualTo(Resources.ed25519_1_fp.Trim()));
@@ -222,16 +221,16 @@ namespace dlech.SshAgentLibTests
             var key = formatter.Deserialize(keyFile);
             Assert.That(key.Version, Is.EqualTo(SshVersion.SSH2));
             Assert.That(key.Algorithm, Is.EqualTo(PublicKeyAlgorithm.SshEd25519CertV1));
-            var publicKey = (Ed25519PublicKeyParameter)key.GetPublicKeyParameters();
+            var publicKey = (Ed25519PublicKeyParameters)key.GetPublicKeyParameters();
             var param_pub = new BigInteger(Resources.ed25519_1_param_pub.Trim(), 16);
-            var k = new BigInteger(1, publicKey.Key);
+            var k = new BigInteger(1, publicKey.GetEncoded());
             Assert.That(k, Is.EqualTo(param_pub));
             var fp = FormatFingerprint(key.GetMD5Fingerprint());
             Assert.That(fp, Is.EqualTo(Resources.ed25519_1_fp.Trim()));
 
-            var certSigningKey = (Ed25519PublicKeyParameter)key.Certificate.SignatureKey;
+            var certSigningKey = (Ed25519PublicKeyParameters)key.Certificate.SignatureKey;
             var param_pub2 = new BigInteger(Resources.ed25519_1_param_pub.Trim(), 16);
-            var k2 = new BigInteger(1, certSigningKey.Key);
+            var k2 = new BigInteger(1, certSigningKey.GetEncoded());
             Assert.That(k2, Is.EqualTo(param_pub2));
             Assert.That(key.Certificate.Type, Is.EqualTo(Ssh2CertType.Host));
             Assert.That(key.Certificate.KeyId, Is.EqualTo("julius"));
@@ -255,9 +254,9 @@ namespace dlech.SshAgentLibTests
             var key = formatter.Deserialize(keyFile);
             Assert.That(key.Version, Is.EqualTo(SshVersion.SSH2));
             Assert.That(key.Algorithm, Is.EqualTo(PublicKeyAlgorithm.SshEd25519));
-            var publicKey = (Ed25519PublicKeyParameter)key.GetPublicKeyParameters();
+            var publicKey = (Ed25519PublicKeyParameters)key.GetPublicKeyParameters();
             var param_pub = new BigInteger(Resources.ed25519_2_param_pub.Trim(), 16);
-            var k = new BigInteger(1, publicKey.Key);
+            var k = new BigInteger(1, publicKey.GetEncoded());
             Assert.That(k, Is.EqualTo(param_pub));
             var fp = FormatFingerprint(key.GetMD5Fingerprint());
             Assert.That(fp, Is.EqualTo(Resources.ed25519_2_fp.Trim()));

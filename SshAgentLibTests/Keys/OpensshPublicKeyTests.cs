@@ -5,7 +5,6 @@
 // Expected hashes come from `ssh-keygen -l -f <file>`.
 
 using dlech.SshAgentLib;
-using dlech.SshAgentLib.Crypto;
 using NUnit.Framework;
 using Org.BouncyCastle.Asn1.Sec;
 using Org.BouncyCastle.Asn1.X9;
@@ -235,7 +234,7 @@ namespace SshAgentLibTests.Keys
                 var key = SshPublicKey.Read(file);
 
                 Assert.That(key.Version, Is.EqualTo(SshVersion.SSH2));
-                Assert.That(key.Parameter, Is.TypeOf<Ed25519PublicKeyParameter>());
+                Assert.That(key.Parameter, Is.TypeOf<Ed25519PublicKeyParameters>());
 
                 Assert.That(
                     key.Sha256Hash,
@@ -257,7 +256,7 @@ namespace SshAgentLibTests.Keys
                 var key = SshPublicKey.Read(file);
 
                 Assert.That(key.Version, Is.EqualTo(SshVersion.SSH2));
-                Assert.That(key.Parameter, Is.TypeOf<Ed25519PublicKeyParameter>());
+                Assert.That(key.Parameter, Is.TypeOf<Ed25519PublicKeyParameters>());
 
                 Assert.That(
                     key.Sha256Hash,
@@ -279,7 +278,7 @@ namespace SshAgentLibTests.Keys
                 var key = SshPublicKey.Read(file);
 
                 Assert.That(key.Version, Is.EqualTo(SshVersion.SSH2));
-                Assert.That(key.Parameter, Is.TypeOf<Ed25519PublicKeyParameter>());
+                Assert.That(key.Parameter, Is.TypeOf<Ed25519PublicKeyParameters>());
 
                 Assert.That(
                     key.Sha256Hash,

@@ -38,7 +38,6 @@ using System.Security.Cryptography;
 using System.Text;
 using System.Threading;
 using dlech.SshAgentLib;
-using dlech.SshAgentLib.Crypto;
 using NUnit.Framework;
 using Org.BouncyCastle.Asn1;
 using Org.BouncyCastle.Crypto;
@@ -445,13 +444,14 @@ namespace dlech.SshAgentLibTests
         [Test]
         public void TestAnswerSSH2_AGENTC_ADD_IDENTITY_Ed25519()
         {
-            var publicKeyParams = (Ed25519PublicKeyParameter)ed25519Key.GetPublicKeyParameters();
-            var privateKeyParams = (Ed25519PrivateKeyParameter)ed25519Key.GetPrivateKeyParameters();
+            var publicKeyParams = (Ed25519PublicKeyParameters)ed25519Key.GetPublicKeyParameters();
+            var privateKeyParams =
+                (Ed25519PrivateKeyParameters)ed25519Key.GetPrivateKeyParameters();
 
             var builder = new BlobBuilder();
             builder.AddStringBlob(ed25519Key.Algorithm.GetIdentifier());
-            builder.AddBlob(publicKeyParams.Key);
-            builder.AddBlob(privateKeyParams.Signature);
+            builder.AddBlob(publicKeyParams.GetEncoded());
+            builder.AddBlob(privateKeyParams.GetEncoded());
             builder.AddStringBlob(ed25519Key.Comment);
             builder.InsertHeader(Agent.Message.SSH2_AGENTC_ADD_IDENTITY);
 
@@ -466,11 +466,11 @@ namespace dlech.SshAgentLibTests
             var returnedKey = agent.GetAllKeys().First();
             Assert.That(
                 returnedKey.GetPublicKeyParameters(),
-                Is.InstanceOf<Ed25519PublicKeyParameter>()
+                Is.InstanceOf<Ed25519PublicKeyParameters>()
             );
             Assert.That(
                 returnedKey.GetPrivateKeyParameters(),
-                Is.InstanceOf<Ed25519PrivateKeyParameter>()
+                Is.InstanceOf<Ed25519PrivateKeyParameters>()
             );
             Assert.That(returnedKey.Size, Is.EqualTo(ed25519Key.Size));
             Assert.That(returnedKey.Comment, Is.EqualTo(ed25519Key.Comment));
@@ -484,13 +484,14 @@ namespace dlech.SshAgentLibTests
         [Test]
         public void TestAnswerSSH2_AGENTC_ADD_IDENTITY_Ed25519Cert()
         {
-            var publicKeyParams = (Ed25519PublicKeyParameter)ed25519Key.GetPublicKeyParameters();
-            var privateKeyParams = (Ed25519PrivateKeyParameter)ed25519Key.GetPrivateKeyParameters();
+            var publicKeyParams = (Ed25519PublicKeyParameters)ed25519Key.GetPublicKeyParameters();
+            var privateKeyParams =
+                (Ed25519PrivateKeyParameters)ed25519Key.GetPrivateKeyParameters();
 
             var certBuilder = new BlobBuilder();
             certBuilder.AddStringBlob("ssh-ed25519-cert-v01@openssh.com");
             certBuilder.AddBlob(new byte[32]); // nonce
-            certBuilder.AddBlob(publicKeyParams.Key); // public key
+            certBuilder.AddBlob(publicKeyParams.GetEncoded()); // public key
             certBuilder.AddUInt64(0); // serial
             certBuilder.AddUInt32((uint)Ssh2CertType.User); // type
             certBuilder.AddStringBlob("ed25519-test-cert"); // key id
@@ -506,8 +507,8 @@ namespace dlech.SshAgentLibTests
             var builder = new BlobBuilder();
             builder.AddStringBlob("ssh-ed25519-cert-v01@openssh.com");
             builder.AddBlob(certBuilder.GetBlob());
-            builder.AddBlob(publicKeyParams.Key);
-            builder.AddBlob(privateKeyParams.Signature);
+            builder.AddBlob(publicKeyParams.GetEncoded());
+            builder.AddBlob(privateKeyParams.GetEncoded());
             builder.AddStringBlob(ed25519Key.Comment);
             builder.InsertHeader(Agent.Message.SSH2_AGENTC_ADD_IDENTITY);
 
@@ -522,11 +523,11 @@ namespace dlech.SshAgentLibTests
             var returnedKey = agent.GetAllKeys().First();
             Assert.That(
                 returnedKey.GetPublicKeyParameters(),
-                Is.InstanceOf<Ed25519PublicKeyParameter>()
+                Is.InstanceOf<Ed25519PublicKeyParameters>()
             );
             Assert.That(
                 returnedKey.GetPrivateKeyParameters(),
-                Is.InstanceOf<Ed25519PrivateKeyParameter>()
+                Is.InstanceOf<Ed25519PrivateKeyParameters>()
             );
             Assert.That(returnedKey.Size, Is.EqualTo(ed25519Key.Size));
             Assert.That(returnedKey.Comment, Is.EqualTo(ed25519Key.Comment));

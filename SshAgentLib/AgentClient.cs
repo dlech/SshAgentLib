@@ -28,7 +28,6 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Security.Cryptography;
 using System.Text;
-using dlech.SshAgentLib.Crypto;
 using Org.BouncyCastle.Crypto.Encodings;
 using Org.BouncyCastle.Crypto.Engines;
 using Org.BouncyCastle.Crypto.Parameters;
@@ -427,11 +426,11 @@ namespace dlech.SshAgentLib
                             break;
                         case PublicKeyAlgorithm.SshEd25519:
                             var ed25519PublicKeyParameters =
-                                key.GetPublicKeyParameters() as Ed25519PublicKeyParameter;
+                                key.GetPublicKeyParameters() as Ed25519PublicKeyParameters;
                             var ed25519PrivateKeyParameters =
-                                key.GetPrivateKeyParameters() as Ed25519PrivateKeyParameter;
-                            builder.AddBlob(ed25519PublicKeyParameters.Key);
-                            builder.AddBlob(ed25519PrivateKeyParameters.Signature);
+                                key.GetPrivateKeyParameters() as Ed25519PrivateKeyParameters;
+                            builder.AddBlob(ed25519PublicKeyParameters.GetEncoded());
+                            builder.AddBlob(ed25519PrivateKeyParameters.GetEncoded());
                             break;
                         default:
                             throw new Exception("Unsupported algorithm");

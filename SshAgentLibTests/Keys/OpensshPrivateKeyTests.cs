@@ -3,7 +3,6 @@
 
 using System;
 using System.Security;
-using dlech.SshAgentLib.Crypto;
 using NUnit.Framework;
 using Org.BouncyCastle.Asn1.X9;
 using Org.BouncyCastle.Crypto.Parameters;
@@ -249,12 +248,12 @@ namespace SshAgentLibTests.Keys
             Assert.That(() => file.ReadByte(), Throws.TypeOf<ObjectDisposedException>());
             Assert.That(() => key.PrivateKey, Throws.InvalidOperationException);
 
-            Assert.That(key.PublicKey.Parameter, Is.TypeOf<Ed25519PublicKeyParameter>());
+            Assert.That(key.PublicKey.Parameter, Is.TypeOf<Ed25519PublicKeyParameters>());
 
             key.Decrypt(null);
 
             Assert.That(key.PrivateKey.IsPrivate);
-            Assert.That(key.PrivateKey, Is.TypeOf<Ed25519PrivateKeyParameter>());
+            Assert.That(key.PrivateKey, Is.TypeOf<Ed25519PrivateKeyParameters>());
         }
 
         [Test]
@@ -268,7 +267,7 @@ namespace SshAgentLibTests.Keys
             Assert.That(() => file.ReadByte(), Throws.TypeOf<ObjectDisposedException>());
             Assert.That(() => key.PrivateKey, Throws.InvalidOperationException);
 
-            Assert.That(key.PublicKey.Parameter, Is.TypeOf<Ed25519PublicKeyParameter>());
+            Assert.That(key.PublicKey.Parameter, Is.TypeOf<Ed25519PublicKeyParameters>());
 
             var passphrase = new SecureString();
 
@@ -280,7 +279,7 @@ namespace SshAgentLibTests.Keys
             key.Decrypt((_) => passphrase);
 
             Assert.That(key.PrivateKey.IsPrivate);
-            Assert.That(key.PrivateKey, Is.TypeOf<Ed25519PrivateKeyParameter>());
+            Assert.That(key.PrivateKey, Is.TypeOf<Ed25519PrivateKeyParameters>());
         }
 
         [Test]
@@ -292,12 +291,12 @@ namespace SshAgentLibTests.Keys
             Assert.That(() => file.ReadByte(), Throws.TypeOf<ObjectDisposedException>());
             Assert.That(() => key.PrivateKey, Throws.InvalidOperationException);
 
-            Assert.That(key.PublicKey.Parameter, Is.TypeOf<Ed25519PublicKeyParameter>());
+            Assert.That(key.PublicKey.Parameter, Is.TypeOf<Ed25519PublicKeyParameters>());
 
             key.Decrypt(null);
 
             Assert.That(key.PrivateKey.IsPrivate);
-            Assert.That(key.PrivateKey, Is.TypeOf<Ed25519PrivateKeyParameter>());
+            Assert.That(key.PrivateKey, Is.TypeOf<Ed25519PrivateKeyParameters>());
         }
     }
 }

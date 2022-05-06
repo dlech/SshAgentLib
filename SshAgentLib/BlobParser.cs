@@ -6,8 +6,8 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Text;
-using dlech.SshAgentLib.Crypto;
 using Org.BouncyCastle.Asn1.Nist;
 using Org.BouncyCastle.Crypto;
 using Org.BouncyCastle.Crypto.Parameters;
@@ -309,7 +309,7 @@ namespace dlech.SshAgentLib
                 case PublicKeyAlgorithm.SshEd25519:
                 {
                     var publicKey = ReadBlob();
-                    return new Ed25519PublicKeyParameter(publicKey);
+                    return new Ed25519PublicKeyParameters(publicKey);
                 }
 
                 case PublicKeyAlgorithm.SshEd25519CertV1:
@@ -323,7 +323,7 @@ namespace dlech.SshAgentLib
                         certParser.ReadSsh2PublicKeyData(out cert);
                         var publicKey = ReadBlob();
 
-                        return new Ed25519PublicKeyParameter(publicKey);
+                        return new Ed25519PublicKeyParameters(publicKey);
                     }
                     else
                     {
@@ -333,7 +333,7 @@ namespace dlech.SshAgentLib
 
                         cert = ReadCertificate(certBuilder);
 
-                        return new Ed25519PublicKeyParameter(publicKey);
+                        return new Ed25519PublicKeyParameters(publicKey);
                     }
                 }
 
@@ -389,14 +389,10 @@ namespace dlech.SshAgentLib
                 return dsaPrivateKeyParams;
             }
 
-            if (publicKeyParameter is Ed25519PublicKeyParameter ed25596PublicKey)
+            if (publicKeyParameter is Ed25519PublicKeyParameters)
             {
                 var privBlob = ReadBlob();
-                var privSig = new byte[64];
-                // OpenSSH's "private key" is actually the private key with the public key tacked on ...
-                Array.Copy(privBlob, 0, privSig, 0, 32);
-                Array.Copy(ed25596PublicKey.Key, 0, privSig, 32, 32);
-                var ed25596PrivateKey = new Ed25519PrivateKeyParameter(privSig);
+                var ed25596PrivateKey = new Ed25519PrivateKeyParameters(privBlob);
 
                 return ed25596PrivateKey;
             }
@@ -474,10 +470,14 @@ namespace dlech.SshAgentLib
                 return ecPrivateKeyParams;
             }
 
-            if (publicKeyParameter is Ed25519PublicKeyParameter)
+            if (publicKeyParameter is Ed25519PublicKeyParameters)
             {
                 var ed25519Signature = ReadBlob();
-                var ed25519PrivateKey = new Ed25519PrivateKeyParameter(ed25519Signature);
+                // the first 32 bytes are the private key, the last 32 bytes
+                // are the public key again and so are ignored
+                var ed25519PrivateKey = new Ed25519PrivateKeyParameters(
+                    ed25519Signature.Take(32).ToArray()
+                );
                 return ed25519PrivateKey;
             }
 

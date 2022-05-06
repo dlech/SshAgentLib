@@ -32,7 +32,6 @@ using System.Runtime.InteropServices;
 using System.Security;
 using System.Security.Cryptography;
 using System.Text;
-using dlech.SshAgentLib.Crypto;
 using Konscious.Security.Cryptography;
 using Org.BouncyCastle.Crypto;
 using Org.BouncyCastle.Crypto.Parameters;
@@ -899,14 +898,10 @@ namespace dlech.SshAgentLib
 
                     return new AsymmetricCipherKeyPair(dsaPublicKeyParams, dsaPrivateKeyParams);
                 case PublicKeyAlgorithm.SshEd25519:
-                    var ed25596PublicKey = (Ed25519PublicKeyParameter)publicKey;
+                    var ed25596PublicKey = (Ed25519PublicKeyParameters)publicKey;
 
                     var privBlob = parser.ReadBlob();
-                    var privSig = new byte[64];
-                    // OpenSSH's "private key" is actually the private key with the public key tacked on ...
-                    Array.Copy(privBlob, 0, privSig, 0, 32);
-                    Array.Copy(ed25596PublicKey.Key, 0, privSig, 32, 32);
-                    var ed25596PrivateKey = new Ed25519PrivateKeyParameter(privSig);
+                    var ed25596PrivateKey = new Ed25519PrivateKeyParameters(privBlob);
 
                     return new AsymmetricCipherKeyPair(ed25596PublicKey, ed25596PrivateKey);
                 case PublicKeyAlgorithm.EcdsaSha2Nistp256:

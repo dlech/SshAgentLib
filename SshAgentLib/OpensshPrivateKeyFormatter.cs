@@ -25,12 +25,9 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Runtime.InteropServices;
-using System.Security;
 using System.Security.Cryptography;
 using System.Text;
 using dlech.SshAgentLib.Crypto;
-using Org.BouncyCastle.Asn1.X509;
-using Org.BouncyCastle.Crypto;
 using Org.BouncyCastle.Crypto.Parameters;
 using Org.BouncyCastle.Security;
 
@@ -74,8 +71,8 @@ namespace dlech.SshAgentLib
             {
                 throw new ArgumentException("Expected ISshKey", "obj");
             }
-            var publicKeyParams = sshKey.GetPublicKeyParameters() as Ed25519PublicKeyParameter;
-            var privateKeyParams = sshKey.GetPrivateKeyParameters() as Ed25519PrivateKeyParameter;
+            var publicKeyParams = sshKey.GetPublicKeyParameters() as Ed25519PublicKeyParameters;
+            var privateKeyParams = sshKey.GetPrivateKeyParameters() as Ed25519PrivateKeyParameters;
 
             /* writing info headers */
             builder.AddBytes(Encoding.ASCII.GetBytes(AUTH_MAGIC));
@@ -87,7 +84,7 @@ namespace dlech.SshAgentLib
             builder.AddInt(1); // number of keys N
             var publicKeyBuilder = new BlobBuilder();
             publicKeyBuilder.AddStringBlob(PublicKeyAlgorithm.SshEd25519.GetIdentifier());
-            publicKeyBuilder.AddBlob(publicKeyParams.Key);
+            publicKeyBuilder.AddBlob(publicKeyParams.GetEncoded());
             builder.AddBlob(publicKeyBuilder.GetBlob());
 
             /* writing private key */
@@ -98,8 +95,8 @@ namespace dlech.SshAgentLib
             privateKeyBuilder.AddInt(checkint);
 
             privateKeyBuilder.AddStringBlob(PublicKeyAlgorithm.SshEd25519.GetIdentifier());
-            privateKeyBuilder.AddBlob(publicKeyParams.Key);
-            privateKeyBuilder.AddBlob(privateKeyParams.Signature);
+            privateKeyBuilder.AddBlob(publicKeyParams.GetEncoded());
+            privateKeyBuilder.AddBlob(privateKeyParams.GetEncoded());
             privateKeyBuilder.AddStringBlob(sshKey.Comment);
 
             if (ciphername == KDFNAME_NONE)

@@ -29,7 +29,6 @@ using System.Reflection;
 using System.Security;
 using System.Text;
 using dlech.SshAgentLib;
-using dlech.SshAgentLib.Crypto;
 using NUnit.Framework;
 using Org.BouncyCastle.Crypto.Parameters;
 
@@ -102,29 +101,39 @@ namespace dlech.SshAgentLibTests
                     return result;
                 }
             };
+
             string[] keys =
             {
                 "../../../Resources/ssh2-ed25519.ppk",
                 "../../../Resources/ssh2-ed25519-no-passphrase.ppk"
             };
-            string[] sig =
+            string[] pub =
             {
-                "01:38:67:b5:b9:cc:a6:a9:9c:cd:38:76:0d:81:66:45:cf:ed:a3:ec:55:ad:"
-                    + "40:36:01:ca:13:77:3c:41:4e:8e:49:3d:d6:e5:d9:9c:b1:1f:24:de:a9:4c:"
-                    + "a5:bd:3c:08:0a:10:f5:25:c0:ef:bd:4b:4f:17:e2:54:fe:13:ac:74",
-                "01:08:c6:d4:1b:3e:51:9c:39:3f:7c:25:a4:fb:13:0f:3c:74:69:67:df:e3:"
-                    + "bf:e4:06:fc:4a:1b:da:e3:0b:1f:5d:df:37:6a:d1:1d:b3:31:39:60:20:61:"
-                    + "b7:ac:bd:a1:e4:39:fc:b1:b0:a3:4c:9c:8c:02:f2:e1:2d:1c:9e:c8"
+                "49:3d:d6:e5:d9:9c:b1:1f:24:de:a9:4c:a5:bd:3c:08:0a:10:f5:25:c0:ef:bd:4b:4f:17:e2:54:fe:13:ac:74",
+                "5d:df:37:6a:d1:1d:b3:31:39:60:20:61:b7:ac:bd:a1:e4:39:fc:b1:b0:a3:4c:9c:8c:02:f2:e1:2d:1c:9e:c8"
             };
+            string[] priv =
+            {
+                "01:38:67:b5:b9:cc:a6:a9:9c:cd:38:76:0d:81:66:45:cf:ed:a3:ec:55:ad:40:36:01:ca:13:77:3c:41:4e:8e",
+                "01:08:c6:d4:1b:3e:51:9c:39:3f:7c:25:a4:fb:13:0f:3c:74:69:67:df:e3:bf:e4:06:fc:4a:1b:da:e3:0b:1f"
+            };
+
             for (var i = 0; i < keys.Length; ++i)
             {
                 var path = Path.Combine(DllDirectory, keys[i]);
-                target = (ISshKey)formatter.DeserializeFile(path);
+                target = formatter.DeserializeFile(path);
                 Assert.That(
-                    (
-                        (Ed25519PrivateKeyParameter)target.GetPrivateKeyParameters()
-                    ).Signature.ToHexString(),
-                    Is.EqualTo(sig[i]),
+                    ((Ed25519PublicKeyParameters)target.GetPublicKeyParameters())
+                        .GetEncoded()
+                        .ToHexString(),
+                    Is.EqualTo(pub[i]),
+                    keys[i]
+                );
+                Assert.That(
+                    ((Ed25519PrivateKeyParameters)target.GetPrivateKeyParameters())
+                        .GetEncoded()
+                        .ToHexString(),
+                    Is.EqualTo(priv[i]),
                     keys[i]
                 );
             }
@@ -499,7 +508,7 @@ namespace dlech.SshAgentLibTests
                 "PageantSharp ssh2-ed25519, with passphrase",
                 "PageantSharp ssh2-ed25519, no passphrase"
             };
-            int[] sizes = { 256, 256, 384, 384, 521, 521, 256, 256 };
+            int[] sizes = { 256, 256, 384, 384, 521, 521, 255, 255 };
             formatter.GetPassphraseCallbackMethod = getPassphrase;
             formatter.WarnOldFileFormatCallbackMethod = warnOldFileNotExpected;
             for (var i = 0; i < keys.Length; ++i)

@@ -28,13 +28,12 @@ using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
 using System.Security.Cryptography;
-using dlech.SshAgentLib.Crypto;
 using Org.BouncyCastle.Asn1;
 using Org.BouncyCastle.Asn1.Pkcs;
 using Org.BouncyCastle.Asn1.X9;
 using Org.BouncyCastle.Crypto;
 using Org.BouncyCastle.Crypto.Parameters;
-using Org.BouncyCastle.Math;
+using Org.BouncyCastle.Crypto.Signers;
 using Org.BouncyCastle.Security;
 using SignRequestFlags = dlech.SshAgentLib.Agent.SignRequestFlags;
 
@@ -201,10 +200,10 @@ namespace dlech.SshAgentLib
                 builder.AddStringBlob(algorithm.GetCurveDomainIdentifier());
                 builder.AddBlob(ecdsaParameters.Q.GetEncoded());
             }
-            else if (parameters is Ed25519PublicKeyParameter ed15519Parameters)
+            else if (parameters is Ed25519PublicKeyParameters ed15519Parameters)
             {
                 builder.AddStringBlob(PublicKeyAlgorithm.SshEd25519.GetIdentifier());
-                builder.AddBlob(ed15519Parameters.Key);
+                builder.AddBlob(ed15519Parameters.GetEncoded());
             }
             else
             {
@@ -317,7 +316,7 @@ namespace dlech.SshAgentLib
                 }
                 return formatedSignature.GetBlob();
             }
-            else if (publicKey is RsaKeyParameters || publicKey is Ed25519PublicKeyParameter)
+            else if (publicKey is RsaKeyParameters || publicKey is Ed25519PublicKeyParameters)
             {
                 return signature;
             }
@@ -375,12 +374,12 @@ namespace dlech.SshAgentLib
                     return SignerUtilities.GetSigner(X9ObjectIdentifiers.ECDsaWithSha512);
                 }
             }
-            else if (publicKey is Ed25519PublicKeyParameter)
+            else if (publicKey is Ed25519PublicKeyParameters)
             {
                 return new Ed25519Signer();
             }
 
-            throw new ArgumentException("Unsupported algorithm", "key");
+            throw new ArgumentException("Unsupported algorithm", nameof(key));
         }
     }
 }

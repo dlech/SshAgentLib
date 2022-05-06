@@ -7,7 +7,6 @@ using System.IO;
 using System.Security.Cryptography;
 using System.Text;
 using dlech.SshAgentLib;
-using dlech.SshAgentLib.Crypto;
 using Org.BouncyCastle.Asn1.Nist;
 using Org.BouncyCastle.Crypto;
 using Org.BouncyCastle.Crypto.Parameters;
@@ -222,7 +221,7 @@ namespace SshAgentLib.Keys
                 throw new ArgumentException("invalid ECDSA curve", nameof(parameters));
             }
 
-            if (parameters is Ed25519PublicKeyParameter)
+            if (parameters is Ed25519PublicKeyParameters)
             {
                 return "ssh-ed25519";
             }

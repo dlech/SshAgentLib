@@ -26,9 +26,7 @@
 using System;
 using System.Text;
 
-using Chaos.NaCl;
 using dlech.SshAgentLib;
-using dlech.SshAgentLib.Crypto;
 using Org.BouncyCastle.Asn1.Sec;
 using Org.BouncyCastle.Crypto;
 using Org.BouncyCastle.Crypto.Generators;
@@ -149,16 +147,8 @@ namespace dlech.SshAgentLibTests
 
                 case PublicKeyAlgorithm.SshEd25519:
                 case PublicKeyAlgorithm.SshEd25519CertV1:
-                    var privateKeySeed = secureRandom.GenerateSeed(
-                        Ed25519.PrivateKeySeedSizeInBytes
-                    );
-                    Ed25519.KeyPairFromSeed(
-                        out var publicKeyBytes,
-                        out var privateKeyBytes,
-                        privateKeySeed
-                    );
-                    var publicKey = new Ed25519PublicKeyParameter(publicKeyBytes);
-                    var privateKey = new Ed25519PrivateKeyParameter(privateKeyBytes);
+                    var privateKey = new Ed25519PrivateKeyParameters(secureRandom);
+                    var publicKey = privateKey.GeneratePublicKey();
                     var ed25519Key = new SshKey(SshVersion.SSH2, publicKey, privateKey, comment);
                     return ed25519Key;
 

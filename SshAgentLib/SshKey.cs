@@ -27,8 +27,6 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
-using Chaos.NaCl;
-using dlech.SshAgentLib.Crypto;
 using Org.BouncyCastle.Crypto;
 using Org.BouncyCastle.Crypto.Parameters;
 
@@ -118,7 +116,7 @@ namespace dlech.SshAgentLib
                             return PublicKeyAlgorithm.EcdsaSha2Nistp521;
                     }
                 }
-                else if (publicKeyParameter is Ed25519PublicKeyParameter)
+                else if (publicKeyParameter is Ed25519PublicKeyParameters)
                 {
                     if (Certificate != null)
                     {
@@ -153,9 +151,9 @@ namespace dlech.SshAgentLib
                     var ecdsaParameters = (ECPublicKeyParameters)publicKeyParameter;
                     return ecdsaParameters.Q.Curve.FieldSize;
                 }
-                else if (publicKeyParameter is Ed25519PublicKeyParameter)
+                else if (publicKeyParameter is Ed25519PublicKeyParameters)
                 {
-                    return Ed25519.PublicKeySizeInBytes * 8;
+                    return 255;
                 }
                 // TODO need a better exception here
                 throw new Exception("Not Defined");
