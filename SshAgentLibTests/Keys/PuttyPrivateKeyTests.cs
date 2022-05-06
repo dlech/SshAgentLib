@@ -191,24 +191,23 @@ namespace SshAgentLibTests.Keys
             Assert.That(privKey.D, Is.EqualTo(new BigInteger(d)));
         }
 
-        [TestCase("ed25519", "v2", "none", null)]
-        [TestCase("ed25519", "v2", "aes256cbc", null)]
-        [TestCase("ed25519", "v3", "none", "none")]
-        [TestCase("ed25519", "v3", "aes256cbc", "argon2id")]
+        [TestCase("v2", "none", null)]
+        [TestCase("v2", "aes256cbc", null)]
+        [TestCase("v3", "none", "none")]
+        [TestCase("v3", "aes256cbc", "argon2id")]
         public void TestThatReadingEd25519KeyWorks(
-            string curve,
             string version,
             string encryption,
             string keyDerivation
         )
         {
-            var pub = ReadStringResourceFile("PuttyTestData", $"eddsa-{curve}.param.pub");
-            var priv = ReadStringResourceFile("PuttyTestData", $"eddsa-{curve}.param.priv");
+            var pub = ReadStringResourceFile("PuttyTestData", $"eddsa-ed25519.param.pub");
+            var priv = ReadStringResourceFile("PuttyTestData", $"eddsa-ed25519.param.priv");
 
             var kdf = keyDerivation == null ? "" : $"-{keyDerivation}";
             var file = OpenResourceFile(
                 "PuttyTestData",
-                $"eddsa-{curve}-{version}-{encryption}{kdf}.ppk"
+                $"eddsa-ed25519-{version}-{encryption}{kdf}.ppk"
             );
             var key = SshPrivateKey.Read(file);
 
