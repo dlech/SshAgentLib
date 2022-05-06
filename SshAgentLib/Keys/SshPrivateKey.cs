@@ -79,6 +79,11 @@ namespace SshAgentLib.Keys
                 // Rewind so next readers start at the beginning.
                 reader.BaseStream.Seek(0, SeekOrigin.Begin);
 
+                if (PuttyPrivateKey.FirstLineMatches(firstLine))
+                {
+                    return PuttyPrivateKey.Read(reader.BaseStream);
+                }
+
                 if (OpensshPrivateKey.FirstLineMatches(firstLine))
                 {
                     return OpensshPrivateKey.Read(reader.BaseStream);

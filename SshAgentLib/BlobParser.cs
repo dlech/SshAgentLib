@@ -344,6 +344,78 @@ namespace dlech.SshAgentLib
         }
 
         /// <summary>
+        /// reads private key portion of PuTTY Private Key formatted key blob
+        /// </summary>
+        /// <returns>the private key</returns>
+        /// This is very similar to, but not quite the same as the OpenSSH format.
+        /// </remarks>
+        public AsymmetricKeyParameter ReadPuttyPrivateKeyData(
+            AsymmetricKeyParameter publicKeyParameter
+        )
+        {
+            if (publicKeyParameter is RsaKeyParameters rsaPublicKeyParams)
+            {
+                var d = new BigInteger(1, ReadBlob());
+                var p = new BigInteger(1, ReadBlob());
+                var q = new BigInteger(1, ReadBlob());
+                var inverseQ = new BigInteger(1, ReadBlob());
+
+                /* compute missing parameters */
+                var dp = d.Remainder(p.Subtract(BigInteger.One));
+                var dq = d.Remainder(q.Subtract(BigInteger.One));
+
+                var rsaPrivateKeyParams = new RsaPrivateCrtKeyParameters(
+                    rsaPublicKeyParams.Modulus,
+                    rsaPublicKeyParams.Exponent,
+                    d,
+                    p,
+                    q,
+                    dp,
+                    dq,
+                    inverseQ
+                );
+
+                return rsaPrivateKeyParams;
+            }
+
+            if (publicKeyParameter is DsaPublicKeyParameters dsaPublicKeyParams)
+            {
+                var x = new BigInteger(1, ReadBlob());
+                var dsaPrivateKeyParams = new DsaPrivateKeyParameters(
+                    x,
+                    dsaPublicKeyParams.Parameters
+                );
+
+                return dsaPrivateKeyParams;
+            }
+
+            if (publicKeyParameter is Ed25519PublicKeyParameter ed25596PublicKey)
+            {
+                var privBlob = ReadBlob();
+                var privSig = new byte[64];
+                // OpenSSH's "private key" is actually the private key with the public key tacked on ...
+                Array.Copy(privBlob, 0, privSig, 0, 32);
+                Array.Copy(ed25596PublicKey.Key, 0, privSig, 32, 32);
+                var ed25596PrivateKey = new Ed25519PrivateKeyParameter(privSig);
+
+                return ed25596PrivateKey;
+            }
+
+            if (publicKeyParameter is ECPublicKeyParameters ecPublicKeyParams)
+            {
+                var ecdsaPrivate = new BigInteger(1, ReadBlob());
+                var ecPrivateKeyParams = new ECPrivateKeyParameters(
+                    ecdsaPrivate,
+                    ecPublicKeyParams.Parameters
+                );
+
+                return ecPrivateKeyParams;
+            }
+
+            throw new NotSupportedException("unsupported encryption algorithm");
+        }
+
+        /// <summary>
         /// reads private key portion of OpenSSH formatted key blob from stream and
         /// creates a key pair
         /// </summary>
