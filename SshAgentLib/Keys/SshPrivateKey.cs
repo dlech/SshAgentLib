@@ -37,13 +37,10 @@ namespace SshAgentLib.Keys
             }
         }
 
-        public string Comment { get; }
-
-        public SshPrivateKey(SshPublicKey publicKey, DecryptFunc decrypt, string comment = null)
+        public SshPrivateKey(SshPublicKey publicKey, DecryptFunc decrypt)
         {
             PublicKey = publicKey ?? throw new ArgumentNullException(nameof(publicKey));
             this.decrypt = decrypt ?? throw new ArgumentNullException(nameof(decrypt));
-            Comment = comment;
         }
 
         public void Decrypt(GetPassphraseFunc getPassphrase)
