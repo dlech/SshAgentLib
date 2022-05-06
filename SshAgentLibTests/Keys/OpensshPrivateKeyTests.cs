@@ -46,6 +46,11 @@ namespace SshAgentLibTests.Keys
             Assert.That(privKey.Modulus, Is.EqualTo(new BigInteger(n, 16)));
             Assert.That(privKey.P, Is.EqualTo(new BigInteger(p, 16)));
             Assert.That(privKey.Q, Is.EqualTo(new BigInteger(q, 16)));
+
+            key.Encrypt();
+            Assert.That(() => key.PrivateKey, Throws.InvalidOperationException);
+            key.Decrypt(null);
+            Assert.That(key.PrivateKey.IsPrivate);
         }
 
         [Test]
@@ -86,6 +91,11 @@ namespace SshAgentLibTests.Keys
             Assert.That(privKey.Modulus, Is.EqualTo(new BigInteger(n, 16)));
             Assert.That(privKey.P, Is.EqualTo(new BigInteger(p, 16)));
             Assert.That(privKey.Q, Is.EqualTo(new BigInteger(q, 16)));
+
+            key.Encrypt();
+            Assert.That(() => key.PrivateKey, Throws.InvalidOperationException);
+            key.Decrypt((_) => passphrase);
+            Assert.That(key.PrivateKey.IsPrivate);
         }
 
         [Test]

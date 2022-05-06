@@ -158,8 +158,13 @@ namespace SshAgentLib.Keys
                 var iv = new byte[16];
                 Array.Copy(keyAndIV, key.Length, iv, 0, iv.Length);
 
+                byte[] decryptedPrivateKeyBlob;
+
                 switch (cipherName)
                 {
+                    case CipherName.None:
+                        decryptedPrivateKeyBlob = privateKeyBlob;
+                        break;
                     case CipherName.Aes256Cbc:
                         var aes = Aes.Create();
                         aes.KeySize = 256;
@@ -180,7 +185,10 @@ namespace SshAgentLib.Keys
 
                         using (var decryptor = aes.CreateDecryptor())
                         {
-                            privateKeyBlob = Util.GenericTransform(decryptor, privateKeyBlob);
+                            decryptedPrivateKeyBlob = Util.GenericTransform(
+                                decryptor,
+                                privateKeyBlob
+                            );
                         }
 
                         aes.Clear();
@@ -188,11 +196,13 @@ namespace SshAgentLib.Keys
                     case CipherName.Aes256Ctr:
                         var ctrCipher = CipherUtilities.GetCipher("AES/CTR/NoPadding");
                         ctrCipher.Init(false, new ParametersWithIV(new KeyParameter(key), iv));
-                        privateKeyBlob = ctrCipher.DoFinal(privateKeyBlob);
+                        decryptedPrivateKeyBlob = ctrCipher.DoFinal(privateKeyBlob);
                         break;
+                    default:
+                        throw new NotSupportedException("unsupported encryption algorithm");
                 }
 
-                var privateKeyParser = new BlobParser(privateKeyBlob);
+                var privateKeyParser = new BlobParser(decryptedPrivateKeyBlob);
 
                 var checkint1 = privateKeyParser.ReadUInt32();
                 var checkint2 = privateKeyParser.ReadUInt32();
