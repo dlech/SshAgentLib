@@ -193,7 +193,7 @@ namespace SshAgentLib.Keys
         /// <c>true</c> if this key matches, otherwise <c>false</c>.
         /// </returns>
         /// <exception cref="ArgumentNullException"></exception>
-        internal bool Matches(byte[] blob)
+        public bool Matches(byte[] blob)
         {
             if (blob is null)
             {
