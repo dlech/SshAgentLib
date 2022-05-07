@@ -216,11 +216,11 @@ namespace dlech.SshAgentLib
                     var rounds = kdfOptionsParser.ReadUInt32();
 
                     var passphrase = GetPassphraseCallbackMethod(null);
-                    var passphraseChars = new char[passphrase.Length];
+                    var passphraseChars = new byte[passphrase.Length];
                     var passphrasePtr = Marshal.SecureStringToGlobalAllocUnicode(passphrase);
                     for (var i = 0; i < passphrase.Length; i++)
                     {
-                        passphraseChars[i] = (char)Marshal.ReadInt16(passphrasePtr, i * 2);
+                        passphraseChars[i] = (byte)Marshal.ReadInt16(passphrasePtr, i * 2);
                     }
                     Marshal.ZeroFreeGlobalAllocUnicode(passphrasePtr);
                     BCrypt.HashUsingOpensshBCryptPbkdf(

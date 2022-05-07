@@ -2,7 +2,7 @@
 // Copyright (c) 2022 David Lechner <david@lechnology.com>
 
 using System;
-using System.Security;
+using System.Text;
 using dlech.SshAgentLib;
 using NUnit.Framework;
 using Org.BouncyCastle.Asn1.Nist;
@@ -47,15 +47,7 @@ namespace SshAgentLibTests.Keys
             if (encryption != "none")
             {
                 var pw = ReadStringResourceFile("PuttyTestData", "pass");
-
-                var passphrase = new SecureString();
-
-                foreach (var c in pw)
-                {
-                    passphrase.AppendChar(c);
-                }
-
-                getPassphrase = (_) => passphrase;
+                getPassphrase = () => Encoding.UTF8.GetBytes(pw);
             }
 
             var privParam = key.Decrypt(getPassphrase);
@@ -100,15 +92,7 @@ namespace SshAgentLibTests.Keys
             if (encryption != "none")
             {
                 var pw = ReadStringResourceFile("PuttyTestData", "pass");
-
-                var passphrase = new SecureString();
-
-                foreach (var c in pw)
-                {
-                    passphrase.AppendChar(c);
-                }
-
-                getPassphrase = (_) => passphrase;
+                getPassphrase = () => Encoding.UTF8.GetBytes(pw);
             }
 
             var privParam = key.Decrypt(getPassphrase);
@@ -167,15 +151,7 @@ namespace SshAgentLibTests.Keys
             if (encryption != "none")
             {
                 var pw = ReadStringResourceFile("PuttyTestData", "pass");
-
-                var passphrase = new SecureString();
-
-                foreach (var c in pw)
-                {
-                    passphrase.AppendChar(c);
-                }
-
-                getPassphrase = (_) => passphrase;
+                getPassphrase = () => Encoding.UTF8.GetBytes(pw);
             }
 
             var privParam = key.Decrypt(getPassphrase);
@@ -221,15 +197,7 @@ namespace SshAgentLibTests.Keys
             if (encryption != "none")
             {
                 var pw = ReadStringResourceFile("PuttyTestData", "pass");
-
-                var passphrase = new SecureString();
-
-                foreach (var c in pw)
-                {
-                    passphrase.AppendChar(c);
-                }
-
-                getPassphrase = (_) => passphrase;
+                getPassphrase = () => Encoding.UTF8.GetBytes(pw);
             }
 
             var privParam = key.Decrypt(getPassphrase);
@@ -275,15 +243,7 @@ namespace SshAgentLibTests.Keys
             if (encryption != "none")
             {
                 var pw = ReadStringResourceFile("PuttyTestData", "pass");
-
-                var passphrase = new SecureString();
-
-                foreach (var c in pw)
-                {
-                    passphrase.AppendChar(c);
-                }
-
-                getPassphrase = (_) => passphrase;
+                getPassphrase = () => Encoding.UTF8.GetBytes(pw);
             }
 
             var privParam = key.Decrypt(getPassphrase);

@@ -2,7 +2,7 @@
 // Copyright (c) 2022 David Lechner <david@lechnology.com>
 
 using System;
-using System.Security;
+using System.Text;
 using NUnit.Framework;
 using Org.BouncyCastle.Asn1.X9;
 using Org.BouncyCastle.Crypto.Parameters;
@@ -69,14 +69,7 @@ namespace SshAgentLibTests.Keys
             var pubKey = (RsaKeyParameters)key.PublicKey.Parameter;
             Assert.That(pubKey.Modulus, Is.EqualTo(new BigInteger(n, 16)));
 
-            var passphrase = new SecureString();
-
-            foreach (var c in pw)
-            {
-                passphrase.AppendChar(c);
-            }
-
-            var privParam = key.Decrypt((_) => passphrase);
+            var privParam = key.Decrypt(() => Encoding.UTF8.GetBytes(pw));
 
             Assert.That(privParam.IsPrivate);
             Assert.That(privParam, Is.TypeOf<RsaPrivateCrtKeyParameters>());
@@ -88,7 +81,7 @@ namespace SshAgentLibTests.Keys
             Assert.That(privKey.Q, Is.EqualTo(new BigInteger(q, 16)));
 
             // ensure that decrypting a second time works
-            privParam = key.Decrypt((_) => passphrase);
+            privParam = key.Decrypt(() => Encoding.UTF8.GetBytes(pw));
             Assert.That(privParam.IsPrivate);
         }
 
@@ -138,14 +131,7 @@ namespace SshAgentLibTests.Keys
             var pubKey = (DsaPublicKeyParameters)key.PublicKey.Parameter;
             Assert.That(pubKey.Y, Is.EqualTo(new BigInteger(pub, 16)));
 
-            var passphrase = new SecureString();
-
-            foreach (var c in pw)
-            {
-                passphrase.AppendChar(c);
-            }
-
-            var privParam = key.Decrypt((_) => passphrase);
+            var privParam = key.Decrypt(() => Encoding.UTF8.GetBytes(pw));
 
             Assert.That(privParam.IsPrivate);
             Assert.That(privParam, Is.TypeOf<DsaPrivateKeyParameters>());
@@ -213,14 +199,7 @@ namespace SshAgentLibTests.Keys
             );
             Assert.That(pubKey.Q, Is.EqualTo(pubKey.Parameters.Curve.DecodePoint(Hex.Decode(pub))));
 
-            var passphrase = new SecureString();
-
-            foreach (var c in pw)
-            {
-                passphrase.AppendChar(c);
-            }
-
-            var privParam = key.Decrypt((_) => passphrase);
+            var privParam = key.Decrypt(() => Encoding.UTF8.GetBytes(pw));
 
             Assert.That(privParam.IsPrivate);
             Assert.That(privParam, Is.TypeOf<ECPrivateKeyParameters>());
@@ -258,14 +237,7 @@ namespace SshAgentLibTests.Keys
 
             Assert.That(key.PublicKey.Parameter, Is.TypeOf<Ed25519PublicKeyParameters>());
 
-            var passphrase = new SecureString();
-
-            foreach (var c in pw)
-            {
-                passphrase.AppendChar(c);
-            }
-
-            var privParam = key.Decrypt((_) => passphrase);
+            var privParam = key.Decrypt(() => Encoding.UTF8.GetBytes(pw));
 
             Assert.That(privParam.IsPrivate);
             Assert.That(privParam, Is.TypeOf<Ed25519PrivateKeyParameters>());

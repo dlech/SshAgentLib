@@ -3,7 +3,6 @@
 
 using System;
 using System.IO;
-using System.Runtime.InteropServices;
 using System.Security.Cryptography;
 using System.Text;
 using dlech.SshAgentLib;
@@ -142,24 +141,15 @@ namespace SshAgentLib.Keys
                     var salt = kdfOptionsParser.ReadBlob();
                     var rounds = kdfOptionsParser.ReadUInt32();
 
-                    var passphrase = getPassphrase(null);
-                    var passphraseChars = new char[passphrase.Length];
-                    var passphrasePtr = Marshal.SecureStringToGlobalAllocUnicode(passphrase);
+                    var passphrase = getPassphrase();
 
-                    for (var i = 0; i < passphrase.Length; i++)
-                    {
-                        passphraseChars[i] = (char)Marshal.ReadInt16(passphrasePtr, i * 2);
-                    }
-
-                    Marshal.ZeroFreeGlobalAllocUnicode(passphrasePtr);
                     BCrypt.HashUsingOpensshBCryptPbkdf(
-                        passphraseChars,
+                        passphrase,
                         salt,
                         ref keyAndIV,
                         rounds,
                         progress
                     );
-                    Array.Clear(passphraseChars, 0, passphraseChars.Length);
                 }
 
                 var key = new byte[32];
@@ -234,7 +224,8 @@ namespace SshAgentLib.Keys
                 cipherName != CipherName.None,
                 kdfName != KdfName.None,
                 decrypt
-            );;
+            );
+            ;
         }
 
         internal static bool FirstLineMatches(string firstLine)

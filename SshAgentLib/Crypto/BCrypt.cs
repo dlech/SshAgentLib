@@ -942,7 +942,7 @@ namespace SshAgentLib.Crypto
         /// wise caller could do; we just do it for you.
         /// </remarks>
         public static void HashUsingOpensshBCryptPbkdf(
-            char[] pass,
+            byte[] pass,
             byte[] salt,
             ref byte[] key,
             uint rounds,
@@ -995,9 +995,7 @@ namespace SshAgentLib.Crypto
             var bcrypt = new BCrypt();
 
             /* collapse password */
-            var passBytes = Encoding.UTF8.GetBytes(pass);
-            var sha2pass = sha512.ComputeHash(passBytes);
-            Array.Clear(passBytes, 0, passBytes.Length);
+            var sha2pass = sha512.ComputeHash(pass);
 
             /* generate key, sizeof(out) at a time */
             var keylen = key.Length;
@@ -1022,7 +1020,6 @@ namespace SshAgentLib.Crypto
 
                 for (i = 1; i < rounds; i++)
                 {
-
                     double progressNow = (count - 1) * rounds + i;
                     progress?.Report(progressNow / progressTotal);
 

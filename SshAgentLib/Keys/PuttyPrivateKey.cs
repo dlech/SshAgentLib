@@ -202,7 +202,7 @@ namespace SshAgentLib.Keys
                         byte[] cipherKey;
                         byte[] vi;
 
-                        var passphrase = Util.ToAnsiArray(getPassphrase(null));
+                        var passphrase = getPassphrase();
 
                         switch (version)
                         {

@@ -3,14 +3,13 @@
 
 using System;
 using System.IO;
-using System.Security;
 using Org.BouncyCastle.Crypto;
 
 namespace SshAgentLib.Keys
 {
     public sealed class SshPrivateKey
     {
-        public delegate SecureString GetPassphraseFunc(string comment);
+        public delegate byte[] GetPassphraseFunc();
 
         /// <summary>
         /// Decryption callback delegate.
