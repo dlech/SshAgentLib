@@ -72,7 +72,21 @@ namespace SshAgentLib.Keys
             return decrypt(getPassphrase, progress);
         }
 
-        public static SshPrivateKey Read(Stream stream)
+        /// <summary>
+        /// Reads an SSH private key from <paramref name="stream"/>.
+        /// </summary>
+        /// <param name="stream">The stream containing the key data.</param>
+        /// <param name="publicKey">
+        /// A public key that matches the private key. This is required for legacy
+        /// private key file formats that do not contain public key information and
+        /// ignored for private key file formats that already include the public key.
+        /// </param>
+        /// <returns>
+        /// An object containing the information read from the file.
+        /// </returns>
+        /// <exception cref="ArgumentNullException"></exception>
+        /// <exception cref="FormatException"></exception>
+        public static SshPrivateKey Read(Stream stream, SshPublicKey publicKey = null)
         {
             if (stream is null)
             {
@@ -91,12 +105,17 @@ namespace SshAgentLib.Keys
                     return PuttyPrivateKey.Read(reader.BaseStream);
                 }
 
+                if (PemPrivateKey.FirstLineMatches(firstLine))
+                {
+                    return PemPrivateKey.Read(reader.BaseStream, publicKey);
+                }
+
                 if (OpensshPrivateKey.FirstLineMatches(firstLine))
                 {
                     return OpensshPrivateKey.Read(reader.BaseStream);
                 }
 
-                throw new SshKeyFileFormatException("unsupported private key format");
+                throw new FormatException("unsupported private key format");
             }
         }
     }
