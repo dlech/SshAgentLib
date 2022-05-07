@@ -279,7 +279,12 @@ namespace SshAgentLib.Keys
                 return parser.ReadPuttyPrivateKeyData(publicKey.Parameter);
             }
 
-            return new SshPrivateKey(publicKey, decrypt);
+            return new SshPrivateKey(
+                publicKey,
+                encryption != Encryption.None,
+                argon2Parameter.Algorithm != null,
+                decrypt
+            );
         }
 
         internal static bool FirstLineMatches(string firstLine)

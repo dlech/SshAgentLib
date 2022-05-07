@@ -27,7 +27,6 @@ namespace SshAgentLibTests.Keys
             var key = SshPrivateKey.Read(file);
 
             Assert.That(() => file.ReadByte(), Throws.TypeOf<ObjectDisposedException>());
-            Assert.That(() => key.PrivateKey, Throws.InvalidOperationException);
 
             Assert.That(key.PublicKey.Parameter.IsPrivate, Is.False);
             Assert.That(key.PublicKey.Parameter, Is.TypeOf<RsaKeyParameters>());
@@ -35,21 +34,20 @@ namespace SshAgentLibTests.Keys
             var pubKey = (RsaKeyParameters)key.PublicKey.Parameter;
             Assert.That(pubKey.Modulus, Is.EqualTo(new BigInteger(n, 16)));
 
-            key.Decrypt(null);
+            var privParam = key.Decrypt(null);
 
-            Assert.That(key.PrivateKey.IsPrivate);
-            Assert.That(key.PrivateKey, Is.TypeOf<RsaPrivateCrtKeyParameters>());
+            Assert.That(privParam.IsPrivate);
+            Assert.That(privParam, Is.TypeOf<RsaPrivateCrtKeyParameters>());
 
-            var privKey = (RsaPrivateCrtKeyParameters)key.PrivateKey;
+            var privKey = (RsaPrivateCrtKeyParameters)privParam;
 
             Assert.That(privKey.Modulus, Is.EqualTo(new BigInteger(n, 16)));
             Assert.That(privKey.P, Is.EqualTo(new BigInteger(p, 16)));
             Assert.That(privKey.Q, Is.EqualTo(new BigInteger(q, 16)));
 
-            key.Encrypt();
-            Assert.That(() => key.PrivateKey, Throws.InvalidOperationException);
-            key.Decrypt(null);
-            Assert.That(key.PrivateKey.IsPrivate);
+            // ensure that decrypting a second time works
+            privParam = key.Decrypt(null);
+            Assert.That(privParam.IsPrivate);
         }
 
         [Test]
@@ -71,8 +69,6 @@ namespace SshAgentLibTests.Keys
             var pubKey = (RsaKeyParameters)key.PublicKey.Parameter;
             Assert.That(pubKey.Modulus, Is.EqualTo(new BigInteger(n, 16)));
 
-            Assert.That(() => key.PrivateKey, Throws.InvalidOperationException);
-
             var passphrase = new SecureString();
 
             foreach (var c in pw)
@@ -80,21 +76,20 @@ namespace SshAgentLibTests.Keys
                 passphrase.AppendChar(c);
             }
 
-            key.Decrypt((_) => passphrase);
+            var privParam = key.Decrypt((_) => passphrase);
 
-            Assert.That(key.PrivateKey.IsPrivate);
-            Assert.That(key.PrivateKey, Is.TypeOf<RsaPrivateCrtKeyParameters>());
+            Assert.That(privParam.IsPrivate);
+            Assert.That(privParam, Is.TypeOf<RsaPrivateCrtKeyParameters>());
 
-            var privKey = (RsaPrivateCrtKeyParameters)key.PrivateKey;
+            var privKey = (RsaPrivateCrtKeyParameters)privParam;
 
             Assert.That(privKey.Modulus, Is.EqualTo(new BigInteger(n, 16)));
             Assert.That(privKey.P, Is.EqualTo(new BigInteger(p, 16)));
             Assert.That(privKey.Q, Is.EqualTo(new BigInteger(q, 16)));
 
-            key.Encrypt();
-            Assert.That(() => key.PrivateKey, Throws.InvalidOperationException);
-            key.Decrypt((_) => passphrase);
-            Assert.That(key.PrivateKey.IsPrivate);
+            // ensure that decrypting a second time works
+            privParam = key.Decrypt((_) => passphrase);
+            Assert.That(privParam.IsPrivate);
         }
 
         [Test]
@@ -108,19 +103,18 @@ namespace SshAgentLibTests.Keys
             var key = SshPrivateKey.Read(file);
 
             Assert.That(() => file.ReadByte(), Throws.TypeOf<ObjectDisposedException>());
-            Assert.That(() => key.PrivateKey, Throws.InvalidOperationException);
 
             Assert.That(key.PublicKey.Parameter, Is.TypeOf<DsaPublicKeyParameters>());
 
             var pubKey = (DsaPublicKeyParameters)key.PublicKey.Parameter;
             Assert.That(pubKey.Y, Is.EqualTo(new BigInteger(pub, 16)));
 
-            key.Decrypt(null);
+            var privParam = key.Decrypt(null);
 
-            Assert.That(key.PrivateKey.IsPrivate);
-            Assert.That(key.PrivateKey, Is.TypeOf<DsaPrivateKeyParameters>());
+            Assert.That(privParam.IsPrivate);
+            Assert.That(privParam, Is.TypeOf<DsaPrivateKeyParameters>());
 
-            var privKey = (DsaPrivateKeyParameters)key.PrivateKey;
+            var privKey = (DsaPrivateKeyParameters)privParam;
 
             Assert.That(privKey.Parameters.G, Is.EqualTo(new BigInteger(g, 16)));
             Assert.That(privKey.X, Is.EqualTo(new BigInteger(priv, 16)));
@@ -138,7 +132,6 @@ namespace SshAgentLibTests.Keys
             var key = SshPrivateKey.Read(file);
 
             Assert.That(() => file.ReadByte(), Throws.TypeOf<ObjectDisposedException>());
-            Assert.That(() => key.PrivateKey, Throws.InvalidOperationException);
 
             Assert.That(key.PublicKey.Parameter, Is.TypeOf<DsaPublicKeyParameters>());
 
@@ -152,12 +145,12 @@ namespace SshAgentLibTests.Keys
                 passphrase.AppendChar(c);
             }
 
-            key.Decrypt((_) => passphrase);
+            var privParam = key.Decrypt((_) => passphrase);
 
-            Assert.That(key.PrivateKey.IsPrivate);
-            Assert.That(key.PrivateKey, Is.TypeOf<DsaPrivateKeyParameters>());
+            Assert.That(privParam.IsPrivate);
+            Assert.That(privParam, Is.TypeOf<DsaPrivateKeyParameters>());
 
-            var privKey = (DsaPrivateKeyParameters)key.PrivateKey;
+            var privKey = (DsaPrivateKeyParameters)privParam;
 
             Assert.That(privKey.Parameters.G, Is.EqualTo(new BigInteger(g, 16)));
             Assert.That(privKey.X, Is.EqualTo(new BigInteger(priv, 16)));
@@ -174,7 +167,6 @@ namespace SshAgentLibTests.Keys
             var key = SshPrivateKey.Read(file);
 
             Assert.That(() => file.ReadByte(), Throws.TypeOf<ObjectDisposedException>());
-            Assert.That(() => key.PrivateKey, Throws.InvalidOperationException);
 
             Assert.That(key.PublicKey.Parameter, Is.TypeOf<ECPublicKeyParameters>());
 
@@ -185,12 +177,12 @@ namespace SshAgentLibTests.Keys
             );
             Assert.That(pubKey.Q, Is.EqualTo(pubKey.Parameters.Curve.DecodePoint(Hex.Decode(pub))));
 
-            key.Decrypt(null);
+            var privParam = key.Decrypt(null);
 
-            Assert.That(key.PrivateKey.IsPrivate);
-            Assert.That(key.PrivateKey, Is.TypeOf<ECPrivateKeyParameters>());
+            Assert.That(privParam.IsPrivate);
+            Assert.That(privParam, Is.TypeOf<ECPrivateKeyParameters>());
 
-            var privKey = (ECPrivateKeyParameters)key.PrivateKey;
+            var privKey = (ECPrivateKeyParameters)privParam;
 
             Assert.That(
                 privKey.Parameters.Curve,
@@ -211,7 +203,6 @@ namespace SshAgentLibTests.Keys
             var key = SshPrivateKey.Read(file);
 
             Assert.That(() => file.ReadByte(), Throws.TypeOf<ObjectDisposedException>());
-            Assert.That(() => key.PrivateKey, Throws.InvalidOperationException);
 
             Assert.That(key.PublicKey.Parameter, Is.TypeOf<ECPublicKeyParameters>());
 
@@ -229,12 +220,12 @@ namespace SshAgentLibTests.Keys
                 passphrase.AppendChar(c);
             }
 
-            key.Decrypt((_) => passphrase);
+            var privParam = key.Decrypt((_) => passphrase);
 
-            Assert.That(key.PrivateKey.IsPrivate);
-            Assert.That(key.PrivateKey, Is.TypeOf<ECPrivateKeyParameters>());
+            Assert.That(privParam.IsPrivate);
+            Assert.That(privParam, Is.TypeOf<ECPrivateKeyParameters>());
 
-            var privKey = (ECPrivateKeyParameters)key.PrivateKey;
+            var privKey = (ECPrivateKeyParameters)privParam;
 
             Assert.That(privKey.D, Is.EqualTo(new BigInteger(priv, 16)));
         }
@@ -246,14 +237,13 @@ namespace SshAgentLibTests.Keys
             var key = SshPrivateKey.Read(file);
 
             Assert.That(() => file.ReadByte(), Throws.TypeOf<ObjectDisposedException>());
-            Assert.That(() => key.PrivateKey, Throws.InvalidOperationException);
 
             Assert.That(key.PublicKey.Parameter, Is.TypeOf<Ed25519PublicKeyParameters>());
 
-            key.Decrypt(null);
+            var privParam = key.Decrypt(null);
 
-            Assert.That(key.PrivateKey.IsPrivate);
-            Assert.That(key.PrivateKey, Is.TypeOf<Ed25519PrivateKeyParameters>());
+            Assert.That(privParam.IsPrivate);
+            Assert.That(privParam, Is.TypeOf<Ed25519PrivateKeyParameters>());
         }
 
         [Test]
@@ -265,7 +255,6 @@ namespace SshAgentLibTests.Keys
             var key = SshPrivateKey.Read(file);
 
             Assert.That(() => file.ReadByte(), Throws.TypeOf<ObjectDisposedException>());
-            Assert.That(() => key.PrivateKey, Throws.InvalidOperationException);
 
             Assert.That(key.PublicKey.Parameter, Is.TypeOf<Ed25519PublicKeyParameters>());
 
@@ -276,10 +265,10 @@ namespace SshAgentLibTests.Keys
                 passphrase.AppendChar(c);
             }
 
-            key.Decrypt((_) => passphrase);
+            var privParam = key.Decrypt((_) => passphrase);
 
-            Assert.That(key.PrivateKey.IsPrivate);
-            Assert.That(key.PrivateKey, Is.TypeOf<Ed25519PrivateKeyParameters>());
+            Assert.That(privParam.IsPrivate);
+            Assert.That(privParam, Is.TypeOf<Ed25519PrivateKeyParameters>());
         }
 
         [Test]
@@ -289,14 +278,13 @@ namespace SshAgentLibTests.Keys
             var key = SshPrivateKey.Read(file);
 
             Assert.That(() => file.ReadByte(), Throws.TypeOf<ObjectDisposedException>());
-            Assert.That(() => key.PrivateKey, Throws.InvalidOperationException);
 
             Assert.That(key.PublicKey.Parameter, Is.TypeOf<Ed25519PublicKeyParameters>());
 
-            key.Decrypt(null);
+            var privParam = key.Decrypt(null);
 
-            Assert.That(key.PrivateKey.IsPrivate);
-            Assert.That(key.PrivateKey, Is.TypeOf<Ed25519PrivateKeyParameters>());
+            Assert.That(privParam.IsPrivate);
+            Assert.That(privParam, Is.TypeOf<Ed25519PrivateKeyParameters>());
         }
     }
 }

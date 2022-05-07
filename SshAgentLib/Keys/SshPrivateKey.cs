@@ -27,56 +27,50 @@ namespace SshAgentLib.Keys
             IProgress<double> progress
         );
 
-        readonly object privateKeyLock = new object();
-        AsymmetricKeyParameter privateKey;
         private readonly DecryptFunc decrypt;
 
         public SshPublicKey PublicKey { get; }
 
-        public AsymmetricKeyParameter PrivateKey
-        {
-            get
-            {
-                lock (privateKeyLock)
-                {
-                    if (privateKey == null)
-                    {
-                        throw new InvalidOperationException(
-                            "key must be decrypted before using private key"
-                        );
-                    }
+        /// <summary>
+        /// Returns <c>true</c> is the key is encrypted with a passphrase, otherwise <c>false</c>.
+        /// </summary>
+        public bool IsEncrypted { get; }
 
-                    return privateKey;
-                }
-            }
-        }
+        /// <summary>
+        /// Returns <c>true</c> if the key has a key derivation function, otherwise <c>false</c>.
+        /// </summary>
+        public bool HasKdf { get; }
 
-        public SshPrivateKey(SshPublicKey publicKey, DecryptFunc decrypt)
+        public SshPrivateKey(
+            SshPublicKey publicKey,
+            bool isEncrypted,
+            bool hasKdf,
+            DecryptFunc decrypt
+        )
         {
             PublicKey = publicKey ?? throw new ArgumentNullException(nameof(publicKey));
+            IsEncrypted = isEncrypted;
+            HasKdf = hasKdf;
             this.decrypt = decrypt ?? throw new ArgumentNullException(nameof(decrypt));
         }
 
-        public void Decrypt(GetPassphraseFunc getPassphrase, IProgress<double> progress = null)
+        /// <summary>
+        /// Decrypts the private key.
+        /// </summary>
+        /// <param name="getPassphrase">
+        /// Callback to get the passphrase. Can be <c>null</c> for unencrypted keys.
+        /// </param>
+        /// <param name="progress">Optional progress feedback.</param>
+        /// <returns>The decrypted private key parameters.</returns>
+        /// <remarks>
+        /// This can be a long running/cpu intensive operation.
+        /// </remarks>
+        public AsymmetricKeyParameter Decrypt(
+            GetPassphraseFunc getPassphrase,
+            IProgress<double> progress = null
+        )
         {
-            lock (privateKeyLock)
-            {
-                if (privateKey != null)
-                {
-                    // already decrypted
-                    return;
-                }
-
-                privateKey = decrypt(getPassphrase, progress);
-            }
-        }
-
-        public void Encrypt()
-        {
-            lock (privateKeyLock)
-            {
-                privateKey = null;
-            }
+            return decrypt(getPassphrase, progress);
         }
 
         public static SshPrivateKey Read(Stream stream)

@@ -229,7 +229,12 @@ namespace SshAgentLib.Keys
                 return privateKey;
             }
 
-            return new SshPrivateKey(new SshPublicKey(SshVersion.SSH2, publicKeyBlob), decrypt);
+            return new SshPrivateKey(
+                new SshPublicKey(SshVersion.SSH2, publicKeyBlob),
+                cipherName != CipherName.None,
+                kdfName != KdfName.None,
+                decrypt
+            );;
         }
 
         internal static bool FirstLineMatches(string firstLine)
