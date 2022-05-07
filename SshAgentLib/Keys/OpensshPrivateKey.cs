@@ -7,11 +7,11 @@ using System.Runtime.InteropServices;
 using System.Security.Cryptography;
 using System.Text;
 using dlech.SshAgentLib;
-using dlech.SshAgentLib.Crypto;
 using Org.BouncyCastle.Crypto;
 using Org.BouncyCastle.Crypto.Parameters;
 using Org.BouncyCastle.Security;
 using Org.BouncyCastle.Utilities.IO.Pem;
+using SshAgentLib.Crypto;
 
 namespace SshAgentLib.Keys
 {

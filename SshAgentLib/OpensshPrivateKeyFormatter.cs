@@ -27,9 +27,9 @@ using System.IO;
 using System.Runtime.InteropServices;
 using System.Security.Cryptography;
 using System.Text;
-using dlech.SshAgentLib.Crypto;
 using Org.BouncyCastle.Crypto.Parameters;
 using Org.BouncyCastle.Security;
+using SshAgentLib.Crypto;
 
 namespace dlech.SshAgentLib
 {

@@ -15,12 +15,9 @@
 // ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF
 // OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
-using System;
-using System.Collections.Generic;
 using System.Diagnostics;
-using System.Linq;
-using dlech.SshAgentLib.Crypto;
 using NUnit.Framework;
+using SshAgentLib.Crypto;
 
 namespace dlech.SshAgentLibTests
 {
