@@ -154,7 +154,8 @@ namespace dlech.SshAgentLib
         /// <c>true</c> if a matching key was found, otherwise <c>false</c>
         /// </returns>
         /// <exception cref="ArgumentNullException"></exception>
-        public static bool Contains(this IAgent agent, SshPublicKey key) {
+        public static bool Contains(this IAgent agent, SshPublicKey key)
+        {
             if (agent is null)
             {
                 throw new ArgumentNullException(nameof(agent));
@@ -165,7 +166,7 @@ namespace dlech.SshAgentLib
                 throw new ArgumentNullException(nameof(key));
             }
 
-            return agent.ListKeys(key.Version).Any(k =>key.Matches(k.GetPublicKeyBlob()));
+            return agent.ListKeys(key.Version).Any(k => key.Matches(k.GetPublicKeyBlob()));
         }
     }
 }

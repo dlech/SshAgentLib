@@ -1227,6 +1227,7 @@ namespace dlech.SshAgentLib
             STATUS_WAIT_FOR_OPLOCK = 0x00000367,
             STATUS_MOUNT_POINT_NOT_RESOLVED = 0xC0000368,
             STATUS_INVALID_DEVICE_OBJECT_PARAMETER = 0xC0000369,
+
             /* STATUS_MCA_OCCURED is not a typo, as per Microsoft's headers */
             STATUS_MCA_OCCURED = 0xC000036A,
             STATUS_DRIVER_BLOCKED_CRITICAL = 0xC000036B,

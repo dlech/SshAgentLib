@@ -189,8 +189,9 @@ namespace dlech.SshAgentLib
                                 {
                                     try
                                     {
-                                        var clientPort =
-                                            ((IPEndPoint)clientSocket.RemoteEndPoint).Port;
+                                        var clientPort = (
+                                            (IPEndPoint)clientSocket.RemoteEndPoint
+                                        ).Port;
                                         var clientWaitHandleName = string.Format(
                                             "{0}.{1}.{2}",
                                             waitHandleNamePrefix,

@@ -1,12 +1,12 @@
 {
-    "version": 1,
-    "isRoot": true,
-    "tools": {
-        "csharpier": {
-           "version": "0.14.0",
-           "commands": [
-               "dotnet-csharpier"
-           ]
-       }
+  "version": 1,
+  "isRoot": true,
+  "tools": {
+    "csharpier": {
+      "version": "0.16.0",
+      "commands": [
+        "dotnet-csharpier"
+      ]
     }
+  }
 }

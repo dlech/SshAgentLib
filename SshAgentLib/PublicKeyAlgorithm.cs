@@ -42,30 +42,43 @@ namespace dlech.SshAgentLib
     {
         [KeyFormatIdentifier("ssh-rsa")]
         SshRsa,
+
         [KeyFormatIdentifier("ssh-rsa-cert-v01@openssh.com")]
         SshRsaCertV1,
+
         [KeyFormatIdentifier("ssh-dss")]
         SshDss,
+
         [KeyFormatIdentifier("ssh-dss-cert-v01@openssh.com")]
         SshDssCertV1,
+
         [KeyFormatIdentifier("ecdsa-sha2-nistp256")]
         EcdsaSha2Nistp256,
+
         [KeyFormatIdentifier("ecdsa-sha2-nistp256-cert-v01@openssh.com")]
         EcdsaSha2Nistp256CertV1,
+
         [KeyFormatIdentifier("ecdsa-sha2-nistp384")]
         EcdsaSha2Nistp384,
+
         [KeyFormatIdentifier("ecdsa-sha2-nistp384-cert-v01@openssh.com")]
         EcdsaSha2Nistp384CertV1,
+
         [KeyFormatIdentifier("ecdsa-sha2-nistp521")]
         EcdsaSha2Nistp521,
+
         [KeyFormatIdentifier("ecdsa-sha2-nistp521-cert-v01@openssh.com")]
         EcdsaSha2Nistp521CertV1,
+
         [KeyFormatIdentifier("ssh-ed25519")]
         SshEd25519,
+
         [KeyFormatIdentifier("ssh-ed25519-cert-v01@openssh.com")]
         SshEd25519CertV1,
+
         [KeyFormatIdentifier("ssh-ed448")]
         SshEd448,
+
         [KeyFormatIdentifier("ssh-ed448-cert-v01@openssh.com")]
         SshEd448CertV1,
     }
@@ -80,7 +93,8 @@ namespace dlech.SshAgentLib
             var type = algo.GetType();
 
             return type.GetField(Enum.GetName(type, algo))
-                .GetCustomAttribute<KeyFormatIdentifierAttribute>().Identifier;
+                .GetCustomAttribute<KeyFormatIdentifierAttribute>()
+                .Identifier;
         }
 
         /// <summary>
