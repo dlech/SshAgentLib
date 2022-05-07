@@ -26,7 +26,6 @@
 using System;
 using System.IO;
 using System.Runtime.InteropServices;
-using System.Security;
 using Org.BouncyCastle.Crypto;
 using Org.BouncyCastle.OpenSsl;
 using Org.BouncyCastle.Security;
@@ -69,12 +68,12 @@ namespace dlech.SshAgentLib
             }
         }
 
-        public override object Deserialize(Stream aStream)
+        public override ISshKey Deserialize(Stream stream, IProgress<double> progress)
         {
             /* check for required parameters */
-            if (aStream == null)
+            if (stream == null)
             {
-                throw new ArgumentNullException("aStream");
+                throw new ArgumentNullException(nameof(stream));
             }
             PasswordFinder pwFinder = null;
             if (GetPassphraseCallbackMethod != null)
@@ -83,7 +82,7 @@ namespace dlech.SshAgentLib
             }
             try
             {
-                var streamReader = new StreamReader(aStream);
+                var streamReader = new StreamReader(stream);
                 var reader = new PemReader(streamReader, pwFinder);
                 var data = reader.ReadObject();
 

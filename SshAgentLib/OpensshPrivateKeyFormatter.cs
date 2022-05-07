@@ -140,12 +140,12 @@ namespace dlech.SshAgentLib
             }
         }
 
-        public override object Deserialize(Stream stream)
+        public override ISshKey Deserialize(Stream stream, IProgress<double> progress)
         {
             /* check for required parameters */
             if (stream == null)
             {
-                throw new ArgumentNullException("stream");
+                throw new ArgumentNullException(nameof(stream));
             }
 
             try
@@ -223,7 +223,13 @@ namespace dlech.SshAgentLib
                         passphraseChars[i] = (char)Marshal.ReadInt16(passphrasePtr, i * 2);
                     }
                     Marshal.ZeroFreeGlobalAllocUnicode(passphrasePtr);
-                    BCrypt.HashUsingOpensshBCryptPbkdf(passphraseChars, salt, ref keyAndIV, rounds);
+                    BCrypt.HashUsingOpensshBCryptPbkdf(
+                        passphraseChars,
+                        salt,
+                        ref keyAndIV,
+                        rounds,
+                        progress
+                    );
                     Array.Clear(passphraseChars, 0, passphraseChars.Length);
                 }
 

@@ -11,7 +11,21 @@ namespace SshAgentLib.Keys
     public sealed class SshPrivateKey
     {
         public delegate SecureString GetPassphraseFunc(string comment);
-        public delegate AsymmetricKeyParameter DecryptFunc(GetPassphraseFunc getPassphrase);
+
+        /// <summary>
+        /// Decryption callback delegate.
+        /// </summary>
+        /// <param name="getPassphrase">
+        /// A callback to get the passphrase. Can be <c>null</c> if the private key is not encrypted.
+        /// </param>
+        /// <param name="progress">
+        /// Optional progress callback. Returns normalized progres 0 to 1.
+        /// </param>
+        /// <returns>The decrypted parameters.</returns>
+        public delegate AsymmetricKeyParameter DecryptFunc(
+            GetPassphraseFunc getPassphrase,
+            IProgress<double> progress
+        );
 
         readonly object privateKeyLock = new object();
         AsymmetricKeyParameter privateKey;
@@ -43,7 +57,7 @@ namespace SshAgentLib.Keys
             this.decrypt = decrypt ?? throw new ArgumentNullException(nameof(decrypt));
         }
 
-        public void Decrypt(GetPassphraseFunc getPassphrase)
+        public void Decrypt(GetPassphraseFunc getPassphrase, IProgress<double> progress = null)
         {
             lock (privateKeyLock)
             {
@@ -53,7 +67,7 @@ namespace SshAgentLib.Keys
                     return;
                 }
 
-                privateKey = decrypt(getPassphrase);
+                privateKey = decrypt(getPassphrase, progress);
             }
         }
 

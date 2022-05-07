@@ -81,26 +81,29 @@ namespace dlech.SshAgentLib
         /// <summary>
         /// Parse stream containing SSH key data
         /// </summary>
-        /// <param name="aStream">stream containing SSH key data</param>
+        /// <param name="stream">stream containing SSH key data</param>
         /// <returns>ISshKey key created from stream data</returns>
         /// <exception cref="CallbackNullException">
         /// GetPassphraseCallbackMethod is null and aStream constrains encrypted key
         /// </exception>
-        public abstract object Deserialize(Stream aStream);
+        public abstract ISshKey Deserialize(Stream stream, IProgress<double> progress);
+
+        object IFormatter.Deserialize(Stream stream) => Deserialize(stream, null);
 
         /// <summary>
         /// Read file containing SSH key data
         /// </summary>
         /// <param name="fileName">file containing SSH key data</param>
+        /// <param name="progress">optional progress callback</param>
         /// <returns>key created from file data</returns>
         /// <exception cref="CallbackNullException">
         /// GetPassphraseCallbackMethod is null and aStream constrains encrypted key
         /// </exception>
-        public ISshKey DeserializeFile(string fileName)
+        public ISshKey DeserializeFile(string fileName, IProgress<double> progress = null)
         {
             using (var stream = new FileStream(fileName, FileMode.Open, FileAccess.Read))
             {
-                var key = Deserialize(stream) as ISshKey;
+                var key = Deserialize(stream, progress) as ISshKey;
                 if (string.IsNullOrEmpty(key.Comment))
                 {
                     try
@@ -125,16 +128,16 @@ namespace dlech.SshAgentLib
         /// <summary>
         /// Parse byte[] containing SSH key data
         /// </summary>
-        /// <param name="aBytes">byte[] containing SSH key data</param>
+        /// <param name="bytes">byte[] containing SSH key data</param>
         /// <returns>key created from file data</returns>
         /// <exception cref="CallbackNullException">
         /// GetPassphraseCallbackMethod is null and aStream constrains encrypted key
         /// </exception>
-        public ISshKey Deserialize(byte[] aBytes)
+        public ISshKey Deserialize(byte[] bytes, IProgress<double> progress = null)
         {
-            using (var stream = new MemoryStream(aBytes))
+            using (var stream = new MemoryStream(bytes))
             {
-                return (ISshKey)Deserialize(stream);
+                return Deserialize(stream, progress);
             }
         }
 
@@ -239,20 +242,21 @@ namespace dlech.SshAgentLib
         /// <summary>
         /// Auto-detect data format, read data and create key object
         /// </summary>
-        /// <param name="aStream"></param>
+        /// <param name="stream"></param>
         /// <returns></returns>
         public static ISshKey ReadSshKey(
-            this Stream aStream,
-            KeyFormatter.GetPassphraseCallback aGetPassphraseCallback = null
+            this Stream stream,
+            KeyFormatter.GetPassphraseCallback getPassphrase = null,
+            IProgress<double> progress = null
         )
         {
-            using (var reader = new StreamReader(aStream))
+            using (var reader = new StreamReader(stream))
             {
                 var firstLine = reader.ReadLine();
                 var formatter = KeyFormatter.GetFormatter(firstLine);
-                formatter.GetPassphraseCallbackMethod = aGetPassphraseCallback;
-                aStream.Position = 0;
-                return formatter.Deserialize(aStream) as ISshKey;
+                formatter.GetPassphraseCallbackMethod = getPassphrase;
+                stream.Position = 0;
+                return formatter.Deserialize(stream, progress) as ISshKey;
             }
         }
 

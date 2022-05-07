@@ -35,11 +35,11 @@ namespace dlech.SshAgentLib
             throw new NotImplementedException();
         }
 
-        public override object Deserialize(Stream stream)
+        public override ISshKey Deserialize(Stream stream, IProgress<double> progress = null)
         {
             if (stream == null)
             {
-                throw new ArgumentNullException("stream");
+                throw new ArgumentNullException(nameof(stream));
             }
             using (var reader = new StreamReader(stream))
             {

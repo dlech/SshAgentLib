@@ -142,16 +142,16 @@ namespace dlech.SshAgentLib
             aStream.Close();
         }
 
-        public override object Deserialize(Stream aStream)
+        public override ISshKey Deserialize(Stream stream, IProgress<double> progress)
         {
             /* check for required parameters */
-            if (aStream == null)
+            if (stream == null)
             {
-                throw new ArgumentNullException("aStream");
+                throw new ArgumentNullException(nameof(stream));
             }
 
             /* reading unencrypted part */
-            var parser = new BlobParser(aStream);
+            var parser = new BlobParser(stream);
 
             parser.ReadBytes(FILE_HEADER_LINE.Length + 2); //Skipping header line
 
@@ -169,8 +169,8 @@ namespace dlech.SshAgentLib
             var keyComment = parser.ReadString();
 
             /* reading private key */
-            var inputBuffer = new byte[aStream.Length];
-            aStream.Read(inputBuffer, 0, inputBuffer.Length);
+            var inputBuffer = new byte[stream.Length];
+            stream.Read(inputBuffer, 0, inputBuffer.Length);
             byte[] outputBuffer;
 
             try

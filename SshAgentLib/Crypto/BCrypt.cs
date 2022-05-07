@@ -918,6 +918,9 @@ namespace SshAgentLib.Crypto
         /// <param name="salt">The salt.</param>
         /// <param name="key">The key. Must be initalized to the size needed.</param>
         /// <param name="rounds">The number of rounds.</param>
+        /// <param name="progress">
+        /// Optional progress callback that reports normalized progress 0 to 1.
+        /// </param>
         /// <remarks>
         /// pkcs #5 pbkdf2 implementation using the "bcrypt" hash
         ///
@@ -942,7 +945,8 @@ namespace SshAgentLib.Crypto
             char[] pass,
             byte[] salt,
             ref byte[] key,
-            uint rounds
+            uint rounds,
+            IProgress<double> progress = null
         )
         {
             if (pass == null)
@@ -998,7 +1002,10 @@ namespace SshAgentLib.Crypto
             /* generate key, sizeof(out) at a time */
             var keylen = key.Length;
 
-            for (uint count = 1; keylen > 0; count++)
+            double progressTotal = (keylen + amt - 1) / amt * rounds;
+            progress?.Report(0);
+
+            for (int count = 1; keylen > 0; count++)
             {
                 countsalt[salt.Length + 0] = (byte)((count >> 24) & 0xff);
                 countsalt[salt.Length + 1] = (byte)((count >> 16) & 0xff);
@@ -1015,6 +1022,10 @@ namespace SshAgentLib.Crypto
 
                 for (i = 1; i < rounds; i++)
                 {
+
+                    double progressNow = (count - 1) * rounds + i;
+                    progress?.Report(progressNow / progressTotal);
+
                     /* subsequent rounds, salt is previous output */
                     sha2salt = sha512.ComputeHash(tmpout);
                     tmpout = bcrypt.CryptUsingOpensshBcryptHash(sha2pass, sha2salt);
@@ -1044,6 +1055,8 @@ namespace SshAgentLib.Crypto
 
                 keylen -= i;
             }
+
+            progress?.Report(1);
 
             Array.Clear(@out, 0, @out.Length);
         }

@@ -234,14 +234,14 @@ namespace dlech.SshAgentLib
         /// <exception cref="CallBackNullException">
         /// data is encrypted and passphrase callback is null
         /// </exception>
-        public override object Deserialize(Stream aStream)
+        public override ISshKey Deserialize(Stream stream, IProgress<double> progress = null)
         {
             var fileData = new FileData();
 
             /* check for required parameters */
-            if (aStream == null)
+            if (stream == null)
             {
-                throw new ArgumentNullException("aStream");
+                throw new ArgumentNullException(nameof(stream));
             }
 
             string line;
@@ -249,7 +249,7 @@ namespace dlech.SshAgentLib
             int lineCount,
                 i;
 
-            var reader = new StreamReader(aStream, Encoding.GetEncoding(1252));
+            var reader = new StreamReader(stream, Encoding.GetEncoding(1252));
             char[] delimArray = { cDelimeter };
 
             try

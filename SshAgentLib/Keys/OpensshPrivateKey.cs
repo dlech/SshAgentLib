@@ -129,7 +129,10 @@ namespace SshAgentLib.Keys
             var publicKeyBlob = parser.ReadBlob();
             var privateKeyBlob = parser.ReadBlob();
 
-            AsymmetricKeyParameter decrypt(SshPrivateKey.GetPassphraseFunc getPassphrase)
+            AsymmetricKeyParameter decrypt(
+                SshPrivateKey.GetPassphraseFunc getPassphrase,
+                IProgress<double> progress
+            )
             {
                 var keyAndIV = new byte[32 + 16];
 
@@ -149,7 +152,13 @@ namespace SshAgentLib.Keys
                     }
 
                     Marshal.ZeroFreeGlobalAllocUnicode(passphrasePtr);
-                    BCrypt.HashUsingOpensshBCryptPbkdf(passphraseChars, salt, ref keyAndIV, rounds);
+                    BCrypt.HashUsingOpensshBCryptPbkdf(
+                        passphraseChars,
+                        salt,
+                        ref keyAndIV,
+                        rounds,
+                        progress
+                    );
                     Array.Clear(passphraseChars, 0, passphraseChars.Length);
                 }
 

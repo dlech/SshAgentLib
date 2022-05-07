@@ -62,6 +62,7 @@ namespace dlech.SshAgentLib
         /// <param name="fileName">pathname of file to read</param>
         /// <param name="getPassPhraseCallback">method that returns passphrase</param>
         /// <param name="constraints">additional constraints</param>
+        /// <param name="progress">Optional progress callback.</param>
         /// <exception cref="AgentFailureException">
         /// Agent returned SSH_AGENT_FAILURE
         /// </exception>
@@ -80,7 +81,8 @@ namespace dlech.SshAgentLib
             this IAgent agent,
             string fileName,
             KeyFormatter.GetPassphraseCallback getPassPhraseCallback,
-            ICollection<Agent.KeyConstraint> constraints = null
+            ICollection<Agent.KeyConstraint> constraints = null,
+            IProgress<double> progress = null
         )
         {
             string firstLine;
@@ -91,7 +93,7 @@ namespace dlech.SshAgentLib
 
             var formatter = KeyFormatter.GetFormatter(firstLine);
             formatter.GetPassphraseCallbackMethod = getPassPhraseCallback;
-            var key = formatter.DeserializeFile(fileName);
+            var key = formatter.DeserializeFile(fileName, progress);
 
             if (constraints != null)
             {

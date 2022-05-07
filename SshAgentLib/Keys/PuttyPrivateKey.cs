@@ -173,7 +173,10 @@ namespace SshAgentLib.Keys
                 reader.ReadHeader(version == "1" ? HeaderKey.PrivateHash : HeaderKey.PrivateMAC)
             );
 
-            AsymmetricKeyParameter decrypt(SshPrivateKey.GetPassphraseFunc getPassphrase)
+            AsymmetricKeyParameter decrypt(
+                SshPrivateKey.GetPassphraseFunc getPassphrase,
+                IProgress<double> progress
+            )
             {
                 byte[] decryptedPrivateKeyBlob;
                 byte[] macKey;
@@ -208,6 +211,7 @@ namespace SshAgentLib.Keys
                                 GetCipherParameters(passphrase, out cipherKey, out vi, out macKey);
                                 break;
                             case "3":
+                                // REVISIT: this is potentially long running and should report progress
                                 GetCipherParametersV3(
                                     passphrase,
                                     ref argon2Parameter,
