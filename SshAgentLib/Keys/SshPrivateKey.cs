@@ -114,7 +114,8 @@ namespace SshAgentLib.Keys
 
                 if (PemPrivateKey.FirstLineMatches(firstLine))
                 {
-                    if (publicKey == null) {
+                    if (publicKey == null)
+                    {
                         throw new PublicKeyRequiredException();
                     }
 
@@ -133,8 +134,10 @@ namespace SshAgentLib.Keys
         /// <summary>
         /// Indicates that a public key is required for the key type given.
         /// </summary>
-        public sealed class PublicKeyRequiredException : ArgumentException {
-            public PublicKeyRequiredException() : base("public key is required for this key type", "publicKey") {}
+        public sealed class PublicKeyRequiredException : ArgumentException
+        {
+            public PublicKeyRequiredException()
+                : base("public key is required for this key type", "publicKey") { }
         }
     }
 }
