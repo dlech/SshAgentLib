@@ -66,9 +66,6 @@ namespace dlech.SshAgentLib
         /// <exception cref="AgentFailureException">
         /// Agent returned SSH_AGENT_FAILURE
         /// </exception>
-        /// <exception cref="KeyFormatterException">
-        /// File format was not recognized
-        /// </exception>
         /// <exception cref="UnauthorizedAccessException"></exception>
         /// <exception cref="ArgumentException"></exception>
         /// <exception cref="ArgumentNullException"></exception>
@@ -80,20 +77,31 @@ namespace dlech.SshAgentLib
         public static ISshKey AddKeyFromFile(
             this IAgent agent,
             string fileName,
-            KeyFormatter.GetPassphraseCallback getPassPhraseCallback,
+            SshPrivateKey.GetPassphraseFunc getPassPhraseCallback,
             ICollection<Agent.KeyConstraint> constraints = null,
             IProgress<double> progress = null
         )
         {
-            string firstLine;
-            using (var fileReader = File.OpenText(fileName))
+            var publicKey = default(SshPublicKey);
+
+            try
             {
-                firstLine = fileReader.ReadLine();
+                publicKey = SshPublicKey.Read(File.OpenRead(fileName + ".pub"));
+            }
+            catch
+            {
+                // silently ingore, SshPrivateKey.Read() will raise proper
+                // error if this file was required.
             }
 
-            var formatter = KeyFormatter.GetFormatter(firstLine);
-            formatter.GetPassphraseCallbackMethod = getPassPhraseCallback;
-            var key = formatter.DeserializeFile(fileName, progress);
+            var privateKey = SshPrivateKey.Read(File.OpenRead(fileName), publicKey);
+
+            var key = new SshKey(
+                privateKey.PublicKey.Version,
+                privateKey.PublicKey.Parameter,
+                privateKey.Decrypt(getPassPhraseCallback, progress),
+                privateKey.PublicKey.Comment
+            );
 
             if (constraints != null)
             {

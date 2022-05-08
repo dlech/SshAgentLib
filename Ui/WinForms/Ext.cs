@@ -26,8 +26,9 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Security;
 using System.Windows.Forms;
+
+using SshAgentLib.Keys;
 
 namespace dlech.SshAgentLib.WinForms
 {
@@ -42,7 +43,8 @@ namespace dlech.SshAgentLib.WinForms
             ICollection<Agent.KeyConstraint> constraints = null
         )
         {
-            KeyFormatter.GetPassphraseCallback getPassword = null;
+            var getPassphrase = default(SshPrivateKey.GetPassphraseFunc);
+
             foreach (var fileName in fileNames)
             {
                 try
@@ -50,22 +52,23 @@ namespace dlech.SshAgentLib.WinForms
                     try
                     {
                         // try using the previous passphrase
-                        if (getPassword == null)
+                        if (getPassphrase == null)
                         {
                             throw new Exception("No previous passphrase.");
                         }
-                        agent.AddKeyFromFile(fileName, constraints, getPassword);
+
+                        agent.AddKeyFromFile(fileName, constraints, getPassphrase);
                     }
                     catch
                     {
                         // if the previous passphrase does not work, ask for a new passphrase
-                        getPassword = PasswordCallbackFactory(
+                        getPassphrase = PasswordCallbackFactory(
                             string.Format(Strings.msgEnterPassphrase, Path.GetFileName(fileName))
                         );
-                        agent.AddKeyFromFile(fileName, constraints, getPassword);
+                        agent.AddKeyFromFile(fileName, constraints, getPassphrase);
                     }
                 }
-                catch (PpkFormatterException)
+                catch (FormatException)
                 {
                     MessageBox.Show(
                         string.Format(
@@ -73,6 +76,7 @@ namespace dlech.SshAgentLib.WinForms
                                 + "Possible causes:\n"
                                 + "\n"
                                 + "- Passphrase was entered incorrectly\n"
+                                + "- File is not a valid private key file\n"
                                 + "- File is corrupt",
                             fileName
                         ),
@@ -109,42 +113,41 @@ namespace dlech.SshAgentLib.WinForms
             this IAgent agent,
             string fileName,
             ICollection<Agent.KeyConstraint> constraints,
-            KeyFormatter.GetPassphraseCallback getPassword = null
+            SshPrivateKey.GetPassphraseFunc getPassphrase = null
         )
         {
-            if (getPassword == null)
+            if (getPassphrase == null)
             {
-                getPassword = PasswordCallbackFactory(
+                getPassphrase = PasswordCallbackFactory(
                     string.Format(Strings.msgEnterPassphrase, Path.GetFileName(fileName))
                 );
             }
-            return agent.AddKeyFromFile(fileName, getPassword, constraints);
+
+            return agent.AddKeyFromFile(fileName, getPassphrase, constraints);
         }
 
-        public static KeyFormatter.GetPassphraseCallback PasswordCallbackFactory(string message)
+        public static SshPrivateKey.GetPassphraseFunc PasswordCallbackFactory(string message)
         {
-            SecureString passphrase = null;
-            return new KeyFormatter.GetPassphraseCallback(
-                delegate(string comment)
+            var passphrase = default(byte[]);
+
+            return () =>
+            {
+                if (passphrase == default)
                 {
-                    if (passphrase == null)
+                    var dialog = new PasswordDialog { Text = message };
+
+                    var result = dialog.ShowDialog();
+
+                    if (result != DialogResult.OK)
                     {
-                        var dialog = new PasswordDialog();
-                        dialog.Text = message;
-                        if (!string.IsNullOrWhiteSpace(comment))
-                        {
-                            dialog.Text += string.Format(" ({0})", comment);
-                        }
-                        var result = dialog.ShowDialog();
-                        if (result != DialogResult.OK)
-                        {
-                            return null;
-                        }
-                        passphrase = dialog.SecureEdit.SecureString;
+                        return null;
                     }
-                    return passphrase;
+
+                    passphrase = dialog.SecureEdit.SecureString.ToAnsiArray();
                 }
-            );
+
+                return passphrase;
+            };
         }
     }
 }
