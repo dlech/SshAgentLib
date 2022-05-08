@@ -84,8 +84,15 @@ namespace SshAgentLib.Keys
         /// <returns>
         /// An object containing the information read from the file.
         /// </returns>
-        /// <exception cref="ArgumentNullException"></exception>
-        /// <exception cref="FormatException"></exception>
+        /// <exception cref="PublicKeyRequiredException">
+        /// Throw if <paramref name="publicKey"/> is required for the provided key.
+        /// </exception>
+        /// <exception cref="ArgumentNullException">
+        /// Thrown if <paramref name="stream"/> is <c>null</c>.
+        /// </exception>
+        /// <exception cref="FormatException">
+        /// Thrown if the key file is not a supported private key format.
+        /// </exception>
         public static SshPrivateKey Read(Stream stream, SshPublicKey publicKey = null)
         {
             if (stream is null)
@@ -107,6 +114,10 @@ namespace SshAgentLib.Keys
 
                 if (PemPrivateKey.FirstLineMatches(firstLine))
                 {
+                    if (publicKey == null) {
+                        throw new PublicKeyRequiredException();
+                    }
+
                     return PemPrivateKey.Read(reader.BaseStream, publicKey);
                 }
 
@@ -117,6 +128,13 @@ namespace SshAgentLib.Keys
 
                 throw new FormatException("unsupported private key format");
             }
+        }
+
+        /// <summary>
+        /// Indicates that a public key is required for the key type given.
+        /// </summary>
+        public sealed class PublicKeyRequiredException : ArgumentException {
+            public PublicKeyRequiredException() : base("public key is required for this key type", "publicKey") {}
         }
     }
 }
