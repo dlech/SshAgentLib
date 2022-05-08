@@ -67,12 +67,7 @@ namespace SshAgentLib.Keys
                 IProgress<double> progress
             )
             {
-                var privReader = new Org.BouncyCastle.OpenSsl.PemReader(
-                    new StringReader(contents),
-                    new PasswordFinder(getPassphrase)
-                );
-
-                var keyPair = (AsymmetricCipherKeyPair)privReader.ReadObject();
+                var keyPair = ReadKeyPair(new StringReader(contents), getPassphrase);
 
                 // REVISIT: should we validate match with public key?
 
@@ -80,6 +75,21 @@ namespace SshAgentLib.Keys
             }
 
             return new SshPrivateKey(publicKey, isEncrypted, false, decrypt);
+        }
+
+        internal static AsymmetricCipherKeyPair ReadKeyPair(
+            TextReader reader,
+            SshPrivateKey.GetPassphraseFunc getPassphrase
+        )
+        {
+            var privReader = new Org.BouncyCastle.OpenSsl.PemReader(
+                reader,
+                new PasswordFinder(getPassphrase)
+            );
+
+            var keyPair = privReader.ReadObject();
+
+            return (AsymmetricCipherKeyPair)keyPair;
         }
 
         public static bool FirstLineMatches(string firstLine)

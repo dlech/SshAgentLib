@@ -216,7 +216,8 @@ namespace dlech.SshAgentLib
 
         public static string GetAuthorizedKeyString(this ISshKey aKey)
         {
-            var result = "";
+            string result;
+
             switch (aKey.Version)
             {
                 case SshVersion.SSH1:
@@ -229,8 +230,6 @@ namespace dlech.SshAgentLib
                         + " "
                         + rsaPublicKeyParameters.Modulus.ToString(10)
                         + " "
-                        + String.Format(aKey.GetMD5Fingerprint().ToHexString())
-                        + " "
                         + aKey.Comment;
                     break;
                 case SshVersion.SSH2:
@@ -239,14 +238,12 @@ namespace dlech.SshAgentLib
                         + " "
                         + Convert.ToBase64String(aKey.GetPublicKeyBlob())
                         + " "
-                        + String.Format(aKey.GetMD5Fingerprint().ToHexString())
-                        + " "
                         + aKey.Comment;
                     break;
                 default:
-                    result = "# unsuported SshVersion: '" + aKey.Version + "'";
-                    break;
+                    throw new NotSupportedException("unsupported SSH version");
             }
+
             return result;
         }
 

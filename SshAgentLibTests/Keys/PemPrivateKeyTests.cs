@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: MIT
 // Copyright (c) 2022 David Lechner <david@lechnology.com>
 
+using System.IO;
 using System.Text;
 using NUnit.Framework;
 using Org.BouncyCastle.Crypto.Parameters;
@@ -113,6 +114,25 @@ namespace SshAgentLibTests.Keys
                 var ecdsa = (ECPrivateKeyParameters)privParam;
                 Assert.That(ecdsa.D, Is.EqualTo(new BigInteger(priv, 16)));
             }
+        }
+
+        [TestCase("rsa_1")]
+        [TestCase("dsa_1")]
+        [TestCase("ecdsa_1")]
+        public void TestThatGeneratingPublicKeyFileWorks(string baseName)
+        {
+            var publicKeyFile = ReadStringResourceFile("OpenSshTestData", $"{baseName}.pub");
+            var publicKey = SshPublicKey.Read(
+                new MemoryStream(Encoding.UTF8.GetBytes(publicKeyFile))
+            );
+
+            var file = OpenResourceFile("OpenSshTestData", $"{baseName}");
+
+            var outStream = new MemoryStream();
+            SshPrivateKey.CreatePublicKeyFromPrivateKey(file, outStream, null, publicKey.Comment);
+
+            var generatedPublicKey = Encoding.UTF8.GetString(outStream.ToArray());
+            Assert.That(generatedPublicKey, Is.EqualTo(publicKeyFile));
         }
     }
 }
