@@ -276,7 +276,8 @@ namespace dlech.SshAgentLib
                 {
                     // can't add key with confirm constraint if we don't have
                     // confirm callback
-                    throw new CallbackNullException();
+                    throw new InvalidOperationException(
+                        "cannot add key with confirm constraint when there is no confirm callback");
                 }
 
                 if (constraint.Type == KeyConstraintType.SSH_AGENT_CONSTRAIN_LIFETIME)
@@ -739,10 +740,6 @@ namespace dlech.SshAgentLib
                         responseBuilder.InsertHeader(Message.SSH_AGENT_SUCCESS);
                         break;
                     }
-                    catch (CallbackNullException)
-                    {
-                        // this is expected
-                    }
                     catch (Exception ex)
                     {
                         Debug.Fail(ex.ToString());
@@ -805,10 +802,6 @@ namespace dlech.SshAgentLib
                         responseBuilder.InsertHeader(Message.SSH_AGENT_SUCCESS);
 
                         break; // success!
-                    }
-                    catch (CallbackNullException)
-                    {
-                        // this is expected
                     }
                     catch (Exception ex)
                     {
