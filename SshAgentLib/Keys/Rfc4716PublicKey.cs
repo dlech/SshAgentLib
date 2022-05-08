@@ -72,7 +72,7 @@ namespace SshAgentLib.Keys
         /// <returns>
         /// A new public key object.
         /// </returns>
-        /// <exception cref="SshKeyFileFormatException"></exception>
+        /// <exception cref="FormatException"></exception>
         public static SshPublicKey Read(Stream stream)
         {
             if (stream is null)
@@ -86,7 +86,7 @@ namespace SshAgentLib.Keys
 
                 if (line != FirstLine)
                 {
-                    throw new SshKeyFileFormatException($"First line must be {FirstLine}");
+                    throw new FormatException($"First line must be {FirstLine}");
                 }
 
                 var headers = new Dictionary<string, string>();
@@ -117,7 +117,7 @@ namespace SshAgentLib.Keys
                         // this match should never fail
                         if (!match.Success)
                         {
-                            throw new SshKeyFileFormatException("unexpected regex match failure");
+                            throw new FormatException("unexpected regex match failure");
                         }
 
                         value.Append(match.Groups[1].Value);

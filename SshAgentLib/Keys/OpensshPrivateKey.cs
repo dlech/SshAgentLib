@@ -82,7 +82,7 @@ namespace SshAgentLib.Keys
 
             if (pem.Type != pemTypeName)
             {
-                throw new SshKeyFileFormatException(
+                throw new FormatException(
                     $"wrong PEM type, got '{pem.Type}' but expecting '{pemTypeName}'."
                 );
             }
@@ -93,26 +93,26 @@ namespace SshAgentLib.Keys
 
             if (Encoding.UTF8.GetString(magicBytes) != authMagic)
             {
-                throw new SshKeyFileFormatException("Bad data - missing AUTH_MAGIC.");
+                throw new FormatException("Bad data - missing AUTH_MAGIC.");
             }
 
             var cipherName = parser.ReadString();
 
             if (!CipherName.IsSupported(cipherName))
             {
-                throw new SshKeyFileFormatException($"Unsupported cypher name: {cipherName}");
+                throw new FormatException($"Unsupported cypher name: {cipherName}");
             }
 
             var kdfName = parser.ReadString();
 
             if (!KdfName.IsSupported(kdfName))
             {
-                throw new SshKeyFileFormatException($"Unsupported KDF name: {kdfName}");
+                throw new FormatException($"Unsupported KDF name: {kdfName}");
             }
 
             if (kdfName == KdfName.None && cipherName != CipherName.None)
             {
-                throw new SshKeyFileFormatException(
+                throw new FormatException(
                     "KDF cannot be 'none' when cipher is not 'none'."
                 );
             }
@@ -122,7 +122,7 @@ namespace SshAgentLib.Keys
 
             if (keyCount != 1)
             {
-                throw new SshKeyFileFormatException("Only one key allowed.");
+                throw new FormatException("Only one key allowed.");
             }
 
             var publicKeyBlob = parser.ReadBlob();
@@ -177,7 +177,7 @@ namespace SshAgentLib.Keys
                             || privateKeyBlob.Length % (aes.BlockSize / 8) != 0
                         )
                         {
-                            throw new SshKeyFileFormatException(
+                            throw new FormatException(
                                 "Bad private key encrypted length."
                             );
                         }
@@ -208,7 +208,7 @@ namespace SshAgentLib.Keys
 
                 if (checkint1 != checkint2)
                 {
-                    throw new SshKeyFileFormatException("checkint does not match in private key.");
+                    throw new FormatException("checkint does not match in private key.");
                 }
 
                 var publicKey = privateKeyParser.ReadSsh2PublicKeyData(out var cert);

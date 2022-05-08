@@ -113,7 +113,7 @@ namespace SshAgentLib.Keys
 
             if (version != "1" && version != "2" && version != "3")
             {
-                throw new SshKeyFileFormatException("unsupported version");
+                throw new FormatException("unsupported version");
             }
 
             // REVISIT: consider emitting warning for v1 format
@@ -267,12 +267,12 @@ namespace SshAgentLib.Keys
                     {
                         // so if they bytes are there, passphrase decrypted properly and
                         // something else is wrong with the file contents
-                        throw new SshKeyFileFormatException("corrupt file");
+                        throw new FormatException("corrupt file");
                     }
 
                     // if the bytes are not zeros, we assume that the data was not
                     // properly decrypted because the passphrase was incorrect.
-                    throw new SshKeyFileFormatException("wrong passphrase");
+                    throw new FormatException("wrong passphrase");
                 }
 
                 var parser = new BlobParser(decryptedPrivateKeyBlob);
@@ -307,14 +307,14 @@ namespace SshAgentLib.Keys
 
             if (items.Length != 2)
             {
-                throw new SshKeyFileFormatException("invalid header line");
+                throw new FormatException("invalid header line");
             }
 
             var key = items[0].Trim();
 
             if (!key.StartsWith(HeaderKey.PuttyUserKeyFile, StringComparison.Ordinal))
             {
-                throw new SshKeyFileFormatException(
+                throw new FormatException(
                     $"File does not start with {HeaderKey.PuttyUserKeyFile}"
                 );
             }
@@ -329,14 +329,14 @@ namespace SshAgentLib.Keys
 
             if (items.Length != 2)
             {
-                throw new SshKeyFileFormatException("invalid header line");
+                throw new FormatException("invalid header line");
             }
 
             var key = items[0].Trim();
 
             if (key != expectedKey)
             {
-                throw new SshKeyFileFormatException(
+                throw new FormatException(
                     $"expecting header '{expectedKey}:` but got '{key}:'"
                 );
             }
