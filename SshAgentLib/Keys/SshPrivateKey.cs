@@ -96,7 +96,7 @@ namespace SshAgentLib.Keys
         /// </exception>
         public static SshPrivateKey Read(Stream stream, SshPublicKey publicKey = null)
         {
-            if (stream is null)
+            if (stream == null)
             {
                 throw new ArgumentNullException(nameof(stream));
             }

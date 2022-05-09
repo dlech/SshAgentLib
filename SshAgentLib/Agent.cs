@@ -277,7 +277,8 @@ namespace dlech.SshAgentLib
                     // can't add key with confirm constraint if we don't have
                     // confirm callback
                     throw new InvalidOperationException(
-                        "cannot add key with confirm constraint when there is no confirm callback");
+                        "cannot add key with confirm constraint when there is no confirm callback"
+                    );
                 }
 
                 if (constraint.Type == KeyConstraintType.SSH_AGENT_CONSTRAIN_LIFETIME)
@@ -285,11 +286,13 @@ namespace dlech.SshAgentLib
                     var lifetime = (uint)constraint.Data * 1000;
                     var timer = new Timer(lifetime);
 
-                    void onTimerElapsed(object s, ElapsedEventArgs e)
+                    var onTimerElapsed = default(ElapsedEventHandler);
+
+                    onTimerElapsed = (s, e) =>
                     {
                         timer.Elapsed -= onTimerElapsed;
                         RemoveKey(key);
-                    }
+                    };
 
                     timer.Elapsed += onTimerElapsed;
                     timer.Start();

@@ -147,7 +147,7 @@ namespace System.Net.Sockets
 
         internal UnixDomainSocketEndPoint CreateUnboundEndPoint()
         {
-            if (IsAbstract(_path) || BoundFileName is null)
+            if (IsAbstract(_path) || BoundFileName == null)
             {
                 return this;
             }

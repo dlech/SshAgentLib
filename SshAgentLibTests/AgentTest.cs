@@ -593,10 +593,10 @@ namespace dlech.SshAgentLibTests
             /* most code is shared with SSH1_AGENTC_ADD_RSA_IDENTITY, so we just
              * need to test the differences */
 
-            bool confirmCallback(ISshKey k, Process p)
+            Agent.ConfirmUserPermissionDelegate confirmCallback = (k, p) =>
             {
                 return true;
-            }
+            };
 
             Agent agent = new TestAgent();
 
@@ -729,10 +729,10 @@ namespace dlech.SshAgentLibTests
             /* most code is shared with SSH2_AGENTC_ADD_IDENTITY, so we just
              * need to test the differences */
 
-            bool confirmCallback(ISshKey k, Process p)
+            Agent.ConfirmUserPermissionDelegate confirmCallback = (k, p) =>
             {
                 return true;
-            }
+            };
 
             Agent agent = new TestAgent();
 
@@ -1292,7 +1292,7 @@ namespace dlech.SshAgentLibTests
             var agentLockedCalled = false;
             Agent.BlobHeader replyHeader;
 
-            void agentLocked(object s, Agent.LockEventArgs e)
+            Agent.LockEventHandler agentLocked = (s, e) =>
             {
                 Assert.That(
                     agentLockedCalled,
@@ -1300,9 +1300,9 @@ namespace dlech.SshAgentLibTests
                     "LockEvent fired without resetting agentLockedCalled"
                 );
                 agentLockedCalled = true;
-            }
+            };
 
-            agent.Locked += new Agent.LockEventHandler(agentLocked);
+            agent.Locked += agentLocked;
 
             /* test that unlock does nothing when already unlocked */
 

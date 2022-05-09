@@ -8,7 +8,7 @@ using System.Linq;
 using System.Security.Cryptography;
 using System.Text;
 using dlech.SshAgentLib;
-using Konscious.Security.Cryptography;
+using SshAgentLib.Crypto;
 using Org.BouncyCastle.Crypto;
 
 namespace SshAgentLib.Keys
@@ -75,22 +75,6 @@ namespace SshAgentLib.Keys
             public const string Aes256Cbc = "aes256-cbc";
         }
 
-        private static class KeyDerivation
-        {
-            public const string Argon2id = "Argon2id";
-            public const string Argon2d = "Argon2d";
-            public const string Argon2i = "Argon2i";
-        }
-
-        private struct Argon2Parameter
-        {
-            internal string Algorithm;
-            internal int Memory;
-            internal int Passes;
-            internal int Parallelism;
-            internal byte[] Salt;
-        }
-
         private static class Salt
         {
             public const string Decrypt1 = "\0\0\0\0";
@@ -134,16 +118,16 @@ namespace SshAgentLib.Keys
             // TODO: could be SSH1 - check algorithm
             var publicKey = new SshPublicKey(SshVersion.SSH2, publicKeyBlob, comment);
 
-            var argon2Parameter = new Argon2Parameter();
+            var argon2Parameter = new Argon2.Parameters();
 
             if (version == "3" && encryption != Encryption.None)
             {
                 var keyDerivation = reader.ReadHeader(HeaderKey.KeyDerivation);
 
                 if (
-                    keyDerivation != KeyDerivation.Argon2id
-                    && keyDerivation != KeyDerivation.Argon2d
-                    && keyDerivation != KeyDerivation.Argon2i
+                    keyDerivation != Argon2.KeyDerivation.Argon2id
+                    && keyDerivation != Argon2.KeyDerivation.Argon2d
+                    && keyDerivation != Argon2.KeyDerivation.Argon2i
                 )
                 {
                     throw new NotSupportedException("unsupported key derivation");
@@ -173,10 +157,7 @@ namespace SshAgentLib.Keys
                 reader.ReadHeader(version == "1" ? HeaderKey.PrivateHash : HeaderKey.PrivateMAC)
             );
 
-            AsymmetricKeyParameter decrypt(
-                SshPrivateKey.GetPassphraseFunc getPassphrase,
-                IProgress<double> progress
-            )
+            SshPrivateKey.DecryptFunc decrypt = (getPassphrase, progress) =>
             {
                 byte[] decryptedPrivateKeyBlob;
                 byte[] macKey;
@@ -214,7 +195,7 @@ namespace SshAgentLib.Keys
                                 // REVISIT: this is potentially long running and should report progress
                                 GetCipherParametersV3(
                                     passphrase,
-                                    ref argon2Parameter,
+                                    argon2Parameter,
                                     out cipherKey,
                                     out vi,
                                     out macKey
@@ -277,7 +258,7 @@ namespace SshAgentLib.Keys
 
                 var parser = new BlobParser(decryptedPrivateKeyBlob);
                 return parser.ReadPuttyPrivateKeyData(publicKey.Parameter);
-            }
+            };
 
             return new SshPrivateKey(
                 publicKey,
@@ -289,7 +270,7 @@ namespace SshAgentLib.Keys
 
         internal static bool FirstLineMatches(string firstLine)
         {
-            if (firstLine is null)
+            if (firstLine == null)
             {
                 throw new ArgumentNullException(nameof(firstLine));
             }
@@ -314,9 +295,7 @@ namespace SshAgentLib.Keys
 
             if (!key.StartsWith(HeaderKey.PuttyUserKeyFile, StringComparison.Ordinal))
             {
-                throw new FormatException(
-                    $"File does not start with {HeaderKey.PuttyUserKeyFile}"
-                );
+                throw new FormatException($"File does not start with {HeaderKey.PuttyUserKeyFile}");
             }
 
             version = key.Remove(0, HeaderKey.PuttyUserKeyFile.Length);
@@ -336,9 +315,7 @@ namespace SshAgentLib.Keys
 
             if (key != expectedKey)
             {
-                throw new FormatException(
-                    $"expecting header '{expectedKey}:` but got '{key}:'"
-                );
+                throw new FormatException($"expecting header '{expectedKey}:` but got '{key}:'");
             }
 
             return items[1].Trim();
@@ -384,46 +361,16 @@ namespace SshAgentLib.Keys
             }
         }
 
-        private static Argon2 CreateArgon2Hasher(string algorithm, byte[] passphrase)
-        {
-            if (algorithm is null)
-            {
-                throw new ArgumentNullException(nameof(algorithm));
-            }
-
-            if (passphrase is null)
-            {
-                throw new ArgumentNullException(nameof(passphrase));
-            }
-
-            switch (algorithm)
-            {
-                case KeyDerivation.Argon2id:
-                    return new Argon2id(passphrase);
-                case KeyDerivation.Argon2d:
-                    return new Argon2d(passphrase);
-                case KeyDerivation.Argon2i:
-                    return new Argon2i(passphrase);
-                default:
-                    throw new NotSupportedException("unsupported algorithm");
-            }
-        }
-
         private static void GetCipherParametersV3(
             byte[] passphrase,
-            ref Argon2Parameter parameter,
+            Argon2.Parameters parameters,
             out byte[] cipherKey,
             out byte[] iv,
             out byte[] macKey
         )
         {
-            using (var hasher = CreateArgon2Hasher(parameter.Algorithm, passphrase))
+            using (var hasher = Argon2.CreateHasher(parameters, passphrase))
             {
-                hasher.MemorySize = parameter.Memory;
-                hasher.Iterations = parameter.Passes;
-                hasher.DegreeOfParallelism = parameter.Parallelism;
-                hasher.Salt = parameter.Salt;
-
                 const int cipherLength = 32;
                 const int ivLength = 16;
                 const int macLength = 32;

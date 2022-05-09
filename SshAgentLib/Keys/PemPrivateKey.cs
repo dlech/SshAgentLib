@@ -17,12 +17,12 @@ namespace SshAgentLib.Keys
     {
         public static SshPrivateKey Read(Stream stream, SshPublicKey publicKey)
         {
-            if (stream is null)
+            if (stream == null)
             {
                 throw new ArgumentNullException(nameof(stream));
             }
 
-            if (publicKey is null)
+            if (publicKey == null)
             {
                 throw new ArgumentNullException(nameof(publicKey));
             }
@@ -62,17 +62,14 @@ namespace SshAgentLib.Keys
                     throw new NotSupportedException($"unsupported key type: '{pem.Type}'");
             }
 
-            AsymmetricKeyParameter decrypt(
-                SshPrivateKey.GetPassphraseFunc getPassphrase,
-                IProgress<double> progress
-            )
+            SshPrivateKey.DecryptFunc decrypt = (getPassphrase, progress) =>
             {
                 var keyPair = ReadKeyPair(new StringReader(contents), getPassphrase);
 
                 // REVISIT: should we validate match with public key?
 
                 return keyPair.Private;
-            }
+            };
 
             return new SshPrivateKey(publicKey, isEncrypted, false, decrypt);
         }
@@ -94,7 +91,7 @@ namespace SshAgentLib.Keys
 
         public static bool FirstLineMatches(string firstLine)
         {
-            if (firstLine is null)
+            if (firstLine == null)
             {
                 throw new ArgumentNullException(nameof(firstLine));
             }

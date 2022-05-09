@@ -1,22 +1,22 @@
 //  Copyright (c) 2006, Gustavo Franco
-//  Copyright © Decebal Mihailescu 2007-2010
+//  Copyright ï¿½ Decebal Mihailescu 2007-2010
 
 //  Email:  gustavo_franco@hotmail.com
 //  All rights reserved.
 
-//  Redistribution and use in source and binary forms, with or without modification, 
+//  Redistribution and use in source and binary forms, with or without modification,
 //  are permitted provided that the following conditions are met:
 
-//  Redistributions of source code must retain the above copyright notice, 
-//  this list of conditions and the following disclaimer. 
-//  Redistributions in binary form must reproduce the above copyright notice, 
-//  this list of conditions and the following disclaimer in the documentation 
-//  and/or other materials provided with the distribution. 
+//  Redistributions of source code must retain the above copyright notice,
+//  this list of conditions and the following disclaimer.
+//  Redistributions in binary form must reproduce the above copyright notice,
+//  this list of conditions and the following disclaimer in the documentation
+//  and/or other materials provided with the distribution.
 
 //  THIS CODE AND INFORMATION IS PROVIDED "AS IS" WITHOUT WARRANTY OF ANY
 //  KIND, EITHER EXPRESSED OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE
 //  IMPLIED WARRANTIES OF MERCHANTABILITY AND/OR FITNESS FOR A PARTICULAR
-//  PURPOSE. IT CAN BE DISTRIBUTED FREE OF CHARGE AS LONG AS THIS HEADER 
+//  PURPOSE. IT CAN BE DISTRIBUTED FREE OF CHARGE AS LONG AS THIS HEADER
 //  REMAINS UNCHANGED.
 
 using System;
@@ -91,7 +91,7 @@ namespace FileDialogExtenders
                     }
                 }
                  DestroyHandle();
-               
+
             }
             #endregion
 
@@ -110,7 +110,7 @@ namespace FileDialogExtenders
                                     NativeMethods.SendMessage(new HandleRef(this, NativeMethods.GetParent(Handle)), (uint)DialogChangeProperties.CDM_GETFILEPATH, (IntPtr)256, filePath);
                                     if (_CustomCtrl != null)
                                     {
-                                        _CustomCtrl.OnFileNameChanged(this, filePath.ToString());                                        
+                                        _CustomCtrl.OnFileNameChanged(this, filePath.ToString());
                                     }
                                 }
                                 break;
@@ -153,7 +153,7 @@ namespace FileDialogExtenders
                                 break;
 #pragma warning restore 1690, 0414
                             default:
-                               
+
                                 break;
 
                         }
@@ -202,6 +202,8 @@ namespace FileDialogExtenders
             #endregion
 
             #region Variables Declaration
+
+#pragma warning disable CS0414
             IntPtr _hDummyWnd = NULL;
             bool mResized;
             private FileDialogControlBase _CustomControl = null;
@@ -236,6 +238,7 @@ namespace FileDialogExtenders
             private bool mInitializated = false;
             private RECT _DialogWindowRect = new RECT();
             private RECT _DialogClientRect = new RECT();
+#pragma warning restore CS0414
 
             #endregion
 
@@ -429,7 +432,7 @@ namespace FileDialogExtenders
             }
             #endregion
 
-            
+
             #region Overrides
             //this is a child window for the whole Dialog
             protected override void WndProc(ref Message m)
@@ -577,7 +580,7 @@ namespace FileDialogExtenders
 
                     case Msg.WM_ACTIVATE:
                         if (_WatchForActivate && !mIsClosing)//WM_NCACTIVATE works too
-                        {  //Now the Open/Save Dialog is visible and about to enter the modal loop 
+                        {  //Now the Open/Save Dialog is visible and about to enter the modal loop
                             _WatchForActivate = false;
                             //Now we save the real dialog window handle
                             _hFileDialogHandle = m.LParam;

@@ -75,7 +75,7 @@ namespace SshAgentLib.Keys
         /// <exception cref="FormatException"></exception>
         public static SshPublicKey Read(Stream stream)
         {
-            if (stream is null)
+            if (stream == null)
             {
                 throw new ArgumentNullException(nameof(stream));
             }

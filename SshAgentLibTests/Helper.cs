@@ -42,7 +42,6 @@ namespace SshAgentLibTests
                     TestContext.CurrentContext.TestDirectory,
                     "..",
                     "..",
-                    "..",
                     "Resources",
                     directory,
                     file

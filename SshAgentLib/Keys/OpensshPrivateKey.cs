@@ -28,7 +28,7 @@ namespace SshAgentLib.Keys
 
             public static bool IsSupported(string cipherName)
             {
-                if (cipherName is null)
+                if (cipherName == null)
                 {
                     throw new ArgumentNullException(nameof(cipherName));
                 }
@@ -52,7 +52,7 @@ namespace SshAgentLib.Keys
 
             public static bool IsSupported(string kdfName)
             {
-                if (kdfName is null)
+                if (kdfName == null)
                 {
                     throw new ArgumentNullException(nameof(kdfName));
                 }
@@ -112,9 +112,7 @@ namespace SshAgentLib.Keys
 
             if (kdfName == KdfName.None && cipherName != CipherName.None)
             {
-                throw new FormatException(
-                    "KDF cannot be 'none' when cipher is not 'none'."
-                );
+                throw new FormatException("KDF cannot be 'none' when cipher is not 'none'.");
             }
 
             var kdfOptions = parser.ReadBlob();
@@ -128,10 +126,7 @@ namespace SshAgentLib.Keys
             var publicKeyBlob = parser.ReadBlob();
             var privateKeyBlob = parser.ReadBlob();
 
-            AsymmetricKeyParameter decrypt(
-                SshPrivateKey.GetPassphraseFunc getPassphrase,
-                IProgress<double> progress
-            )
+            SshPrivateKey.DecryptFunc decrypt = (getPassphrase, progress) =>
             {
                 var keyAndIV = new byte[32 + 16];
 
@@ -177,9 +172,7 @@ namespace SshAgentLib.Keys
                             || privateKeyBlob.Length % (aes.BlockSize / 8) != 0
                         )
                         {
-                            throw new FormatException(
-                                "Bad private key encrypted length."
-                            );
+                            throw new FormatException("Bad private key encrypted length.");
                         }
 
                         using (var decryptor = aes.CreateDecryptor())
@@ -213,11 +206,11 @@ namespace SshAgentLib.Keys
 
                 var publicKey = privateKeyParser.ReadSsh2PublicKeyData(out var cert);
                 var privateKey = privateKeyParser.ReadSsh2KeyData(publicKey);
-                var comment = privateKeyParser.ReadString();
+                // var comment = privateKeyParser.ReadString();
                 // TODO: what to do with comment and cert?
 
                 return privateKey;
-            }
+            };
 
             return new SshPrivateKey(
                 new SshPublicKey(SshVersion.SSH2, publicKeyBlob),

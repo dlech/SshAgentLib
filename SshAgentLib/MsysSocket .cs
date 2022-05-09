@@ -174,7 +174,6 @@ namespace dlech.SshAgentLib
 
         void AcceptConnections()
         {
-            var buffer = new byte[16];
             while (true)
             {
                 try

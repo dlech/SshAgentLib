@@ -22,7 +22,7 @@ namespace SshAgentLib
         /// </exception>
         public static PublicKeyAlgorithm Parse(string identifier)
         {
-            if (identifier is null)
+            if (identifier == null)
             {
                 throw new ArgumentNullException(nameof(identifier));
             }

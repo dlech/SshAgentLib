@@ -25,3 +25,32 @@ install dependencies.
     cd SshAgentLib
     ./scripts/shell.ps1
     nuget restore
+
+## Linux
+
+The info above applies to Windows only. For Linux, only the most recent Ubuntu
+LTS is officially supported.
+
+### Dependencies
+
+Nuget is only needed to install NUnit to for building and running the unit tests.
+You will need a more recent `nuget` than what is available in the Ubuntu archives.
+
+Then run the following commands:
+
+    sudo add-apt-repository ppa:dlech/keepass2-plugins-beta
+    sudo apt update
+    sudo apt install mono-devel libbccrypto-cil libgtk2.0-cil-dev libglade2.0-cil-dev libargon2-dev
+    ./scripts/install-nunit.sh
+
+To build the entire project:
+
+    xbuild
+
+To build and run unit tests:
+
+    ./scripts/run-tests-mono.sh
+
+Note: additional arguments for `run-tests-mono.sh` will be passed to `nunit-console.exe`.
+This can be used with `--explore` to list test names and with `--test=NAMES`
+or `--where=EXPRESSION` to run individual tests.

@@ -301,7 +301,7 @@ namespace dlech.SshAgentLib
 
         public void Lock(byte[] passphrase)
         {
-            if (passphrase is null)
+            if (passphrase == null)
             {
                 throw new ArgumentNullException(nameof(passphrase));
             }
@@ -314,7 +314,7 @@ namespace dlech.SshAgentLib
 
         public void Unlock(byte[] passphrase)
         {
-            if (passphrase is null)
+            if (passphrase == null)
             {
                 throw new ArgumentNullException(nameof(passphrase));
             }

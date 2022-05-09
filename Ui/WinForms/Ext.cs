@@ -132,7 +132,7 @@ namespace dlech.SshAgentLib.WinForms
 
             return () =>
             {
-                if (passphrase == default)
+                if (passphrase == null)
                 {
                     var dialog = new PasswordDialog { Text = message };
 

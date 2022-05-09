@@ -148,7 +148,7 @@ namespace SshAgentLib.Keys
         /// <returns>A new public key object</summary>.
         public static SshPublicKey Read(Stream stream)
         {
-            if (stream is null)
+            if (stream == null)
             {
                 throw new ArgumentNullException(nameof(stream));
             }
@@ -195,7 +195,7 @@ namespace SshAgentLib.Keys
         /// <exception cref="ArgumentNullException"></exception>
         public bool Matches(byte[] blob)
         {
-            if (blob is null)
+            if (blob == null)
             {
                 throw new ArgumentNullException(nameof(blob));
             }
@@ -205,7 +205,7 @@ namespace SshAgentLib.Keys
 
         private static string GetBaseAlgorithmIdentifier(AsymmetricKeyParameter parameters)
         {
-            if (parameters is null)
+            if (parameters == null)
             {
                 throw new ArgumentNullException(nameof(parameters));
             }

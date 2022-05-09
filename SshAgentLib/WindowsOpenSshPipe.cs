@@ -58,6 +58,15 @@ namespace dlech.SshAgentLib
             CancellationToken cancellationToken
         )
         {
+#if __MonoCS__
+            // implementation causes compiler to crash
+            await Task.Run(
+                () =>
+                {
+                    throw new NotImplementedException();
+                }
+            );
+#else
             while (!cancellationToken.IsCancellationRequested)
             {
                 var security = new PipeSecurity();
@@ -111,6 +120,7 @@ namespace dlech.SshAgentLib
                     }
                 }
             }
+#endif
         }
 
         public void Dispose()

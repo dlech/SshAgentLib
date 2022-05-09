@@ -182,8 +182,8 @@ namespace dlech.SshAgentLib
                                     stream.Flush();
                                     stream.Read(buffer, 0, 12);
                                     var pid = BitConverter.ToInt32(buffer, 0);
-                                    var gid = BitConverter.ToInt32(buffer, 4);
-                                    var uid = BitConverter.ToInt32(buffer, 8);
+                                    // var gid = BitConverter.ToInt32(buffer, 4);
+                                    // var uid = BitConverter.ToInt32(buffer, 8);
                                     // FIXME: This should be a cygwin pid, not a windows pid
                                     // seems to work fine though
                                     pid = Process.GetCurrentProcess().Id;

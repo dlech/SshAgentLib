@@ -860,12 +860,6 @@ namespace dlech.SshAgentLib.WinForms
                     e.CellBounds.Bottom
                 );
 
-                var foreColorPen = new Pen(
-                    e.State.HasFlag(DataGridViewElementStates.Selected)
-                      ? e.CellStyle.SelectionForeColor
-                      : e.CellStyle.ForeColor
-                );
-
                 if (e.Value is bool && ((bool)e.Value))
                 {
                     var midX = e.CellBounds.X + e.CellBounds.Width / 2;

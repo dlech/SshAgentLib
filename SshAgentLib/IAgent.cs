@@ -166,12 +166,12 @@ namespace dlech.SshAgentLib
         /// <exception cref="ArgumentNullException"></exception>
         public static bool Contains(this IAgent agent, SshPublicKey key)
         {
-            if (agent is null)
+            if (agent == null)
             {
                 throw new ArgumentNullException(nameof(agent));
             }
 
-            if (key is null)
+            if (key == null)
             {
                 throw new ArgumentNullException(nameof(key));
             }
