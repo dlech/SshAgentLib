@@ -140,7 +140,7 @@
     <Reference Include="System.Net" />
     <Reference Include="System.Management" />
   </ItemGroup>
-  <ItemGroup  Condition=" '$(OS)' == 'Unix' ">
+  <ItemGroup Condition=" '$(OS)' == 'Unix' ">
     <Reference Include="Mono.Posix" />
     <Reference Include="BouncyCastle">
       <HintPath>/usr/lib/cli/bccrypto-csharp/BouncyCastle.dll</HintPath>
