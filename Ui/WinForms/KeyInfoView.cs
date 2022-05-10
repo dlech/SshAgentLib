@@ -66,6 +66,17 @@ namespace dlech.SshAgentLib.WinForms
         {
             mOpenFileDialogMap = new Dictionary<OpenFileDialog, XPOpenFileDialog>();
             InitializeComponent();
+
+            if (Type.GetType("Mono.Runtime") != null)
+            {
+                addKeyButton.ImageScaling = ToolStripItemImageScaling.None;
+                removeKeyButton.ImageScaling = ToolStripItemImageScaling.None;
+                removeAllKeysButton.ImageScaling = ToolStripItemImageScaling.None;
+                refreshAgentButton.ImageScaling = ToolStripItemImageScaling.None;
+                lockAgentButton.ImageScaling = ToolStripItemImageScaling.None;
+                unlockAgentButton.ImageScaling = ToolStripItemImageScaling.None;
+                copyPublicKeyButton.ImageScaling = ToolStripItemImageScaling.None;
+            }
         }
 
         public void SetAgent(IAgent aAgent)
