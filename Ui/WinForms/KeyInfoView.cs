@@ -48,7 +48,6 @@ namespace dlech.SshAgentLib.WinForms
 
         private IAgent mAgent;
         private BindingList<KeyWrapper> mKeyCollection;
-        private readonly bool mSelectionChangedBroken;
         private readonly Dictionary<OpenFileDialog, XPOpenFileDialog> mOpenFileDialogMap;
 
         public ToolStripDropDown AddButtonSplitMenu
@@ -66,28 +65,6 @@ namespace dlech.SshAgentLib.WinForms
         public KeyInfoView()
         {
             mOpenFileDialogMap = new Dictionary<OpenFileDialog, XPOpenFileDialog>();
-            var monoRuntimeType = Type.GetType("Mono.Runtime");
-            if (monoRuntimeType != null)
-            {
-                // workaround for mono bug
-                try
-                {
-                    var getDisplayNameMethod = monoRuntimeType.GetMethod(
-                        "GetDisplayName",
-                        BindingFlags.NonPublic | BindingFlags.Static
-                    );
-                    var displayName = getDisplayNameMethod.Invoke(null, null) as string;
-                    var versionRegex = new Regex(@"\d+\.\d+\.\d+(\.\d+)?");
-                    var match = versionRegex.Match(displayName);
-                    var version = match.Value;
-                    mSelectionChangedBroken = Version.Parse(version) < Version.Parse("2.11.2");
-                }
-                catch (Exception ex)
-                {
-                    Debug.Fail(ex.ToString());
-                }
-            }
-
             InitializeComponent();
         }
 
@@ -449,7 +426,7 @@ namespace dlech.SshAgentLib.WinForms
             unlockAgentButton.Enabled = agent == null || isLocked;
             addKeyButton.Enabled = !isLocked;
             removeKeyButton.Enabled = copyPublicKeyButton.Enabled =
-                mSelectionChangedBroken || (dataGridView.SelectedRows.Count > 0 && !isLocked);
+                dataGridView.SelectedRows.Count > 0 && !isLocked;
             removeAllKeysButton.Enabled = dataGridView.Rows.Count > 0 && !isLocked;
         }
 
