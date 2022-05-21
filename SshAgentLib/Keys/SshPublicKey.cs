@@ -84,12 +84,12 @@ namespace SshAgentLib.Keys
         /// </summary>
         /// <param name="version">The SSH version.</param>
         /// <param name="keyBlob">The public key binary data.</param>
-        /// <param name="comment">Optional comment.</param>
-        public SshPublicKey(SshVersion version, byte[] keyBlob, string comment = null)
+        /// <param name="comment">Optional comment (not null).</param>
+        public SshPublicKey(SshVersion version, byte[] keyBlob, string comment = "")
         {
             Version = version;
             KeyBlob = keyBlob ?? throw new ArgumentNullException(nameof(keyBlob));
-            Comment = comment;
+            Comment = comment ?? throw new ArgumentNullException(nameof(comment));
 
             var parser = new BlobParser(keyBlob);
 

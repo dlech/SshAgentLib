@@ -38,9 +38,9 @@ namespace dlech.SshAgentLib
     /// </summary>
     public class SshKey : ISshKey
     {
-        private List<Agent.KeyConstraint> keyConstraints;
-        private AsymmetricKeyParameter publicKeyParameter;
-        private AsymmetricKeyParameter privateKeyParameter;
+        private readonly List<Agent.KeyConstraint> keyConstraints;
+        private readonly AsymmetricKeyParameter publicKeyParameter;
+        private readonly AsymmetricKeyParameter privateKeyParameter;
 
         public SshKey(
             SshVersion version,
@@ -50,16 +50,13 @@ namespace dlech.SshAgentLib
             OpensshCertificate certificate = null
         )
         {
-            if (publicKeyParameter == null)
-            {
-                throw new ArgumentNullException("publicKeyParameter");
-            }
             IsPublicOnly = (privateKeyParameter == null);
             Version = version;
-            this.publicKeyParameter = publicKeyParameter;
+            this.publicKeyParameter =
+                publicKeyParameter ?? throw new ArgumentNullException(nameof(publicKeyParameter));
             this.privateKeyParameter = privateKeyParameter;
             Certificate = certificate;
-            Comment = comment;
+            Comment = comment ?? throw new ArgumentNullException(nameof(comment));
             keyConstraints = new List<Agent.KeyConstraint>();
         }
 
