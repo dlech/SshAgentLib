@@ -500,6 +500,10 @@ namespace dlech.SshAgentLib
                         // TODO may want to check that there is enough room in the message stream
                         break; // succeeded
                     }
+                    catch (AgentLockedException)
+                    {
+                        // This is expected
+                    }
                     catch (Exception ex)
                     {
                         Debug.Fail(ex.ToString());
@@ -532,6 +536,10 @@ namespace dlech.SshAgentLib
 
                         // TODO may want to check that there is enough room in the message stream
                         break; // succeeded
+                    }
+                    catch (AgentLockedException)
+                    {
+                        // This is expected
                     }
                     catch (Exception ex)
                     {
@@ -594,6 +602,10 @@ namespace dlech.SshAgentLib
                             responseBuilder.InsertHeader(Message.SSH1_AGENT_RSA_RESPONSE);
                             break;
                         }
+                    }
+                    catch (AgentLockedException)
+                    {
+                        // This is expected
                     }
                     catch (InvalidOperationException)
                     {
@@ -680,6 +692,10 @@ namespace dlech.SshAgentLib
 
                         break; // succeeded
                     }
+                    catch (AgentLockedException)
+                    {
+                        // This is expected
+                    }
                     catch (InvalidOperationException)
                     {
                         // this is expected if there is not a matching key
@@ -742,6 +758,14 @@ namespace dlech.SshAgentLib
                         AddKey(key);
                         responseBuilder.InsertHeader(Message.SSH_AGENT_SUCCESS);
                         break;
+                    }
+                    catch (AgentLockedException)
+                    {
+                        // This is expected
+                    }
+                    catch (InvalidOperationException)
+                    {
+                        // this is expected if there is not a constraint callback
                     }
                     catch (Exception ex)
                     {
@@ -806,6 +830,14 @@ namespace dlech.SshAgentLib
 
                         break; // success!
                     }
+                    catch (AgentLockedException)
+                    {
+                        // This is expected
+                    }
+                    catch (InvalidOperationException)
+                    {
+                        // this is expected if there is not a constraint callback
+                    }
                     catch (Exception ex)
                     {
                         Debug.Fail(ex.ToString());
@@ -857,6 +889,10 @@ namespace dlech.SshAgentLib
                             break; //success!
                         }
                     }
+                    catch (AgentLockedException)
+                    {
+                        // This is expected
+                    }
                     catch (Exception ex)
                     {
                         Debug.Fail(ex.ToString());
@@ -894,6 +930,10 @@ namespace dlech.SshAgentLib
                         RemoveAllKeys(removeAllVersion);
                         responseBuilder.InsertHeader(Message.SSH_AGENT_SUCCESS);
                         break; //success!
+                    }
+                    catch (AgentLockedException)
+                    {
+                        // This is expected
                     }
                     catch (Exception ex)
                     {
