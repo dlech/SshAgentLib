@@ -10,6 +10,32 @@ namespace SshAgentLibTests
     internal static class Helpers
     {
         /// <summary>
+        /// Gets the full path to a file in the "Resources" directory.
+        /// </summary>
+        /// <param name="directory">
+        /// The name of a subdirectory in the "Resources" directory.
+        /// </param>
+        /// <param name="file">
+        /// The name of a file in <paramref name="directory"/>.
+        /// </param>
+        /// <returns>
+        /// The path.
+        /// </returns>
+        public static string GetResourceFilePath(string directory, string file)
+        {
+            return Path.GetFullPath(
+                Path.Combine(
+                    TestContext.CurrentContext.TestDirectory,
+                    "..",
+                    "..",
+                    "Resources",
+                    directory,
+                    file
+                )
+            );
+        }
+
+        /// <summary>
         /// Opens a file in the test "Resources" directory for reading.
         /// </summary>
         /// <param name="file">
@@ -37,16 +63,7 @@ namespace SshAgentLibTests
         /// </returns>
         public static FileStream OpenResourceFile(string directory, string file)
         {
-            return File.OpenRead(
-                Path.Combine(
-                    TestContext.CurrentContext.TestDirectory,
-                    "..",
-                    "..",
-                    "Resources",
-                    directory,
-                    file
-                )
-            );
+            return File.OpenRead(GetResourceFilePath(directory, file));
         }
 
         /// <summary>
