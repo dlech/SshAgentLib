@@ -1,4 +1,4 @@
-//
+﻿//
 // IAgent.cs
 //
 // Author(s): David Lechner <david@lechnology.com>
@@ -86,7 +86,7 @@ namespace dlech.SshAgentLib
 
             try
             {
-                publicKey = SshPublicKey.Read(File.OpenRead(fileName + ".pub"));
+                publicKey = SshPublicKey.Read(File.OpenRead($"{fileName}.pub"));
             }
             catch
             {
@@ -96,11 +96,21 @@ namespace dlech.SshAgentLib
 
             var privateKey = SshPrivateKey.Read(File.OpenRead(fileName), publicKey);
 
+            try
+            {
+                publicKey = SshPublicKey.Read(File.OpenRead($"{fileName}-cert.pub"));
+            }
+            catch
+            {
+                // silently ignore, this file is optional
+            }
+
             var key = new SshKey(
                 privateKey.PublicKey.Version,
                 privateKey.PublicKey.Parameter,
                 privateKey.Decrypt(getPassPhraseCallback, progress),
-                privateKey.PublicKey.Comment
+                privateKey.PublicKey.Comment,
+                publicKey.Certificate
             );
 
             if (constraints != null)

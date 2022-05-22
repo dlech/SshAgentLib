@@ -19,8 +19,6 @@ namespace SshAgentLib.Keys
     /// </summary>
     public sealed class SshPublicKey
     {
-        private readonly OpensshCertificate certificate;
-
         /// <summary>
         /// Gets the SSH protocol version.
         /// </summary>
@@ -65,7 +63,7 @@ namespace SshAgentLib.Keys
             {
                 var builder = new StringBuilder();
 
-                builder.Append(GetAlgorithmIdentifier(Parameter, certificate != null));
+                builder.Append(GetAlgorithmIdentifier(Parameter, Certificate != null));
                 builder.Append(' ');
                 builder.Append(Convert.ToBase64String(KeyBlob));
 
@@ -78,6 +76,8 @@ namespace SshAgentLib.Keys
                 return builder.ToString();
             }
         }
+
+        public OpensshCertificate Certificate { get; }
 
         /// <summary>
         /// Creates a new public key.
@@ -99,7 +99,8 @@ namespace SshAgentLib.Keys
                     Parameter = parser.ReadSsh1PublicKeyData();
                     break;
                 case SshVersion.SSH2:
-                    Parameter = parser.ReadSsh2PublicKeyData(out certificate);
+                    Parameter = parser.ReadSsh2PublicKeyData(out var certificate);
+                    Certificate = certificate;
                     break;
                 default:
                     throw new ArgumentException("unsupported SSH version", nameof(version));
@@ -122,7 +123,7 @@ namespace SshAgentLib.Keys
         public SshPublicKey WithoutCertificate()
         {
             // if there is already no certificate, just return self
-            if (certificate == null)
+            if (Certificate == null)
             {
                 return this;
             }
