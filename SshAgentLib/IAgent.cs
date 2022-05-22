@@ -1,4 +1,4 @@
-﻿//
+//
 // IAgent.cs
 //
 // Author(s): David Lechner <david@lechnology.com>
@@ -90,7 +90,7 @@ namespace dlech.SshAgentLib
             }
             catch
             {
-                // silently ingore, SshPrivateKey.Read() will raise proper
+                // silently ignore, SshPrivateKey.Read() will raise proper
                 // error if this file was required.
             }
 
