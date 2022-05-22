@@ -97,6 +97,7 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="IntegrationTests\CertTests.cs" />
     <Compile Include="AgentClientTest.cs" />
     <Compile Include="AgentTest.cs" />
     <Compile Include="BCryptTest.cs" />
