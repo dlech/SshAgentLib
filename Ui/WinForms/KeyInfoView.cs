@@ -485,6 +485,7 @@ namespace dlech.SshAgentLib.WinForms
             {
                 return;
             }
+
             if (InvokeRequired)
             {
                 Invoke(
@@ -495,12 +496,17 @@ namespace dlech.SshAgentLib.WinForms
                 );
                 return;
             }
+
             var matchFingerprint = e.Key.GetMD5Fingerprint().ToHexString();
-            var matches = mKeyCollection.Where(k => k.Fingerprint == matchFingerprint).ToList();
+            var matches = mKeyCollection
+                .Where(k => k.Fingerprint == matchFingerprint && k.Certificate == e.Key.Certificate)
+                .ToList();
+
             foreach (var key in matches)
             {
                 mKeyCollection.Remove(key);
             }
+
             UpdateVisibility();
             UpdateButtonStates();
         }

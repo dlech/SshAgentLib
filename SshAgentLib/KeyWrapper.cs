@@ -64,6 +64,11 @@ namespace dlech.SshAgentLib
             get { return key.GetMD5Fingerprint().ToHexString(); }
         }
 
+        public OpensshCertificate Certificate
+        {
+            get { return key.Certificate; }
+        }
+
         public KeyWrapper(ISshKey key)
         {
             this.key = key;
