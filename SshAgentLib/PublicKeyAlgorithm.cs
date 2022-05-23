@@ -1,4 +1,4 @@
-//
+﻿//
 // PublicKeyAlgorithm.cs
 //
 // Author(s): David Lechner <david@lechnology.com>
@@ -108,6 +108,31 @@ namespace dlech.SshAgentLib
 
             return id.Replace("ecdsa-sha2-", string.Empty)
                 .Replace("-cert-v01@openssh.com", string.Empty);
+        }
+
+        public static bool HasCert(this PublicKeyAlgorithm algorithm)
+        {
+            switch (algorithm)
+            {
+                case PublicKeyAlgorithm.SshRsa:
+                case PublicKeyAlgorithm.SshDss:
+                case PublicKeyAlgorithm.EcdsaSha2Nistp256:
+                case PublicKeyAlgorithm.EcdsaSha2Nistp384:
+                case PublicKeyAlgorithm.EcdsaSha2Nistp521:
+                case PublicKeyAlgorithm.SshEd25519:
+                case PublicKeyAlgorithm.SshEd448:
+                    return false;
+                case PublicKeyAlgorithm.SshRsaCertV1:
+                case PublicKeyAlgorithm.SshDssCertV1:
+                case PublicKeyAlgorithm.EcdsaSha2Nistp256CertV1:
+                case PublicKeyAlgorithm.EcdsaSha2Nistp384CertV1:
+                case PublicKeyAlgorithm.EcdsaSha2Nistp521CertV1:
+                case PublicKeyAlgorithm.SshEd25519CertV1:
+                case PublicKeyAlgorithm.SshEd448CertV1:
+                    return true;
+                default:
+                    throw new NotSupportedException("unsupported algorithm");
+            }
         }
     }
 }

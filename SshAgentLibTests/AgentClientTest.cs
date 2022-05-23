@@ -218,7 +218,8 @@ namespace SshAgentLibTests
                 Assert.That(agentClient.Agent.KeyCount, Is.EqualTo(keyCount));
                 Assert.That(
                     agentClient.Agent.GetAllKeys().Get(key.Version, key.GetPublicKeyBlob()),
-                    Is.Not.Null
+                    Is.Not.Null,
+                    $"{key.Algorithm.GetIdentifier()}"
                 );
             }
         }
@@ -240,7 +241,11 @@ namespace SshAgentLibTests
             Assert.That(keyList.Count, Is.EqualTo(expectedKeyList.Count));
             foreach (var key in expectedKeyList)
             {
-                Assert.That(keyList.Get(key.Version, key.GetPublicKeyBlob()), Is.Not.Null);
+                Assert.That(
+                    keyList.Get(key.Version, key.GetPublicKeyBlob()),
+                    Is.Not.Null,
+                    $"{key.Algorithm.GetIdentifier()}"
+                );
             }
 
             // check that ssh2 keys worked
@@ -249,7 +254,11 @@ namespace SshAgentLibTests
             Assert.That(keyList.Count, Is.EqualTo(expectedKeyList.Count));
             foreach (var key in expectedKeyList)
             {
-                Assert.That(keyList.Get(key.Version, key.GetPublicKeyBlob()), Is.Not.Null);
+                Assert.That(
+                    keyList.Get(key.Version, key.GetPublicKeyBlob()),
+                    Is.Not.Null,
+                    $"{key.Algorithm.GetIdentifier()}"
+                );
             }
         }
 

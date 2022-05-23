@@ -32,11 +32,83 @@ using Org.BouncyCastle.Crypto;
 using Org.BouncyCastle.Crypto.Generators;
 using Org.BouncyCastle.Crypto.Parameters;
 using Org.BouncyCastle.Security;
+using SshAgentLib.Keys;
 
 namespace dlech.SshAgentLibTests
 {
     public static class KeyGenerator
     {
+        private static OpensshCertificateInfo CreateCertificate(
+            AsymmetricKeyParameter publicKeyParams
+        )
+        {
+            // build the certificate
+
+            var publicKey = new SshKey(SshVersion.SSH2, publicKeyParams);
+
+            var certBuilder = new BlobBuilder();
+            certBuilder.AddBlob(new byte[32]); // nonce
+
+            if (publicKeyParams is RsaKeyParameters rsa)
+            {
+                certBuilder.AddBigIntBlob(rsa.Exponent);
+                certBuilder.AddBigIntBlob(rsa.Modulus);
+            }
+            else if (publicKeyParams is DsaPublicKeyParameters dsa)
+            {
+                certBuilder.AddBigIntBlob(dsa.Parameters.P);
+                certBuilder.AddBigIntBlob(dsa.Parameters.Q);
+                certBuilder.AddBigIntBlob(dsa.Parameters.G);
+                certBuilder.AddBigIntBlob(dsa.Y);
+            }
+            else if (publicKeyParams is ECPublicKeyParameters ecdsa)
+            {
+                certBuilder.AddStringBlob(publicKey.Algorithm.GetCurveDomainIdentifier());
+                certBuilder.AddBlob(ecdsa.Q.GetEncoded());
+            }
+            else if (publicKeyParams is Ed25519PublicKeyParameters ed25519)
+            {
+                certBuilder.AddBlob(ed25519.GetEncoded());
+            }
+            else if (publicKeyParams is Ed448PublicKeyParameters ed448)
+            {
+                certBuilder.AddBlob(ed448.GetEncoded());
+            }
+            else
+            {
+                throw new ArgumentException("unknown algorithm", nameof(publicKeyParams));
+            }
+
+            const ulong serial = 0;
+            const OpensshCertType type = OpensshCertType.User;
+            const string keyId = "test key id";
+            var principals = new string[] { "testtest" };
+            var validAfter = DateTime.MinValue;
+            var validBefore = DateTime.MaxValue;
+            var criticalOptions = Array.Empty<byte>();
+            var extensions = Array.Empty<byte>();
+            var reserved = Array.Empty<byte>();
+            // HACK: the signature key is really independent of publicKey - it
+            // is the key used to sign the certificate by the CA and can even
+            // use a different algorithm
+            var signatureKey = new SshPublicKey(SshVersion.SSH2, publicKey.GetPublicKeyBlob(false));
+            var signature = Array.Empty<byte>();
+
+            return new OpensshCertificateInfo(
+                type,
+                serial,
+                keyId,
+                principals,
+                validAfter,
+                validBefore,
+                criticalOptions,
+                extensions,
+                reserved,
+                signatureKey,
+                signature
+            );
+        }
+
         /// <summary>
         /// Creates a random key for testing purposes.
         /// </summary
@@ -64,6 +136,9 @@ namespace dlech.SshAgentLibTests
             var secureRandom = SecureRandom.GetInstance("SHA256PRNG");
             secureRandom.SetSeed(Encoding.Unicode.GetBytes(seed ?? "default"));
 
+            var nonce = default(byte[]);
+            var certificate = default(OpensshCertificateInfo);
+
             switch (algorithm)
             {
                 case PublicKeyAlgorithm.SshRsa:
@@ -73,7 +148,14 @@ namespace dlech.SshAgentLibTests
                     var rsaKeyPairGen = new RsaKeyPairGenerator();
                     rsaKeyPairGen.Init(keyGenParam);
                     var keyPair = rsaKeyPairGen.GenerateKeyPair();
-                    var rsaKey = new SshKey(version, keyPair, comment);
+
+                    if (algorithm.HasCert())
+                    {
+                        nonce = new byte[32];
+                        certificate = CreateCertificate(keyPair.Public);
+                    }
+
+                    var rsaKey = new SshKey(version, keyPair, comment, nonce, certificate);
                     return rsaKey;
 
                 case PublicKeyAlgorithm.SshDss:
@@ -85,7 +167,7 @@ namespace dlech.SshAgentLibTests
                     var dsaKeyPairGen = new DsaKeyPairGenerator();
                     dsaKeyPairGen.Init(dsaKeyGenParam);
                     keyPair = dsaKeyPairGen.GenerateKeyPair();
-                    var dsaKey = new SshKey(SshVersion.SSH2, keyPair, comment);
+                    var dsaKey = new SshKey(SshVersion.SSH2, keyPair, comment, nonce, certificate);
                     return dsaKey;
 
                 case PublicKeyAlgorithm.EcdsaSha2Nistp256:
@@ -104,7 +186,13 @@ namespace dlech.SshAgentLibTests
                     var ecdsa256Gen = new ECKeyPairGenerator();
                     ecdsa256Gen.Init(ecdsa256GenParams);
                     keyPair = ecdsa256Gen.GenerateKeyPair();
-                    var ecdsa256Key = new SshKey(SshVersion.SSH2, keyPair, comment);
+                    var ecdsa256Key = new SshKey(
+                        SshVersion.SSH2,
+                        keyPair,
+                        comment,
+                        nonce,
+                        certificate
+                    );
                     return ecdsa256Key;
 
                 case PublicKeyAlgorithm.EcdsaSha2Nistp384:
@@ -123,7 +211,13 @@ namespace dlech.SshAgentLibTests
                     var ecdsa384Gen = new ECKeyPairGenerator();
                     ecdsa384Gen.Init(ecdsa384GenParams);
                     keyPair = ecdsa384Gen.GenerateKeyPair();
-                    var ecdsa384Key = new SshKey(SshVersion.SSH2, keyPair, comment);
+                    var ecdsa384Key = new SshKey(
+                        SshVersion.SSH2,
+                        keyPair,
+                        comment,
+                        nonce,
+                        certificate
+                    );
                     return ecdsa384Key;
 
                 case PublicKeyAlgorithm.EcdsaSha2Nistp521:
@@ -142,14 +236,27 @@ namespace dlech.SshAgentLibTests
                     var ecdsa521Gen = new ECKeyPairGenerator();
                     ecdsa521Gen.Init(ecdsa521GenParams);
                     keyPair = ecdsa521Gen.GenerateKeyPair();
-                    var ecdsa521Key = new SshKey(SshVersion.SSH2, keyPair, comment);
+                    var ecdsa521Key = new SshKey(
+                        SshVersion.SSH2,
+                        keyPair,
+                        comment,
+                        nonce,
+                        certificate
+                    );
                     return ecdsa521Key;
 
                 case PublicKeyAlgorithm.SshEd25519:
                 case PublicKeyAlgorithm.SshEd25519CertV1:
                     var privateKey = new Ed25519PrivateKeyParameters(secureRandom);
                     var publicKey = privateKey.GeneratePublicKey();
-                    var ed25519Key = new SshKey(SshVersion.SSH2, publicKey, privateKey, comment);
+                    var ed25519Key = new SshKey(
+                        SshVersion.SSH2,
+                        publicKey,
+                        privateKey,
+                        comment,
+                        nonce,
+                        certificate
+                    );
                     return ed25519Key;
 
                 default:

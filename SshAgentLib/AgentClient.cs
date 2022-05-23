@@ -1,4 +1,4 @@
-//
+﻿//
 // AgentClient.cs
 //
 // Author(s): David Lechner <david@lechnology.com>
@@ -406,6 +406,23 @@ namespace dlech.SshAgentLib
                             builder.AddBigIntBlob(dsaPublicKeyParameters.Y);
                             builder.AddBigIntBlob(dsaPrivateKeyParameters.X);
                             break;
+                        case PublicKeyAlgorithm.SshDssCertV1:
+
+                            {
+                                if (key.Certificate == null)
+                                {
+                                    throw new ArgumentException(
+                                        "Certificate property cannot be null",
+                                        nameof(key)
+                                    );
+                                }
+
+                                builder.AddBlob(key.GetPublicKeyBlob());
+
+                                var dsa = key.GetPrivateKeyParameters() as DsaPrivateKeyParameters;
+                                builder.AddBigIntBlob(dsa.X);
+                            }
+                            break;
                         case PublicKeyAlgorithm.EcdsaSha2Nistp256:
                         case PublicKeyAlgorithm.EcdsaSha2Nistp384:
                         case PublicKeyAlgorithm.EcdsaSha2Nistp521:
@@ -417,6 +434,22 @@ namespace dlech.SshAgentLib
                             builder.AddBlob(ecdsaPublicKeyParameters.Q.GetEncoded());
                             builder.AddBigIntBlob(ecdsaPrivateKeyParameters.D);
                             break;
+                        case PublicKeyAlgorithm.EcdsaSha2Nistp256CertV1:
+                        case PublicKeyAlgorithm.EcdsaSha2Nistp384CertV1:
+                        case PublicKeyAlgorithm.EcdsaSha2Nistp521CertV1:
+                            if (key.Certificate == null)
+                            {
+                                throw new ArgumentException(
+                                    "Certificate property cannot be null",
+                                    nameof(key)
+                                );
+                            }
+
+                            builder.AddBlob(key.GetPublicKeyBlob());
+
+                            var ecdsa = key.GetPrivateKeyParameters() as ECPrivateKeyParameters;
+                            builder.AddBigIntBlob(ecdsa.D);
+                            break;
                         case PublicKeyAlgorithm.SshRsa:
                             var rsaPrivateKeyParameters =
                                 key.GetPrivateKeyParameters() as RsaPrivateCrtKeyParameters;
@@ -427,6 +460,27 @@ namespace dlech.SshAgentLib
                             builder.AddBigIntBlob(rsaPrivateKeyParameters.P);
                             builder.AddBigIntBlob(rsaPrivateKeyParameters.Q);
                             break;
+                        case PublicKeyAlgorithm.SshRsaCertV1:
+
+                            {
+                                if (key.Certificate == null)
+                                {
+                                    throw new ArgumentException(
+                                        "Certificate property cannot be null",
+                                        nameof(key)
+                                    );
+                                }
+
+                                builder.AddBlob(key.GetPublicKeyBlob());
+
+                                var rsa =
+                                    key.GetPrivateKeyParameters() as RsaPrivateCrtKeyParameters;
+                                builder.AddBigIntBlob(rsa.Exponent);
+                                builder.AddBigIntBlob(rsa.QInv);
+                                builder.AddBigIntBlob(rsa.P);
+                                builder.AddBigIntBlob(rsa.Q);
+                            }
+                            break;
                         case PublicKeyAlgorithm.SshEd25519:
                             var ed25519PublicKeyParameters =
                                 key.GetPublicKeyParameters() as Ed25519PublicKeyParameters;
@@ -434,6 +488,27 @@ namespace dlech.SshAgentLib
                                 key.GetPrivateKeyParameters() as Ed25519PrivateKeyParameters;
                             builder.AddBlob(ed25519PublicKeyParameters.GetEncoded());
                             builder.AddBlob(ed25519PrivateKeyParameters.GetEncoded());
+                            break;
+                        case PublicKeyAlgorithm.SshEd25519CertV1:
+
+                            {
+                                if (key.Certificate == null)
+                                {
+                                    throw new ArgumentException(
+                                        "Certificate property cannot be null",
+                                        nameof(key)
+                                    );
+                                }
+
+                                builder.AddBlob(key.GetPublicKeyBlob());
+
+                                var ed25519Public =
+                                    key.GetPublicKeyParameters() as Ed25519PublicKeyParameters;
+                                var ed25519Private =
+                                    key.GetPrivateKeyParameters() as Ed25519PrivateKeyParameters;
+                                builder.AddBlob(ed25519Public.GetEncoded());
+                                builder.AddBlob(ed25519Private.GetEncoded());
+                            }
                             break;
                         default:
                             throw new Exception("Unsupported algorithm");
