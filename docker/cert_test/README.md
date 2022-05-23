@@ -16,6 +16,8 @@ chmod 600 test-CA
 ssh-keygen -t rsa-sha2-256 -s test-CA -I test -n testtest -V +3600d -z 1 my-key-cert.pub
 ```
 
+The passphrase for `test-CA` is `testest`.
+
 This generates a certificate:
 - with identity "test"
 - with principal "testtest"
