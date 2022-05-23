@@ -43,7 +43,7 @@ namespace dlech.SshAgentLib
         public DateTime ValidAfter { get; private set; }
         public DateTime ValidBefore { get; private set; }
         public object Critical { get; private set; }
-        public object Extenstions { get; private set; }
+        public object Extensions { get; private set; }
         public object SignatureKey { get; private set; }
 
         public OpensshCertificate(
@@ -74,7 +74,7 @@ namespace dlech.SshAgentLib
             ValidAfter = validAfter;
             ValidBefore = validBefore;
             Critical = critical;
-            Extenstions = extensions;
+            Extensions = extensions;
             SignatureKey = signatureKey;
         }
     }
