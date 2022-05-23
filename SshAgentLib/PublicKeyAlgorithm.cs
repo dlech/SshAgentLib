@@ -1,4 +1,4 @@
-﻿//
+//
 // PublicKeyAlgorithm.cs
 //
 // Author(s): David Lechner <david@lechnology.com>
@@ -24,13 +24,7 @@
 // THE SOFTWARE.
 
 using System;
-using System.Diagnostics;
 using System.Reflection;
-using Org.BouncyCastle.Asn1.Pkcs;
-using Org.BouncyCastle.Asn1.X9;
-using Org.BouncyCastle.Crypto;
-using Org.BouncyCastle.Crypto.Signers;
-using Org.BouncyCastle.Security;
 using SshAgentLib;
 
 namespace dlech.SshAgentLib
@@ -114,40 +108,6 @@ namespace dlech.SshAgentLib
 
             return id.Replace("ecdsa-sha2-", string.Empty)
                 .Replace("-cert-v01@openssh.com", string.Empty);
-        }
-
-        public static ISigner GetSigner(this PublicKeyAlgorithm aPublicKeyAlgorithm)
-        {
-            switch (aPublicKeyAlgorithm)
-            {
-                case PublicKeyAlgorithm.SshRsa:
-                case PublicKeyAlgorithm.SshRsaCertV1:
-                    return SignerUtilities.GetSigner(
-                        PkcsObjectIdentifiers.Sha1WithRsaEncryption.Id
-                    );
-                case PublicKeyAlgorithm.SshDss:
-                case PublicKeyAlgorithm.SshDssCertV1:
-                    return SignerUtilities.GetSigner(X9ObjectIdentifiers.IdDsaWithSha1.Id);
-                case PublicKeyAlgorithm.EcdsaSha2Nistp256:
-                case PublicKeyAlgorithm.EcdsaSha2Nistp256CertV1:
-                    return SignerUtilities.GetSigner(X9ObjectIdentifiers.ECDsaWithSha256.Id);
-                case PublicKeyAlgorithm.EcdsaSha2Nistp384:
-                case PublicKeyAlgorithm.EcdsaSha2Nistp384CertV1:
-                    return SignerUtilities.GetSigner(X9ObjectIdentifiers.ECDsaWithSha384.Id);
-                case PublicKeyAlgorithm.EcdsaSha2Nistp521:
-                case PublicKeyAlgorithm.EcdsaSha2Nistp521CertV1:
-                    return SignerUtilities.GetSigner(X9ObjectIdentifiers.ECDsaWithSha512.Id);
-                case PublicKeyAlgorithm.SshEd25519:
-                case PublicKeyAlgorithm.SshEd25519CertV1:
-                    return new Ed25519Signer();
-                case PublicKeyAlgorithm.SshEd448:
-                case PublicKeyAlgorithm.SshEd448CertV1:
-                    // TODO: what is the context?
-                    return new Ed448Signer(null);
-                default:
-                    Debug.Fail("Unknown algorithm");
-                    throw new Exception("Unknown algorithm");
-            }
         }
     }
 }
