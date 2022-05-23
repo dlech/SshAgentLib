@@ -111,10 +111,10 @@ namespace dlech.SshAgentLib
             return ReadBytes((bitCount + 7) / 8);
         }
 
-        OpensshCertificate ReadCertificate()
+        OpensshCertificateInfo ReadCertificate()
         {
             var serial = ReadUInt64();
-            var type = (Ssh2CertType)ReadUInt32();
+            var type = (OpensshCertType)ReadUInt32();
             var keyId = ReadString();
             var validPrincipals = ReadBlob();
             var validAfter = ReadUInt64();
@@ -137,7 +137,7 @@ namespace dlech.SshAgentLib
                 validBefore == ulong.MaxValue ? DateTime.MaxValue : epoch.AddSeconds(validBefore);
             var signatureKey = new SshPublicKey(SshVersion.SSH2, signatureKeyBlob);
 
-            return new OpensshCertificate(
+            return new OpensshCertificateInfo(
                 type,
                 serial,
                 keyId,
@@ -159,7 +159,7 @@ namespace dlech.SshAgentLib
         /// <returns>AsymmetricKeyParameter containing the public key</returns>
         public AsymmetricKeyParameter ReadSsh2PublicKeyData(
             out byte[] nonce,
-            out OpensshCertificate cert
+            out OpensshCertificateInfo cert
         )
         {
             nonce = null;

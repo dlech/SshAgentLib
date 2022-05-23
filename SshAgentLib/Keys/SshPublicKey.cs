@@ -79,7 +79,7 @@ namespace SshAgentLib.Keys
 
         public byte[] Nonce { get; }
 
-        public OpensshCertificate Certificate { get; }
+        public OpensshCertificateInfo Certificate { get; }
 
         /// <summary>
         /// Creates a new public key.

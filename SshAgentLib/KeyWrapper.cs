@@ -23,6 +23,8 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 // THE SOFTWARE.
 
+using SshAgentLib.Keys;
+
 namespace dlech.SshAgentLib
 {
     public class KeyWrapper
@@ -64,7 +66,7 @@ namespace dlech.SshAgentLib
             get { return key.GetMD5Fingerprint().ToHexString(); }
         }
 
-        public OpensshCertificate Certificate
+        public OpensshCertificateInfo Certificate
         {
             get { return key.Certificate; }
         }

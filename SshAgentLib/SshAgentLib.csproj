@@ -110,7 +110,7 @@
     <Compile Include="Microsoft\UnixDomainSocketEndPoint.cs" />
     <Compile Include="Microsoft\UnixDomainSocketEndPoint.Windows.cs" />
     <Compile Include="MsysSocket .cs" />
-    <Compile Include="OpensshCertificate.cs" />
+    <Compile Include="Keys\OpensshCertificateInfo.cs" />
     <Compile Include="PageantAgent.cs" />
     <Compile Include="PageantClient.cs" />
     <Compile Include="PageantRunningException.cs" />

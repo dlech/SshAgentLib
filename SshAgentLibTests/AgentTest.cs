@@ -44,6 +44,7 @@ using Org.BouncyCastle.Crypto.Encodings;
 using Org.BouncyCastle.Crypto.Engines;
 using Org.BouncyCastle.Crypto.Parameters;
 using Org.BouncyCastle.Math;
+using SshAgentLib.Keys;
 
 namespace dlech.SshAgentLibTests
 {
@@ -224,7 +225,7 @@ namespace dlech.SshAgentLibTests
             certBuilder.AddBigIntBlob(rsaParameters.PublicExponent); // e
             certBuilder.AddBigIntBlob(rsaParameters.Modulus); // n
             certBuilder.AddUInt64(0); // serial
-            certBuilder.AddUInt32((uint)Ssh2CertType.User); // type
+            certBuilder.AddUInt32((uint)OpensshCertType.User); // type
             certBuilder.AddStringBlob("rsa-test-cert"); // key id
             certBuilder.AddBlob(Array.Empty<byte>()); // valid principals
             certBuilder.AddUInt64(0); // valid after
@@ -307,7 +308,7 @@ namespace dlech.SshAgentLibTests
             certBuilder.AddBigIntBlob(dsaPublicParameters.Parameters.G); // g
             certBuilder.AddBigIntBlob(dsaPublicParameters.Y); // y
             certBuilder.AddUInt64(0); // serial
-            certBuilder.AddUInt32((uint)Ssh2CertType.User); // type
+            certBuilder.AddUInt32((uint)OpensshCertType.User); // type
             certBuilder.AddStringBlob("dsa-test-cert"); // key id
             certBuilder.AddBlob(Array.Empty<byte>()); // valid principals
             certBuilder.AddUInt64(0); // valid after
@@ -395,7 +396,7 @@ namespace dlech.SshAgentLibTests
             certBuilder.AddStringBlob("nistp256"); // curve
             certBuilder.AddBlob(ecdsaPublicParameters.Q.GetEncoded()); // public key
             certBuilder.AddUInt64(0); // serial
-            certBuilder.AddUInt32((uint)Ssh2CertType.User); // type
+            certBuilder.AddUInt32((uint)OpensshCertType.User); // type
             certBuilder.AddStringBlob("ecdsa-test-cert"); // key id
             certBuilder.AddBlob(Array.Empty<byte>()); // valid principals
             certBuilder.AddUInt64(0); // valid after
@@ -492,7 +493,7 @@ namespace dlech.SshAgentLibTests
             certBuilder.AddBlob(new byte[32]); // nonce
             certBuilder.AddBlob(publicKeyParams.GetEncoded()); // public key
             certBuilder.AddUInt64(0); // serial
-            certBuilder.AddUInt32((uint)Ssh2CertType.User); // type
+            certBuilder.AddUInt32((uint)OpensshCertType.User); // type
             certBuilder.AddStringBlob("ed25519-test-cert"); // key id
             certBuilder.AddBlob(Array.Empty<byte>()); // valid principals
             certBuilder.AddUInt64(0); // valid after

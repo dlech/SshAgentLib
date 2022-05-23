@@ -29,6 +29,7 @@ using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using Org.BouncyCastle.Crypto;
 using Org.BouncyCastle.Crypto.Parameters;
+using SshAgentLib.Keys;
 
 namespace dlech.SshAgentLib
 {
@@ -48,7 +49,7 @@ namespace dlech.SshAgentLib
             AsymmetricKeyParameter privateKeyParameter = null,
             string comment = "",
             byte[] nonce = null,
-            OpensshCertificate certificate = null
+            OpensshCertificateInfo certificate = null
         )
         {
             IsPublicOnly = privateKeyParameter == null;
@@ -76,7 +77,7 @@ namespace dlech.SshAgentLib
             AsymmetricCipherKeyPair cipherKeyPair,
             string comment = "",
             byte[] nonce = null,
-            OpensshCertificate certificate = null
+            OpensshCertificateInfo certificate = null
         ) : this(version, cipherKeyPair.Public, cipherKeyPair.Private, comment, nonce, certificate)
         { }
 
@@ -140,7 +141,7 @@ namespace dlech.SshAgentLib
 
         public byte[] Nonce { get; }
 
-        public OpensshCertificate Certificate { get; private set; }
+        public OpensshCertificateInfo Certificate { get; private set; }
 
         public bool IsPublicOnly { get; private set; }
 

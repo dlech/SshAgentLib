@@ -4,16 +4,22 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using SshAgentLib.Keys;
 
-namespace dlech.SshAgentLib
+namespace SshAgentLib.Keys
 {
     /// <summary>
-    /// Openssh certificate.
+    /// Openssh certificate info.
     /// </summary>
-    public sealed class OpensshCertificate
+    /// <remarks>
+    /// This contains the common OpenSSH certificate info described in
+    /// https://api.libssh.org/rfc/PROTOCOL.certkeys in deserialized form.
+    ///
+    /// Essentially, this is all of the fields except for the nonce and the
+    /// public key parameters.
+    /// </remarks>
+    public sealed class OpensshCertificateInfo
     {
-        public Ssh2CertType Type { get; }
+        public OpensshCertType Type { get; }
         public ulong Serial { get; }
         public string KeyId { get; }
         public IList<string> Principals { get; }
@@ -25,8 +31,8 @@ namespace dlech.SshAgentLib
         public SshPublicKey SignatureKey { get; }
         public byte[] Signature { get; }
 
-        public OpensshCertificate(
-            Ssh2CertType type,
+        public OpensshCertificateInfo(
+            OpensshCertType type,
             ulong serial,
             string keyId,
             IEnumerable<string> principals,
@@ -58,7 +64,7 @@ namespace dlech.SshAgentLib
         }
     }
 
-    public enum Ssh2CertType
+    public enum OpensshCertType
     {
         User = 1,
         Host = 2,

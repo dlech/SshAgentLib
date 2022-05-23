@@ -35,6 +35,7 @@ using Org.BouncyCastle.Crypto;
 using Org.BouncyCastle.Crypto.Parameters;
 using Org.BouncyCastle.Crypto.Signers;
 using Org.BouncyCastle.Security;
+using SshAgentLib.Keys;
 using SignRequestFlags = dlech.SshAgentLib.Agent.SignRequestFlags;
 
 namespace dlech.SshAgentLib
@@ -59,7 +60,7 @@ namespace dlech.SshAgentLib
         /// <summary>
         /// The certificate for signed keys or <c>null</c> for unsigned keys
         /// </summary>
-        OpensshCertificate Certificate { get; }
+        OpensshCertificateInfo Certificate { get; }
 
         /// <summary>
         /// returns true if key does not have private key parameters
