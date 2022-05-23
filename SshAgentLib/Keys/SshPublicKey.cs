@@ -1,4 +1,4 @@
-﻿// SPDX-License-Identifier: MIT
+// SPDX-License-Identifier: MIT
 // Copyright (c) 2022 David Lechner <david@lechnology.com>
 
 using System;
@@ -42,7 +42,7 @@ namespace SshAgentLib.Keys
         /// <summary>
         /// Gets the SHA256 hash of <see cref="KeyBlob"/>.
         /// </summary>
-        public string Sha256Hash
+        public string Sha256Fingerprint
         {
             get
             {

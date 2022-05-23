@@ -26,7 +26,7 @@ namespace SshAgentLibTests.Keys
                 Assert.That(key.Parameter.IsPrivate, Is.False);
                 Assert.That(key.Parameter, Is.TypeOf<RsaKeyParameters>());
                 Assert.That(
-                    key.Sha256Hash,
+                    key.Sha256Fingerprint,
                     Is.EqualTo("SHA256:csG+ujEVjJLZpYPqLUDdw20LVTQMjD4FWsNmsr1etGE")
                 );
                 Assert.That(
@@ -47,7 +47,7 @@ namespace SshAgentLibTests.Keys
                 Assert.That(key.Parameter.IsPrivate, Is.False);
                 Assert.That(key.Parameter, Is.TypeOf<DsaPublicKeyParameters>());
                 Assert.That(
-                    key.Sha256Hash,
+                    key.Sha256Fingerprint,
                     Is.EqualTo("SHA256:UPFxqc1qGwD5OpK2pgb6Y1YxpiMS+XZeSbYhgyw6LiE")
                 );
                 Assert.That(
@@ -68,7 +68,7 @@ namespace SshAgentLibTests.Keys
                 Assert.That(key.Parameter.IsPrivate, Is.False);
                 Assert.That(key.Parameter, Is.TypeOf<DsaPublicKeyParameters>());
                 Assert.That(
-                    key.Sha256Hash,
+                    key.Sha256Fingerprint,
                     Is.EqualTo("SHA256:UPFxqc1qGwD5OpK2pgb6Y1YxpiMS+XZeSbYhgyw6LiE")
                 );
                 Assert.That(key.Comment, Is.EqualTo("DSA Public Key for use with MyIsp"));
@@ -86,7 +86,7 @@ namespace SshAgentLibTests.Keys
                 Assert.That(key.Parameter.IsPrivate, Is.False);
                 Assert.That(key.Parameter, Is.TypeOf<RsaKeyParameters>());
                 Assert.That(
-                    key.Sha256Hash,
+                    key.Sha256Fingerprint,
                     Is.EqualTo("SHA256:MQHWhS9nhzUezUdD42ytxubZoBKrZLbyBZzxCkmnxXc")
                 );
                 Assert.That(

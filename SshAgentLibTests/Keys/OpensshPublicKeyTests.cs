@@ -36,7 +36,7 @@ namespace SshAgentLibTests.Keys
                 Assert.That(rsa.Modulus, Is.EqualTo(new BigInteger(n, 16)));
 
                 Assert.That(
-                    key.Sha256Hash,
+                    key.Sha256Fingerprint,
                     Is.EqualTo(ReadStringResourceFile("OpenSshTestData", "rsa_1.fp"))
                 );
                 Assert.That(key.Comment, Is.EqualTo("RSA test key #1"));
@@ -64,7 +64,7 @@ namespace SshAgentLibTests.Keys
                 Assert.That(rsa.Modulus, Is.EqualTo(new BigInteger(n, 16)));
 
                 Assert.That(
-                    key.Sha256Hash,
+                    key.Sha256Fingerprint,
                     Is.EqualTo(ReadStringResourceFile("OpenSshTestData", "rsa_1-cert.fp"))
                 );
                 Assert.That(key.Comment, Is.EqualTo("RSA test key #1"));
@@ -93,7 +93,7 @@ namespace SshAgentLibTests.Keys
                 Assert.That(dsa.Y, Is.EqualTo(new BigInteger(pub, 16)));
 
                 Assert.That(
-                    key.Sha256Hash,
+                    key.Sha256Fingerprint,
                     Is.EqualTo(ReadStringResourceFile("OpenSshTestData", "dsa_1.fp"))
                 );
                 Assert.That(key.Comment, Is.EqualTo("DSA test key #1"));
@@ -122,7 +122,7 @@ namespace SshAgentLibTests.Keys
                 Assert.That(dsa.Y, Is.EqualTo(new BigInteger(pub, 16)));
 
                 Assert.That(
-                    key.Sha256Hash,
+                    key.Sha256Fingerprint,
                     Is.EqualTo(ReadStringResourceFile("OpenSshTestData", "dsa_1-cert.fp"))
                 );
                 Assert.That(key.Comment, Is.EqualTo("DSA test key #1"));
@@ -154,7 +154,7 @@ namespace SshAgentLibTests.Keys
                 Assert.That(ec.Q, Is.EqualTo(ec.Parameters.Curve.DecodePoint(Hex.Decode(pub))));
 
                 Assert.That(
-                    key.Sha256Hash,
+                    key.Sha256Fingerprint,
                     Is.EqualTo(ReadStringResourceFile("OpenSshTestData", "ecdsa_1.fp"))
                 );
                 Assert.That(key.Comment, Is.EqualTo("ECDSA test key #1"));
@@ -186,7 +186,7 @@ namespace SshAgentLibTests.Keys
                 Assert.That(ec.Q, Is.EqualTo(ec.Parameters.Curve.DecodePoint(Hex.Decode(pub))));
 
                 Assert.That(
-                    key.Sha256Hash,
+                    key.Sha256Fingerprint,
                     Is.EqualTo(ReadStringResourceFile("OpenSshTestData", "ecdsa_1-cert.fp"))
                 );
                 Assert.That(key.Comment, Is.EqualTo("ECDSA test key #1"));
@@ -215,7 +215,7 @@ namespace SshAgentLibTests.Keys
                 Assert.That(ec.Q, Is.EqualTo(ec.Parameters.Curve.DecodePoint(Hex.Decode(pub))));
 
                 Assert.That(
-                    key.Sha256Hash,
+                    key.Sha256Fingerprint,
                     Is.EqualTo(ReadStringResourceFile("OpenSshTestData", "ecdsa_2.fp"))
                 );
                 Assert.That(key.Comment, Is.EqualTo("ECDSA test key #2"));
@@ -237,7 +237,7 @@ namespace SshAgentLibTests.Keys
                 Assert.That(key.Parameter, Is.TypeOf<Ed25519PublicKeyParameters>());
 
                 Assert.That(
-                    key.Sha256Hash,
+                    key.Sha256Fingerprint,
                     Is.EqualTo(ReadStringResourceFile("OpenSshTestData", "ed25519_1.fp"))
                 );
                 Assert.That(key.Comment, Is.EqualTo("ED25519 test key #1"));
@@ -259,7 +259,7 @@ namespace SshAgentLibTests.Keys
                 Assert.That(key.Parameter, Is.TypeOf<Ed25519PublicKeyParameters>());
 
                 Assert.That(
-                    key.Sha256Hash,
+                    key.Sha256Fingerprint,
                     Is.EqualTo(ReadStringResourceFile("OpenSshTestData", "ed25519_1-cert.fp"))
                 );
                 Assert.That(key.Comment, Is.EqualTo("ED25519 test key #1"));
@@ -281,7 +281,7 @@ namespace SshAgentLibTests.Keys
                 Assert.That(key.Parameter, Is.TypeOf<Ed25519PublicKeyParameters>());
 
                 Assert.That(
-                    key.Sha256Hash,
+                    key.Sha256Fingerprint,
                     Is.EqualTo(ReadStringResourceFile("OpenSshTestData", "ed25519_2.fp"))
                 );
                 // Upstream bug - comment says #1 instead of #1 in the source file
