@@ -25,6 +25,7 @@
 // THE SOFTWARE.
 
 using System;
+using System.Linq;
 using System.Text;
 using dlech.SshAgentLib;
 using NUnit.Framework;
@@ -54,6 +55,25 @@ namespace dlech.SshAgentLibTests
             UInt32 value = 12345;
             builder.AddUInt32(value);
             Assert.That(builder.GetBlob(), Is.EqualTo(value.ToBytes()));
+        }
+
+        [Test]
+        public void TestAddDateTime()
+        {
+            var builder = new BlobBuilder();
+
+            builder.AddUInt64(DateTime.MinValue);
+            Assert.That(builder.GetBlob(), Is.EqualTo(new byte[8]));
+
+            builder.Clear();
+
+            builder.AddUInt64(DateTime.MaxValue);
+            Assert.That(builder.GetBlob(), Is.EqualTo(Enumerable.Repeat((byte)0xff, 8).ToArray()));
+
+            builder.Clear();
+
+            builder.AddUInt64(DateTime.Parse("2009-02-13T23:31:30"));
+            Assert.That(builder.GetBlob(), Is.EqualTo(1234567890L.ToBytes()));
         }
 
         [Test()]

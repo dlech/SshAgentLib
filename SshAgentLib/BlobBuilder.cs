@@ -98,7 +98,7 @@ namespace dlech.SshAgentLib
             }
             else
             {
-                AddUInt64((ulong)epoch.Subtract(value).Ticks);
+                AddUInt64((ulong)value.Subtract(epoch).TotalSeconds);
             }
         }
 
