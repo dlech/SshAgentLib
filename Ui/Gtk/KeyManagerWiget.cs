@@ -151,11 +151,11 @@ namespace SshAgentLib.GTK
                     Gtk.Application.Invoke(
                         delegate(object sender1, EventArgs e1)
                         {
-                            var matchFingerprint = e.Key.GetMD5Fingerprint().ToHexString();
+                            var match = e.Key.GetPublicKeyBlob();
 
                             var matches = mKeyCollection
                                 .Cast<KeyNode>()
-                                .Where(k => k.Fingerprint == matchFingerprint);
+                                .Where(k => k.GetPublicKeyBlob().SequenceEqual(match));
                             foreach (var keyNode in matches)
                             {
                                 mKeyCollection.RemoveNode(keyNode);

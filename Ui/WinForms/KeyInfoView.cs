@@ -497,9 +497,9 @@ namespace dlech.SshAgentLib.WinForms
                 return;
             }
 
-            var matchFingerprint = e.Key.GetMD5Fingerprint().ToHexString();
+            var match = e.Key.GetPublicKeyBlob();
             var matches = mKeyCollection
-                .Where(k => k.Fingerprint == matchFingerprint && k.Certificate == e.Key.Certificate)
+                .Where(k => k.GetKey().GetPublicKeyBlob().SequenceEqual(match))
                 .ToList();
 
             foreach (var key in matches)
