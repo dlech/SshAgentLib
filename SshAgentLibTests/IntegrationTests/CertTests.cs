@@ -16,7 +16,8 @@ namespace SshAgentLibTests.IntegrationTests
     // Docker imaged named `openssh-cert-test` has been created using the
     // Dockerfile in `docker/cert_test`. Also, file permissions of the private
     // key file must be fixed so that the `ssh` command doesn't complain.
-    [TestFixture, Ignore("requires manual configuration before running")]
+    [TestFixture]
+    [Ignore("requires manual configuration of the host system before running")]
     public class CertTests
     {
         [Test]
