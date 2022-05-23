@@ -1,4 +1,4 @@
-﻿//
+//
 // AgentClient.cs
 //
 // Author(s): David Lechner <david@lechnology.com>
@@ -395,13 +395,13 @@ namespace dlech.SshAgentLib
                         case PublicKeyAlgorithm.SshDss:
                             var dsaPublicKeyParameters =
                                 key.GetPublicKeyParameters() as DsaPublicKeyParameters;
-                            var dsaPrivateKeyParamters =
+                            var dsaPrivateKeyParameters =
                                 key.GetPrivateKeyParameters() as DsaPrivateKeyParameters;
                             builder.AddBigIntBlob(dsaPublicKeyParameters.Parameters.P);
                             builder.AddBigIntBlob(dsaPublicKeyParameters.Parameters.Q);
                             builder.AddBigIntBlob(dsaPublicKeyParameters.Parameters.G);
                             builder.AddBigIntBlob(dsaPublicKeyParameters.Y);
-                            builder.AddBigIntBlob(dsaPrivateKeyParamters.X);
+                            builder.AddBigIntBlob(dsaPrivateKeyParameters.X);
                             break;
                         case PublicKeyAlgorithm.EcdsaSha2Nistp256:
                         case PublicKeyAlgorithm.EcdsaSha2Nistp384:
