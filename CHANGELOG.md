@@ -9,8 +9,8 @@
 - Added Window UNIX socket for WSL `ssh-agent` support.
 
 ## Fixed
-- Fixed using incorrect unmanaged memory free function in `PagentClent.SendMessage()`.
-- Fixed `PagentAgent.Dispose()` returning before all resources have been freed.
+- Fixed using incorrect unmanaged memory free function in `PageantClient.SendMessage()`.
+- Fixed `PageantAgent.Dispose()` returning before all resources have been freed.
 - Fixed `WindowsOpenSshPipe` starting a new server after `Dispose()`.
 
 ## Removed

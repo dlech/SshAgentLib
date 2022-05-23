@@ -241,7 +241,7 @@ namespace dlech.SshAgentLib
         {
             if (disposed)
             {
-                throw new ObjectDisposedException("PagentAgent");
+                throw new ObjectDisposedException(null);
             }
 
             if (cygwinSocket != null)
@@ -264,7 +264,7 @@ namespace dlech.SshAgentLib
         {
             if (disposed)
             {
-                throw new ObjectDisposedException("PagentAgent");
+                throw new ObjectDisposedException(null);
             }
 
             if (cygwinSocket == null)
@@ -285,7 +285,7 @@ namespace dlech.SshAgentLib
         {
             if (disposed)
             {
-                throw new ObjectDisposedException("PagentAgent");
+                throw new ObjectDisposedException(null);
             }
 
             if (msysSocket != null)
@@ -308,7 +308,7 @@ namespace dlech.SshAgentLib
         {
             if (disposed)
             {
-                throw new ObjectDisposedException("PagentAgent");
+                throw new ObjectDisposedException(null);
             }
 
             if (msysSocket == null)
@@ -329,7 +329,7 @@ namespace dlech.SshAgentLib
         {
             if (disposed)
             {
-                throw new ObjectDisposedException("PagentAgent");
+                throw new ObjectDisposedException(null);
             }
 
             if (wslSocket != null)
@@ -349,7 +349,7 @@ namespace dlech.SshAgentLib
         {
             if (disposed)
             {
-                throw new ObjectDisposedException("PagentAgent");
+                throw new ObjectDisposedException(null);
             }
 
             if (wslSocket == null)

@@ -63,7 +63,7 @@ namespace dlech.SshAgentLibTests
         }
 
         /// <summary>
-        /// Test for WinPagent
+        /// Test for WinPageant
         /// </summary>
         [Test, NonParallelizable]
         public void PageantAgentInstanceTest()
