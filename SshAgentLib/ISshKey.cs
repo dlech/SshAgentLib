@@ -337,30 +337,30 @@ namespace dlech.SshAgentLib
                 var seq = (Asn1Sequence)Asn1Object.FromByteArray(signature);
                 var r = ((DerInteger)seq[0]).PositiveValue;
                 var s = ((DerInteger)seq[1]).PositiveValue;
-                var formatedSignature = new BlobBuilder();
+                var formattedSignature = new BlobBuilder();
                 if (publicKey is ECPublicKeyParameters)
                 {
                     var bytes = r.ToByteArray().ToList();
                     while (bytes.Count < 20)
                         bytes.Insert(0, 0);
-                    formatedSignature.AddBlob(bytes.ToArray());
+                    formattedSignature.AddBlob(bytes.ToArray());
                     bytes = s.ToByteArray().ToList();
                     while (bytes.Count < 20)
                         bytes.Insert(0, 0);
-                    formatedSignature.AddBlob(bytes.ToArray());
+                    formattedSignature.AddBlob(bytes.ToArray());
                 }
                 else
                 {
                     var bytes = r.ToByteArrayUnsigned().ToList();
                     while (bytes.Count < 20)
                         bytes.Insert(0, 0);
-                    formatedSignature.AddBytes(bytes.ToArray());
+                    formattedSignature.AddBytes(bytes.ToArray());
                     bytes = s.ToByteArrayUnsigned().ToList();
                     while (bytes.Count < 20)
                         bytes.Insert(0, 0);
-                    formatedSignature.AddBytes(bytes.ToArray());
+                    formattedSignature.AddBytes(bytes.ToArray());
                 }
-                return formatedSignature.GetBlob();
+                return formattedSignature.GetBlob();
             }
             else if (publicKey is RsaKeyParameters || publicKey is Ed25519PublicKeyParameters)
             {
