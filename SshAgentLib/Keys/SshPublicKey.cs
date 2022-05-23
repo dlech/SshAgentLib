@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: MIT
+﻿// SPDX-License-Identifier: MIT
 // Copyright (c) 2022 David Lechner <david@lechnology.com>
 
 using System;
@@ -204,7 +204,7 @@ namespace SshAgentLib.Keys
                 throw new ArgumentNullException(nameof(blob));
             }
 
-            return WithoutCertificate().KeyBlob.SequenceEqual(blob);
+            return KeyBlob.SequenceEqual(blob);
         }
 
         private static string GetBaseAlgorithmIdentifier(AsymmetricKeyParameter parameters)
