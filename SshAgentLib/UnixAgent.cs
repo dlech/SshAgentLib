@@ -44,17 +44,12 @@ namespace dlech.SshAgentLib
     /// </remarks>
     public class UnixAgent : Agent
     {
-        /* Listen backlog for sshd, ssh-agent and forwarding sockets */
-        const int sshListenBacklog = 128;
-        const int maxNumConnections = 10;
-        const int receiveBufferSize = 4096;
-
         static int clientCount = 0;
 
         UnixListener listener;
         Thread connectionThread;
-        List<Mono.Unix.UnixClient> activeClients = new List<Mono.Unix.UnixClient>();
-        object activeClientsLock = new object();
+        readonly List<Mono.Unix.UnixClient> activeClients = new List<Mono.Unix.UnixClient>();
+        readonly object activeClientsLock = new object();
         bool isDisposed;
 
         public void StartUnixSocket(string socketPath)
