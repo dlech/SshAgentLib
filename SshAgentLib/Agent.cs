@@ -1,4 +1,4 @@
-﻿// SPDX-License-Identifier: MIT
+// SPDX-License-Identifier: MIT
 // Copyright (c) 2012-2015,2017-2018,2022 David Lechner <david@lechnology.com>
 // Author(s): David Lechner
 //            Max Laverse
@@ -796,7 +796,7 @@ namespace dlech.SshAgentLib
                             SshVersion.SSH2,
                             publicKeyParams,
                             privateKeyParams,
-                            null,
+                            "",
                             cert
                         )
                         {
