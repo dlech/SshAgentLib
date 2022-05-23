@@ -19,10 +19,15 @@ namespace SshAgentLibTests.Keys
     [TestFixture]
     public class OpensshPublicKeyTests
     {
-        [Test]
-        public void TestThatReadingRsaPublicKeyWorks()
+        [TestCase("rsa_1", false)]
+        [TestCase("rsa_1", true)]
+        [TestCase("rsa_2", false)]
+        public void TestThatReadingRsaPublicKeyWorks(string keyName, bool withCert)
         {
-            using (var file = OpenResourceFile("OpenSshTestData", "rsa_1.pub"))
+            var fileBase = $"{keyName}{(withCert ? "-cert" : "")}";
+            var fileNumber = keyName.Substring(keyName.Length - 1, 1);
+
+            using (var file = OpenResourceFile("OpenSshTestData", $"{fileBase}.pub"))
             {
                 var key = SshPublicKey.Read(file);
 
@@ -31,112 +36,90 @@ namespace SshAgentLibTests.Keys
                 Assert.That(key.Parameter, Is.TypeOf<RsaKeyParameters>());
 
                 var rsa = (RsaKeyParameters)key.Parameter;
-                var n = ReadStringResourceFile("OpenSshTestData", "rsa_1.param.n");
+                var n = ReadStringResourceFile("OpenSshTestData", $"{keyName}.param.n");
 
                 Assert.That(rsa.Modulus, Is.EqualTo(new BigInteger(n, 16)));
 
                 Assert.That(
                     key.Sha256Fingerprint,
-                    Is.EqualTo(ReadStringResourceFile("OpenSshTestData", "rsa_1.fp"))
+                    Is.EqualTo(ReadStringResourceFile("OpenSshTestData", $"{fileBase}.fp"))
                 );
-                Assert.That(key.Comment, Is.EqualTo("RSA test key #1"));
+                Assert.That(key.Comment, Is.EqualTo($"RSA test key #{fileNumber}"));
                 Assert.That(
                     key.AuthorizedKeysString,
-                    Is.EqualTo(ReadStringResourceFile("OpenSshTestData", "rsa_1.pub"))
+                    Is.EqualTo(ReadStringResourceFile("OpenSshTestData", $"{fileBase}.pub"))
                 );
+
+                if (withCert)
+                {
+                    Assert.That(key.Nonce, Is.Not.Null);
+                    Assert.That(key.Certificate, Is.Not.Null);
+                }
+                else
+                {
+                    Assert.That(key.Nonce, Is.Null);
+                    Assert.That(key.Certificate, Is.Null);
+                }
             }
         }
 
-        [Test]
-        public void TestThatReadingRsaPublicKeyWithCertWorks()
+        [TestCase("dsa_1", false)]
+        [TestCase("dsa_1", true)]
+        [TestCase("dsa_2", false)]
+        public void TestThatReadingDsaPublicKeyWorks(string keyName, bool withCert)
         {
-            using (var file = OpenResourceFile("OpenSshTestData", "rsa_1-cert.pub"))
-            {
-                var key = SshPublicKey.Read(file);
+            var fileBase = $"{keyName}{(withCert ? "-cert" : "")}";
+            var fileNumber = keyName.Substring(keyName.Length - 1, 1);
 
-                Assert.That(key.Version, Is.EqualTo(SshVersion.SSH2));
-                Assert.That(key.Parameter.IsPrivate, Is.False);
-                Assert.That(key.Parameter, Is.TypeOf<RsaKeyParameters>());
-
-                var rsa = (RsaKeyParameters)key.Parameter;
-                var n = ReadStringResourceFile("OpenSshTestData", "rsa_1.param.n");
-
-                Assert.That(rsa.Modulus, Is.EqualTo(new BigInteger(n, 16)));
-
-                Assert.That(
-                    key.Sha256Fingerprint,
-                    Is.EqualTo(ReadStringResourceFile("OpenSshTestData", "rsa_1-cert.fp"))
-                );
-                Assert.That(key.Comment, Is.EqualTo("RSA test key #1"));
-                Assert.That(
-                    key.AuthorizedKeysString,
-                    Is.EqualTo(ReadStringResourceFile("OpenSshTestData", "rsa_1-cert.pub"))
-                );
-            }
-        }
-
-        [Test]
-        public void TestThatReadingDsaPublicKeyWorks()
-        {
-            using (var file = OpenResourceFile("OpenSshTestData", "dsa_1.pub"))
+            using (var file = OpenResourceFile("OpenSshTestData", $"{fileBase}.pub"))
             {
                 var key = SshPublicKey.Read(file);
 
                 Assert.That(key.Version, Is.EqualTo(SshVersion.SSH2));
                 Assert.That(key.Parameter, Is.TypeOf<DsaPublicKeyParameters>());
 
-                var dsa = (DsaPublicKeyParameters)key.Parameter;
-                var g = ReadStringResourceFile("OpenSshTestData", "dsa_1.param.g");
-                var pub = ReadStringResourceFile("OpenSshTestData", "dsa_1.param.pub");
+                if (keyName != "dsa_2")
+                {
+                    var dsa = (DsaPublicKeyParameters)key.Parameter;
+                    var g = ReadStringResourceFile("OpenSshTestData", $"{keyName}.param.g");
+                    var pub = ReadStringResourceFile("OpenSshTestData", $"{keyName}.param.pub");
 
-                Assert.That(dsa.Parameters.G, Is.EqualTo(new BigInteger(g, 16)));
-                Assert.That(dsa.Y, Is.EqualTo(new BigInteger(pub, 16)));
-
-                Assert.That(
-                    key.Sha256Fingerprint,
-                    Is.EqualTo(ReadStringResourceFile("OpenSshTestData", "dsa_1.fp"))
-                );
-                Assert.That(key.Comment, Is.EqualTo("DSA test key #1"));
-                Assert.That(
-                    key.AuthorizedKeysString,
-                    Is.EqualTo(ReadStringResourceFile("OpenSshTestData", "dsa_1.pub"))
-                );
-            }
-        }
-
-        [Test]
-        public void TestThatReadingDsaPublicKeyWithCertWorks()
-        {
-            using (var file = OpenResourceFile("OpenSshTestData", "dsa_1-cert.pub"))
-            {
-                var key = SshPublicKey.Read(file);
-
-                Assert.That(key.Version, Is.EqualTo(SshVersion.SSH2));
-                Assert.That(key.Parameter, Is.TypeOf<DsaPublicKeyParameters>());
-
-                var dsa = (DsaPublicKeyParameters)key.Parameter;
-                var g = ReadStringResourceFile("OpenSshTestData", "dsa_1.param.g");
-                var pub = ReadStringResourceFile("OpenSshTestData", "dsa_1.param.pub");
-
-                Assert.That(dsa.Parameters.G, Is.EqualTo(new BigInteger(g, 16)));
-                Assert.That(dsa.Y, Is.EqualTo(new BigInteger(pub, 16)));
+                    Assert.That(dsa.Parameters.G, Is.EqualTo(new BigInteger(g, 16)));
+                    Assert.That(dsa.Y, Is.EqualTo(new BigInteger(pub, 16)));
+                }
 
                 Assert.That(
                     key.Sha256Fingerprint,
-                    Is.EqualTo(ReadStringResourceFile("OpenSshTestData", "dsa_1-cert.fp"))
+                    Is.EqualTo(ReadStringResourceFile("OpenSshTestData", $"{fileBase}.fp"))
                 );
-                Assert.That(key.Comment, Is.EqualTo("DSA test key #1"));
+                Assert.That(key.Comment, Is.EqualTo($"DSA test key #{fileNumber}"));
                 Assert.That(
                     key.AuthorizedKeysString,
-                    Is.EqualTo(ReadStringResourceFile("OpenSshTestData", "dsa_1-cert.pub"))
+                    Is.EqualTo(ReadStringResourceFile("OpenSshTestData", $"{fileBase}.pub"))
                 );
+
+                if (withCert)
+                {
+                    Assert.That(key.Nonce, Is.Not.Null);
+                    Assert.That(key.Certificate, Is.Not.Null);
+                }
+                else
+                {
+                    Assert.That(key.Nonce, Is.Null);
+                    Assert.That(key.Certificate, Is.Null);
+                }
             }
         }
 
-        [Test]
-        public void TestThatReadingEcdsaPublicKeyWorks()
+        [TestCase("ecdsa_1", false)]
+        [TestCase("ecdsa_1", true)]
+        [TestCase("ecdsa_2", false)]
+        public void TestThatReadingEcdsaPublicKeyWorks(string keyName, bool withCert)
         {
-            using (var file = OpenResourceFile("OpenSshTestData", "ecdsa_1.pub"))
+            var fileBase = $"{keyName}{(withCert ? "-cert" : "")}";
+            var fileNumber = keyName.Substring(keyName.Length - 1, 1);
+
+            using (var file = OpenResourceFile("OpenSshTestData", $"{fileBase}.pub"))
             {
                 var key = SshPublicKey.Read(file);
 
@@ -144,92 +127,48 @@ namespace SshAgentLibTests.Keys
                 Assert.That(key.Parameter, Is.TypeOf<ECPublicKeyParameters>());
 
                 var ec = (ECPublicKeyParameters)key.Parameter;
-                var curve = ReadStringResourceFile("OpenSshTestData", "ecdsa_1.param.curve");
-                var pub = ReadStringResourceFile("OpenSshTestData", "ecdsa_1.param.pub");
+                var curve = ReadStringResourceFile("OpenSshTestData", $"{keyName}.param.curve");
+                var pub = ReadStringResourceFile("OpenSshTestData", $"{keyName}.param.pub");
 
                 Assert.That(
                     ec.Parameters.Curve,
-                    Is.EqualTo(X962NamedCurves.GetByName(curve).Curve)
+                    Is.EqualTo(
+                        (X962NamedCurves.GetByName(curve) ?? SecNamedCurves.GetByName(curve)).Curve
+                    )
                 );
                 Assert.That(ec.Q, Is.EqualTo(ec.Parameters.Curve.DecodePoint(Hex.Decode(pub))));
 
                 Assert.That(
                     key.Sha256Fingerprint,
-                    Is.EqualTo(ReadStringResourceFile("OpenSshTestData", "ecdsa_1.fp"))
+                    Is.EqualTo(ReadStringResourceFile("OpenSshTestData", $"{fileBase}.fp"))
                 );
-                Assert.That(key.Comment, Is.EqualTo("ECDSA test key #1"));
+                Assert.That(key.Comment, Is.EqualTo($"ECDSA test key #{fileNumber}"));
                 Assert.That(
                     key.AuthorizedKeysString,
-                    Is.EqualTo(ReadStringResourceFile("OpenSshTestData", "ecdsa_1.pub"))
+                    Is.EqualTo(ReadStringResourceFile("OpenSshTestData", $"{fileBase}.pub"))
                 );
+
+                if (withCert)
+                {
+                    Assert.That(key.Nonce, Is.Not.Null);
+                    Assert.That(key.Certificate, Is.Not.Null);
+                }
+                else
+                {
+                    Assert.That(key.Nonce, Is.Null);
+                    Assert.That(key.Certificate, Is.Null);
+                }
             }
         }
 
-        [Test]
-        public void TestThatReadingEcdsaPublicKeyWithCertWorks()
+        [TestCase("ed25519_1", false)]
+        [TestCase("ed25519_1", true)]
+        [TestCase("ed25519_2", false)]
+        public void TestThatReadingEd25519PublicKeyWorks(string keyName, bool withCert)
         {
-            using (var file = OpenResourceFile("OpenSshTestData", "ecdsa_1-cert.pub"))
-            {
-                var key = SshPublicKey.Read(file);
+            var fileBase = $"{keyName}{(withCert ? "-cert" : "")}";
 
-                Assert.That(key.Version, Is.EqualTo(SshVersion.SSH2));
-                Assert.That(key.Parameter, Is.TypeOf<ECPublicKeyParameters>());
-
-                var ec = (ECPublicKeyParameters)key.Parameter;
-                var curve = ReadStringResourceFile("OpenSshTestData", "ecdsa_1.param.curve");
-                var pub = ReadStringResourceFile("OpenSshTestData", "ecdsa_1.param.pub");
-
-                Assert.That(
-                    ec.Parameters.Curve,
-                    Is.EqualTo(X962NamedCurves.GetByName(curve).Curve)
-                );
-                Assert.That(ec.Q, Is.EqualTo(ec.Parameters.Curve.DecodePoint(Hex.Decode(pub))));
-
-                Assert.That(
-                    key.Sha256Fingerprint,
-                    Is.EqualTo(ReadStringResourceFile("OpenSshTestData", "ecdsa_1-cert.fp"))
-                );
-                Assert.That(key.Comment, Is.EqualTo("ECDSA test key #1"));
-                Assert.That(
-                    key.AuthorizedKeysString,
-                    Is.EqualTo(ReadStringResourceFile("OpenSshTestData", "ecdsa_1-cert.pub"))
-                );
-            }
-        }
-
-        [Test]
-        public void TestThatReadingEcdsaPublicKeyWorks2()
-        {
-            using (var file = OpenResourceFile("OpenSshTestData", "ecdsa_2.pub"))
-            {
-                var key = SshPublicKey.Read(file);
-
-                Assert.That(key.Version, Is.EqualTo(SshVersion.SSH2));
-                Assert.That(key.Parameter, Is.TypeOf<ECPublicKeyParameters>());
-
-                var ec = (ECPublicKeyParameters)key.Parameter;
-                var curve = ReadStringResourceFile("OpenSshTestData", "ecdsa_2.param.curve");
-                var pub = ReadStringResourceFile("OpenSshTestData", "ecdsa_2.param.pub");
-
-                Assert.That(ec.Parameters.Curve, Is.EqualTo(SecNamedCurves.GetByName(curve).Curve));
-                Assert.That(ec.Q, Is.EqualTo(ec.Parameters.Curve.DecodePoint(Hex.Decode(pub))));
-
-                Assert.That(
-                    key.Sha256Fingerprint,
-                    Is.EqualTo(ReadStringResourceFile("OpenSshTestData", "ecdsa_2.fp"))
-                );
-                Assert.That(key.Comment, Is.EqualTo("ECDSA test key #2"));
-                Assert.That(
-                    key.AuthorizedKeysString,
-                    Is.EqualTo(ReadStringResourceFile("OpenSshTestData", "ecdsa_2.pub"))
-                );
-            }
-        }
-
-        [Test]
-        public void TestThatReadingEd25519PublicKeyWorks()
-        {
-            using (var file = OpenResourceFile("OpenSshTestData", "ed25519_1.pub"))
+            using (var file = OpenResourceFile("OpenSshTestData", $"{fileBase}.pub"))
             {
                 var key = SshPublicKey.Read(file);
 
@@ -238,58 +177,24 @@ namespace SshAgentLibTests.Keys
 
                 Assert.That(
                     key.Sha256Fingerprint,
-                    Is.EqualTo(ReadStringResourceFile("OpenSshTestData", "ed25519_1.fp"))
+                    Is.EqualTo(ReadStringResourceFile("OpenSshTestData", $"{fileBase}.fp"))
                 );
                 Assert.That(key.Comment, Is.EqualTo("ED25519 test key #1"));
                 Assert.That(
                     key.AuthorizedKeysString,
-                    Is.EqualTo(ReadStringResourceFile("OpenSshTestData", "ed25519_1.pub"))
+                    Is.EqualTo(ReadStringResourceFile("OpenSshTestData", $"{fileBase}.pub"))
                 );
-            }
-        }
 
-        [Test]
-        public void TestThatReadingEd25519PublicKeyWithCertWorks()
-        {
-            using (var file = OpenResourceFile("OpenSshTestData", "ed25519_1-cert.pub"))
-            {
-                var key = SshPublicKey.Read(file);
-
-                Assert.That(key.Version, Is.EqualTo(SshVersion.SSH2));
-                Assert.That(key.Parameter, Is.TypeOf<Ed25519PublicKeyParameters>());
-
-                Assert.That(
-                    key.Sha256Fingerprint,
-                    Is.EqualTo(ReadStringResourceFile("OpenSshTestData", "ed25519_1-cert.fp"))
-                );
-                Assert.That(key.Comment, Is.EqualTo("ED25519 test key #1"));
-                Assert.That(
-                    key.AuthorizedKeysString,
-                    Is.EqualTo(ReadStringResourceFile("OpenSshTestData", "ed25519_1-cert.pub"))
-                );
-            }
-        }
-
-        [Test]
-        public void TestThatReadingEd25519PublicKeyWorks2()
-        {
-            using (var file = OpenResourceFile("OpenSshTestData", "ed25519_2.pub"))
-            {
-                var key = SshPublicKey.Read(file);
-
-                Assert.That(key.Version, Is.EqualTo(SshVersion.SSH2));
-                Assert.That(key.Parameter, Is.TypeOf<Ed25519PublicKeyParameters>());
-
-                Assert.That(
-                    key.Sha256Fingerprint,
-                    Is.EqualTo(ReadStringResourceFile("OpenSshTestData", "ed25519_2.fp"))
-                );
-                // Upstream bug - comment says #1 instead of #1 in the source file
-                Assert.That(key.Comment, Is.EqualTo("ED25519 test key #1"));
-                Assert.That(
-                    key.AuthorizedKeysString,
-                    Is.EqualTo(ReadStringResourceFile("OpenSshTestData", "ed25519_2.pub"))
-                );
+                if (withCert)
+                {
+                    Assert.That(key.Nonce, Is.Not.Null);
+                    Assert.That(key.Certificate, Is.Not.Null);
+                }
+                else
+                {
+                    Assert.That(key.Nonce, Is.Null);
+                    Assert.That(key.Certificate, Is.Null);
+                }
             }
         }
     }
