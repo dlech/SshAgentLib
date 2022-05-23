@@ -3,6 +3,7 @@
 
 using System;
 using System.IO;
+using System.Linq;
 using dlech.SshAgentLib;
 using Org.BouncyCastle.Crypto;
 
@@ -52,6 +53,41 @@ namespace SshAgentLib.Keys
             IsEncrypted = isEncrypted;
             HasKdf = hasKdf;
             this.decrypt = decrypt ?? throw new ArgumentNullException(nameof(decrypt));
+        }
+
+        /// <summary>
+        /// Creates a copy of the private key with a new public key.
+        /// </summary>
+        /// <remarks>
+        /// This is indented for use with certificates where the public key
+        /// with the certificate is loaded separately from the private key.
+        /// </remarks>
+        /// <param name="publicKey">The new public key.</param>
+        /// <returns>The new private key.</returns>
+        /// <exception cref="ArgumentException">
+        /// Thrown if the public key parameters of the new key do not match the
+        /// existing key.
+        /// <exception>
+        public SshPrivateKey WithPublicKey(SshPublicKey publicKey)
+        {
+            if (publicKey == null)
+            {
+                throw new ArgumentNullException(nameof(publicKey));
+            }
+
+            if (
+                !PublicKey
+                    .WithoutCertificate()
+                    .KeyBlob.SequenceEqual(publicKey.WithoutCertificate().KeyBlob)
+            )
+            {
+                throw new ArgumentException(
+                    "the public key parameters must match the existing public key",
+                    nameof(publicKey)
+                );
+            }
+
+            return new SshPrivateKey(publicKey, IsEncrypted, HasKdf, decrypt);
         }
 
         /// <summary>
