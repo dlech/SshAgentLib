@@ -136,7 +136,7 @@ namespace SshAgentLib.Keys
 
             // separate the key from the certificate
             var parser = new BlobParser(KeyBlob);
-            var parameters = parser.ReadSsh2PublicKeyData(out var _, out var _);
+            var parameters = parser.ReadSsh2PublicKeyData(out var nonce, out var certificate);
             var key = new SshKey(Version, parameters);
 
             return new SshPublicKey(Version, key.GetPublicKeyBlob(), Comment);

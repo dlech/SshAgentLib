@@ -4,6 +4,7 @@
         "editor.defaultFormatter": "csharpier.csharpier-vscode"
     },
     "omnisharp.enableRoslynAnalyzers": true,
+    "omnisharp.useGlobalMono": "always",
     "psi-header.config": {
         "license": "MIT",
         "copyrightHolder": "David Lechner <david@lechnology.com>",
