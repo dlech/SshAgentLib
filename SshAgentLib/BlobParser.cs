@@ -1,4 +1,4 @@
-﻿// SPDX-License-Identifier: MIT
+// SPDX-License-Identifier: MIT
 // Copyright (c) 2012-2015,2017,2022 David Lechner <david@lechnology.com>
 // Author(s): David Lechner
 //            Max Laverse
@@ -183,7 +183,7 @@ namespace dlech.SshAgentLib
                     if (n.BitLength < e.BitLength)
                     {
                         // In some cases, the modulus is first. We can always tell because
-                        // it is significantly larget than the exponent.
+                        // it is significantly larger than the exponent.
                         return new RsaKeyParameters(false, e, n);
                     }
                     return new RsaKeyParameters(false, n, e);
