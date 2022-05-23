@@ -42,7 +42,7 @@ namespace dlech.SshAgentLib
         /// authentication socket.
         /// </summary>
         public const string SshAuthSockName = "SSH_AUTH_SOCK";
-        public const int BufferSize = 4096;
+        public const int BufferSize = 16384;
 
         public override byte[] SendMessage(byte[] aMessage)
         {
