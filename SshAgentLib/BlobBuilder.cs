@@ -38,6 +38,8 @@ namespace dlech.SshAgentLib
     /// </summary>
     public class BlobBuilder
     {
+        static readonly DateTime epoch = new DateTime(1970, 1, 1, 0, 0, 0, DateTimeKind.Utc);
+
         List<byte> byteList;
 
         /// <summary>
@@ -82,6 +84,22 @@ namespace dlech.SshAgentLib
         public void AddUInt64(ulong value)
         {
             byteList.AddRange(value.ToBytes());
+        }
+
+        public void AddUInt64(DateTime value)
+        {
+            if (value == DateTime.MinValue)
+            {
+                AddUInt64(ulong.MinValue);
+            }
+            else if (value == DateTime.MaxValue)
+            {
+                AddUInt64(ulong.MaxValue);
+            }
+            else
+            {
+                AddUInt64((ulong)epoch.Subtract(value).Ticks);
+            }
         }
 
         /// <summary>

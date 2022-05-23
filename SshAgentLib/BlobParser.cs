@@ -13,6 +13,7 @@ using Org.BouncyCastle.Crypto;
 using Org.BouncyCastle.Crypto.Parameters;
 using Org.BouncyCastle.Math;
 using SshAgentLib;
+using SshAgentLib.Keys;
 
 namespace dlech.SshAgentLib
 {
@@ -110,30 +111,19 @@ namespace dlech.SshAgentLib
             return ReadBytes((bitCount + 7) / 8);
         }
 
-        OpensshCertificate ReadCertificate(BlobBuilder builder)
+        OpensshCertificate ReadCertificate()
         {
             var serial = ReadUInt64();
-            builder.AddUInt64(serial);
             var type = (Ssh2CertType)ReadUInt32();
-            builder.AddUInt32((uint)type);
             var keyId = ReadString();
-            builder.AddStringBlob(keyId);
             var validPrincipals = ReadBlob();
-            builder.AddBlob(validPrincipals);
             var validAfter = ReadUInt64();
-            builder.AddUInt64(validAfter);
             var validBefore = ReadUInt64();
-            builder.AddUInt64(validBefore);
             var criticalOptions = ReadBlob();
-            builder.AddBlob(criticalOptions);
             var extensions = ReadBlob();
-            builder.AddBlob(extensions);
             var reserved = ReadBlob();
-            builder.AddBlob(reserved);
-            var signatureKey = ReadBlob();
-            builder.AddBlob(signatureKey);
+            var signatureKeyBlob = ReadBlob();
             var signature = ReadBlob();
-            builder.AddBlob(signature);
 
             var principalsParser = new BlobParser(validPrincipals);
             var principalsList = new List<string>();
@@ -145,11 +135,9 @@ namespace dlech.SshAgentLib
                 validAfter == ulong.MaxValue ? DateTime.MaxValue : epoch.AddSeconds(validAfter);
             var validBeforeDateTime =
                 validBefore == ulong.MaxValue ? DateTime.MaxValue : epoch.AddSeconds(validBefore);
-            var signatureKeyParser = new BlobParser(signatureKey);
-            var sigKey = signatureKeyParser.ReadSsh2PublicKeyData(out _);
+            var signatureKey = new SshPublicKey(SshVersion.SSH2, signatureKeyBlob);
 
             return new OpensshCertificate(
-                builder.GetBlob(),
                 type,
                 serial,
                 keyId,
@@ -158,7 +146,9 @@ namespace dlech.SshAgentLib
                 validBeforeDateTime,
                 criticalOptions,
                 extensions,
-                sigKey
+                reserved,
+                signatureKey,
+                signature
             );
         }
 
@@ -167,12 +157,14 @@ namespace dlech.SshAgentLib
         /// an AsymmetricKeyParameter object
         /// </summary>
         /// <returns>AsymmetricKeyParameter containing the public key</returns>
-        public AsymmetricKeyParameter ReadSsh2PublicKeyData(out OpensshCertificate cert)
+        public AsymmetricKeyParameter ReadSsh2PublicKeyData(
+            out byte[] nonce,
+            out OpensshCertificate cert
+        )
         {
+            nonce = null;
             cert = null;
             var algorithm = KeyFormatIdentifier.Parse(ReadString());
-            var certBuilder = new BlobBuilder();
-            certBuilder.AddStringBlob(algorithm.GetIdentifier());
 
             switch (algorithm)
             {
@@ -191,23 +183,21 @@ namespace dlech.SshAgentLib
 
                 case PublicKeyAlgorithm.SshRsaCertV1:
                 {
-                    var nonce = ReadBlob();
-                    if (nonce.Length != 32)
+                    var nonceOrPublicKey = ReadBlob();
+                    if (nonceOrPublicKey.Length != 32)
                     {
                         // we are being called from SSH2_AGENTC_ADD_IDENTITY and this blob
                         // is the whole certificate, not the nonce
-                        var certParser = new BlobParser(nonce);
-                        return certParser.ReadSsh2PublicKeyData(out cert);
+                        var certParser = new BlobParser(nonceOrPublicKey);
+                        return certParser.ReadSsh2PublicKeyData(out nonce, out cert);
                     }
                     else
                     {
-                        certBuilder.AddBlob(nonce);
                         var e = new BigInteger(1, ReadBlob());
-                        certBuilder.AddBigIntBlob(e);
                         var n = new BigInteger(1, ReadBlob());
-                        certBuilder.AddBigIntBlob(n);
 
-                        cert = ReadCertificate(certBuilder);
+                        nonce = nonceOrPublicKey;
+                        cert = ReadCertificate();
 
                         return new RsaKeyParameters(false, n, e);
                     }
@@ -226,27 +216,23 @@ namespace dlech.SshAgentLib
 
                 case PublicKeyAlgorithm.SshDssCertV1:
                 {
-                    var nonce = ReadBlob();
-                    if (nonce.Length != 32)
+                    var nonceOrPublicKey = ReadBlob();
+                    if (nonceOrPublicKey.Length != 32)
                     {
                         // we are being called from SSH2_AGENTC_ADD_IDENTITY and this blob
                         // is the whole certificate, not the nonce
-                        var certParser = new BlobParser(nonce);
-                        return certParser.ReadSsh2PublicKeyData(out cert);
+                        var certParser = new BlobParser(nonceOrPublicKey);
+                        return certParser.ReadSsh2PublicKeyData(out nonce, out cert);
                     }
                     else
                     {
-                        certBuilder.AddBlob(nonce);
                         var p = new BigInteger(1, ReadBlob());
-                        certBuilder.AddBigIntBlob(p);
                         var q = new BigInteger(1, ReadBlob());
-                        certBuilder.AddBigIntBlob(q);
                         var g = new BigInteger(1, ReadBlob());
-                        certBuilder.AddBigIntBlob(g);
                         var y = new BigInteger(1, ReadBlob());
-                        certBuilder.AddBigIntBlob(y);
 
-                        cert = ReadCertificate(certBuilder);
+                        nonce = nonceOrPublicKey;
+                        cert = ReadCertificate();
 
                         var dsaParams = new DsaParameters(p, q, g);
                         return new DsaPublicKeyParameters(y, dsaParams);
@@ -275,23 +261,21 @@ namespace dlech.SshAgentLib
                 case PublicKeyAlgorithm.EcdsaSha2Nistp384CertV1:
                 case PublicKeyAlgorithm.EcdsaSha2Nistp521CertV1:
                 {
-                    var nonce = ReadBlob();
-                    if (nonce.Length != 32)
+                    var nonceOrPublicKey = ReadBlob();
+                    if (nonceOrPublicKey.Length != 32)
                     {
                         // we are being called from SSH2_AGENTC_ADD_IDENTITY and this blob
                         // is the whole certificate, not the nonce
-                        var certParser = new BlobParser(nonce);
-                        return certParser.ReadSsh2PublicKeyData(out cert);
+                        var certParser = new BlobParser(nonceOrPublicKey);
+                        return certParser.ReadSsh2PublicKeyData(out nonce, out cert);
                     }
                     else
                     {
-                        certBuilder.AddBlob(nonce);
                         var curveName = ReadString();
-                        certBuilder.AddStringBlob(curveName);
                         var publicKey = ReadBlob();
-                        certBuilder.AddBlob(publicKey);
 
-                        cert = ReadCertificate(certBuilder);
+                        nonce = nonceOrPublicKey;
+                        cert = ReadCertificate();
 
                         var x9Params = NistNamedCurves.GetByName(curveName.Replace("nistp", "P-"));
                         var domainParams = new ECDomainParameters(
@@ -314,24 +298,23 @@ namespace dlech.SshAgentLib
 
                 case PublicKeyAlgorithm.SshEd25519CertV1:
                 {
-                    var nonce = ReadBlob();
-                    if (nonce.Length != 32)
+                    var nonceOrPublicKey = ReadBlob();
+                    if (nonceOrPublicKey.Length != 32)
                     {
                         // we are being called from SSH2_AGENTC_ADD_IDENTITY and this blob
                         // is the whole certificate, not the nonce
-                        var certParser = new BlobParser(nonce);
-                        certParser.ReadSsh2PublicKeyData(out cert);
+                        var certParser = new BlobParser(nonceOrPublicKey);
+                        certParser.ReadSsh2PublicKeyData(out nonce, out cert);
                         var publicKey = ReadBlob();
 
                         return new Ed25519PublicKeyParameters(publicKey);
                     }
                     else
                     {
-                        certBuilder.AddBlob(nonce);
                         var publicKey = ReadBlob();
-                        certBuilder.AddBlob(publicKey);
 
-                        cert = ReadCertificate(certBuilder);
+                        nonce = nonceOrPublicKey;
+                        cert = ReadCertificate();
 
                         return new Ed25519PublicKeyParameters(publicKey);
                     }
@@ -345,24 +328,23 @@ namespace dlech.SshAgentLib
 
                 case PublicKeyAlgorithm.SshEd448CertV1:
                 {
-                    var nonce = ReadBlob();
-                    if (nonce.Length != 32)
+                    var nonceOrPublicKey = ReadBlob();
+                    if (nonceOrPublicKey.Length != 32)
                     {
                         // we are being called from SSH2_AGENTC_ADD_IDENTITY and this blob
                         // is the whole certificate, not the nonce
-                        var certParser = new BlobParser(nonce);
-                        certParser.ReadSsh2PublicKeyData(out cert);
+                        var certParser = new BlobParser(nonceOrPublicKey);
+                        certParser.ReadSsh2PublicKeyData(out nonce, out cert);
                         var publicKey = ReadBlob();
 
                         return new Ed448PublicKeyParameters(publicKey);
                     }
                     else
                     {
-                        certBuilder.AddBlob(nonce);
                         var publicKey = ReadBlob();
-                        certBuilder.AddBlob(publicKey);
 
-                        cert = ReadCertificate(certBuilder);
+                        nonce = nonceOrPublicKey;
+                        cert = ReadCertificate();
 
                         return new Ed448PublicKeyParameters(publicKey);
                     }

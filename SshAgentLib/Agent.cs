@@ -790,13 +790,17 @@ namespace dlech.SshAgentLib
 
                     try
                     {
-                        var publicKeyParams = messageParser.ReadSsh2PublicKeyData(out var cert);
+                        var publicKeyParams = messageParser.ReadSsh2PublicKeyData(
+                            out var nonce,
+                            out var cert
+                        );
                         var privateKeyParams = messageParser.ReadSsh2KeyData(publicKeyParams);
                         var key = new SshKey(
                             SshVersion.SSH2,
                             publicKeyParams,
                             privateKeyParams,
                             "",
+                            nonce,
                             cert
                         )
                         {

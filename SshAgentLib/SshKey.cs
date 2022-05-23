@@ -47,16 +47,27 @@ namespace dlech.SshAgentLib
             AsymmetricKeyParameter publicKeyParameter,
             AsymmetricKeyParameter privateKeyParameter = null,
             string comment = "",
+            byte[] nonce = null,
             OpensshCertificate certificate = null
         )
         {
-            IsPublicOnly = (privateKeyParameter == null);
+            IsPublicOnly = privateKeyParameter == null;
             Version = version;
             this.publicKeyParameter =
                 publicKeyParameter ?? throw new ArgumentNullException(nameof(publicKeyParameter));
             this.privateKeyParameter = privateKeyParameter;
-            Certificate = certificate;
+
             Comment = comment ?? throw new ArgumentNullException(nameof(comment));
+            Nonce = nonce;
+            Certificate = certificate;
+
+            if ((nonce == null && certificate != null) || (nonce != null && certificate == null))
+            {
+                throw new ArgumentException(
+                    "nonce cannot be null if and only if certificate is not null"
+                );
+            }
+
             keyConstraints = new List<Agent.KeyConstraint>();
         }
 
@@ -64,8 +75,10 @@ namespace dlech.SshAgentLib
             SshVersion version,
             AsymmetricCipherKeyPair cipherKeyPair,
             string comment = "",
+            byte[] nonce = null,
             OpensshCertificate certificate = null
-        ) : this(version, cipherKeyPair.Public, cipherKeyPair.Private, comment, certificate) { }
+        ) : this(version, cipherKeyPair.Public, cipherKeyPair.Private, comment, nonce, certificate)
+        { }
 
         public SshVersion Version { get; private set; }
 
@@ -124,6 +137,8 @@ namespace dlech.SshAgentLib
                 throw new Exception("Unknown algorithm");
             }
         }
+
+        public byte[] Nonce { get; }
 
         public OpensshCertificate Certificate { get; private set; }
 

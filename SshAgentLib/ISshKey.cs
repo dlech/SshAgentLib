@@ -52,6 +52,11 @@ namespace dlech.SshAgentLib
         PublicKeyAlgorithm Algorithm { get; }
 
         /// <summary>
+        /// The nonce for signed keys or <c>null</c> for unsigned keys
+        /// </summary>
+        byte[] Nonce { get; }
+
+        /// <summary>
         /// The certificate for signed keys or <c>null</c> for unsigned keys
         /// </summary>
         OpensshCertificate Certificate { get; }
@@ -148,15 +153,12 @@ namespace dlech.SshAgentLib
         /// <returns>byte array containing key information</returns>
         public static byte[] GetPublicKeyBlob(this ISshKey key, bool cert = true)
         {
-            if (cert && key.Certificate != null)
-            {
-                return key.Certificate.Blob;
-            }
             var parameters = key.GetPublicKeyParameters();
             var builder = new BlobBuilder();
-            if (parameters is RsaKeyParameters rsaPublicKeyParameters)
+
+            if (key.Version == SshVersion.SSH1)
             {
-                if (key.Version == SshVersion.SSH1)
+                if (parameters is RsaKeyParameters rsaPublicKeyParameters)
                 {
                     builder.AddInt(key.Size);
                     builder.AddSsh1BigIntBlob(rsaPublicKeyParameters.Exponent);
@@ -164,53 +166,85 @@ namespace dlech.SshAgentLib
                 }
                 else
                 {
-                    builder.AddStringBlob(PublicKeyAlgorithm.SshRsa.GetIdentifier());
+                    throw new ArgumentException("unsupported SSH1 algorithm", nameof(key));
+                }
+            }
+            else if (key.Version == SshVersion.SSH2)
+            {
+                if (cert)
+                {
+                    builder.AddStringBlob(key.Algorithm.GetIdentifier());
+                }
+                else
+                {
+                    builder.AddStringBlob(
+                        key.Algorithm.GetIdentifier().Replace("-cert-v01@openssh.com", "")
+                    );
+                }
+
+                if (cert && key.Certificate != null)
+                {
+                    builder.AddBlob(key.Nonce);
+                }
+
+                if (parameters is RsaKeyParameters rsaPublicKeyParameters)
+                {
                     builder.AddBigIntBlob(rsaPublicKeyParameters.Exponent);
                     builder.AddBigIntBlob(rsaPublicKeyParameters.Modulus);
                 }
-            }
-            else if (parameters is DsaPublicKeyParameters dsaParameters)
-            {
-                builder.AddStringBlob(PublicKeyAlgorithm.SshDss.GetIdentifier());
-                builder.AddBigIntBlob(dsaParameters.Parameters.P);
-                builder.AddBigIntBlob(dsaParameters.Parameters.Q);
-                builder.AddBigIntBlob(dsaParameters.Parameters.G);
-                builder.AddBigIntBlob(dsaParameters.Y);
-            }
-            else if (parameters is ECPublicKeyParameters ecdsaParameters)
-            {
-                PublicKeyAlgorithm algorithm;
-                switch (ecdsaParameters.Parameters.Curve.FieldSize)
+                else if (parameters is DsaPublicKeyParameters dsaParameters)
                 {
-                    case 256:
-                        algorithm = PublicKeyAlgorithm.EcdsaSha2Nistp256;
-                        break;
-                    case 384:
-                        algorithm = PublicKeyAlgorithm.EcdsaSha2Nistp384;
-                        break;
-                    case 521:
-                        algorithm = PublicKeyAlgorithm.EcdsaSha2Nistp521;
-                        break;
-                    default:
-                        throw new ArgumentException(
-                            "Unsupported EC size: " + ecdsaParameters.Parameters.Curve.FieldSize
-                        );
+                    builder.AddBigIntBlob(dsaParameters.Parameters.P);
+                    builder.AddBigIntBlob(dsaParameters.Parameters.Q);
+                    builder.AddBigIntBlob(dsaParameters.Parameters.G);
+                    builder.AddBigIntBlob(dsaParameters.Y);
                 }
-                builder.AddStringBlob(algorithm.GetIdentifier());
-                builder.AddStringBlob(algorithm.GetCurveDomainIdentifier());
-                builder.AddBlob(ecdsaParameters.Q.GetEncoded());
-            }
-            else if (parameters is Ed25519PublicKeyParameters ed15519Parameters)
-            {
-                builder.AddStringBlob(PublicKeyAlgorithm.SshEd25519.GetIdentifier());
-                builder.AddBlob(ed15519Parameters.GetEncoded());
+                else if (parameters is ECPublicKeyParameters ecdsaParameters)
+                {
+                    builder.AddStringBlob(key.Algorithm.GetCurveDomainIdentifier());
+                    builder.AddBlob(ecdsaParameters.Q.GetEncoded());
+                }
+                else if (parameters is Ed25519PublicKeyParameters ed15519Parameters)
+                {
+                    builder.AddBlob(ed15519Parameters.GetEncoded());
+                }
+                else
+                {
+                    throw new ArgumentException(
+                        $"{parameters.GetType()} is not a supported algorithm",
+                        nameof(key)
+                    );
+                }
+
+                if (cert && key.Certificate != null)
+                {
+                    var principalsBuilder = new BlobBuilder();
+
+                    foreach (var p in key.Certificate.Principals)
+                    {
+                        principalsBuilder.AddStringBlob(p);
+                    }
+
+                    builder.AddUInt64(key.Certificate.Serial);
+                    builder.AddUInt32((uint)key.Certificate.Type);
+                    builder.AddStringBlob(key.Certificate.KeyId);
+                    builder.AddBlob(principalsBuilder.GetBlob());
+                    builder.AddUInt64(key.Certificate.ValidAfter);
+                    builder.AddUInt64(key.Certificate.ValidBefore);
+                    builder.AddBlob(key.Certificate.CriticalOptions);
+                    builder.AddBlob(key.Certificate.Extensions);
+                    builder.AddBlob(key.Certificate.Reserved);
+                    builder.AddBlob(key.Certificate.SignatureKey.KeyBlob);
+                    builder.AddBlob(key.Certificate.Signature);
+                }
             }
             else
             {
-                throw new ArgumentException(parameters.GetType() + " is not supported");
+                throw new ArgumentException("unsupported SSH version", nameof(key));
             }
+
             var result = builder.GetBlob();
-            builder.Clear();
+
             return result;
         }
 

@@ -110,6 +110,7 @@ namespace dlech.SshAgentLib
                 privateKey.PublicKey.Parameter,
                 privateKey.Decrypt(getPassPhraseCallback, progress),
                 privateKey.PublicKey.Comment,
+                publicKey.Nonce,
                 publicKey.Certificate
             );
 

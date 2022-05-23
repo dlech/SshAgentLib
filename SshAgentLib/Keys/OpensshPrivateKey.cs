@@ -204,10 +204,11 @@ namespace SshAgentLib.Keys
                     throw new FormatException("checkint does not match in private key.");
                 }
 
-                var publicKey = privateKeyParser.ReadSsh2PublicKeyData(out var cert);
+                var publicKey = privateKeyParser.ReadSsh2PublicKeyData(out var nonce, out var cert);
                 var privateKey = privateKeyParser.ReadSsh2KeyData(publicKey);
                 // var comment = privateKeyParser.ReadString();
-                // TODO: what to do with comment and cert?
+                // TODO: what to do with comment?
+                // TODO: should we throw if nonce/cert is not null?
 
                 return privateKey;
             };

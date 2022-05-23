@@ -227,10 +227,13 @@ namespace dlech.SshAgentLib
                     {
                         var publicKeyBlob = replyParser.ReadBlob();
                         var publicKeyParser = new BlobParser(publicKeyBlob);
-                        var publicKeyParams = publicKeyParser.ReadSsh2PublicKeyData(out var cert);
+                        var publicKeyParams = publicKeyParser.ReadSsh2PublicKeyData(
+                            out var nonce,
+                            out var cert
+                        );
                         var comment = replyParser.ReadString();
                         keyCollection.Add(
-                            new SshKey(SshVersion.SSH2, publicKeyParams, null, comment, cert)
+                            new SshKey(SshVersion.SSH2, publicKeyParams, null, comment, nonce, cert)
                         );
                     }
                     break;

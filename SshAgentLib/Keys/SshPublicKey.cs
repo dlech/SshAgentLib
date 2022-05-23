@@ -32,7 +32,7 @@ namespace SshAgentLib.Keys
         /// <summary>
         /// Gets the encryption parameter.
         /// </summary>
-        private byte[] KeyBlob { get; }
+        internal byte[] KeyBlob { get; }
 
         /// <summary>
         /// Gets the optional comment.
@@ -77,6 +77,8 @@ namespace SshAgentLib.Keys
             }
         }
 
+        public byte[] Nonce { get; }
+
         public OpensshCertificate Certificate { get; }
 
         /// <summary>
@@ -99,7 +101,8 @@ namespace SshAgentLib.Keys
                     Parameter = parser.ReadSsh1PublicKeyData();
                     break;
                 case SshVersion.SSH2:
-                    Parameter = parser.ReadSsh2PublicKeyData(out var certificate);
+                    Parameter = parser.ReadSsh2PublicKeyData(out var nonce, out var certificate);
+                    Nonce = nonce;
                     Certificate = certificate;
                     break;
                 default:
@@ -133,7 +136,7 @@ namespace SshAgentLib.Keys
 
             // separate the key from the certificate
             var parser = new BlobParser(KeyBlob);
-            var parameters = parser.ReadSsh2PublicKeyData(out var _);
+            var parameters = parser.ReadSsh2PublicKeyData(out var _, out var _);
             var key = new SshKey(Version, parameters);
 
             return new SshPublicKey(Version, key.GetPublicKeyBlob(), Comment);

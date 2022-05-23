@@ -31,7 +31,6 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
-using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Security.Cryptography;
@@ -258,7 +257,7 @@ namespace dlech.SshAgentLibTests
             Assert.That(returnedKey.GetPublicKeyParameters(), Is.InstanceOf<RsaKeyParameters>());
             Assert.That(returnedKey.GetPrivateKeyParameters(), Is.InstanceOf<RsaKeyParameters>());
             Assert.That(returnedKey.Size, Is.EqualTo(rsaKey.Size));
-            Assert.That(returnedKey.Certificate.Blob, Is.EqualTo(certBuilder.GetBlob()));
+            Assert.That(returnedKey.GetPublicKeyBlob(), Is.EqualTo(certBuilder.GetBlob()));
             Assert.That(returnedKey.Comment, Is.EqualTo(rsaKey.Comment));
             Assert.That(returnedKey.GetMD5Fingerprint(), Is.EqualTo(rsaKey.GetMD5Fingerprint()));
         }
@@ -338,7 +337,7 @@ namespace dlech.SshAgentLibTests
             Assert.That(returnedKey.GetPublicKeyParameters(), Is.InstanceOf<DsaKeyParameters>());
             Assert.That(returnedKey.GetPrivateKeyParameters(), Is.InstanceOf<DsaKeyParameters>());
             Assert.That(returnedKey.Size, Is.EqualTo(dsaKey.Size));
-            Assert.That(returnedKey.Certificate.Blob, Is.EqualTo(certBuilder.GetBlob()));
+            Assert.That(returnedKey.GetPublicKeyBlob(), Is.EqualTo(certBuilder.GetBlob()));
             Assert.That(returnedKey.Comment, Is.EqualTo(dsaKey.Comment));
             Assert.That(returnedKey.GetMD5Fingerprint(), Is.EqualTo(dsaKey.GetMD5Fingerprint()));
         }
@@ -433,7 +432,7 @@ namespace dlech.SshAgentLibTests
             );
             Assert.That(returnedKey.Size, Is.EqualTo(ecdsa256Key.Size));
             Assert.That(returnedKey.Comment, Is.EqualTo(ecdsa256Key.Comment));
-            Assert.That(returnedKey.Certificate.Blob, Is.EqualTo(certBuilder.GetBlob()));
+            Assert.That(returnedKey.GetPublicKeyBlob(), Is.EqualTo(certBuilder.GetBlob()));
             Assert.That(
                 returnedKey.GetMD5Fingerprint(),
                 Is.EqualTo(ecdsa256Key.GetMD5Fingerprint())
@@ -531,7 +530,7 @@ namespace dlech.SshAgentLibTests
             );
             Assert.That(returnedKey.Size, Is.EqualTo(ed25519Key.Size));
             Assert.That(returnedKey.Comment, Is.EqualTo(ed25519Key.Comment));
-            Assert.That(returnedKey.Certificate.Blob, Is.EqualTo(certBuilder.GetBlob()));
+            Assert.That(returnedKey.GetPublicKeyBlob(), Is.EqualTo(certBuilder.GetBlob()));
             Assert.That(
                 returnedKey.GetMD5Fingerprint(),
                 Is.EqualTo(ed25519Key.GetMD5Fingerprint())
