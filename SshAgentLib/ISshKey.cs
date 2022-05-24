@@ -316,10 +316,12 @@ namespace dlech.SshAgentLib
         /// key and in the case of RSA keys, the optional flags.
         /// </summary>
         /// <param name="key">A SSH key</param>
+        /// <param name="algorithm">The OpenSSH identifier for the signer algorithm.</param>
         /// <param name="flags">Optional flags</param>
         /// <returns>A Signer</returns>
         public static ISigner GetSigner(
             this ISshKey key,
+            out string algorithm,
             SignRequestFlags flags = default(SignRequestFlags)
         )
         {
@@ -327,6 +329,7 @@ namespace dlech.SshAgentLib
 
             if (publicKey is DsaPublicKeyParameters)
             {
+                algorithm = "ssh-dss";
                 return SignerUtilities.GetSigner(X9ObjectIdentifiers.IdDsaWithSha1);
             }
 
@@ -336,14 +339,17 @@ namespace dlech.SshAgentLib
 
                 if (flags.HasFlag(SignRequestFlags.SSH_AGENT_RSA_SHA2_512))
                 {
+                    algorithm = "rsa-sha2-512";
                     return SignerUtilities.GetSigner(PkcsObjectIdentifiers.Sha512WithRsaEncryption);
                 }
 
                 if (flags.HasFlag(SignRequestFlags.SSH_AGENT_RSA_SHA2_256))
                 {
+                    algorithm = "rsa-sha2-256";
                     return SignerUtilities.GetSigner(PkcsObjectIdentifiers.Sha256WithRsaEncryption);
                 }
 
+                algorithm = "ssh-rsa";
                 return SignerUtilities.GetSigner(PkcsObjectIdentifiers.Sha1WithRsaEncryption);
             }
 
@@ -351,16 +357,19 @@ namespace dlech.SshAgentLib
             {
                 if (parameters.Q.Curve.Equals(NistNamedCurves.GetByName("P-256")))
                 {
+                    algorithm = "ecdsa-sha2-nisp256";
                     return SignerUtilities.GetSigner(X9ObjectIdentifiers.ECDsaWithSha256);
                 }
 
                 if (parameters.Q.Curve.Equals(NistNamedCurves.GetByName("P-384")))
                 {
+                    algorithm = "ecdsa-sha2-nisp384";
                     return SignerUtilities.GetSigner(X9ObjectIdentifiers.ECDsaWithSha384);
                 }
 
                 if (parameters.Q.Curve.Equals(NistNamedCurves.GetByName("P-521")))
                 {
+                    algorithm = "ecdsa-sha2-nisp521";
                     return SignerUtilities.GetSigner(X9ObjectIdentifiers.ECDsaWithSha512);
                 }
 
@@ -369,6 +378,7 @@ namespace dlech.SshAgentLib
 
             if (publicKey is Ed25519PublicKeyParameters)
             {
+                algorithm = "ssh-ed25519";
                 return new Ed25519Signer();
             }
 

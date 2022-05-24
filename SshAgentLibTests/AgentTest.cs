@@ -774,7 +774,7 @@ namespace dlech.SshAgentLibTests
                 {
                     Assert.That(signature.Length, Is.EqualTo(64));
                 }
-                signer = key.GetSigner();
+                signer = key.GetSigner(out var _);
                 signer.Init(false, key.GetPublicKeyParameters());
                 signer.BlockUpdate(signatureDataBytes, 0, signatureDataBytes.Length);
                 signatureOk = signer.VerifySignature(signature);
@@ -802,7 +802,8 @@ namespace dlech.SshAgentLibTests
             s = new BigInteger(1, signature, 20, 20);
             seq = new DerSequence(new DerInteger(r), new DerInteger(s));
             signature = seq.GetDerEncoded();
-            signer = dsaKey.GetSigner();
+            signer = dsaKey.GetSigner(out var algName);
+            Assert.That(algName, Is.EqualTo("ssh-dss"));
             signer.Init(false, dsaKey.GetPublicKeyParameters());
             signer.BlockUpdate(signatureDataBytes, 0, signatureDataBytes.Length);
             signatureOk = signer.VerifySignature(signature);

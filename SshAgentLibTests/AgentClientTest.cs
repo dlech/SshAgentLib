@@ -305,7 +305,7 @@ namespace SshAgentLibTests
                     signature = seq.GetDerEncoded();
                 }
 
-                var signer = key.GetSigner();
+                var signer = key.GetSigner(out var _);
                 signer.Init(false, key.GetPublicKeyParameters());
                 signer.BlockUpdate(data, 0, data.Length);
                 var valid = signer.VerifySignature(signature);

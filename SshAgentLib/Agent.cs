@@ -529,7 +529,7 @@ namespace dlech.SshAgentLib
 
                         /* create signature */
                         var signKey = matchingKey;
-                        var signer = signKey.GetSigner(flags);
+                        var signer = signKey.GetSigner(out var algName, flags);
                         signer.Init(true, signKey.GetPrivateKeyParameters());
                         signer.BlockUpdate(reqData, 0, reqData.Length);
                         var signature = signer.GenerateSignature();
@@ -538,18 +538,6 @@ namespace dlech.SshAgentLib
 
                         if (!flags.HasFlag(SignRequestFlags.SSH_AGENT_OLD_SIGNATURE))
                         {
-                            var algName = signKey.Algorithm.GetIdentifier();
-
-                            // handle possible overridden signer (because of flags)
-                            if (signer.AlgorithmName == "SHA-512withRSA")
-                            {
-                                algName = "rsa-sha2-512";
-                            }
-                            else if (signer.AlgorithmName == "SHA-256withRSA")
-                            {
-                                algName = "rsa-sha2-256";
-                            }
-
                             signatureBuilder.AddStringBlob(algName);
                         }
 
