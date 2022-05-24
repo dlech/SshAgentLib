@@ -103,6 +103,10 @@ namespace dlech.SshAgentLib
 
         public void StopUnixSocket()
         {
+            if (listener == null) {
+                return;
+            }
+
             // work around mono bug. listener.Dispose() should delete file, but it
             // fails because there are null chars appended to the end of the filename
             // for some reason.
@@ -110,6 +114,7 @@ namespace dlech.SshAgentLib
             var socketPath = ((UnixEndPoint)listener.LocalEndpoint).Filename;
             var nullTerminatorIndex = socketPath.IndexOf('\0');
             listener.Dispose();
+
             if (nullTerminatorIndex > 0)
             {
                 try
