@@ -107,7 +107,6 @@ namespace dlech.SshAgentLib
         [Flags]
         public enum SignRequestFlags : uint
         {
-            SSH_AGENT_OLD_SIGNATURE = 0x01,
             SSH_AGENT_RSA_SHA2_256 = 0x02,
             SSH_AGENT_RSA_SHA2_512 = 0x04,
         }
@@ -534,13 +533,9 @@ namespace dlech.SshAgentLib
                         signer.BlockUpdate(reqData, 0, reqData.Length);
                         var signature = signer.GenerateSignature();
                         signature = signKey.FormatSignature(signature);
+
                         var signatureBuilder = new BlobBuilder();
-
-                        if (!flags.HasFlag(SignRequestFlags.SSH_AGENT_OLD_SIGNATURE))
-                        {
-                            signatureBuilder.AddStringBlob(algName);
-                        }
-
+                        signatureBuilder.AddStringBlob(algName);
                         signatureBuilder.AddBlob(signature);
                         responseBuilder.AddBlob(signatureBuilder.GetBlob());
                         responseBuilder.InsertHeader(Message.SSH2_AGENT_SIGN_RESPONSE);

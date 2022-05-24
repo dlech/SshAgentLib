@@ -782,34 +782,6 @@ namespace dlech.SshAgentLibTests
                 Assert.That(header.BlobLength, Is.EqualTo(stream.Position - 4));
             }
 
-            /* test DSA key old signature format */
-
-            builder.Clear();
-            builder.AddBlob(dsaKey.GetPublicKeyBlob());
-            builder.AddStringBlob(signatureData);
-            builder.AddUInt32((uint)Agent.SignRequestFlags.SSH_AGENT_OLD_SIGNATURE);
-            builder.InsertHeader(Agent.Message.SSH2_AGENTC_SIGN_REQUEST);
-            PrepareMessage(builder);
-            agent.AnswerMessage(stream);
-            RewindStream();
-            header = parser.ReadHeader();
-            Assert.That(header.Message, Is.EqualTo(Agent.Message.SSH2_AGENT_SIGN_RESPONSE));
-            signatureBlob = parser.ReadBlob();
-            signatureParser = new BlobParser(signatureBlob);
-            signature = signatureParser.ReadBlob();
-            Assert.That(signature.Length == 40);
-            r = new BigInteger(1, signature, 0, 20);
-            s = new BigInteger(1, signature, 20, 20);
-            seq = new DerSequence(new DerInteger(r), new DerInteger(s));
-            signature = seq.GetDerEncoded();
-            signer = dsaKey.GetSigner(out var algName);
-            Assert.That(algName, Is.EqualTo("ssh-dss"));
-            signer.Init(false, dsaKey.GetPublicKeyParameters());
-            signer.BlockUpdate(signatureDataBytes, 0, signatureDataBytes.Length);
-            signatureOk = signer.VerifySignature(signature);
-            Assert.That(signatureOk, Is.True, "invalid signature");
-            Assert.That(header.BlobLength, Is.EqualTo(stream.Position - 4));
-
             /* test key not found */
 
             agent = new TestAgent();
