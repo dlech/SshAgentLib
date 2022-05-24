@@ -270,7 +270,6 @@ namespace SshAgentLibTests
                 var signature = agentClient.SignRequest(key, data);
                 var signatureParser = new BlobParser(signature);
                 var algorithm = signatureParser.ReadString();
-                Assert.That(algorithm, Is.EqualTo(key.Algorithm.GetIdentifier()));
                 signature = signatureParser.ReadBlob();
 
                 if (key.Algorithm == PublicKeyAlgorithm.SshRsa)
@@ -305,7 +304,8 @@ namespace SshAgentLibTests
                     signature = seq.GetDerEncoded();
                 }
 
-                var signer = key.GetSigner(out var _);
+                var signer = key.GetSigner(out var signerAlgorithm);
+                Assert.That(algorithm, Is.EqualTo(signerAlgorithm));
                 signer.Init(false, key.GetPublicKeyParameters());
                 signer.BlockUpdate(data, 0, data.Length);
                 var valid = signer.VerifySignature(signature);
