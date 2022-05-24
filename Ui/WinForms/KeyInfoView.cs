@@ -739,10 +739,34 @@ namespace dlech.SshAgentLib.WinForms
 
         private void removeAllKeysButton_Click(object sender, EventArgs e)
         {
-            mAgent.RemoveAllKeys();
-            if (!(mAgent is Agent))
+            try
             {
-                ReloadKeyListView();
+                mAgent.RemoveAllKeys();
+                if (!(mAgent is Agent))
+                {
+                    ReloadKeyListView();
+                }
+            }
+            catch (AgentFailureException)
+            {
+                MessageBox.Show(
+                    "Removing all keys failed.\n"
+                        + "Possible Causes:\n"
+                        + "- Agent is locked.\n"
+                        + "- Agent does not support this command.",
+                    Util.AssemblyTitle,
+                    MessageBoxButtons.OK,
+                    MessageBoxIcon.Error
+                );
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show(
+                    "Removing all keys failed with unexpected error.\n" + ex.Message,
+                    Util.AssemblyTitle,
+                    MessageBoxButtons.OK,
+                    MessageBoxIcon.Error
+                );
             }
         }
 
