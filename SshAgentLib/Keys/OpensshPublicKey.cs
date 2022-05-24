@@ -27,7 +27,7 @@ namespace SshAgentLib.Keys
                 var comment = line;
 
                 var keyData = Convert.FromBase64String(data);
-                var key = new SshPublicKey(SshVersion.SSH2, keyData, comment);
+                var key = new SshPublicKey(keyData, comment);
 
                 return key;
             }

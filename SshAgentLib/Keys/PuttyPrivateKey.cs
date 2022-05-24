@@ -115,8 +115,7 @@ namespace SshAgentLib.Keys
 
             var publicKeyBlob = Convert.FromBase64String(publicKeyString.ToString());
 
-            // TODO: could be SSH1 - check algorithm
-            var publicKey = new SshPublicKey(SshVersion.SSH2, publicKeyBlob, comment);
+            var publicKey = new SshPublicKey(publicKeyBlob, comment);
 
             var argon2Parameter = new Argon2.Parameters();
 

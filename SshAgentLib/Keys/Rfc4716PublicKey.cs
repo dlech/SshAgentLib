@@ -148,7 +148,7 @@ namespace SshAgentLib.Keys
                 // comment is only header currently used
                 headers.TryGetValue(commentHeader, out var comment);
 
-                return new SshPublicKey(SshVersion.SSH2, keyData, comment);
+                return new SshPublicKey(keyData, comment);
             }
         }
     }

@@ -115,7 +115,7 @@ namespace dlech.SshAgentLibTests
                         0,
                         0,
                         1,
-                        (byte)Agent.Message.SSH1_AGENTC_REQUEST_RSA_IDENTITIES,
+                        (byte)Agent.Message.SSH2_AGENTC_REQUEST_IDENTITIES,
                     };
                     stream.Write(message, 0, message.Length); // send message
                     stream.Flush();
@@ -127,7 +127,7 @@ namespace dlech.SshAgentLibTests
                         0,
                         0,
                         5,
-                        (byte)Agent.Message.SSH1_AGENT_RSA_IDENTITIES_ANSWER,
+                        (byte)Agent.Message.SSH2_AGENT_IDENTITIES_ANSWER,
                         0,
                         0,
                         0,

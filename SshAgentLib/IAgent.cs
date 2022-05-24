@@ -44,9 +44,9 @@ namespace dlech.SshAgentLib
 
         void RemoveKey(ISshKey key);
 
-        void RemoveAllKeys(SshVersion version);
+        void RemoveAllKeys();
 
-        ICollection<ISshKey> ListKeys(SshVersion version);
+        ICollection<ISshKey> ListKeys();
 
         void Lock(byte[] passphrase);
 
@@ -106,7 +106,6 @@ namespace dlech.SshAgentLib
             }
 
             var key = new SshKey(
-                privateKey.PublicKey.Version,
                 privateKey.PublicKey.Parameter,
                 privateKey.Decrypt(getPassPhraseCallback, progress),
                 privateKey.PublicKey.Comment,
@@ -141,32 +140,6 @@ namespace dlech.SshAgentLib
             return key;
         }
 
-        public static void RemoveAllKeys(this IAgent agent)
-        {
-            foreach (SshVersion version in Enum.GetValues(typeof(SshVersion)))
-            {
-                agent.RemoveAllKeys(version);
-            }
-        }
-
-        public static ICollection<ISshKey> GetAllKeys(this IAgent agent)
-        {
-            var allKeysList = new List<ISshKey>();
-
-            foreach (SshVersion version in Enum.GetValues(typeof(SshVersion)))
-            {
-                try
-                {
-                    var versionList = agent.ListKeys(version);
-                    allKeysList.AddRange(versionList);
-                }
-                catch (Exception) { }
-                // TODO something better with exceptions
-            }
-
-            return allKeysList;
-        }
-
         /// <summary>
         /// Checks if a matching key is loaded in the agent.
         /// </summary>
@@ -188,7 +161,7 @@ namespace dlech.SshAgentLib
                 throw new ArgumentNullException(nameof(key));
             }
 
-            return agent.ListKeys(key.Version).Any(k => key.Matches(k.GetPublicKeyBlob()));
+            return agent.ListKeys().Any(k => key.Matches(k.GetPublicKeyBlob()));
         }
     }
 }

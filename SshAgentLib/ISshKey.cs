@@ -43,11 +43,6 @@ namespace dlech.SshAgentLib
     public interface ISshKey : IDisposable
     {
         /// <summary>
-        /// The SSH protocol version
-        /// </summary>
-        SshVersion Version { get; }
-
-        /// <summary>
         /// The public key algorithm
         /// </summary>
         PublicKeyAlgorithm Algorithm { get; }
@@ -135,20 +130,18 @@ namespace dlech.SshAgentLib
             aKey.AddConstraint(constraint);
         }
 
-        public static ISshKey Get(
-            this ICollection<ISshKey> aKeyList,
-            SshVersion aVersion,
-            byte[] aPublicKeyBlob
-        )
+        public static ISshKey TryGet(this ICollection<ISshKey> keyList, byte[] publicKeyBlob)
         {
-            foreach (var key in aKeyList.Where(key => key.Version == aVersion))
+            foreach (var key in keyList)
             {
                 var keyBlob = key.GetPublicKeyBlob();
-                if (keyBlob.SequenceEqual(aPublicKeyBlob))
+
+                if (keyBlob.SequenceEqual(publicKeyBlob))
                 {
                     return key;
                 }
             }
+
             return null;
         }
 
@@ -163,96 +156,76 @@ namespace dlech.SshAgentLib
             var parameters = key.GetPublicKeyParameters();
             var builder = new BlobBuilder();
 
-            if (key.Version == SshVersion.SSH1)
+            if (cert)
             {
-                if (parameters is RsaKeyParameters rsaPublicKeyParameters)
-                {
-                    builder.AddInt(key.Size);
-                    builder.AddSsh1BigIntBlob(rsaPublicKeyParameters.Exponent);
-                    builder.AddSsh1BigIntBlob(rsaPublicKeyParameters.Modulus);
-                }
-                else
-                {
-                    throw new ArgumentException("unsupported SSH1 algorithm", nameof(key));
-                }
-            }
-            else if (key.Version == SshVersion.SSH2)
-            {
-                if (cert)
-                {
-                    builder.AddStringBlob(key.Algorithm.GetIdentifier());
-                }
-                else
-                {
-                    builder.AddStringBlob(
-                        key.Algorithm.GetIdentifier().Replace("-cert-v01@openssh.com", "")
-                    );
-                }
-
-                if (cert && key.Certificate != null)
-                {
-                    builder.AddBlob(key.Nonce);
-                }
-
-                if (parameters is RsaKeyParameters rsaPublicKeyParameters)
-                {
-                    builder.AddBigIntBlob(rsaPublicKeyParameters.Exponent);
-                    builder.AddBigIntBlob(rsaPublicKeyParameters.Modulus);
-                }
-                else if (parameters is DsaPublicKeyParameters dsaParameters)
-                {
-                    builder.AddBigIntBlob(dsaParameters.Parameters.P);
-                    builder.AddBigIntBlob(dsaParameters.Parameters.Q);
-                    builder.AddBigIntBlob(dsaParameters.Parameters.G);
-                    builder.AddBigIntBlob(dsaParameters.Y);
-                }
-                else if (parameters is ECPublicKeyParameters ecdsaParameters)
-                {
-                    builder.AddStringBlob(key.Algorithm.GetCurveDomainIdentifier());
-                    builder.AddBlob(ecdsaParameters.Q.GetEncoded());
-                }
-                else if (parameters is Ed25519PublicKeyParameters ed15519Parameters)
-                {
-                    builder.AddBlob(ed15519Parameters.GetEncoded());
-                }
-                else
-                {
-                    throw new ArgumentException(
-                        $"{parameters.GetType()} is not a supported algorithm",
-                        nameof(key)
-                    );
-                }
-
-                if (key.Application != null)
-                {
-                    builder.AddStringBlob(key.Application);
-                }
-
-                if (cert && key.Certificate != null)
-                {
-                    var principalsBuilder = new BlobBuilder();
-
-                    foreach (var p in key.Certificate.Principals)
-                    {
-                        principalsBuilder.AddStringBlob(p);
-                    }
-
-                    builder.AddUInt64(key.Certificate.Serial);
-                    builder.AddUInt32((uint)key.Certificate.Type);
-                    builder.AddStringBlob(key.Certificate.KeyId);
-                    builder.AddBlob(principalsBuilder.GetBlob());
-                    builder.AddUInt64(key.Certificate.ValidAfter);
-                    builder.AddUInt64(key.Certificate.ValidBefore);
-                    builder.AddBlob(key.Certificate.CriticalOptions);
-                    builder.AddBlob(key.Certificate.Extensions);
-                    builder.AddBlob(key.Certificate.Reserved);
-                    builder.AddBlob(key.Certificate.SignatureKey.KeyBlob);
-                    builder.AddBlob(key.Certificate.Signature);
-                }
+                builder.AddStringBlob(key.Algorithm.GetIdentifier());
             }
             else
             {
-                throw new ArgumentException("unsupported SSH version", nameof(key));
+                builder.AddStringBlob(
+                    key.Algorithm.GetIdentifier().Replace("-cert-v01@openssh.com", "")
+                );
+            }
+
+            if (cert && key.Certificate != null)
+            {
+                builder.AddBlob(key.Nonce);
+            }
+
+            if (parameters is RsaKeyParameters rsaPublicKeyParameters)
+            {
+                builder.AddBigIntBlob(rsaPublicKeyParameters.Exponent);
+                builder.AddBigIntBlob(rsaPublicKeyParameters.Modulus);
+            }
+            else if (parameters is DsaPublicKeyParameters dsaParameters)
+            {
+                builder.AddBigIntBlob(dsaParameters.Parameters.P);
+                builder.AddBigIntBlob(dsaParameters.Parameters.Q);
+                builder.AddBigIntBlob(dsaParameters.Parameters.G);
+                builder.AddBigIntBlob(dsaParameters.Y);
+            }
+            else if (parameters is ECPublicKeyParameters ecdsaParameters)
+            {
+                builder.AddStringBlob(key.Algorithm.GetCurveDomainIdentifier());
+                builder.AddBlob(ecdsaParameters.Q.GetEncoded());
+            }
+            else if (parameters is Ed25519PublicKeyParameters ed15519Parameters)
+            {
+                builder.AddBlob(ed15519Parameters.GetEncoded());
+            }
+            else
+            {
+                throw new ArgumentException(
+                    $"{parameters.GetType()} is not a supported algorithm",
+                    nameof(key)
+                );
+            }
+
+            if (key.Application != null)
+            {
+                builder.AddStringBlob(key.Application);
+            }
+
+            if (cert && key.Certificate != null)
+            {
+                var principalsBuilder = new BlobBuilder();
+
+                foreach (var p in key.Certificate.Principals)
+                {
+                    principalsBuilder.AddStringBlob(p);
+                }
+
+                builder.AddUInt64(key.Certificate.Serial);
+                builder.AddUInt32((uint)key.Certificate.Type);
+                builder.AddStringBlob(key.Certificate.KeyId);
+                builder.AddBlob(principalsBuilder.GetBlob());
+                builder.AddUInt64(key.Certificate.ValidAfter);
+                builder.AddUInt64(key.Certificate.ValidBefore);
+                builder.AddBlob(key.Certificate.CriticalOptions);
+                builder.AddBlob(key.Certificate.Extensions);
+                builder.AddBlob(key.Certificate.Reserved);
+                builder.AddBlob(key.Certificate.SignatureKey.KeyBlob);
+                builder.AddBlob(key.Certificate.Signature);
             }
 
             var result = builder.GetBlob();
@@ -260,37 +233,9 @@ namespace dlech.SshAgentLib
             return result;
         }
 
-        public static string GetAuthorizedKeyString(this ISshKey aKey)
+        public static string GetAuthorizedKeyString(this ISshKey key)
         {
-            string result;
-
-            switch (aKey.Version)
-            {
-                case SshVersion.SSH1:
-                    var parameters = aKey.GetPublicKeyParameters();
-                    var rsaPublicKeyParameters = (RsaKeyParameters)parameters;
-                    result =
-                        aKey.Size
-                        + " "
-                        + rsaPublicKeyParameters.Exponent.ToString(10)
-                        + " "
-                        + rsaPublicKeyParameters.Modulus.ToString(10)
-                        + " "
-                        + aKey.Comment;
-                    break;
-                case SshVersion.SSH2:
-                    result =
-                        aKey.Algorithm.GetIdentifier()
-                        + " "
-                        + Convert.ToBase64String(aKey.GetPublicKeyBlob())
-                        + " "
-                        + aKey.Comment;
-                    break;
-                default:
-                    throw new NotSupportedException("unsupported SSH version");
-            }
-
-            return result;
+            return $"{key.Algorithm.GetIdentifier()} {Convert.ToBase64String(key.GetPublicKeyBlob())} {key.Comment}";
         }
 
         public static byte[] GetMD5Fingerprint(this ISshKey key)
@@ -302,21 +247,6 @@ namespace dlech.SshAgentLib
 
             using (var md5 = MD5.Create())
             {
-                if (
-                    key.Version == SshVersion.SSH1
-                    && key.GetPublicKeyParameters() is RsaKeyParameters rsaKeyParameters
-                )
-                {
-                    var modSize = rsaKeyParameters.Modulus.ToByteArrayUnsigned().Length;
-                    var expSize = rsaKeyParameters.Exponent.ToByteArrayUnsigned().Length;
-                    var md5Buffer = new byte[modSize + expSize];
-
-                    rsaKeyParameters.Modulus.ToByteArrayUnsigned().CopyTo(md5Buffer, 0);
-                    rsaKeyParameters.Exponent.ToByteArrayUnsigned().CopyTo(md5Buffer, modSize);
-
-                    return md5.ComputeHash(md5Buffer);
-                }
-
                 return md5.ComputeHash(key.GetPublicKeyBlob(false));
             }
         }

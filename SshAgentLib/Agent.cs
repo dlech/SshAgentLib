@@ -65,17 +65,8 @@ namespace dlech.SshAgentLib
         #region Enums
 
         /* Protocol message number - from PROTOCOL.agent in OpenSSH source code */
-        /* note: changed SSH_* to SSH1_* on protocol v1 specific items for clarity */
         public enum Message : byte
         {
-            /* Requests from client to agent for protocol 1 key operations */
-            SSH1_AGENTC_REQUEST_RSA_IDENTITIES = 1,
-            SSH1_AGENTC_RSA_CHALLENGE = 3,
-            SSH1_AGENTC_ADD_RSA_IDENTITY = 7,
-            SSH1_AGENTC_REMOVE_RSA_IDENTITY = 8,
-            SSH1_AGENTC_REMOVE_ALL_RSA_IDENTITIES = 9,
-            SSH1_AGENTC_ADD_RSA_ID_CONSTRAINED = 24,
-
             /* Requests from client to agent for protocol 2 key operations */
             SSH2_AGENTC_REQUEST_IDENTITIES = 11,
             SSH2_AGENTC_SIGN_REQUEST = 13,
@@ -94,10 +85,6 @@ namespace dlech.SshAgentLib
             /* Generic replies from agent to client */
             SSH_AGENT_FAILURE = 5,
             SSH_AGENT_SUCCESS = 6,
-
-            /* Replies from agent to client for protocol 1 key operations */
-            SSH1_AGENT_RSA_IDENTITIES_ANSWER = 2,
-            SSH1_AGENT_RSA_RESPONSE = 4,
 
             /* Replies from agent to client for protocol 2 key operations */
             SSH2_AGENT_IDENTITIES_ANSWER = 12,
@@ -300,8 +287,12 @@ namespace dlech.SshAgentLib
             }
 
             /* first remove matching key if it exists */
-            var matchingKey = keyList.Get(key.Version, key.GetPublicKeyBlob());
-            RemoveKey(matchingKey);
+            var matchingKey = keyList.TryGet(key.GetPublicKeyBlob());
+
+            if (matchingKey != null)
+            {
+                RemoveKey(matchingKey);
+            }
 
             keyList.Add(key);
             OnKeyAdded(key);
@@ -320,14 +311,14 @@ namespace dlech.SshAgentLib
             }
         }
 
-        public void RemoveAllKeys(SshVersion aVersion)
+        public void RemoveAllKeys()
         {
             if (IsLocked)
             {
                 throw new AgentLockedException();
             }
 
-            var removeKeyList = ListKeys(aVersion);
+            var removeKeyList = ListKeys();
 
             foreach (var key in removeKeyList)
             {
@@ -335,14 +326,14 @@ namespace dlech.SshAgentLib
             }
         }
 
-        public ICollection<ISshKey> ListKeys(SshVersion aVersion)
+        public ICollection<ISshKey> ListKeys()
         {
             if (IsLocked)
             {
                 return new List<ISshKey>();
             }
 
-            return keyList.Where(key => key.Version == aVersion).ToList();
+            return keyList.ToList();
         }
 
         public void Lock(byte[] aPassphrase)
@@ -464,60 +455,14 @@ namespace dlech.SshAgentLib
 
             switch (header.Message)
             {
-                case Message.SSH1_AGENTC_REQUEST_RSA_IDENTITIES:
-                    /*
-                     * Reply with SSH1_AGENT_RSA_IDENTITIES_ANSWER.
-                     */
-                    try
-                    {
-                        if (header.BlobLength > 1)
-                        {
-                            // ruby net-ssh tries to send a SSH2_AGENT_REQUEST_VERSION message
-                            // which has the same id number as SSH1_AGENTC_REQUEST_RSA_IDENTITIES
-                            // with a string tacked on. We need to read the string from the
-                            // stream, but it is not used for anything.
-                            messageParser.ReadString();
-                        }
-
-                        var keyList = ListKeys(SshVersion.SSH1);
-
-                        if (FilterKeyListCallback != null)
-                        {
-                            keyList = FilterKeyListCallback(keyList);
-                        }
-
-                        foreach (SshKey key in keyList)
-                        {
-                            responseBuilder.AddBytes(key.GetPublicKeyBlob());
-                            responseBuilder.AddStringBlob(key.Comment);
-                        }
-
-                        responseBuilder.InsertHeader(
-                            Message.SSH1_AGENT_RSA_IDENTITIES_ANSWER,
-                            keyList.Count
-                        );
-
-                        // TODO may want to check that there is enough room in the message stream
-                        break; // succeeded
-                    }
-                    catch (AgentLockedException)
-                    {
-                        // This is expected
-                    }
-                    catch (Exception ex)
-                    {
-                        Debug.Fail(ex.ToString());
-                    }
-
-                    goto default; // failed
-
                 case Message.SSH2_AGENTC_REQUEST_IDENTITIES:
                     /*
                      * Reply with SSH2_AGENT_IDENTITIES_ANSWER.
                      */
                     try
                     {
-                        var keyList = ListKeys(SshVersion.SSH2);
+                        var keyList = ListKeys();
+
                         if (FilterKeyListCallback != null)
                         {
                             keyList = FilterKeyListCallback(keyList);
@@ -548,76 +493,6 @@ namespace dlech.SshAgentLib
 
                     goto default; // failed
 
-                case Message.SSH1_AGENTC_RSA_CHALLENGE:
-                    /*
-                     * Reply with either SSH1_AGENT_RSA_RESPONSE or
-                     * SSH_AGENT_FAILURE, depending on whether we have that key
-                     * or not.
-                     */
-
-                    try
-                    {
-                        //Reading publicKey information
-                        var publicKeyParams = messageParser.ReadSsh1PublicKeyData(true);
-
-                        //Searching for Key here
-                        var matchingKey = keyList.Single(
-                            key =>
-                                key.Version == SshVersion.SSH1
-                                && key.GetPublicKeyParameters().Equals(publicKeyParams)
-                        );
-
-                        //Reading challenge
-                        var encryptedChallenge = messageParser.ReadSsh1BigIntBlob();
-                        var sessionId = messageParser.ReadBytes(16);
-
-                        //Checking responseType field
-                        if (messageParser.ReadUInt32() != 1)
-                        {
-                            goto default; //responseType !=1  is not longer supported
-                        }
-
-                        //Answering to the challenge
-                        var engine = new Pkcs1Encoding(new RsaEngine());
-
-                        engine.Init(
-                            false /* decrypt */
-                            ,
-                            matchingKey.GetPrivateKeyParameters()
-                        );
-
-                        var decryptedChallenge = engine.ProcessBlock(
-                            encryptedChallenge,
-                            0,
-                            encryptedChallenge.Length
-                        );
-
-                        using (var md5 = MD5.Create())
-                        {
-                            var md5Buffer = new byte[48];
-                            decryptedChallenge.CopyTo(md5Buffer, 0);
-                            sessionId.CopyTo(md5Buffer, 32);
-
-                            responseBuilder.AddBytes(md5.ComputeHash(md5Buffer));
-                            responseBuilder.InsertHeader(Message.SSH1_AGENT_RSA_RESPONSE);
-                            break;
-                        }
-                    }
-                    catch (AgentLockedException)
-                    {
-                        // This is expected
-                    }
-                    catch (InvalidOperationException)
-                    {
-                        // this is expected if there is not a matching key
-                    }
-                    catch (Exception ex)
-                    {
-                        Debug.Fail(ex.ToString());
-                    }
-
-                    goto default; // failed
-
                 case Message.SSH2_AGENTC_SIGN_REQUEST:
                     /*
                      * Reply with either SSH2_AGENT_SIGN_RESPONSE or SSH_AGENT_FAILURE,
@@ -636,9 +511,7 @@ namespace dlech.SshAgentLib
                         catch { }
 
                         var matchingKey = keyList.First(
-                            key =>
-                                key.Version == SshVersion.SSH2
-                                && key.GetPublicKeyBlob().SequenceEqual(keyBlob)
+                            key => key.GetPublicKeyBlob().SequenceEqual(keyBlob)
                         );
 
                         var confirmConstraints = matchingKey.Constraints.Where(
@@ -707,73 +580,6 @@ namespace dlech.SshAgentLib
 
                     goto default; // failure
 
-                case Message.SSH1_AGENTC_ADD_RSA_IDENTITY:
-                case Message.SSH1_AGENTC_ADD_RSA_ID_CONSTRAINED:
-                    /*
-                     * Add to the list and return SSH_AGENT_SUCCESS, or
-                     * SSH_AGENT_FAILURE if the key was malformed.
-                     */
-
-                    if (IsLocked)
-                    {
-                        goto default;
-                    }
-
-                    var ssh1constrained = (
-                        header.Message == Message.SSH1_AGENTC_ADD_RSA_ID_CONSTRAINED
-                    );
-
-                    try
-                    {
-                        var publicKeyParams = messageParser.ReadSsh1PublicKeyData(false);
-                        var keyPair = messageParser.ReadSsh1KeyData(publicKeyParams);
-
-                        var key = new SshKey(SshVersion.SSH1, keyPair)
-                        {
-                            Comment = messageParser.ReadString(),
-                            Source = "External client"
-                        };
-
-                        if (ssh1constrained)
-                        {
-                            while (messageParser.BaseStream.Position < header.BlobLength + 4)
-                            {
-                                var constraint = new KeyConstraint
-                                {
-                                    Type = (KeyConstraintType)messageParser.ReadByte()
-                                };
-
-                                if (
-                                    constraint.Type
-                                    == KeyConstraintType.SSH_AGENT_CONSTRAIN_LIFETIME
-                                )
-                                {
-                                    constraint.Data = messageParser.ReadUInt32();
-                                }
-
-                                key.AddConstraint(constraint);
-                            }
-                        }
-
-                        AddKey(key);
-                        responseBuilder.InsertHeader(Message.SSH_AGENT_SUCCESS);
-                        break;
-                    }
-                    catch (AgentLockedException)
-                    {
-                        // This is expected
-                    }
-                    catch (InvalidOperationException)
-                    {
-                        // this is expected if there is not a constraint callback
-                    }
-                    catch (Exception ex)
-                    {
-                        Debug.Fail(ex.ToString());
-                    }
-
-                    goto default; // failed
-
                 case Message.SSH2_AGENTC_ADD_IDENTITY:
                 case Message.SSH2_AGENTC_ADD_ID_CONSTRAINED:
                     /*
@@ -797,7 +603,6 @@ namespace dlech.SshAgentLib
                         );
                         var privateKeyParams = messageParser.ReadSsh2KeyData(publicKeyParams);
                         var key = new SshKey(
-                            SshVersion.SSH2,
                             publicKeyParams,
                             privateKeyParams,
                             "",
@@ -851,7 +656,6 @@ namespace dlech.SshAgentLib
 
                     goto default; // failed
 
-                case Message.SSH1_AGENTC_REMOVE_RSA_IDENTITY:
                 case Message.SSH2_AGENTC_REMOVE_IDENTITY:
                     /*
                      * Remove from the list and return SSH_AGENT_SUCCESS, or
@@ -864,30 +668,15 @@ namespace dlech.SshAgentLib
                         goto default;
                     }
 
-                    SshVersion removeVersion;
-                    byte[] rKeyBlob;
-
-                    if (header.Message == Message.SSH1_AGENTC_REMOVE_RSA_IDENTITY)
-                    {
-                        removeVersion = SshVersion.SSH1;
-                        rKeyBlob = messageParser.ReadBytes(header.BlobLength - 1);
-                    }
-                    else if (header.Message == Message.SSH2_AGENTC_REMOVE_IDENTITY)
-                    {
-                        removeVersion = SshVersion.SSH2;
-                        rKeyBlob = messageParser.ReadBlob();
-                    }
-                    else
-                    {
-                        Debug.Fail("Should not get here.");
-                        goto default;
-                    }
+                    var rKeyBlob = messageParser.ReadBlob();
 
                     try
                     {
-                        var matchingKey = keyList.Get(removeVersion, rKeyBlob);
+                        var matchingKey = keyList.TryGet(rKeyBlob);
                         var startKeyListLength = keyList.Count;
+
                         RemoveKey(matchingKey);
+
                         // only succeed if key was removed
                         if (keyList.Count == startKeyListLength - 1)
                         {
@@ -905,7 +694,6 @@ namespace dlech.SshAgentLib
                     }
                     goto default; // failed
 
-                case Message.SSH1_AGENTC_REMOVE_ALL_RSA_IDENTITIES:
                 case Message.SSH2_AGENTC_REMOVE_ALL_IDENTITIES:
                     /*
                      * Remove all SSH-1 or SSH-2 keys.
@@ -916,24 +704,9 @@ namespace dlech.SshAgentLib
                         goto default;
                     }
 
-                    SshVersion removeAllVersion;
-                    if (header.Message == Message.SSH1_AGENTC_REMOVE_ALL_RSA_IDENTITIES)
-                    {
-                        removeAllVersion = SshVersion.SSH1;
-                    }
-                    else if (header.Message == Message.SSH2_AGENTC_REMOVE_ALL_IDENTITIES)
-                    {
-                        removeAllVersion = SshVersion.SSH2;
-                    }
-                    else
-                    {
-                        Debug.Fail("Should not get here.");
-                        goto default;
-                    }
-
                     try
                     {
-                        RemoveAllKeys(removeAllVersion);
+                        RemoveAllKeys();
                         responseBuilder.InsertHeader(Message.SSH_AGENT_SUCCESS);
                         break; //success!
                     }

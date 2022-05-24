@@ -377,7 +377,7 @@ namespace dlech.SshAgentLib.WinForms
             dataGridView.DataSource = mKeyCollection;
             try
             {
-                foreach (var key in mAgent.GetAllKeys())
+                foreach (var key in mAgent.ListKeys())
                 {
                     mKeyCollection.Add(new KeyWrapper(key));
                 }

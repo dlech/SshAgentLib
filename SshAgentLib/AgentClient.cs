@@ -37,7 +37,6 @@ namespace dlech.SshAgentLib
 {
     public abstract class AgentClient : IAgent
     {
-        private const string cUnsupportedSshVersion = "Unsupported SSH version";
         private byte[] mSessionId;
 
         /// <summary>
@@ -89,15 +88,16 @@ namespace dlech.SshAgentLib
         /// Adds key to SSH agent
         /// </summary>
         /// <param name="key">the key to add</param>
-        /// <param name="aConstraints">constraints to apply</param>
+        /// <param name="constraints">constraints to apply</param>
         /// <returns>true if operation was successful</returns>
         /// <remarks>ignores constraints in key.Constraints</remarks>
-        public void AddKey(ISshKey key, ICollection<Agent.KeyConstraint> aConstraints)
+        public void AddKey(ISshKey key, ICollection<Agent.KeyConstraint> constraints)
         {
             var builder = CreatePrivateKeyBlob(key);
-            if (aConstraints != null && aConstraints.Count > 0)
+
+            if (constraints != null && constraints.Count > 0)
             {
-                foreach (var constraint in aConstraints)
+                foreach (var constraint in constraints)
                 {
                     builder.AddUInt8((byte)constraint.Type);
                     if (constraint.Type.GetDataType() == typeof(uint))
@@ -105,32 +105,14 @@ namespace dlech.SshAgentLib
                         builder.AddUInt32((uint)constraint.Data);
                     }
                 }
-                switch (key.Version)
-                {
-                    case SshVersion.SSH1:
-                        builder.InsertHeader(Agent.Message.SSH1_AGENTC_ADD_RSA_ID_CONSTRAINED);
-                        break;
-                    case SshVersion.SSH2:
-                        builder.InsertHeader(Agent.Message.SSH2_AGENTC_ADD_ID_CONSTRAINED);
-                        break;
-                    default:
-                        throw new Exception(cUnsupportedSshVersion);
-                }
+
+                builder.InsertHeader(Agent.Message.SSH2_AGENTC_ADD_ID_CONSTRAINED);
             }
             else
             {
-                switch (key.Version)
-                {
-                    case SshVersion.SSH1:
-                        builder.InsertHeader(Agent.Message.SSH1_AGENTC_ADD_RSA_IDENTITY);
-                        break;
-                    case SshVersion.SSH2:
-                        builder.InsertHeader(Agent.Message.SSH2_AGENTC_ADD_IDENTITY);
-                        break;
-                    default:
-                        throw new Exception(cUnsupportedSshVersion);
-                }
+                builder.InsertHeader(Agent.Message.SSH2_AGENTC_ADD_IDENTITY);
             }
+
             SendMessageAndCheckSuccess(builder);
             FireKeyAdded(key);
         }
@@ -143,39 +125,25 @@ namespace dlech.SshAgentLib
         public void RemoveKey(ISshKey key)
         {
             var builder = CreatePublicKeyBlob(key);
-            switch (key.Version)
-            {
-                case SshVersion.SSH1:
-                    builder.InsertHeader(Agent.Message.SSH1_AGENTC_REMOVE_RSA_IDENTITY);
-                    break;
-                case SshVersion.SSH2:
-                    builder.InsertHeader(Agent.Message.SSH2_AGENTC_REMOVE_IDENTITY);
-                    break;
-                default:
-                    throw new Exception(cUnsupportedSshVersion);
-            }
+            builder.InsertHeader(Agent.Message.SSH2_AGENTC_REMOVE_IDENTITY);
+
             SendMessageAndCheckSuccess(builder);
             FireKeyRemoved(key);
         }
 
-        public void RemoveAllKeys(SshVersion version)
+        public void RemoveAllKeys()
         {
             var builder = new BlobBuilder();
             ICollection<ISshKey> keys = null;
             if (KeyRemoved != null)
-                keys = ListKeys(version);
-            switch (version)
             {
-                case SshVersion.SSH1:
-                    builder.InsertHeader(Agent.Message.SSH1_AGENTC_REMOVE_ALL_RSA_IDENTITIES);
-                    break;
-                case SshVersion.SSH2:
-                    builder.InsertHeader(Agent.Message.SSH2_AGENTC_REMOVE_ALL_IDENTITIES);
-                    break;
-                default:
-                    throw new Exception(cUnsupportedSshVersion);
+                keys = ListKeys();
             }
+
+            builder.InsertHeader(Agent.Message.SSH2_AGENTC_REMOVE_ALL_IDENTITIES);
+
             SendMessageAndCheckSuccess(builder);
+
             if (keys != null)
             {
                 foreach (var key in keys)
@@ -183,132 +151,55 @@ namespace dlech.SshAgentLib
             }
         }
 
-        public ICollection<ISshKey> ListKeys(SshVersion aVersion)
+        public ICollection<ISshKey> ListKeys()
         {
             var builder = new BlobBuilder();
-            switch (aVersion)
-            {
-                case SshVersion.SSH1:
-                    builder.InsertHeader(Agent.Message.SSH1_AGENTC_REQUEST_RSA_IDENTITIES);
-                    break;
-                case SshVersion.SSH2:
-                    builder.InsertHeader(Agent.Message.SSH2_AGENTC_REQUEST_IDENTITIES);
-                    break;
-                default:
-                    throw new Exception(cUnsupportedSshVersion);
-            }
+
+            builder.InsertHeader(Agent.Message.SSH2_AGENTC_REQUEST_IDENTITIES);
+
             var replyParser = SendMessage(builder);
             var keyCollection = new List<ISshKey>();
             var header = replyParser.ReadHeader();
-            switch (aVersion)
+
+            if (header.Message != Agent.Message.SSH2_AGENT_IDENTITIES_ANSWER)
             {
-                case SshVersion.SSH1:
-                    if (header.Message != Agent.Message.SSH1_AGENT_RSA_IDENTITIES_ANSWER)
-                    {
-                        throw new AgentFailureException();
-                    }
-                    var ssh1KeyCount = replyParser.ReadUInt32();
-                    for (var i = 0; i < ssh1KeyCount; i++)
-                    {
-                        var publicKeyParams = replyParser.ReadSsh1PublicKeyData(true);
-                        var comment = replyParser.ReadString();
-                        keyCollection.Add(
-                            new SshKey(SshVersion.SSH1, publicKeyParams, null, comment)
-                        );
-                    }
-                    break;
-                case SshVersion.SSH2:
-                    if (header.Message != Agent.Message.SSH2_AGENT_IDENTITIES_ANSWER)
-                    {
-                        throw new AgentFailureException();
-                    }
-                    var ssh2KeyCount = replyParser.ReadUInt32();
-                    for (var i = 0; i < ssh2KeyCount; i++)
-                    {
-                        var publicKeyBlob = replyParser.ReadBlob();
-                        var publicKeyParser = new BlobParser(publicKeyBlob);
-                        var publicKeyParams = publicKeyParser.ReadSsh2PublicKeyData(
-                            out var nonce,
-                            out var cert,
-                            out var application
-                        );
-                        var comment = replyParser.ReadString();
-                        keyCollection.Add(
-                            new SshKey(
-                                SshVersion.SSH2,
-                                publicKeyParams,
-                                null,
-                                comment,
-                                nonce,
-                                cert,
-                                application
-                            )
-                        );
-                    }
-                    break;
-                default:
-                    throw new Exception(cUnsupportedSshVersion);
+                throw new AgentFailureException();
             }
+            var ssh2KeyCount = replyParser.ReadUInt32();
+            for (var i = 0; i < ssh2KeyCount; i++)
+            {
+                var publicKeyBlob = replyParser.ReadBlob();
+                var publicKeyParser = new BlobParser(publicKeyBlob);
+                var publicKeyParams = publicKeyParser.ReadSsh2PublicKeyData(
+                    out var nonce,
+                    out var cert,
+                    out var application
+                );
+                var comment = replyParser.ReadString();
+                keyCollection.Add(
+                    new SshKey(publicKeyParams, null, comment, nonce, cert, application)
+                );
+            }
+
             return keyCollection;
         }
 
-        public byte[] SignRequest(ISshKey aKey, byte[] aSignData)
+        public byte[] SignRequest(ISshKey key, byte[] signData)
         {
             var builder = new BlobBuilder();
-            switch (aKey.Version)
-            {
-                case SshVersion.SSH1:
-                    builder.AddBytes(aKey.GetPublicKeyBlob());
-                    var engine = new Pkcs1Encoding(new RsaEngine());
-                    engine.Init(
-                        true /* encrypt */
-                        ,
-                        aKey.GetPublicKeyParameters()
-                    );
-                    var encryptedData = engine.ProcessBlock(aSignData, 0, aSignData.Length);
-                    var challenge = new BigInteger(encryptedData);
-                    builder.AddSsh1BigIntBlob(challenge);
-                    builder.AddBytes(SessionId);
-                    builder.AddInt(1); // response type - must be 1
-                    builder.InsertHeader(Agent.Message.SSH1_AGENTC_RSA_CHALLENGE);
-                    break;
-                case SshVersion.SSH2:
-                    builder.AddBlob(aKey.GetPublicKeyBlob());
-                    builder.AddBlob(aSignData);
-                    builder.InsertHeader(Agent.Message.SSH2_AGENTC_SIGN_REQUEST);
-                    break;
-                default:
-                    throw new Exception(cUnsupportedSshVersion);
-            }
+
+            builder.AddBlob(key.GetPublicKeyBlob());
+            builder.AddBlob(signData);
+            builder.InsertHeader(Agent.Message.SSH2_AGENTC_SIGN_REQUEST);
 
             var replyParser = SendMessage(builder);
             var header = replyParser.ReadHeader();
 
-            switch (aKey.Version)
+            if (header.Message != Agent.Message.SSH2_AGENT_SIGN_RESPONSE)
             {
-                case SshVersion.SSH1:
-                    if (header.Message != Agent.Message.SSH1_AGENT_RSA_RESPONSE)
-                    {
-                        throw new AgentFailureException();
-                    }
-
-                    var response = new byte[16];
-
-                    for (var i = 0; i < 16; i++)
-                    {
-                        response[i] = replyParser.ReadByte();
-                    }
-
-                    return response;
-                case SshVersion.SSH2:
-                    if (header.Message != Agent.Message.SSH2_AGENT_SIGN_RESPONSE)
-                    {
-                        throw new AgentFailureException();
-                    }
-                    return replyParser.ReadBlob();
-                default:
-                    throw new Exception(cUnsupportedSshVersion);
+                throw new AgentFailureException();
             }
+            return replyParser.ReadBlob();
         }
 
         public void Lock(byte[] passphrase)
@@ -337,18 +228,11 @@ namespace dlech.SshAgentLib
             SendMessageAndCheckSuccess(builder);
         }
 
-        private BlobBuilder CreatePublicKeyBlob(ISshKey aKey)
+        private BlobBuilder CreatePublicKeyBlob(ISshKey key)
         {
             var builder = new BlobBuilder();
-            switch (aKey.Version)
-            {
-                case SshVersion.SSH1:
-                    builder.AddBytes(aKey.GetPublicKeyBlob());
-                    break;
-                case SshVersion.SSH2:
-                    builder.AddBlob(aKey.GetPublicKeyBlob());
-                    break;
-            }
+
+            builder.AddBlob(key.GetPublicKeyBlob());
 
             return builder;
         }
@@ -387,146 +271,131 @@ namespace dlech.SshAgentLib
         BlobBuilder CreatePrivateKeyBlob(ISshKey key)
         {
             var builder = new BlobBuilder();
-            switch (key.Version)
+
+            builder.AddStringBlob(key.Algorithm.GetIdentifier());
+
+            switch (key.Algorithm)
             {
-                case SshVersion.SSH1:
-                    var privateKeyParams =
-                        key.GetPrivateKeyParameters() as RsaPrivateCrtKeyParameters;
-                    builder.AddInt(key.Size);
-                    builder.AddSsh1BigIntBlob(privateKeyParams.Modulus);
-                    builder.AddSsh1BigIntBlob(privateKeyParams.PublicExponent);
-                    builder.AddSsh1BigIntBlob(privateKeyParams.Exponent);
-                    builder.AddSsh1BigIntBlob(privateKeyParams.QInv);
-                    builder.AddSsh1BigIntBlob(privateKeyParams.Q);
-                    builder.AddSsh1BigIntBlob(privateKeyParams.P);
+                case PublicKeyAlgorithm.SshDss:
+                    var dsaPublicKeyParameters =
+                        key.GetPublicKeyParameters() as DsaPublicKeyParameters;
+                    var dsaPrivateKeyParameters =
+                        key.GetPrivateKeyParameters() as DsaPrivateKeyParameters;
+                    builder.AddBigIntBlob(dsaPublicKeyParameters.Parameters.P);
+                    builder.AddBigIntBlob(dsaPublicKeyParameters.Parameters.Q);
+                    builder.AddBigIntBlob(dsaPublicKeyParameters.Parameters.G);
+                    builder.AddBigIntBlob(dsaPublicKeyParameters.Y);
+                    builder.AddBigIntBlob(dsaPrivateKeyParameters.X);
                     break;
-                case SshVersion.SSH2:
-                    builder.AddStringBlob(key.Algorithm.GetIdentifier());
-                    switch (key.Algorithm)
+                case PublicKeyAlgorithm.SshDssCertV1:
+
                     {
-                        case PublicKeyAlgorithm.SshDss:
-                            var dsaPublicKeyParameters =
-                                key.GetPublicKeyParameters() as DsaPublicKeyParameters;
-                            var dsaPrivateKeyParameters =
-                                key.GetPrivateKeyParameters() as DsaPrivateKeyParameters;
-                            builder.AddBigIntBlob(dsaPublicKeyParameters.Parameters.P);
-                            builder.AddBigIntBlob(dsaPublicKeyParameters.Parameters.Q);
-                            builder.AddBigIntBlob(dsaPublicKeyParameters.Parameters.G);
-                            builder.AddBigIntBlob(dsaPublicKeyParameters.Y);
-                            builder.AddBigIntBlob(dsaPrivateKeyParameters.X);
-                            break;
-                        case PublicKeyAlgorithm.SshDssCertV1:
+                        if (key.Certificate == null)
+                        {
+                            throw new ArgumentException(
+                                "Certificate property cannot be null",
+                                nameof(key)
+                            );
+                        }
 
-                            {
-                                if (key.Certificate == null)
-                                {
-                                    throw new ArgumentException(
-                                        "Certificate property cannot be null",
-                                        nameof(key)
-                                    );
-                                }
+                        builder.AddBlob(key.GetPublicKeyBlob());
 
-                                builder.AddBlob(key.GetPublicKeyBlob());
+                        var dsa = key.GetPrivateKeyParameters() as DsaPrivateKeyParameters;
+                        builder.AddBigIntBlob(dsa.X);
+                    }
+                    break;
+                case PublicKeyAlgorithm.EcdsaSha2Nistp256:
+                case PublicKeyAlgorithm.EcdsaSha2Nistp384:
+                case PublicKeyAlgorithm.EcdsaSha2Nistp521:
+                    var ecdsaPublicKeyParameters =
+                        key.GetPublicKeyParameters() as ECPublicKeyParameters;
+                    var ecdsaPrivateKeyParameters =
+                        key.GetPrivateKeyParameters() as ECPrivateKeyParameters;
+                    builder.AddStringBlob(key.Algorithm.GetCurveDomainIdentifier());
+                    builder.AddBlob(ecdsaPublicKeyParameters.Q.GetEncoded());
+                    builder.AddBigIntBlob(ecdsaPrivateKeyParameters.D);
+                    break;
+                case PublicKeyAlgorithm.EcdsaSha2Nistp256CertV1:
+                case PublicKeyAlgorithm.EcdsaSha2Nistp384CertV1:
+                case PublicKeyAlgorithm.EcdsaSha2Nistp521CertV1:
+                    if (key.Certificate == null)
+                    {
+                        throw new ArgumentException(
+                            "Certificate property cannot be null",
+                            nameof(key)
+                        );
+                    }
 
-                                var dsa = key.GetPrivateKeyParameters() as DsaPrivateKeyParameters;
-                                builder.AddBigIntBlob(dsa.X);
-                            }
-                            break;
-                        case PublicKeyAlgorithm.EcdsaSha2Nistp256:
-                        case PublicKeyAlgorithm.EcdsaSha2Nistp384:
-                        case PublicKeyAlgorithm.EcdsaSha2Nistp521:
-                            var ecdsaPublicKeyParameters =
-                                key.GetPublicKeyParameters() as ECPublicKeyParameters;
-                            var ecdsaPrivateKeyParameters =
-                                key.GetPrivateKeyParameters() as ECPrivateKeyParameters;
-                            builder.AddStringBlob(key.Algorithm.GetCurveDomainIdentifier());
-                            builder.AddBlob(ecdsaPublicKeyParameters.Q.GetEncoded());
-                            builder.AddBigIntBlob(ecdsaPrivateKeyParameters.D);
-                            break;
-                        case PublicKeyAlgorithm.EcdsaSha2Nistp256CertV1:
-                        case PublicKeyAlgorithm.EcdsaSha2Nistp384CertV1:
-                        case PublicKeyAlgorithm.EcdsaSha2Nistp521CertV1:
-                            if (key.Certificate == null)
-                            {
-                                throw new ArgumentException(
-                                    "Certificate property cannot be null",
-                                    nameof(key)
-                                );
-                            }
+                    builder.AddBlob(key.GetPublicKeyBlob());
 
-                            builder.AddBlob(key.GetPublicKeyBlob());
+                    var ecdsa = key.GetPrivateKeyParameters() as ECPrivateKeyParameters;
+                    builder.AddBigIntBlob(ecdsa.D);
+                    break;
+                case PublicKeyAlgorithm.SshRsa:
+                    var rsaPrivateKeyParameters =
+                        key.GetPrivateKeyParameters() as RsaPrivateCrtKeyParameters;
+                    builder.AddBigIntBlob(rsaPrivateKeyParameters.Modulus);
+                    builder.AddBigIntBlob(rsaPrivateKeyParameters.PublicExponent);
+                    builder.AddBigIntBlob(rsaPrivateKeyParameters.Exponent);
+                    builder.AddBigIntBlob(rsaPrivateKeyParameters.QInv);
+                    builder.AddBigIntBlob(rsaPrivateKeyParameters.P);
+                    builder.AddBigIntBlob(rsaPrivateKeyParameters.Q);
+                    break;
+                case PublicKeyAlgorithm.SshRsaCertV1:
 
-                            var ecdsa = key.GetPrivateKeyParameters() as ECPrivateKeyParameters;
-                            builder.AddBigIntBlob(ecdsa.D);
-                            break;
-                        case PublicKeyAlgorithm.SshRsa:
-                            var rsaPrivateKeyParameters =
-                                key.GetPrivateKeyParameters() as RsaPrivateCrtKeyParameters;
-                            builder.AddBigIntBlob(rsaPrivateKeyParameters.Modulus);
-                            builder.AddBigIntBlob(rsaPrivateKeyParameters.PublicExponent);
-                            builder.AddBigIntBlob(rsaPrivateKeyParameters.Exponent);
-                            builder.AddBigIntBlob(rsaPrivateKeyParameters.QInv);
-                            builder.AddBigIntBlob(rsaPrivateKeyParameters.P);
-                            builder.AddBigIntBlob(rsaPrivateKeyParameters.Q);
-                            break;
-                        case PublicKeyAlgorithm.SshRsaCertV1:
+                    {
+                        if (key.Certificate == null)
+                        {
+                            throw new ArgumentException(
+                                "Certificate property cannot be null",
+                                nameof(key)
+                            );
+                        }
 
-                            {
-                                if (key.Certificate == null)
-                                {
-                                    throw new ArgumentException(
-                                        "Certificate property cannot be null",
-                                        nameof(key)
-                                    );
-                                }
+                        builder.AddBlob(key.GetPublicKeyBlob());
 
-                                builder.AddBlob(key.GetPublicKeyBlob());
+                        var rsa = key.GetPrivateKeyParameters() as RsaPrivateCrtKeyParameters;
+                        builder.AddBigIntBlob(rsa.Exponent);
+                        builder.AddBigIntBlob(rsa.QInv);
+                        builder.AddBigIntBlob(rsa.P);
+                        builder.AddBigIntBlob(rsa.Q);
+                    }
+                    break;
+                case PublicKeyAlgorithm.SshEd25519:
+                    var ed25519PublicKeyParameters =
+                        key.GetPublicKeyParameters() as Ed25519PublicKeyParameters;
+                    var ed25519PrivateKeyParameters =
+                        key.GetPrivateKeyParameters() as Ed25519PrivateKeyParameters;
+                    builder.AddBlob(ed25519PublicKeyParameters.GetEncoded());
+                    builder.AddBlob(ed25519PrivateKeyParameters.GetEncoded());
+                    break;
+                case PublicKeyAlgorithm.SshEd25519CertV1:
 
-                                var rsa =
-                                    key.GetPrivateKeyParameters() as RsaPrivateCrtKeyParameters;
-                                builder.AddBigIntBlob(rsa.Exponent);
-                                builder.AddBigIntBlob(rsa.QInv);
-                                builder.AddBigIntBlob(rsa.P);
-                                builder.AddBigIntBlob(rsa.Q);
-                            }
-                            break;
-                        case PublicKeyAlgorithm.SshEd25519:
-                            var ed25519PublicKeyParameters =
-                                key.GetPublicKeyParameters() as Ed25519PublicKeyParameters;
-                            var ed25519PrivateKeyParameters =
-                                key.GetPrivateKeyParameters() as Ed25519PrivateKeyParameters;
-                            builder.AddBlob(ed25519PublicKeyParameters.GetEncoded());
-                            builder.AddBlob(ed25519PrivateKeyParameters.GetEncoded());
-                            break;
-                        case PublicKeyAlgorithm.SshEd25519CertV1:
+                    {
+                        if (key.Certificate == null)
+                        {
+                            throw new ArgumentException(
+                                "Certificate property cannot be null",
+                                nameof(key)
+                            );
+                        }
 
-                            {
-                                if (key.Certificate == null)
-                                {
-                                    throw new ArgumentException(
-                                        "Certificate property cannot be null",
-                                        nameof(key)
-                                    );
-                                }
+                        builder.AddBlob(key.GetPublicKeyBlob());
 
-                                builder.AddBlob(key.GetPublicKeyBlob());
-
-                                var ed25519Public =
-                                    key.GetPublicKeyParameters() as Ed25519PublicKeyParameters;
-                                var ed25519Private =
-                                    key.GetPrivateKeyParameters() as Ed25519PrivateKeyParameters;
-                                builder.AddBlob(ed25519Public.GetEncoded());
-                                builder.AddBlob(ed25519Private.GetEncoded());
-                            }
-                            break;
-                        default:
-                            throw new Exception("Unsupported algorithm");
+                        var ed25519Public =
+                            key.GetPublicKeyParameters() as Ed25519PublicKeyParameters;
+                        var ed25519Private =
+                            key.GetPrivateKeyParameters() as Ed25519PrivateKeyParameters;
+                        builder.AddBlob(ed25519Public.GetEncoded());
+                        builder.AddBlob(ed25519Private.GetEncoded());
                     }
                     break;
                 default:
-                    throw new Exception(cUnsupportedSshVersion);
+                    throw new Exception("Unsupported algorithm");
             }
+
             builder.AddStringBlob(key.Comment);
+
             return builder;
         }
 

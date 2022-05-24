@@ -44,7 +44,6 @@ namespace dlech.SshAgentLib
         private readonly AsymmetricKeyParameter privateKeyParameter;
 
         public SshKey(
-            SshVersion version,
             AsymmetricKeyParameter publicKeyParameter,
             AsymmetricKeyParameter privateKeyParameter = null,
             string comment = "",
@@ -54,7 +53,6 @@ namespace dlech.SshAgentLib
         )
         {
             IsPublicOnly = privateKeyParameter == null;
-            Version = version;
             this.publicKeyParameter =
                 publicKeyParameter ?? throw new ArgumentNullException(nameof(publicKeyParameter));
             this.privateKeyParameter = privateKeyParameter;
@@ -75,7 +73,6 @@ namespace dlech.SshAgentLib
         }
 
         public SshKey(
-            SshVersion version,
             AsymmetricCipherKeyPair cipherKeyPair,
             string comment = "",
             byte[] nonce = null,
@@ -83,7 +80,6 @@ namespace dlech.SshAgentLib
             string application = null
         )
             : this(
-                version,
                 cipherKeyPair.Public,
                 cipherKeyPair.Private,
                 comment,
@@ -91,8 +87,6 @@ namespace dlech.SshAgentLib
                 certificate,
                 application
             ) { }
-
-        public SshVersion Version { get; private set; }
 
         public PublicKeyAlgorithm Algorithm
         {
@@ -286,12 +280,14 @@ namespace dlech.SshAgentLib
                 GetPublicKeyParameters(),
                 GetPrivateKeyParameters()
             );
-            var newKey = new SshKey(Version, keyPair, Comment);
-            newKey.Source = Source;
+
+            var newKey = new SshKey(keyPair, Comment) { Source = Source };
+
             foreach (var constraint in keyConstraints)
             {
                 newKey.AddConstraint(constraint);
             }
+
             return newKey;
         }
     }

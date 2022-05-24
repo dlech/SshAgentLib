@@ -20,11 +20,6 @@ namespace SshAgentLib.Keys
     public sealed class SshPublicKey
     {
         /// <summary>
-        /// Gets the SSH protocol version.
-        /// </summary>
-        public SshVersion Version { get; }
-
-        /// <summary>
         /// Gets the public key encryption parameters.
         /// </summary>
         public AsymmetricKeyParameter Parameter { get; }
@@ -95,32 +90,21 @@ namespace SshAgentLib.Keys
         /// <param name="version">The SSH version.</param>
         /// <param name="keyBlob">The public key binary data.</param>
         /// <param name="comment">Optional comment (not null).</param>
-        public SshPublicKey(SshVersion version, byte[] keyBlob, string comment = "")
+        public SshPublicKey(byte[] keyBlob, string comment = "")
         {
-            Version = version;
             KeyBlob = keyBlob ?? throw new ArgumentNullException(nameof(keyBlob));
             Comment = comment ?? throw new ArgumentNullException(nameof(comment));
 
             var parser = new BlobParser(keyBlob);
 
-            switch (version)
-            {
-                case SshVersion.SSH1:
-                    Parameter = parser.ReadSsh1PublicKeyData();
-                    break;
-                case SshVersion.SSH2:
-                    Parameter = parser.ReadSsh2PublicKeyData(
-                        out var nonce,
-                        out var certificate,
-                        out var application
-                    );
-                    Nonce = nonce;
-                    Certificate = certificate;
-                    Application = application;
-                    break;
-                default:
-                    throw new ArgumentException("unsupported SSH version", nameof(version));
-            }
+            Parameter = parser.ReadSsh2PublicKeyData(
+                out var nonce,
+                out var certificate,
+                out var application
+            );
+            Nonce = nonce;
+            Certificate = certificate;
+            Application = application;
         }
 
         /// <summary>
@@ -130,7 +114,7 @@ namespace SshAgentLib.Keys
         /// <returns>A new key.</returns>
         public SshPublicKey WithComment(string comment)
         {
-            return new SshPublicKey(Version, KeyBlob, comment);
+            return new SshPublicKey(KeyBlob, comment);
         }
 
         /// <summary>
@@ -144,9 +128,6 @@ namespace SshAgentLib.Keys
                 return this;
             }
 
-            // SSH1 does not support certificates
-            Debug.Assert(Version != SshVersion.SSH1);
-
             // separate the key from the certificate
             var parser = new BlobParser(KeyBlob);
             var parameters = parser.ReadSsh2PublicKeyData(
@@ -154,9 +135,9 @@ namespace SshAgentLib.Keys
                 out var certificate,
                 out var application
             );
-            var key = new SshKey(Version, parameters, null, "", null, null, application);
+            var key = new SshKey(parameters, null, "", null, null, application);
 
-            return new SshPublicKey(Version, key.GetPublicKeyBlob(), Comment);
+            return new SshPublicKey(key.GetPublicKeyBlob(), Comment);
         }
 
         /// <summary>

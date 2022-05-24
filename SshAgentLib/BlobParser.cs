@@ -135,7 +135,7 @@ namespace dlech.SshAgentLib
                 validAfter == ulong.MaxValue ? DateTime.MaxValue : epoch.AddSeconds(validAfter);
             var validBeforeDateTime =
                 validBefore == ulong.MaxValue ? DateTime.MaxValue : epoch.AddSeconds(validBefore);
-            var signatureKey = new SshPublicKey(SshVersion.SSH2, signatureKeyBlob);
+            var signatureKey = new SshPublicKey(signatureKeyBlob);
 
             return new OpensshCertificateInfo(
                 type,

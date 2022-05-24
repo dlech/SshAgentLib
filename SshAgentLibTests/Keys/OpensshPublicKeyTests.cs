@@ -30,7 +30,6 @@ namespace SshAgentLibTests.Keys
             {
                 var key = SshPublicKey.Read(file);
 
-                Assert.That(key.Version, Is.EqualTo(SshVersion.SSH2));
                 Assert.That(key.Parameter.IsPrivate, Is.False);
                 Assert.That(key.Parameter, Is.TypeOf<RsaKeyParameters>());
 
@@ -74,7 +73,6 @@ namespace SshAgentLibTests.Keys
             {
                 var key = SshPublicKey.Read(file);
 
-                Assert.That(key.Version, Is.EqualTo(SshVersion.SSH2));
                 Assert.That(key.Parameter, Is.TypeOf<DsaPublicKeyParameters>());
 
                 if (keyName != "dsa_2")
@@ -126,7 +124,6 @@ namespace SshAgentLibTests.Keys
             {
                 var key = SshPublicKey.Read(file);
 
-                Assert.That(key.Version, Is.EqualTo(SshVersion.SSH2));
                 Assert.That(key.Parameter, Is.TypeOf<ECPublicKeyParameters>());
 
                 if (!keyName.Contains("_sk"))
@@ -194,7 +191,6 @@ namespace SshAgentLibTests.Keys
             {
                 var key = SshPublicKey.Read(file);
 
-                Assert.That(key.Version, Is.EqualTo(SshVersion.SSH2));
                 Assert.That(key.Parameter, Is.TypeOf<Ed25519PublicKeyParameters>());
 
                 Assert.That(

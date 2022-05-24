@@ -94,7 +94,6 @@
     <Compile Include="BlobParser.cs" />
     <Compile Include="Crypto\Argon2.cs" />
     <Compile Include="Crypto\BCrypt.cs" />
-    <Compile Include="Crypto\DesSsh1Engine.cs" />
     <Compile Include="CygwinSocket.cs" />
     <Compile Include="IAgent.cs" />
     <Compile Include="ISshKey.cs" />
@@ -119,7 +118,6 @@
     <Compile Include="PublicKeyAlgorithm.cs" />
     <Compile Include="SshKey.cs" />
     <Compile Include="SshKeyEvent.cs" />
-    <Compile Include="SshVersion.cs" />
     <Compile Include="UnixAgent.cs" />
     <Compile Include="UnixClient.cs" />
     <Compile Include="Util.cs" />

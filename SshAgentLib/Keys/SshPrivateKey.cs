@@ -199,7 +199,7 @@ namespace SshAgentLib.Keys
                 if (PemPrivateKey.FirstLineMatches(firstLine))
                 {
                     var keyPair = PemPrivateKey.ReadKeyPair(reader, getPassphrase);
-                    var key = new SshKey(SshVersion.SSH2, keyPair.Public, keyPair.Private, comment);
+                    var key = new SshKey(keyPair.Public, keyPair.Private, comment);
                     writer.Write(key.GetAuthorizedKeyString());
                 }
                 else

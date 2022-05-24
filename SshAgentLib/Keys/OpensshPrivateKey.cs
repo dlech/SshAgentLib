@@ -219,7 +219,7 @@ namespace SshAgentLib.Keys
             };
 
             return new SshPrivateKey(
-                new SshPublicKey(SshVersion.SSH2, publicKeyBlob),
+                new SshPublicKey(publicKeyBlob),
                 cipherName != CipherName.None,
                 kdfName != KdfName.None,
                 decrypt

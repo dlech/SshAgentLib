@@ -16,7 +16,6 @@ namespace dlech.SshAgentLibTests
         {
             var random = new Random();
             var dsa_key = new SshKey(
-                SshVersion.SSH2,
                 new DsaPublicKeyParameters(
                     new BigInteger(
                         "10783827985936883407800478884376885258012329124816552994400318669417122279843086645137200743427232531167766104260606805303022314906254403593803159583034340"

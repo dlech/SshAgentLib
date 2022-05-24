@@ -21,7 +21,6 @@ namespace SshAgentLibTests
     [TestFixture(typeof(NonSeekableMemoryStream))]
     public class AgentClientTest<TStream> where TStream : MemoryStream
     {
-        private static readonly SshKey rsa1Key;
         private static readonly SshKey rsaKey;
         private static readonly SshKey rsaCert;
         private static readonly SshKey dsaKey;
@@ -77,75 +76,51 @@ namespace SshAgentLibTests
 
         static AgentClientTest()
         {
-            rsa1Key = KeyGenerator.CreateKey(
-                SshVersion.SSH1,
-                PublicKeyAlgorithm.SshRsa,
-                "SSH1 RSA test key"
-            );
-            rsaKey = KeyGenerator.CreateKey(
-                SshVersion.SSH2,
-                PublicKeyAlgorithm.SshRsa,
-                "SSH2 RSA test key"
-            );
+            rsaKey = KeyGenerator.CreateKey(PublicKeyAlgorithm.SshRsa, "SSH2 RSA test key");
             rsaCert = KeyGenerator.CreateKey(
-                SshVersion.SSH2,
                 PublicKeyAlgorithm.SshRsaCertV1,
                 "SSH2 RSA test key + cert"
             );
-            dsaKey = KeyGenerator.CreateKey(
-                SshVersion.SSH2,
-                PublicKeyAlgorithm.SshDss,
-                "SSH2 DSA test key"
-            );
+            dsaKey = KeyGenerator.CreateKey(PublicKeyAlgorithm.SshDss, "SSH2 DSA test key");
             dsaCert = KeyGenerator.CreateKey(
-                SshVersion.SSH2,
                 PublicKeyAlgorithm.SshDssCertV1,
                 "SSH2 DSA test key + cert"
             );
             ecdsa256Key = KeyGenerator.CreateKey(
-                SshVersion.SSH2,
                 PublicKeyAlgorithm.EcdsaSha2Nistp256,
                 "SSH2 ECDSA 256 test key"
             );
             ecdsa256Cert = KeyGenerator.CreateKey(
-                SshVersion.SSH2,
                 PublicKeyAlgorithm.EcdsaSha2Nistp256CertV1,
                 "SSH2 ECDSA 256 test key + cert"
             );
             ecdsa384Key = KeyGenerator.CreateKey(
-                SshVersion.SSH2,
                 PublicKeyAlgorithm.EcdsaSha2Nistp384,
                 "SSH2 ECDSA 384 test key"
             );
             ecdsa384Cert = KeyGenerator.CreateKey(
-                SshVersion.SSH2,
                 PublicKeyAlgorithm.EcdsaSha2Nistp384CertV1,
                 "SSH2 ECDSA 384 test key + cert"
             );
             ecdsa521Key = KeyGenerator.CreateKey(
-                SshVersion.SSH2,
                 PublicKeyAlgorithm.EcdsaSha2Nistp521,
                 "SSH2 ECDSA 521 test key"
             );
             ecdsa521Cert = KeyGenerator.CreateKey(
-                SshVersion.SSH2,
                 PublicKeyAlgorithm.EcdsaSha2Nistp521CertV1,
                 "SSH2 ECDSA 521 test key + cert"
             );
             ed25519Key = KeyGenerator.CreateKey(
-                SshVersion.SSH2,
                 PublicKeyAlgorithm.SshEd25519,
                 "SSH2 Ed25519 test key"
             );
             ed25519Cert = KeyGenerator.CreateKey(
-                SshVersion.SSH2,
                 PublicKeyAlgorithm.SshEd25519CertV1,
                 "SSH2 Ed25519 test key + cert"
             );
 
             var keyList = new List<SshKey>
             {
-                rsa1Key,
                 rsaKey,
                 rsaCert,
                 dsaKey,
@@ -181,9 +156,9 @@ namespace SshAgentLibTests
             agentClient.AddKey(rsaKey, constraints);
 
             Assert.That(agentClient.Agent.KeyCount, Is.EqualTo(1));
-            Assert.That(agentClient.Agent.GetAllKeys().First().Constraints.Count, Is.EqualTo(1));
+            Assert.That(agentClient.Agent.ListKeys().First().Constraints.Count, Is.EqualTo(1));
             Assert.That(
-                agentClient.Agent.GetAllKeys().First().Constraints.First().Type,
+                agentClient.Agent.ListKeys().First().Constraints.First().Type,
                 Is.EqualTo(Agent.KeyConstraintType.SSH_AGENT_CONSTRAIN_CONFIRM)
             );
 
@@ -198,9 +173,9 @@ namespace SshAgentLibTests
             agentClient.AddKey(rsaKey, constraints);
 
             Assert.That(agentClient.Agent.KeyCount, Is.EqualTo(1));
-            Assert.That(agentClient.Agent.GetAllKeys().First().Constraints.Count, Is.EqualTo(1));
+            Assert.That(agentClient.Agent.ListKeys().First().Constraints.Count, Is.EqualTo(1));
             Assert.That(
-                agentClient.Agent.GetAllKeys().First().Constraints.First().Type,
+                agentClient.Agent.ListKeys().First().Constraints.First().Type,
                 Is.EqualTo(Agent.KeyConstraintType.SSH_AGENT_CONSTRAIN_LIFETIME)
             );
         }
@@ -217,7 +192,7 @@ namespace SshAgentLibTests
                 keyCount += 1;
                 Assert.That(agentClient.Agent.KeyCount, Is.EqualTo(keyCount));
                 Assert.That(
-                    agentClient.Agent.GetAllKeys().Get(key.Version, key.GetPublicKeyBlob()),
+                    agentClient.Agent.ListKeys().TryGet(key.GetPublicKeyBlob()),
                     Is.Not.Null,
                     $"{key.Algorithm.GetIdentifier()}"
                 );
@@ -235,27 +210,14 @@ namespace SshAgentLibTests
                 agentClient.Agent.AddKey(key);
             }
 
-            // check that SS1 keys worked
-            keyList = agentClient.ListKeys(SshVersion.SSH1);
-            var expectedKeyList = allKeys.Where(key => key.Version == SshVersion.SSH1).ToList();
-            Assert.That(keyList.Count, Is.EqualTo(expectedKeyList.Count));
-            foreach (var key in expectedKeyList)
-            {
-                Assert.That(
-                    keyList.Get(key.Version, key.GetPublicKeyBlob()),
-                    Is.Not.Null,
-                    $"{key.Algorithm.GetIdentifier()}"
-                );
-            }
-
             // check that ssh2 keys worked
-            keyList = agentClient.ListKeys(SshVersion.SSH2);
-            expectedKeyList = allKeys.Where(key => key.Version == SshVersion.SSH2).ToList();
+            keyList = agentClient.ListKeys();
+            var expectedKeyList = allKeys.ToList();
             Assert.That(keyList.Count, Is.EqualTo(expectedKeyList.Count));
             foreach (var key in expectedKeyList)
             {
                 Assert.That(
-                    keyList.Get(key.Version, key.GetPublicKeyBlob()),
+                    keyList.TryGet(key.GetPublicKeyBlob()),
                     Is.Not.Null,
                     $"{key.Algorithm.GetIdentifier()}"
                 );
@@ -267,23 +229,9 @@ namespace SshAgentLibTests
         {
             var agentClient = new TestAgentClient();
 
-            /* test SSH1 */
-            agentClient.Agent.AddKey(rsa1Key);
-            agentClient.Agent.AddKey(rsaKey);
-            Assume.That(agentClient.Agent.KeyCount, Is.EqualTo(2));
-            agentClient.RemoveAllKeys(SshVersion.SSH1);
-            Assert.That(agentClient.Agent.KeyCount, Is.EqualTo(1));
-
-            /* test SSH2 */
-            agentClient.Agent.AddKey(rsa1Key);
-            agentClient.Agent.AddKey(rsaKey);
-            Assume.That(agentClient.Agent.KeyCount, Is.EqualTo(2));
-            agentClient.RemoveAllKeys(SshVersion.SSH2);
-            Assert.That(agentClient.Agent.KeyCount, Is.EqualTo(1));
-
             /* test remove *all* keys */
-            agentClient.Agent.AddKey(rsa1Key);
             agentClient.Agent.AddKey(rsaKey);
+            agentClient.Agent.AddKey(dsaKey);
             Assume.That(agentClient.Agent.KeyCount, Is.EqualTo(2));
             agentClient.RemoveAllKeys();
             Assert.That(agentClient.Agent.KeyCount, Is.EqualTo(0));
@@ -293,12 +241,6 @@ namespace SshAgentLibTests
         public void TestRemoveKey()
         {
             var agentClient = new TestAgentClient();
-
-            /* test SSH1 */
-            agentClient.Agent.AddKey(rsa1Key);
-            Assume.That(agentClient.Agent.KeyCount, Is.EqualTo(1));
-            agentClient.RemoveKey(rsa1Key);
-            Assert.That(agentClient.Agent.KeyCount, Is.EqualTo(0));
 
             /* test SSH2 */
             agentClient.Agent.AddKey(rsaKey);
@@ -326,62 +268,49 @@ namespace SshAgentLibTests
             {
                 agentClient.Agent.AddKey(key);
                 var signature = agentClient.SignRequest(key, data);
-                switch (key.Version)
+                var signatureParser = new BlobParser(signature);
+                var algorithm = signatureParser.ReadString();
+                Assert.That(algorithm, Is.EqualTo(key.Algorithm.GetIdentifier()));
+                signature = signatureParser.ReadBlob();
+
+                if (key.Algorithm == PublicKeyAlgorithm.SshRsa)
                 {
-                    case SshVersion.SSH1:
-                        using (var md5 = MD5.Create())
-                        {
-                            var md5Buffer = new byte[48];
-                            data.CopyTo(md5Buffer, 0);
-                            agentClient.SessionId.CopyTo(md5Buffer, 32);
-                            var expectedSignature = md5.ComputeHash(md5Buffer);
-                            Assert.That(signature, Is.EqualTo(expectedSignature));
-                        }
-                        break;
-                    case SshVersion.SSH2:
-                        var signatureParser = new BlobParser(signature);
-                        var algorithm = signatureParser.ReadString();
-                        Assert.That(algorithm, Is.EqualTo(key.Algorithm.GetIdentifier()));
-                        signature = signatureParser.ReadBlob();
-                        if (key.Algorithm == PublicKeyAlgorithm.SshRsa)
-                        {
-                            Assert.That(signature.Length == key.Size / 8);
-                        }
-                        else if (key.Algorithm == PublicKeyAlgorithm.SshDss)
-                        {
-                            Assert.That(signature.Length, Is.EqualTo(40));
-                            var r = new BigInteger(1, signature, 0, 20);
-                            var s = new BigInteger(1, signature, 20, 20);
-                            var seq = new DerSequence(new DerInteger(r), new DerInteger(s));
-                            signature = seq.GetDerEncoded();
-                        }
-                        else if (
-                            key.Algorithm == PublicKeyAlgorithm.EcdsaSha2Nistp256
-                            || key.Algorithm == PublicKeyAlgorithm.EcdsaSha2Nistp384
-                            || key.Algorithm == PublicKeyAlgorithm.EcdsaSha2Nistp521
-                            || key.Algorithm == PublicKeyAlgorithm.EcdsaSha2Nistp256CertV1
-                            || key.Algorithm == PublicKeyAlgorithm.EcdsaSha2Nistp384CertV1
-                            || key.Algorithm == PublicKeyAlgorithm.EcdsaSha2Nistp521CertV1
-                        )
-                        {
-                            Assert.That(signature.Length, Is.AtLeast(key.Size / 4 + 8));
-                            Assert.That(signature.Length, Is.AtMost(key.Size / 4 + 10));
-                            var parser = new BlobParser(signature);
-                            var r = new BigInteger(parser.ReadBlob());
-                            var s = new BigInteger(parser.ReadBlob());
-                            var seq = new DerSequence(new DerInteger(r), new DerInteger(s));
-                            signature = seq.GetDerEncoded();
-                        }
-                        var signer = key.GetSigner();
-                        signer.Init(false, key.GetPublicKeyParameters());
-                        signer.BlockUpdate(data, 0, data.Length);
-                        var valid = signer.VerifySignature(signature);
-                        Assert.That(valid, Is.True, $"{key.Algorithm.GetIdentifier()}");
-                        break;
-                    default:
-                        Assert.Fail("Unexpected Ssh Version");
-                        break;
+                    Assert.That(signature.Length == key.Size / 8);
                 }
+                else if (key.Algorithm == PublicKeyAlgorithm.SshDss)
+                {
+                    Assert.That(signature.Length, Is.EqualTo(40));
+
+                    var r = new BigInteger(1, signature, 0, 20);
+                    var s = new BigInteger(1, signature, 20, 20);
+                    var seq = new DerSequence(new DerInteger(r), new DerInteger(s));
+                    signature = seq.GetDerEncoded();
+                }
+                else if (
+                    key.Algorithm == PublicKeyAlgorithm.EcdsaSha2Nistp256
+                    || key.Algorithm == PublicKeyAlgorithm.EcdsaSha2Nistp384
+                    || key.Algorithm == PublicKeyAlgorithm.EcdsaSha2Nistp521
+                    || key.Algorithm == PublicKeyAlgorithm.EcdsaSha2Nistp256CertV1
+                    || key.Algorithm == PublicKeyAlgorithm.EcdsaSha2Nistp384CertV1
+                    || key.Algorithm == PublicKeyAlgorithm.EcdsaSha2Nistp521CertV1
+                )
+                {
+                    Assert.That(signature.Length, Is.AtLeast(key.Size / 4 + 8));
+                    Assert.That(signature.Length, Is.AtMost(key.Size / 4 + 10));
+
+                    var parser = new BlobParser(signature);
+                    var r = new BigInteger(parser.ReadBlob());
+                    var s = new BigInteger(parser.ReadBlob());
+                    var seq = new DerSequence(new DerInteger(r), new DerInteger(s));
+                    signature = seq.GetDerEncoded();
+                }
+
+                var signer = key.GetSigner();
+                signer.Init(false, key.GetPublicKeyParameters());
+                signer.BlockUpdate(data, 0, data.Length);
+                var valid = signer.VerifySignature(signature);
+
+                Assert.That(valid, Is.True, $"{key.Algorithm.GetIdentifier()}");
             }
         }
 
