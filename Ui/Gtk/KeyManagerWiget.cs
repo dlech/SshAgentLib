@@ -93,7 +93,7 @@ namespace SshAgentLib.GTK
             mKeyCollection = new Gtk.NodeStore(typeof(KeyNode));
             try
             {
-                foreach (var key in mAgent.GetAllKeys())
+                foreach (var key in mAgent.ListKeys())
                 {
                     mKeyCollection.AddNode(new KeyNode(key));
                 }
