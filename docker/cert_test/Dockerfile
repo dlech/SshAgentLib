@@ -1,9 +1,10 @@
 FROM alpine:latest
-# Installing the openssh and bash package, removing the apk cache
-RUN apk --update add --no-cache openssh
-RUN rm -rf /var/cache/apk/*
-RUN /usr/bin/ssh-keygen -A
 
+# Installing the openssh package
+RUN apk --update add --no-cache openssh
+
+# Generate host keys
+RUN /usr/bin/ssh-keygen -A
 # Remove startup script
 RUN rm /etc/init.d/sshd
 
