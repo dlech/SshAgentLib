@@ -2,7 +2,6 @@
 // Copyright (c) 2015,2022 David Lechner <david@lechnology.com>
 
 // Run tests on keys from OpenSSH source code tests.
-// Expected hashes come from `ssh-keygen -l -f <file>`.
 
 using dlech.SshAgentLib;
 using NUnit.Framework;
@@ -25,7 +24,7 @@ namespace SshAgentLibTests.Keys
         public void TestThatReadingRsaPublicKeyWorks(string keyName, bool withCert)
         {
             var fileBase = $"{keyName}{(withCert ? "-cert" : "")}";
-            var fileNumber = keyName.Substring(keyName.Length - 1, 1);
+            var commentNumber = keyName.Substring(keyName.Length - 1, 1);
 
             using (var file = OpenResourceFile("OpenSshTestData", $"{fileBase}.pub"))
             {
@@ -44,7 +43,7 @@ namespace SshAgentLibTests.Keys
                     key.Sha256Fingerprint,
                     Is.EqualTo(ReadStringResourceFile("OpenSshTestData", $"{fileBase}.fp"))
                 );
-                Assert.That(key.Comment, Is.EqualTo($"RSA test key #{fileNumber}"));
+                Assert.That(key.Comment, Is.EqualTo($"RSA test key #{commentNumber}"));
                 Assert.That(
                     key.AuthorizedKeysString,
                     Is.EqualTo(ReadStringResourceFile("OpenSshTestData", $"{fileBase}.pub"))
@@ -69,7 +68,7 @@ namespace SshAgentLibTests.Keys
         public void TestThatReadingDsaPublicKeyWorks(string keyName, bool withCert)
         {
             var fileBase = $"{keyName}{(withCert ? "-cert" : "")}";
-            var fileNumber = keyName.Substring(keyName.Length - 1, 1);
+            var commentNumber = keyName.Substring(keyName.Length - 1, 1);
 
             using (var file = OpenResourceFile("OpenSshTestData", $"{fileBase}.pub"))
             {
@@ -92,7 +91,7 @@ namespace SshAgentLibTests.Keys
                     key.Sha256Fingerprint,
                     Is.EqualTo(ReadStringResourceFile("OpenSshTestData", $"{fileBase}.fp"))
                 );
-                Assert.That(key.Comment, Is.EqualTo($"DSA test key #{fileNumber}"));
+                Assert.That(key.Comment, Is.EqualTo($"DSA test key #{commentNumber}"));
                 Assert.That(
                     key.AuthorizedKeysString,
                     Is.EqualTo(ReadStringResourceFile("OpenSshTestData", $"{fileBase}.pub"))
@@ -114,10 +113,14 @@ namespace SshAgentLibTests.Keys
         [TestCase("ecdsa_1", false)]
         [TestCase("ecdsa_1", true)]
         [TestCase("ecdsa_2", false)]
+        [TestCase("ecdsa_sk1", false)]
+        [TestCase("ecdsa_sk1", true)]
+        [TestCase("ecdsa_sk2", false)]
         public void TestThatReadingEcdsaPublicKeyWorks(string keyName, bool withCert)
         {
             var fileBase = $"{keyName}{(withCert ? "-cert" : "")}";
-            var fileNumber = keyName.Substring(keyName.Length - 1, 1);
+            var commentSuffix = keyName.Contains("_sk") ? "-SK" : "";
+            var commentNumber = keyName.Substring(keyName.Length - 1, 1);
 
             using (var file = OpenResourceFile("OpenSshTestData", $"{fileBase}.pub"))
             {
@@ -126,23 +129,31 @@ namespace SshAgentLibTests.Keys
                 Assert.That(key.Version, Is.EqualTo(SshVersion.SSH2));
                 Assert.That(key.Parameter, Is.TypeOf<ECPublicKeyParameters>());
 
-                var ec = (ECPublicKeyParameters)key.Parameter;
-                var curve = ReadStringResourceFile("OpenSshTestData", $"{keyName}.param.curve");
-                var pub = ReadStringResourceFile("OpenSshTestData", $"{keyName}.param.pub");
+                if (!keyName.Contains("_sk"))
+                {
+                    var ec = (ECPublicKeyParameters)key.Parameter;
+                    var curve = ReadStringResourceFile("OpenSshTestData", $"{keyName}.param.curve");
+                    var pub = ReadStringResourceFile("OpenSshTestData", $"{keyName}.param.pub");
 
-                Assert.That(
-                    ec.Parameters.Curve,
-                    Is.EqualTo(
-                        (X962NamedCurves.GetByName(curve) ?? SecNamedCurves.GetByName(curve)).Curve
-                    )
-                );
-                Assert.That(ec.Q, Is.EqualTo(ec.Parameters.Curve.DecodePoint(Hex.Decode(pub))));
+                    Assert.That(
+                        ec.Parameters.Curve,
+                        Is.EqualTo(
+                            (
+                                X962NamedCurves.GetByName(curve) ?? SecNamedCurves.GetByName(curve)
+                            ).Curve
+                        )
+                    );
+                    Assert.That(ec.Q, Is.EqualTo(ec.Parameters.Curve.DecodePoint(Hex.Decode(pub))));
+                }
 
                 Assert.That(
                     key.Sha256Fingerprint,
                     Is.EqualTo(ReadStringResourceFile("OpenSshTestData", $"{fileBase}.fp"))
                 );
-                Assert.That(key.Comment, Is.EqualTo($"ECDSA test key #{fileNumber}"));
+                Assert.That(
+                    key.Comment,
+                    Is.EqualTo($"ECDSA{commentSuffix} test key #{commentNumber}")
+                );
                 Assert.That(
                     key.AuthorizedKeysString,
                     Is.EqualTo(ReadStringResourceFile("OpenSshTestData", $"{fileBase}.pub"))
@@ -164,9 +175,20 @@ namespace SshAgentLibTests.Keys
         [TestCase("ed25519_1", false)]
         [TestCase("ed25519_1", true)]
         [TestCase("ed25519_2", false)]
+        [TestCase("ed25519_sk1", false)]
+        [TestCase("ed25519_sk1", true)]
+        [TestCase("ed25519_sk2", false)]
         public void TestThatReadingEd25519PublicKeyWorks(string keyName, bool withCert)
         {
             var fileBase = $"{keyName}{(withCert ? "-cert" : "")}";
+            var commentSuffix = keyName.Contains("_sk") ? "-SK" : "";
+            var commentNumber = keyName.Substring(keyName.Length - 1, 1);
+
+            // HACK: upstream file has "wrong" comment
+            if (keyName == "ed25519_2")
+            {
+                commentNumber = "1";
+            }
 
             using (var file = OpenResourceFile("OpenSshTestData", $"{fileBase}.pub"))
             {
@@ -179,7 +201,10 @@ namespace SshAgentLibTests.Keys
                     key.Sha256Fingerprint,
                     Is.EqualTo(ReadStringResourceFile("OpenSshTestData", $"{fileBase}.fp"))
                 );
-                Assert.That(key.Comment, Is.EqualTo("ED25519 test key #1"));
+                Assert.That(
+                    key.Comment,
+                    Is.EqualTo($"ED25519{commentSuffix} test key #{commentNumber}")
+                );
                 Assert.That(
                     key.AuthorizedKeysString,
                     Is.EqualTo(ReadStringResourceFile("OpenSshTestData", $"{fileBase}.pub"))

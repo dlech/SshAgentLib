@@ -25,6 +25,7 @@
 
 using System;
 using System.Reflection;
+using System.Text.RegularExpressions;
 using SshAgentLib;
 
 namespace dlech.SshAgentLib
@@ -64,17 +65,47 @@ namespace dlech.SshAgentLib
         [KeyFormatIdentifier("ecdsa-sha2-nistp521-cert-v01@openssh.com")]
         EcdsaSha2Nistp521CertV1,
 
+        [KeyFormatIdentifier("sk-ecdsa-sha2-nistp256@openssh.com")]
+        SkEcdsaSha2Nistp256,
+
+        [KeyFormatIdentifier("sk-ecdsa-sha2-nistp256-cert-v01@openssh.com")]
+        SkEcdsaSha2Nistp256CertV1,
+
+        [KeyFormatIdentifier("sk-ecdsa-sha2-nistp384@openssh.com")]
+        SkEcdsaSha2Nistp384,
+
+        [KeyFormatIdentifier("sk-ecdsa-sha2-nistp384-cert-v01@openssh.com")]
+        SkEcdsaSha2Nistp384CertV1,
+
+        [KeyFormatIdentifier("sk-ecdsa-sha2-nistp521@openssh.com")]
+        SkEcdsaSha2Nistp521,
+
+        [KeyFormatIdentifier("sk-ecdsa-sha2-nistp521-cert-v01@openssh.com")]
+        SkEcdsaSha2Nistp521CertV1,
+
         [KeyFormatIdentifier("ssh-ed25519")]
         SshEd25519,
 
         [KeyFormatIdentifier("ssh-ed25519-cert-v01@openssh.com")]
         SshEd25519CertV1,
 
+        [KeyFormatIdentifier("sk-ssh-ed25519@openssh.com")]
+        SkSshEd25519,
+
+        [KeyFormatIdentifier("sk-ssh-ed25519-cert-v01@openssh.com")]
+        SkSshEd25519CertV1,
+
         [KeyFormatIdentifier("ssh-ed448")]
         SshEd448,
 
         [KeyFormatIdentifier("ssh-ed448-cert-v01@openssh.com")]
         SshEd448CertV1,
+
+        [KeyFormatIdentifier("sk-ssh-ed448@openssh.com")]
+        SkSshEd448,
+
+        [KeyFormatIdentifier("sk-ssh-ed448-cert-v01@openssh.com")]
+        SkSshEd448CertV1,
     }
 
     public static class PublicKeyAlgorithmExt
@@ -101,15 +132,20 @@ namespace dlech.SshAgentLib
         {
             var id = algo.GetIdentifier();
 
-            if (!id.StartsWith("ecdsa-sha2-", StringComparison.Ordinal))
+            var match = Regex.Match(id, @"(nistp\d+)");
+
+            if (!match.Success)
             {
                 throw new ArgumentException("requires elliptic curve algorithm");
             }
 
-            return id.Replace("ecdsa-sha2-", string.Empty)
-                .Replace("-cert-v01@openssh.com", string.Empty);
+            return match.Captures[0].Value;
         }
 
+        /// <summary>
+        /// Tests if a public key algorithm has nonce/certificate info in the
+        /// Openssh public key file format.
+        /// </summary>
         public static bool HasCert(this PublicKeyAlgorithm algorithm)
         {
             switch (algorithm)
@@ -119,9 +155,58 @@ namespace dlech.SshAgentLib
                 case PublicKeyAlgorithm.EcdsaSha2Nistp256:
                 case PublicKeyAlgorithm.EcdsaSha2Nistp384:
                 case PublicKeyAlgorithm.EcdsaSha2Nistp521:
+                case PublicKeyAlgorithm.SkEcdsaSha2Nistp256:
+                case PublicKeyAlgorithm.SkEcdsaSha2Nistp384:
+                case PublicKeyAlgorithm.SkEcdsaSha2Nistp521:
                 case PublicKeyAlgorithm.SshEd25519:
                 case PublicKeyAlgorithm.SshEd448:
+                case PublicKeyAlgorithm.SkSshEd25519:
+                case PublicKeyAlgorithm.SkSshEd448:
                     return false;
+                case PublicKeyAlgorithm.SshRsaCertV1:
+                case PublicKeyAlgorithm.SshDssCertV1:
+                case PublicKeyAlgorithm.EcdsaSha2Nistp256CertV1:
+                case PublicKeyAlgorithm.EcdsaSha2Nistp384CertV1:
+                case PublicKeyAlgorithm.EcdsaSha2Nistp521CertV1:
+                case PublicKeyAlgorithm.SkEcdsaSha2Nistp256CertV1:
+                case PublicKeyAlgorithm.SkEcdsaSha2Nistp384CertV1:
+                case PublicKeyAlgorithm.SkEcdsaSha2Nistp521CertV1:
+                case PublicKeyAlgorithm.SshEd25519CertV1:
+                case PublicKeyAlgorithm.SshEd448CertV1:
+                case PublicKeyAlgorithm.SkSshEd25519CertV1:
+                case PublicKeyAlgorithm.SkSshEd448CertV1:
+                    return true;
+                default:
+                    throw new NotSupportedException("unsupported algorithm");
+            }
+        }
+
+        /// <summary>
+        /// Tests if a public key algorithm has an application field int he
+        // public key file format.
+        /// </summary>
+        public static bool HasApplication(this PublicKeyAlgorithm algorithm)
+        {
+            switch (algorithm)
+            {
+                case PublicKeyAlgorithm.SkEcdsaSha2Nistp256:
+                case PublicKeyAlgorithm.SkEcdsaSha2Nistp256CertV1:
+                case PublicKeyAlgorithm.SkEcdsaSha2Nistp384:
+                case PublicKeyAlgorithm.SkEcdsaSha2Nistp384CertV1:
+                case PublicKeyAlgorithm.SkEcdsaSha2Nistp521:
+                case PublicKeyAlgorithm.SkEcdsaSha2Nistp521CertV1:
+                case PublicKeyAlgorithm.SkSshEd25519:
+                case PublicKeyAlgorithm.SkSshEd25519CertV1:
+                case PublicKeyAlgorithm.SkSshEd448:
+                case PublicKeyAlgorithm.SkSshEd448CertV1:
+                    return true;
+                case PublicKeyAlgorithm.SshRsa:
+                case PublicKeyAlgorithm.SshDss:
+                case PublicKeyAlgorithm.EcdsaSha2Nistp256:
+                case PublicKeyAlgorithm.EcdsaSha2Nistp384:
+                case PublicKeyAlgorithm.EcdsaSha2Nistp521:
+                case PublicKeyAlgorithm.SshEd25519:
+                case PublicKeyAlgorithm.SshEd448:
                 case PublicKeyAlgorithm.SshRsaCertV1:
                 case PublicKeyAlgorithm.SshDssCertV1:
                 case PublicKeyAlgorithm.EcdsaSha2Nistp256CertV1:
@@ -129,7 +214,7 @@ namespace dlech.SshAgentLib
                 case PublicKeyAlgorithm.EcdsaSha2Nistp521CertV1:
                 case PublicKeyAlgorithm.SshEd25519CertV1:
                 case PublicKeyAlgorithm.SshEd448CertV1:
-                    return true;
+                    return false;
                 default:
                     throw new NotSupportedException("unsupported algorithm");
             }

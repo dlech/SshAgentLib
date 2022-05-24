@@ -49,7 +49,8 @@ namespace dlech.SshAgentLib
             AsymmetricKeyParameter privateKeyParameter = null,
             string comment = "",
             byte[] nonce = null,
-            OpensshCertificateInfo certificate = null
+            OpensshCertificateInfo certificate = null,
+            string application = null
         )
         {
             IsPublicOnly = privateKeyParameter == null;
@@ -61,6 +62,7 @@ namespace dlech.SshAgentLib
             Comment = comment ?? throw new ArgumentNullException(nameof(comment));
             Nonce = nonce;
             Certificate = certificate;
+            Application = application;
 
             if ((nonce == null && certificate != null) || (nonce != null && certificate == null))
             {
@@ -77,9 +79,18 @@ namespace dlech.SshAgentLib
             AsymmetricCipherKeyPair cipherKeyPair,
             string comment = "",
             byte[] nonce = null,
-            OpensshCertificateInfo certificate = null
-        ) : this(version, cipherKeyPair.Public, cipherKeyPair.Private, comment, nonce, certificate)
-        { }
+            OpensshCertificateInfo certificate = null,
+            string application = null
+        )
+            : this(
+                version,
+                cipherKeyPair.Public,
+                cipherKeyPair.Private,
+                comment,
+                nonce,
+                certificate,
+                application
+            ) { }
 
         public SshVersion Version { get; private set; }
 
@@ -110,20 +121,53 @@ namespace dlech.SshAgentLib
                         case 256:
                             if (Certificate != null)
                             {
+                                if (Application != null)
+                                {
+                                    return PublicKeyAlgorithm.SkEcdsaSha2Nistp256CertV1;
+                                }
+
                                 return PublicKeyAlgorithm.EcdsaSha2Nistp256CertV1;
                             }
+
+                            if (Application != null)
+                            {
+                                return PublicKeyAlgorithm.SkEcdsaSha2Nistp256;
+                            }
+
                             return PublicKeyAlgorithm.EcdsaSha2Nistp256;
                         case 384:
                             if (Certificate != null)
                             {
+                                if (Application != null)
+                                {
+                                    return PublicKeyAlgorithm.SkEcdsaSha2Nistp384CertV1;
+                                }
+
                                 return PublicKeyAlgorithm.EcdsaSha2Nistp384CertV1;
                             }
+
+                            if (Application != null)
+                            {
+                                return PublicKeyAlgorithm.SkEcdsaSha2Nistp384;
+                            }
+
                             return PublicKeyAlgorithm.EcdsaSha2Nistp384;
                         case 521:
                             if (Certificate != null)
                             {
+                                if (Application != null)
+                                {
+                                    return PublicKeyAlgorithm.SkEcdsaSha2Nistp521CertV1;
+                                }
+
                                 return PublicKeyAlgorithm.EcdsaSha2Nistp521CertV1;
                             }
+
+                            if (Application != null)
+                            {
+                                return PublicKeyAlgorithm.SkEcdsaSha2Nistp521;
+                            }
+
                             return PublicKeyAlgorithm.EcdsaSha2Nistp521;
                     }
                 }
@@ -131,8 +175,19 @@ namespace dlech.SshAgentLib
                 {
                     if (Certificate != null)
                     {
+                        if (Application != null)
+                        {
+                            return PublicKeyAlgorithm.SkSshEd25519CertV1;
+                        }
+
                         return PublicKeyAlgorithm.SshEd25519CertV1;
                     }
+
+                    if (Application != null)
+                    {
+                        return PublicKeyAlgorithm.SkSshEd25519;
+                    }
+
                     return PublicKeyAlgorithm.SshEd25519;
                 }
                 throw new Exception("Unknown algorithm");
@@ -141,9 +196,11 @@ namespace dlech.SshAgentLib
 
         public byte[] Nonce { get; }
 
-        public OpensshCertificateInfo Certificate { get; private set; }
+        public OpensshCertificateInfo Certificate { get; }
 
-        public bool IsPublicOnly { get; private set; }
+        public string Application { get; }
+
+        public bool IsPublicOnly { get; }
 
         public int Size
         {

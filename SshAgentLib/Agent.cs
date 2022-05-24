@@ -792,7 +792,8 @@ namespace dlech.SshAgentLib
                     {
                         var publicKeyParams = messageParser.ReadSsh2PublicKeyData(
                             out var nonce,
-                            out var cert
+                            out var cert,
+                            out var application
                         );
                         var privateKeyParams = messageParser.ReadSsh2KeyData(publicKeyParams);
                         var key = new SshKey(
@@ -801,7 +802,8 @@ namespace dlech.SshAgentLib
                             privateKeyParams,
                             "",
                             nonce,
-                            cert
+                            cert,
+                            application
                         )
                         {
                             Comment = messageParser.ReadString(),

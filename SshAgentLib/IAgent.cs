@@ -111,7 +111,8 @@ namespace dlech.SshAgentLib
                 privateKey.Decrypt(getPassPhraseCallback, progress),
                 privateKey.PublicKey.Comment,
                 publicKey.Nonce,
-                publicKey.Certificate
+                publicKey.Certificate,
+                publicKey.Application
             );
 
             if (constraints != null)

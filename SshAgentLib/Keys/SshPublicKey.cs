@@ -63,7 +63,9 @@ namespace SshAgentLib.Keys
             {
                 var builder = new StringBuilder();
 
-                builder.Append(GetAlgorithmIdentifier(Parameter, Certificate != null));
+                builder.Append(
+                    GetAlgorithmIdentifier(Parameter, Certificate != null, Application != null)
+                );
                 builder.Append(' ');
                 builder.Append(Convert.ToBase64String(KeyBlob));
 
@@ -80,6 +82,12 @@ namespace SshAgentLib.Keys
         public byte[] Nonce { get; }
 
         public OpensshCertificateInfo Certificate { get; }
+
+        /// <summary>
+        /// Gets the application for hardware security keys or <c>null</c> if
+        /// this key is not associated with a hardware key.
+        /// </summary>
+        public string Application { get; }
 
         /// <summary>
         /// Creates a new public key.
@@ -101,9 +109,14 @@ namespace SshAgentLib.Keys
                     Parameter = parser.ReadSsh1PublicKeyData();
                     break;
                 case SshVersion.SSH2:
-                    Parameter = parser.ReadSsh2PublicKeyData(out var nonce, out var certificate);
+                    Parameter = parser.ReadSsh2PublicKeyData(
+                        out var nonce,
+                        out var certificate,
+                        out var application
+                    );
                     Nonce = nonce;
                     Certificate = certificate;
+                    Application = application;
                     break;
                 default:
                     throw new ArgumentException("unsupported SSH version", nameof(version));
@@ -136,8 +149,12 @@ namespace SshAgentLib.Keys
 
             // separate the key from the certificate
             var parser = new BlobParser(KeyBlob);
-            var parameters = parser.ReadSsh2PublicKeyData(out var nonce, out var certificate);
-            var key = new SshKey(Version, parameters);
+            var parameters = parser.ReadSsh2PublicKeyData(
+                out var nonce,
+                out var certificate,
+                out var application
+            );
+            var key = new SshKey(Version, parameters, null, "", null, null, application);
 
             return new SshPublicKey(Version, key.GetPublicKeyBlob(), Comment);
         }
@@ -176,7 +193,8 @@ namespace SshAgentLib.Keys
 
         private static string GetAlgorithmIdentifier(
             AsymmetricKeyParameter parameters,
-            bool hasCertificate
+            bool hasCertificate,
+            bool hasApplication
         )
         {
             var algorithm = GetBaseAlgorithmIdentifier(parameters);
@@ -184,6 +202,16 @@ namespace SshAgentLib.Keys
             if (hasCertificate)
             {
                 algorithm += "-cert-v01@openssh.com";
+            }
+
+            if (hasApplication)
+            {
+                algorithm = "sk-" + algorithm;
+
+                if (!hasCertificate)
+                {
+                    algorithm += "@openssh.com";
+                }
             }
 
             return algorithm;

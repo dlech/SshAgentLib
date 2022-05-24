@@ -63,6 +63,12 @@ namespace dlech.SshAgentLib
         OpensshCertificateInfo Certificate { get; }
 
         /// <summary>
+        /// Gets the application for keys associated with a hardware key or
+        /// <c>null</c> for keys that are not associated with a hardware key.
+        /// </summary>
+        string Application { get; }
+
+        /// <summary>
         /// returns true if key does not have private key parameters
         /// </summary>
         bool IsPublicOnly { get; }
@@ -215,6 +221,11 @@ namespace dlech.SshAgentLib
                         $"{parameters.GetType()} is not a supported algorithm",
                         nameof(key)
                     );
+                }
+
+                if (key.Application != null)
+                {
+                    builder.AddStringBlob(key.Application);
                 }
 
                 if (cert && key.Certificate != null)
