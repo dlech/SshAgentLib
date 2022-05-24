@@ -29,6 +29,7 @@ using System.Collections.ObjectModel;
 using System.Linq;
 using System.Security.Cryptography;
 using Org.BouncyCastle.Asn1;
+using Org.BouncyCastle.Asn1.Nist;
 using Org.BouncyCastle.Asn1.Pkcs;
 using Org.BouncyCastle.Asn1.X9;
 using Org.BouncyCastle.Crypto;
@@ -328,7 +329,8 @@ namespace dlech.SshAgentLib
             {
                 return SignerUtilities.GetSigner(X9ObjectIdentifiers.IdDsaWithSha1);
             }
-            else if (publicKey is RsaKeyParameters)
+
+            if (publicKey is RsaKeyParameters)
             {
                 // flags can influence hash type for RSA keys
 
@@ -344,24 +346,28 @@ namespace dlech.SshAgentLib
 
                 return SignerUtilities.GetSigner(PkcsObjectIdentifiers.Sha1WithRsaEncryption);
             }
-            else if (publicKey is ECPublicKeyParameters)
-            {
-                var ecdsaFieldSize = ((ECPublicKeyParameters)publicKey).Q.Curve.FieldSize;
 
-                if (ecdsaFieldSize <= 256)
+            if (publicKey is ECPublicKeyParameters parameters)
+            {
+                if (parameters.Q.Curve.Equals(NistNamedCurves.GetByName("P-256")))
                 {
                     return SignerUtilities.GetSigner(X9ObjectIdentifiers.ECDsaWithSha256);
                 }
-                else if (ecdsaFieldSize > 256 && ecdsaFieldSize <= 384)
+
+                if (parameters.Q.Curve.Equals(NistNamedCurves.GetByName("P-384")))
                 {
                     return SignerUtilities.GetSigner(X9ObjectIdentifiers.ECDsaWithSha384);
                 }
-                else if (ecdsaFieldSize > 384)
+
+                if (parameters.Q.Curve.Equals(NistNamedCurves.GetByName("P-521")))
                 {
                     return SignerUtilities.GetSigner(X9ObjectIdentifiers.ECDsaWithSha512);
                 }
+
+                throw new ArgumentException("unsupported curve", nameof(key));
             }
-            else if (publicKey is Ed25519PublicKeyParameters)
+
+            if (publicKey is Ed25519PublicKeyParameters)
             {
                 return new Ed25519Signer();
             }
