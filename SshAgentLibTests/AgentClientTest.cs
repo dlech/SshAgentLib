@@ -359,6 +359,9 @@ namespace SshAgentLibTests
                             key.Algorithm == PublicKeyAlgorithm.EcdsaSha2Nistp256
                             || key.Algorithm == PublicKeyAlgorithm.EcdsaSha2Nistp384
                             || key.Algorithm == PublicKeyAlgorithm.EcdsaSha2Nistp521
+                            || key.Algorithm == PublicKeyAlgorithm.EcdsaSha2Nistp256CertV1
+                            || key.Algorithm == PublicKeyAlgorithm.EcdsaSha2Nistp384CertV1
+                            || key.Algorithm == PublicKeyAlgorithm.EcdsaSha2Nistp521CertV1
                         )
                         {
                             Assert.That(signature.Length, Is.AtLeast(key.Size / 4 + 8));
@@ -373,7 +376,7 @@ namespace SshAgentLibTests
                         signer.Init(false, key.GetPublicKeyParameters());
                         signer.BlockUpdate(data, 0, data.Length);
                         var valid = signer.VerifySignature(signature);
-                        Assert.That(valid, Is.True);
+                        Assert.That(valid, Is.True, $"{key.Algorithm.GetIdentifier()}");
                         break;
                     default:
                         Assert.Fail("Unexpected Ssh Version");

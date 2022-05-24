@@ -186,6 +186,13 @@ namespace dlech.SshAgentLibTests
                     var ecdsa256Gen = new ECKeyPairGenerator();
                     ecdsa256Gen.Init(ecdsa256GenParams);
                     keyPair = ecdsa256Gen.GenerateKeyPair();
+
+                    if (algorithm.HasCert())
+                    {
+                        nonce = new byte[32];
+                        certificate = CreateCertificate(keyPair.Public);
+                    }
+
                     var ecdsa256Key = new SshKey(
                         SshVersion.SSH2,
                         keyPair,
@@ -211,6 +218,13 @@ namespace dlech.SshAgentLibTests
                     var ecdsa384Gen = new ECKeyPairGenerator();
                     ecdsa384Gen.Init(ecdsa384GenParams);
                     keyPair = ecdsa384Gen.GenerateKeyPair();
+
+                    if (algorithm.HasCert())
+                    {
+                        nonce = new byte[32];
+                        certificate = CreateCertificate(keyPair.Public);
+                    }
+
                     var ecdsa384Key = new SshKey(
                         SshVersion.SSH2,
                         keyPair,
@@ -236,6 +250,13 @@ namespace dlech.SshAgentLibTests
                     var ecdsa521Gen = new ECKeyPairGenerator();
                     ecdsa521Gen.Init(ecdsa521GenParams);
                     keyPair = ecdsa521Gen.GenerateKeyPair();
+
+                    if (algorithm.HasCert())
+                    {
+                        nonce = new byte[32];
+                        certificate = CreateCertificate(keyPair.Public);
+                    }
+
                     var ecdsa521Key = new SshKey(
                         SshVersion.SSH2,
                         keyPair,
