@@ -41,9 +41,16 @@ namespace dlech.SshAgentLib.WinForms
         const MessageBoxOptions SetForeground = (MessageBoxOptions)0x00010000;
         const MessageBoxOptions SystemModal = (MessageBoxOptions)0x00001000;
 
-        public static bool ConfirmCallback(ISshKey key, Process process)
+        public static bool ConfirmCallback(
+            ISshKey key,
+            Process process,
+            string user,
+            string fromHost,
+            string toHost
+        )
         {
             var programName = Strings.askConfirmKeyUnknownProcess;
+
             if (process != null)
             {
                 programName = string.Format(
@@ -52,6 +59,9 @@ namespace dlech.SshAgentLib.WinForms
                     process.ProcessName
                 );
             }
+
+            // TODO: add user/host info to message
+
             var result = MessageBox.Show(
                 string.Format(
                     Strings.askConfirmKey,
@@ -65,7 +75,8 @@ namespace dlech.SshAgentLib.WinForms
                 MessageBoxDefaultButton.Button2,
                 TopMost | SetForeground | SystemModal
             );
-            return (result == DialogResult.Yes);
+
+            return result == DialogResult.Yes;
         }
     }
 }
