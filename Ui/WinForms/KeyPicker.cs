@@ -25,11 +25,8 @@
 
 using System;
 using System.Collections.Generic;
-using System.ComponentModel;
 using System.Data;
-using System.Drawing;
 using System.Linq;
-using System.Text;
 using System.Windows.Forms;
 
 namespace dlech.SshAgentLib.WinForms
@@ -46,16 +43,18 @@ namespace dlech.SshAgentLib.WinForms
             }
         }
 
-        public KeyPicker(ICollection<ISshKey> keys)
+        public KeyPicker(IEnumerable<ISshKey> keys)
         {
             if (keys == null)
             {
                 throw new ArgumentNullException("keys");
             }
-            if (keys.Count == 0)
+
+            if (!keys.Any())
             {
                 throw new ArgumentException("No keys in list.", "keys");
             }
+
             InitializeComponent();
             keyDataGridView.ColumnAdded += keyDataGridView_ColumnAdded;
             keyDataGridView.DataSource = keys.Select(k => new KeyWrapper(k)).ToList();

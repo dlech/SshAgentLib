@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: MIT
+﻿// SPDX-License-Identifier: MIT
 // Copyright (c) 2012-2015,2017-2018,2022 David Lechner <david@lechnology.com>
 // Author(s): David Lechner
 //            Max Laverse
@@ -10,10 +10,10 @@ using System.IO;
 using System.Linq;
 using System.Runtime.InteropServices;
 using System.Security;
-using System.Security.Cryptography;
 using System.Timers;
-using Org.BouncyCastle.Crypto.Encodings;
-using Org.BouncyCastle.Crypto.Engines;
+using SshAgentLib.Connection;
+using SshAgentLib.Extension;
+using SshAgentLib.Keys;
 
 namespace dlech.SshAgentLib
 {
@@ -101,7 +101,7 @@ namespace dlech.SshAgentLib
             /* Key constraint identifiers */
             SSH_AGENT_CONSTRAIN_LIFETIME = 1,
             SSH_AGENT_CONSTRAIN_CONFIRM = 2,
-            SSH_AGENT_CONSTRAIN_EXTENSION = 3,
+            SSH_AGENT_CONSTRAIN_EXTENSION = 0xff,
         }
 
         [Flags]
@@ -110,6 +110,8 @@ namespace dlech.SshAgentLib
             SSH_AGENT_RSA_SHA2_256 = 0x02,
             SSH_AGENT_RSA_SHA2_512 = 0x04,
         }
+
+        private const byte SSH2_MSG_USERAUTH_REQUEST = 50;
 
         #endregion
 
@@ -198,12 +200,28 @@ namespace dlech.SshAgentLib
         /// Requests user for permission to use specified key.
         /// </summary>
         /// <param name="key">The key that will be used</param>
-        /// <param name="process">The calling process or <c>null</c> if the
-        /// process could not be obtained.</param>
+        /// <param name="process">
+        /// The calling process or <c>null</c> if the process could not be obtained.
+        /// </param>
+        /// <param name="user">
+        /// The requested user name if available, otherwise <c>null</c>.
+        /// </param>
+        /// <param name="fromHostName">
+        /// The requested source host name if available, otherwise <c>null</c>.
+        /// </param>
+        /// <param name="toHostName">
+        /// The requested destination host name if available, otherwise <c>null</c>.
+        /// </param>
         /// <returns>
         /// true if user grants permission, false if user denies permission
         /// </returns>
-        public delegate bool ConfirmUserPermissionDelegate(ISshKey key, Process process);
+        public delegate bool ConfirmUserPermissionDelegate(
+            ISshKey key,
+            Process process,
+            string user,
+            string fromHostName,
+            string toHostName
+        );
 
         /// <summary>
         /// Filters the list of keys that will be returned by the request identities
@@ -211,7 +229,7 @@ namespace dlech.SshAgentLib
         /// </summary>
         /// <param name="keyList">The list of keys to filter.</param>
         /// <returns>A filtered list of keys.</returns>
-        public delegate ICollection<ISshKey> FilterKeyListDelegate(ICollection<ISshKey> keyList);
+        public delegate IEnumerable<ISshKey> FilterKeyListDelegate(IEnumerable<ISshKey> keyList);
 
         #endregion
 
@@ -399,10 +417,8 @@ namespace dlech.SshAgentLib
         /// Answers the message.
         /// </summary>
         /// <param name='messageStream'>Message stream.</param>
-        /// <param name="process">The calling process or <c>null</c> if the process
-        /// could not be obtained.</param>
-        /// <remarks>code based on winpgnt.c from PuTTY source code</remarks>
-        public void AnswerMessage(Stream messageStream, Process process = null)
+        /// <param name="context">The connection context.</param>
+        public void AnswerMessage(Stream messageStream, ConnectionContext context)
         {
             if (messageStream.CanTimeout)
             {
@@ -445,8 +461,9 @@ namespace dlech.SshAgentLib
                     messageParser.ReadHeader();
                 }
             }
-            catch (Exception)
+            catch (Exception ex)
             {
+                Debug.WriteLine(ex);
                 header = new BlobHeader { Message = Message.UNKNOWN };
                 // this will cause the switch statement below to use the default case
                 // which returns an error to the stream.
@@ -460,14 +477,17 @@ namespace dlech.SshAgentLib
                      */
                     try
                     {
-                        var keyList = ListKeys();
+                        var keyList = ListKeys()
+                            .Where(
+                                k => k.DestinationConstraint?.IdentityPermitted(context) ?? true
+                            );
 
                         if (FilterKeyListCallback != null)
                         {
                             keyList = FilterKeyListCallback(keyList);
                         }
 
-                        foreach (SshKey key in keyList)
+                        foreach (var key in keyList)
                         {
                             responseBuilder.AddBlob(key.GetPublicKeyBlob());
                             responseBuilder.AddStringBlob(key.Comment);
@@ -475,7 +495,7 @@ namespace dlech.SshAgentLib
 
                         responseBuilder.InsertHeader(
                             Message.SSH2_AGENT_IDENTITIES_ANSWER,
-                            keyList.Count
+                            keyList.Count()
                         );
 
                         // TODO may want to check that there is enough room in the message stream
@@ -509,9 +529,58 @@ namespace dlech.SshAgentLib
                         }
                         catch { }
 
+                        // throws if key not found
                         var matchingKey = keyList.First(
                             key => key.GetPublicKeyBlob().SequenceEqual(keyBlob)
                         );
+
+                        var user = default(string);
+                        var forwardHostName = default(string);
+                        var lastHostName = default(string);
+
+                        if (matchingKey.DestinationConstraint?.Constraints.Any() ?? false)
+                        {
+                            if (!context.Sessions.Any())
+                            {
+                                throw new InvalidOperationException(
+                                    "refusing use of destination constrained key to sign unbound connection"
+                                );
+                            }
+
+                            ParseUserAuthRequest(
+                                reqData,
+                                matchingKey,
+                                out user,
+                                out var sessionId,
+                                out var hostKey
+                            );
+
+                            if (
+                                !matchingKey.DestinationConstraint.IdentityPermitted(
+                                    context,
+                                    user,
+                                    out forwardHostName,
+                                    out lastHostName
+                                )
+                            )
+                            {
+                                throw new InvalidOperationException();
+                            }
+
+                            if (!sessionId.SequenceEqual(context.Sessions.Last().SessionIdentifier))
+                            {
+                                throw new InvalidOperationException(
+                                    $"unexpected session ID ({context.Sessions.Count()} listed) on signature request for target user {user} with key {matchingKey.GetSha256Fingerprint()}"
+                                );
+                            }
+
+                            if (context.Sessions.Count() > 1 && hostKey == null)
+                            {
+                                throw new InvalidOperationException(
+                                    "refusing use of destination-constrained key: mismatch between hostkey in request and most recently bound session"
+                                );
+                            }
+                        }
 
                         var confirmConstraints = matchingKey.Constraints.Where(
                             constraint =>
@@ -520,7 +589,15 @@ namespace dlech.SshAgentLib
 
                         if (confirmConstraints.Any())
                         {
-                            if (!ConfirmUserPermissionCallback.Invoke(matchingKey, process))
+                            if (
+                                !ConfirmUserPermissionCallback.Invoke(
+                                    matchingKey,
+                                    context.Process,
+                                    user,
+                                    forwardHostName,
+                                    lastHostName
+                                )
+                            )
                             {
                                 goto default;
                             }
@@ -542,7 +619,7 @@ namespace dlech.SshAgentLib
 
                         try
                         {
-                            KeyUsed(this, new KeyUsedEventArgs(signKey, process));
+                            KeyUsed(this, new KeyUsedEventArgs(signKey, context.Process));
                         }
                         catch { }
 
@@ -551,6 +628,10 @@ namespace dlech.SshAgentLib
                     catch (AgentLockedException)
                     {
                         // This is expected
+                    }
+                    catch (FormatException)
+                    {
+                        // this is expected if the message had bad data
                     }
                     catch (InvalidOperationException)
                     {
@@ -607,16 +688,64 @@ namespace dlech.SshAgentLib
                                     Type = (KeyConstraintType)messageParser.ReadByte()
                                 };
 
-                                if (
-                                    constraint.Type
-                                    == KeyConstraintType.SSH_AGENT_CONSTRAIN_LIFETIME
-                                )
+                                switch (constraint.Type)
                                 {
-                                    constraint.Data = messageParser.ReadUInt32();
-                                }
+                                    case KeyConstraintType.SSH_AGENT_CONSTRAIN_CONFIRM:
+                                        // no extra data
+                                        key.AddConstraint(constraint);
+                                        break;
+                                    case KeyConstraintType.SSH_AGENT_CONSTRAIN_LIFETIME:
+                                        constraint.Data = messageParser.ReadUInt32();
+                                        key.AddConstraint(constraint);
+                                        break;
+                                    case KeyConstraintType.SSH_AGENT_CONSTRAIN_EXTENSION:
+                                        var extensionType = messageParser.ReadString();
 
-                                key.AddConstraint(constraint);
+                                        switch (extensionType)
+                                        {
+                                            case DestinationConstraint.ExtensionId:
+                                                if (key.DestinationConstraint != null)
+                                                {
+                                                    throw new InvalidOperationException(
+                                                        "can only have one destination constraint"
+                                                    );
+                                                }
+
+                                                key.DestinationConstraint =
+                                                    DestinationConstraint.Parse(
+                                                        messageParser.ReadBlob()
+                                                    );
+                                                break;
+                                            default:
+                                                throw new NotSupportedException(
+                                                    "unsupported constraint extension"
+                                                );
+                                        }
+                                        break;
+                                    default:
+                                        throw new NotSupportedException(
+                                            "unsupported constraint type"
+                                        );
+                                }
                             }
+                        }
+
+                        var matchingKey = ListKeys()
+                            .FirstOrDefault(
+                                k => k.GetPublicKeyBlob().SequenceEqual(key.GetPublicKeyBlob())
+                            );
+
+                        if (
+                            matchingKey != null
+                            && !(
+                                matchingKey.DestinationConstraint?.IdentityPermitted(context)
+                                ?? true
+                            )
+                        )
+                        {
+                            throw new InvalidOperationException(
+                                "cannot replace destination constrained key"
+                            );
                         }
 
                         AddKey(key);
@@ -656,6 +785,19 @@ namespace dlech.SshAgentLib
                     try
                     {
                         var matchingKey = keyList.TryGet(rKeyBlob);
+
+                        if (matchingKey == null)
+                        {
+                            throw new InvalidOperationException();
+                        }
+
+                        if (
+                            !(matchingKey.DestinationConstraint?.IdentityPermitted(context) ?? true)
+                        )
+                        {
+                            throw new InvalidOperationException();
+                        }
+
                         var startKeyListLength = keyList.Count;
 
                         RemoveKey(matchingKey);
@@ -666,6 +808,10 @@ namespace dlech.SshAgentLib
                             responseBuilder.InsertHeader(Message.SSH_AGENT_SUCCESS);
                             break; //success!
                         }
+                    }
+                    catch (InvalidOperationException)
+                    {
+                        // This is expected
                     }
                     catch (AgentLockedException)
                     {
@@ -750,6 +896,49 @@ namespace dlech.SshAgentLib
 
                     goto default;
 
+                case Message.SSH_AGENTC_EXTENSION:
+                    try
+                    {
+                        var extensionType = messageParser.ReadString();
+
+                        switch (extensionType)
+                        {
+                            case "session-bind@openssh.com":
+                                var hostKey = messageParser.ReadBlob();
+                                var sessionIdentifier = messageParser.ReadBlob();
+                                var signature = messageParser.ReadBlob();
+                                var isForwarding = messageParser.ReadBoolean();
+
+                                context.AddSession(
+                                    new SessionBind(
+                                        new SshPublicKey(hostKey),
+                                        sessionIdentifier,
+                                        signature,
+                                        isForwarding
+                                    )
+                                );
+
+                                responseBuilder.InsertHeader(Message.SSH_AGENT_SUCCESS);
+                                break;
+
+                            default:
+                                throw new NotSupportedException(
+                                    $"unsupported extension: {extensionType}"
+                                );
+                        }
+
+                        break;
+                    }
+                    catch (Exception ex)
+                    {
+                        Debug.WriteLine(
+                            $"unhandled exception in SSH_AGENTC_EXTENSION: ${ex.Message}"
+                        );
+                        Debugger.Break();
+                    }
+
+                    goto default;
+
                 default:
                     responseBuilder.Clear();
                     responseBuilder.InsertHeader(Message.SSH_AGENT_FAILURE);
@@ -764,6 +953,80 @@ namespace dlech.SshAgentLib
 
             messageStream.Write(responseBuilder.GetBlob(), 0, responseBuilder.Length);
             messageStream.Flush();
+        }
+
+        private void ParseUserAuthRequest(
+            byte[] reqData,
+            ISshKey key,
+            out string user,
+            out byte[] sessionId,
+            out SshPublicKey hostKey
+        )
+        {
+            hostKey = null;
+
+            var userAuthParser = new BlobParser(reqData);
+
+            sessionId = userAuthParser.ReadBlob();
+
+            if (sessionId.Length == 0)
+            {
+                throw new FormatException();
+            }
+
+            var msg = userAuthParser.ReadByte();
+
+            if (msg != SSH2_MSG_USERAUTH_REQUEST)
+            {
+                throw new FormatException();
+            }
+
+            user = userAuthParser.ReadString();
+
+            var service = userAuthParser.ReadString();
+
+            if (service != "ssh-connection")
+            {
+                throw new FormatException();
+            }
+
+            var method = userAuthParser.ReadString();
+            var signatureFollows = userAuthParser.ReadBoolean();
+
+            if (!signatureFollows)
+            {
+                throw new FormatException();
+            }
+
+            var algorithm = userAuthParser.ReadString();
+            var mKeyBlob = userAuthParser.ReadBlob();
+
+            var mKey = new SshPublicKey(mKeyBlob);
+
+            if (!key.GetPublicKeyBlob().SequenceEqual(mKey.KeyBlob))
+            {
+                throw new FormatException();
+            }
+
+            if (algorithm != key.Algorithm.GetIdentifier())
+            {
+                throw new FormatException();
+            }
+
+            if (method == "publickey-hostbound-v00@openssh.com")
+            {
+                var hostKeyBlob = userAuthParser.ReadBlob();
+                hostKey = new SshPublicKey(hostKeyBlob);
+            }
+            else if (method != "publickey")
+            {
+                throw new FormatException();
+            }
+
+            if (userAuthParser.BaseStream.Position != reqData.Length)
+            {
+                throw new FormatException();
+            }
         }
 
         public abstract void Dispose();

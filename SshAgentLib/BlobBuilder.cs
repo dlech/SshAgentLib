@@ -112,6 +112,14 @@ namespace dlech.SshAgentLib
         }
 
         /// <summary>
+        /// Adds boolean to the blob.
+        /// </summary>
+        internal void AddBoolean(bool value)
+        {
+            AddUInt8(value ? (byte)1 : (byte)0);
+        }
+
+        /// <summary>
         /// Adds a string to the blob
         /// </summary>
         /// <param name="value">the string to add</param>

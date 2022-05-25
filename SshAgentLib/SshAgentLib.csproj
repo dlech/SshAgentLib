@@ -84,6 +84,9 @@
     <Prefer32Bit>false</Prefer32Bit>
   </PropertyGroup>
   <ItemGroup>
+    <Compile Include="Connection\ConnectionContext.cs" />
+    <Compile Include="Extension\DestinationConstraint.cs" />
+    <Compile Include="Extension\SessionBind.cs" />
     <Compile Include="AgentClient.cs" />
     <Compile Include="Agent.cs" />
     <Compile Include="AgentFailureException.cs" />

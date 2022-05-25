@@ -11,6 +11,7 @@ using System.Runtime.InteropServices;
 using System.Security.Principal;
 using System.Threading;
 using System.Windows.Forms;
+using SshAgentLib.Connection;
 
 namespace dlech.SshAgentLib
 {
@@ -537,11 +538,13 @@ namespace dlech.SshAgentLib
                         Debug.WriteLine(ex.ToString());
                     }
 
+                    var context = new ConnectionContext(otherProcess);
+
                     if (id.User == mapOwner || id.Owner == mapOwner)
                     {
                         using (var stream = fileMap.CreateViewStream())
                         {
-                            AnswerMessage(stream, otherProcess);
+                            AnswerMessage(stream, context);
                         }
 
                         return TRUE;
@@ -566,11 +569,13 @@ namespace dlech.SshAgentLib
 
         private void ConnectionHandler(Stream stream, Process process)
         {
+            var context = new ConnectionContext(process);
+
             try
             {
                 while (true)
                 {
-                    AnswerMessage(stream, process);
+                    AnswerMessage(stream, context);
                 }
             }
             catch (IOException ex)

@@ -29,6 +29,7 @@ using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using Org.BouncyCastle.Crypto;
 using Org.BouncyCastle.Crypto.Parameters;
+using SshAgentLib.Extension;
 using SshAgentLib.Keys;
 
 namespace dlech.SshAgentLib
@@ -238,6 +239,8 @@ namespace dlech.SshAgentLib
         {
             get { return keyConstraints.AsReadOnly(); }
         }
+
+        public DestinationConstraint DestinationConstraint { get; set; }
 
         public AsymmetricKeyParameter GetPublicKeyParameters()
         {

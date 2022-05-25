@@ -26,12 +26,11 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Linq;
 using System.Security.Cryptography;
 using System.Text;
-using Org.BouncyCastle.Crypto.Encodings;
-using Org.BouncyCastle.Crypto.Engines;
 using Org.BouncyCastle.Crypto.Parameters;
-using Org.BouncyCastle.Math;
+using SshAgentLib.Extension;
 
 namespace dlech.SshAgentLib
 {
@@ -81,7 +80,7 @@ namespace dlech.SshAgentLib
         /// <remarks>applies constraints in aKeys.Constraints, if any</remarks>
         public void AddKey(ISshKey key)
         {
-            AddKey(key, key.Constraints);
+            AddKey(key, key.Constraints, key.DestinationConstraint);
         }
 
         /// <summary>
@@ -89,23 +88,46 @@ namespace dlech.SshAgentLib
         /// </summary>
         /// <param name="key">the key to add</param>
         /// <param name="constraints">constraints to apply</param>
+        /// <param name="destinationConstraint">destination constraint to apply</param>
         /// <returns>true if operation was successful</returns>
         /// <remarks>ignores constraints in key.Constraints</remarks>
-        public void AddKey(ISshKey key, ICollection<Agent.KeyConstraint> constraints)
+        public void AddKey(
+            ISshKey key,
+            IEnumerable<Agent.KeyConstraint> constraints,
+            DestinationConstraint destinationConstraint
+        )
         {
             var builder = CreatePrivateKeyBlob(key);
 
-            if (constraints != null && constraints.Count > 0)
+            var isConstrained = false;
+
+            if (constraints != null && constraints.Any())
             {
+                isConstrained = true;
+
                 foreach (var constraint in constraints)
                 {
                     builder.AddUInt8((byte)constraint.Type);
+
+                    // lifetime constraint has extra parameter
                     if (constraint.Type.GetDataType() == typeof(uint))
                     {
                         builder.AddUInt32((uint)constraint.Data);
                     }
                 }
+            }
 
+            if (destinationConstraint != null)
+            {
+                isConstrained = true;
+
+                builder.AddUInt8((byte)Agent.KeyConstraintType.SSH_AGENT_CONSTRAIN_EXTENSION);
+                builder.AddStringBlob(DestinationConstraint.ExtensionId);
+                builder.AddBlob(destinationConstraint.ToBlob());
+            }
+
+            if (isConstrained)
+            {
                 builder.InsertHeader(Agent.Message.SSH2_AGENTC_ADD_ID_CONSTRAINED);
             }
             else

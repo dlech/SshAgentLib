@@ -6,7 +6,6 @@ using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.IO;
 using System.Linq;
-using System.Security.Cryptography;
 using System.Text;
 
 using dlech.SshAgentLib;
@@ -14,6 +13,9 @@ using dlech.SshAgentLibTests;
 using NUnit.Framework;
 using Org.BouncyCastle.Asn1;
 using Org.BouncyCastle.Math;
+using SshAgentLib.Connection;
+using SshAgentLib.Extension;
+using SshAgentLib.Keys;
 
 namespace SshAgentLibTests
 {
@@ -50,7 +52,7 @@ namespace SshAgentLibTests
                 Array.Copy(message, buffer, message.Length);
                 var messageStream = (TStream)Activator.CreateInstance(typeof(TStream), buffer);
 
-                Agent.AnswerMessage(messageStream);
+                Agent.AnswerMessage(messageStream, new ConnectionContext());
 
                 // If the stream is seekable, it should have been rewound and
                 // the reply written to the start of the buffer.
@@ -142,7 +144,7 @@ namespace SshAgentLibTests
         public void TestAddConstrainedKey()
         {
             var agentClient = new TestAgentClient();
-            agentClient.Agent.ConfirmUserPermissionCallback = (k, p) => true;
+            agentClient.Agent.ConfirmUserPermissionCallback = (k, p, u, f, t) => true;
 
             Agent.KeyConstraint constraint;
             var constraints = new List<Agent.KeyConstraint>();
@@ -153,7 +155,7 @@ namespace SshAgentLibTests
             };
 
             constraints.Add(constraint);
-            agentClient.AddKey(rsaKey, constraints);
+            agentClient.AddKey(rsaKey, constraints, null);
 
             Assert.That(agentClient.Agent.KeyCount, Is.EqualTo(1));
             Assert.That(agentClient.Agent.ListKeys().First().Constraints.Count, Is.EqualTo(1));
@@ -170,7 +172,7 @@ namespace SshAgentLibTests
 
             constraints.Clear();
             constraints.Add(constraint);
-            agentClient.AddKey(rsaKey, constraints);
+            agentClient.AddKey(rsaKey, constraints, null);
 
             Assert.That(agentClient.Agent.KeyCount, Is.EqualTo(1));
             Assert.That(agentClient.Agent.ListKeys().First().Constraints.Count, Is.EqualTo(1));
@@ -178,6 +180,55 @@ namespace SshAgentLibTests
                 agentClient.Agent.ListKeys().First().Constraints.First().Type,
                 Is.EqualTo(Agent.KeyConstraintType.SSH_AGENT_CONSTRAIN_LIFETIME)
             );
+        }
+
+        [Test]
+        public void TestAddDestinationConstrainedKey()
+        {
+            var agentClient = new TestAgentClient();
+            agentClient.Agent.ConfirmUserPermissionCallback = (k, p, u, f, t) => true;
+
+            var publicKey = new SshPublicKey(rsaKey.GetPublicKeyBlob());
+
+            var destinationConstraint = new DestinationConstraint(
+                new List<DestinationConstraint.Constraint>
+                {
+                    new DestinationConstraint.Constraint(
+                        new DestinationConstraint.Hop(
+                            null,
+                            null,
+                            Array.Empty<DestinationConstraint.KeySpec>()
+                        ),
+                        new DestinationConstraint.Hop(
+                            "user",
+                            "example.com",
+                            new List<DestinationConstraint.KeySpec>
+                            {
+                                new DestinationConstraint.KeySpec(publicKey, false)
+                            }
+                        )
+                    )
+                }
+            );
+
+            agentClient.AddKey(rsaKey, null, destinationConstraint);
+
+            Assert.That(agentClient.Agent.KeyCount, Is.EqualTo(1));
+
+            var actual = agentClient.Agent.ListKeys().First().DestinationConstraint;
+            Assert.That(actual, Is.Not.Null);
+            Assert.That(actual.Constraints.Count, Is.EqualTo(1));
+
+            var actualConstraint = actual.Constraints.First();
+            Assert.That(actualConstraint.From.UserName, Is.Null);
+            Assert.That(actualConstraint.From.HostName, Is.Null);
+            Assert.That(actualConstraint.From.HostKeys, Is.Empty);
+            Assert.That(actualConstraint.To.UserName, Is.EqualTo("user"));
+            Assert.That(actualConstraint.To.HostName, Is.EqualTo("example.com"));
+            Assert.That(actualConstraint.To.HostKeys.Count, Is.EqualTo(1));
+
+            var actualKeySpec = actualConstraint.To.HostKeys.First();
+            Assert.That(actualKeySpec.HostKey.Matches(publicKey));
         }
 
         [Test]

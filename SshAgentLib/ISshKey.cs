@@ -29,13 +29,9 @@ using System.Collections.ObjectModel;
 using System.Linq;
 using System.Security.Cryptography;
 using Org.BouncyCastle.Asn1;
-using Org.BouncyCastle.Asn1.Nist;
-using Org.BouncyCastle.Asn1.Pkcs;
-using Org.BouncyCastle.Asn1.X9;
 using Org.BouncyCastle.Crypto;
 using Org.BouncyCastle.Crypto.Parameters;
-using Org.BouncyCastle.Crypto.Signers;
-using Org.BouncyCastle.Security;
+using SshAgentLib.Extension;
 using SshAgentLib.Keys;
 using SignRequestFlags = dlech.SshAgentLib.Agent.SignRequestFlags;
 
@@ -88,6 +84,11 @@ namespace dlech.SshAgentLib
         /// List of key constraints applied to this key
         /// </summary>
         ReadOnlyCollection<Agent.KeyConstraint> Constraints { get; }
+
+        /// <summary>
+        /// An optional destination constraint.
+        /// </summary>
+        DestinationConstraint DestinationConstraint { get; set; }
 
         /// <summary>
         /// Gets a copy of the public key parameters
@@ -266,9 +267,9 @@ namespace dlech.SshAgentLib
             }
         }
 
-        public static bool HasConstraint(this ISshKey aKey, Agent.KeyConstraintType aType)
+        public static bool HasConstraint(this ISshKey key, Agent.KeyConstraintType type)
         {
-            return aKey.Constraints.Count(c => c.Type == aType) > 0;
+            return key.Constraints.Any(c => c.Type == type);
         }
 
         public static byte[] FormatSignature(this ISshKey key, byte[] signature)
@@ -327,62 +328,7 @@ namespace dlech.SshAgentLib
         {
             var publicKey = key.GetPublicKeyParameters();
 
-            if (publicKey is DsaPublicKeyParameters)
-            {
-                algorithm = "ssh-dss";
-                return SignerUtilities.GetSigner(X9ObjectIdentifiers.IdDsaWithSha1);
-            }
-
-            if (publicKey is RsaKeyParameters)
-            {
-                // flags can influence hash type for RSA keys
-
-                if (flags.HasFlag(SignRequestFlags.SSH_AGENT_RSA_SHA2_512))
-                {
-                    algorithm = "rsa-sha2-512";
-                    return SignerUtilities.GetSigner(PkcsObjectIdentifiers.Sha512WithRsaEncryption);
-                }
-
-                if (flags.HasFlag(SignRequestFlags.SSH_AGENT_RSA_SHA2_256))
-                {
-                    algorithm = "rsa-sha2-256";
-                    return SignerUtilities.GetSigner(PkcsObjectIdentifiers.Sha256WithRsaEncryption);
-                }
-
-                algorithm = "ssh-rsa";
-                return SignerUtilities.GetSigner(PkcsObjectIdentifiers.Sha1WithRsaEncryption);
-            }
-
-            if (publicKey is ECPublicKeyParameters parameters)
-            {
-                if (parameters.Q.Curve.Equals(NistNamedCurves.GetByName("P-256")))
-                {
-                    algorithm = "ecdsa-sha2-nisp256";
-                    return SignerUtilities.GetSigner(X9ObjectIdentifiers.ECDsaWithSha256);
-                }
-
-                if (parameters.Q.Curve.Equals(NistNamedCurves.GetByName("P-384")))
-                {
-                    algorithm = "ecdsa-sha2-nisp384";
-                    return SignerUtilities.GetSigner(X9ObjectIdentifiers.ECDsaWithSha384);
-                }
-
-                if (parameters.Q.Curve.Equals(NistNamedCurves.GetByName("P-521")))
-                {
-                    algorithm = "ecdsa-sha2-nisp521";
-                    return SignerUtilities.GetSigner(X9ObjectIdentifiers.ECDsaWithSha512);
-                }
-
-                throw new ArgumentException("unsupported curve", nameof(key));
-            }
-
-            if (publicKey is Ed25519PublicKeyParameters)
-            {
-                algorithm = "ssh-ed25519";
-                return new Ed25519Signer();
-            }
-
-            throw new ArgumentException("Unsupported algorithm", nameof(key));
+            return SshPublicKey.GetSigner(publicKey, out algorithm, flags);
         }
     }
 }

@@ -32,6 +32,7 @@ using System.Threading;
 
 using Mono.Unix;
 using Mono.Unix.Native;
+using SshAgentLib.Connection;
 
 namespace dlech.SshAgentLib
 {
@@ -103,7 +104,8 @@ namespace dlech.SshAgentLib
 
         public void StopUnixSocket()
         {
-            if (listener == null) {
+            if (listener == null)
+            {
                 return;
             }
 
@@ -139,13 +141,15 @@ namespace dlech.SshAgentLib
                     var clientThread = new Thread(
                         () =>
                         {
+                            var context = new ConnectionContext();
+
                             try
                             {
                                 using (var stream = client.GetStream())
                                 {
                                     while (true)
                                     {
-                                        AnswerMessage(stream);
+                                        AnswerMessage(stream, context);
                                     }
                                 }
                             }

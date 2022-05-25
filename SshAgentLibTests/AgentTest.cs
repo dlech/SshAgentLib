@@ -41,6 +41,7 @@ using Org.BouncyCastle.Asn1;
 using Org.BouncyCastle.Crypto;
 using Org.BouncyCastle.Crypto.Parameters;
 using Org.BouncyCastle.Math;
+using SshAgentLib.Connection;
 using SshAgentLib.Keys;
 
 namespace dlech.SshAgentLibTests
@@ -125,7 +126,7 @@ namespace dlech.SshAgentLibTests
             var unknownMessage = (byte)Agent.Message.UNKNOWN;
             Assert.That(unknownMessage, Is.Not.EqualTo(Agent.Message.SSH_AGENT_FAILURE));
             PrepareSimpleMessage(unchecked((Agent.Message)unknownMessage));
-            agent.AnswerMessage(stream);
+            agent.AnswerMessage(stream, new ConnectionContext());
             RewindStream();
             var header = parser.ReadHeader();
             Assert.That(header.BlobLength, Is.EqualTo(1));
@@ -149,7 +150,7 @@ namespace dlech.SshAgentLibTests
             builder.AddStringBlob(rsaKey.Comment);
             builder.InsertHeader(Agent.Message.SSH2_AGENTC_ADD_IDENTITY);
             PrepareMessage(builder);
-            agent.AnswerMessage(stream);
+            agent.AnswerMessage(stream, new ConnectionContext());
             RewindStream();
             var header = parser.ReadHeader();
             Assert.That(header.BlobLength, Is.EqualTo(1));
@@ -196,7 +197,7 @@ namespace dlech.SshAgentLibTests
 
             PrepareMessage(builder);
             var agent = new TestAgent();
-            agent.AnswerMessage(stream);
+            agent.AnswerMessage(stream, new ConnectionContext());
 
             RewindStream();
             var header = parser.ReadHeader();
@@ -229,7 +230,7 @@ namespace dlech.SshAgentLibTests
 
             PrepareMessage(builder);
             var agent = new TestAgent();
-            agent.AnswerMessage(stream);
+            agent.AnswerMessage(stream, new ConnectionContext());
             RewindStream();
             var header = parser.ReadHeader();
             Assert.That(header.BlobLength, Is.EqualTo(1));
@@ -276,7 +277,7 @@ namespace dlech.SshAgentLibTests
 
             PrepareMessage(builder);
             var agent = new TestAgent();
-            agent.AnswerMessage(stream);
+            agent.AnswerMessage(stream, new ConnectionContext());
 
             RewindStream();
             var header = parser.ReadHeader();
@@ -310,7 +311,7 @@ namespace dlech.SshAgentLibTests
                 builder.AddStringBlob(key.Comment);
                 builder.InsertHeader(Agent.Message.SSH2_AGENTC_ADD_IDENTITY);
                 PrepareMessage(builder);
-                agent.AnswerMessage(stream);
+                agent.AnswerMessage(stream, new ConnectionContext());
                 RewindStream();
                 var header = parser.ReadHeader();
                 Assert.That(header.BlobLength, Is.EqualTo(1));
@@ -364,7 +365,7 @@ namespace dlech.SshAgentLibTests
 
             PrepareMessage(builder);
             var agent = new TestAgent();
-            agent.AnswerMessage(stream);
+            agent.AnswerMessage(stream, new ConnectionContext());
 
             RewindStream();
             var header = parser.ReadHeader();
@@ -405,7 +406,7 @@ namespace dlech.SshAgentLibTests
 
             PrepareMessage(builder);
             var agent = new TestAgent();
-            agent.AnswerMessage(stream);
+            agent.AnswerMessage(stream, new ConnectionContext());
 
             RewindStream();
             var header = parser.ReadHeader();
@@ -462,7 +463,7 @@ namespace dlech.SshAgentLibTests
 
             PrepareMessage(builder);
             var agent = new TestAgent();
-            agent.AnswerMessage(stream);
+            agent.AnswerMessage(stream, new ConnectionContext());
 
             RewindStream();
             var header = parser.ReadHeader();
@@ -504,13 +505,13 @@ namespace dlech.SshAgentLibTests
             builder.AddStringBlob(rsaKey.Comment);
             builder.InsertHeader(Agent.Message.SSH2_AGENTC_ADD_IDENTITY);
             PrepareMessage(builder);
-            agent.AnswerMessage(stream);
+            agent.AnswerMessage(stream, new ConnectionContext());
 
             /* test adding key that already is in KeyList does not create duplicate */
             var startingCount = agent.ListKeys().Count;
             Assume.That(startingCount, Is.Not.EqualTo(0));
             PrepareMessage(builder);
-            agent.AnswerMessage(stream);
+            agent.AnswerMessage(stream, new ConnectionContext());
             RewindStream();
             var header = parser.ReadHeader();
             Assert.That(header.BlobLength, Is.EqualTo(1));
@@ -527,7 +528,7 @@ namespace dlech.SshAgentLibTests
             /* test locked => failure */
             agent.Lock(Array.Empty<byte>());
             PrepareMessage(builder);
-            agent.AnswerMessage(stream);
+            agent.AnswerMessage(stream, new ConnectionContext());
             RewindStream();
             var header = parser.ReadHeader();
             Assert.That(header.BlobLength, Is.EqualTo(1));
@@ -541,7 +542,7 @@ namespace dlech.SshAgentLibTests
             /* most code is shared with SSH2_AGENTC_ADD_IDENTITY, so we just
              * need to test the differences */
 
-            Agent.ConfirmUserPermissionDelegate confirmCallback = (k, p) =>
+            Agent.ConfirmUserPermissionDelegate confirmCallback = (k, p, u, f, t) =>
             {
                 return true;
             };
@@ -565,7 +566,7 @@ namespace dlech.SshAgentLibTests
             builder.AddUInt8((byte)Agent.KeyConstraintType.SSH_AGENT_CONSTRAIN_CONFIRM);
             builder.InsertHeader(Agent.Message.SSH2_AGENTC_ADD_ID_CONSTRAINED);
             PrepareMessage(builder);
-            agent.AnswerMessage(stream);
+            agent.AnswerMessage(stream, new ConnectionContext());
             RewindStream();
             var header = parser.ReadHeader();
             Assert.That(header.BlobLength, Is.EqualTo(1));
@@ -575,7 +576,7 @@ namespace dlech.SshAgentLibTests
 
             agent = new TestAgent { ConfirmUserPermissionCallback = confirmCallback };
             PrepareMessage(builder);
-            agent.AnswerMessage(stream);
+            agent.AnswerMessage(stream, new ConnectionContext());
             RewindStream();
             header = parser.ReadHeader();
             Assert.That(header.BlobLength, Is.EqualTo(1));
@@ -597,7 +598,7 @@ namespace dlech.SshAgentLibTests
             builder.AddInt(10);
             builder.InsertHeader(Agent.Message.SSH2_AGENTC_ADD_ID_CONSTRAINED);
             PrepareMessage(builder);
-            agent.AnswerMessage(stream);
+            agent.AnswerMessage(stream, new ConnectionContext());
             RewindStream();
             header = parser.ReadHeader();
             Assert.That(header.BlobLength, Is.EqualTo(1));
@@ -624,7 +625,7 @@ namespace dlech.SshAgentLibTests
             builder.AddInt(10);
             builder.InsertHeader(Agent.Message.SSH2_AGENTC_ADD_ID_CONSTRAINED);
             PrepareMessage(builder);
-            agent.AnswerMessage(stream);
+            agent.AnswerMessage(stream, new ConnectionContext());
             RewindStream();
             header = parser.ReadHeader();
             Assert.That(header.BlobLength, Is.EqualTo(1));
@@ -652,7 +653,7 @@ namespace dlech.SshAgentLibTests
             builder.AddUInt8((byte)Agent.KeyConstraintType.SSH_AGENT_CONSTRAIN_CONFIRM);
             builder.InsertHeader(Agent.Message.SSH2_AGENTC_ADD_ID_CONSTRAINED);
             PrepareMessage(builder);
-            agent.AnswerMessage(stream);
+            agent.AnswerMessage(stream, new ConnectionContext());
             RewindStream();
             header = parser.ReadHeader();
             Assert.That(header.BlobLength, Is.EqualTo(1));
@@ -678,7 +679,7 @@ namespace dlech.SshAgentLibTests
 
             /* send request for SSH2 identities */
             PrepareSimpleMessage(Agent.Message.SSH2_AGENTC_REQUEST_IDENTITIES);
-            agent.AnswerMessage(stream);
+            agent.AnswerMessage(stream, new ConnectionContext());
             RewindStream();
 
             /* check that we received proper response type */
@@ -733,7 +734,7 @@ namespace dlech.SshAgentLibTests
                 builder.AddStringBlob(signatureData);
                 builder.InsertHeader(Agent.Message.SSH2_AGENTC_SIGN_REQUEST);
                 PrepareMessage(builder);
-                agent.AnswerMessage(stream);
+                agent.AnswerMessage(stream, new ConnectionContext());
                 RewindStream();
 
                 /* check that proper response type was received */
@@ -790,7 +791,7 @@ namespace dlech.SshAgentLibTests
             builder.AddStringBlob(signatureData);
             builder.InsertHeader(Agent.Message.SSH2_AGENTC_SIGN_REQUEST);
             PrepareMessage(builder);
-            agent.AnswerMessage(stream);
+            agent.AnswerMessage(stream, new ConnectionContext());
             RewindStream();
             var header2 = parser.ReadHeader();
             Assert.That(header2.BlobLength, Is.EqualTo(1));
@@ -805,7 +806,7 @@ namespace dlech.SshAgentLibTests
             };
             var testKey = dsaKey.Clone();
             var confirmCallbackReturnValue = false;
-            agent.ConfirmUserPermissionCallback = (k, p) =>
+            agent.ConfirmUserPermissionCallback = (k, p, u, f, t) =>
             {
                 return confirmCallbackReturnValue;
             };
@@ -816,14 +817,14 @@ namespace dlech.SshAgentLibTests
             builder.AddStringBlob(signatureData);
             builder.InsertHeader(Agent.Message.SSH2_AGENTC_SIGN_REQUEST);
             PrepareMessage(builder);
-            agent.AnswerMessage(stream);
+            agent.AnswerMessage(stream, new ConnectionContext());
             RewindStream();
             header2 = parser.ReadHeader();
             Assert.That(header2.BlobLength, Is.EqualTo(1));
             Assert.That(header2.Message, Is.EqualTo(Agent.Message.SSH_AGENT_FAILURE));
             confirmCallbackReturnValue = true;
             PrepareMessage(builder);
-            agent.AnswerMessage(stream);
+            agent.AnswerMessage(stream, new ConnectionContext());
             RewindStream();
             header2 = parser.ReadHeader();
             Assert.That(header2.BlobLength, Is.Not.EqualTo(1));
@@ -841,7 +842,7 @@ namespace dlech.SshAgentLibTests
             builder.AddBlob(rsaKey.GetPublicKeyBlob());
             builder.InsertHeader(Agent.Message.SSH2_AGENTC_REMOVE_IDENTITY);
             PrepareMessage(builder);
-            agent.AnswerMessage(stream);
+            agent.AnswerMessage(stream, new ConnectionContext());
             RewindStream();
             var header = parser.ReadHeader();
             Assert.That(header.BlobLength, Is.EqualTo(1));
@@ -852,7 +853,7 @@ namespace dlech.SshAgentLibTests
 
             var startCount = agent.ListKeys().Count;
             PrepareMessage(builder);
-            agent.AnswerMessage(stream);
+            agent.AnswerMessage(stream, new ConnectionContext());
             RewindStream();
             header = parser.ReadHeader();
             Assert.That(header.BlobLength, Is.EqualTo(1));
@@ -866,7 +867,7 @@ namespace dlech.SshAgentLibTests
             builder.AddBlob(dsaKey.GetPublicKeyBlob());
             builder.InsertHeader(Agent.Message.SSH2_AGENTC_REMOVE_IDENTITY);
             PrepareMessage(builder);
-            agent.AnswerMessage(stream);
+            agent.AnswerMessage(stream, new ConnectionContext());
             RewindStream();
             header = parser.ReadHeader();
             Assert.That(header.BlobLength, Is.EqualTo(1));
@@ -882,7 +883,7 @@ namespace dlech.SshAgentLibTests
             /* test that remove all keys removes keys */
 
             PrepareSimpleMessage(Agent.Message.SSH2_AGENTC_REMOVE_ALL_IDENTITIES);
-            agent.AnswerMessage(stream);
+            agent.AnswerMessage(stream, new ConnectionContext());
             RewindStream();
             var header = parser.ReadHeader();
             Assert.That(header.BlobLength, Is.EqualTo(1));
@@ -893,7 +894,7 @@ namespace dlech.SshAgentLibTests
             /* test that remove all keys returns success even when there are no keys */
             agent = new TestAgent();
             PrepareSimpleMessage(Agent.Message.SSH2_AGENTC_REMOVE_ALL_IDENTITIES);
-            agent.AnswerMessage(stream);
+            agent.AnswerMessage(stream, new ConnectionContext());
             RewindStream();
             header = parser.ReadHeader();
             Assert.That(header.BlobLength, Is.EqualTo(1));
@@ -902,7 +903,7 @@ namespace dlech.SshAgentLibTests
             /* test that returns failure when locked */
             agent.Lock(Array.Empty<byte>());
             PrepareSimpleMessage(Agent.Message.SSH2_AGENTC_REMOVE_ALL_IDENTITIES);
-            agent.AnswerMessage(stream);
+            agent.AnswerMessage(stream, new ConnectionContext());
             RewindStream();
             header = parser.ReadHeader();
             Assert.That(header.BlobLength, Is.EqualTo(1));
@@ -936,7 +937,7 @@ namespace dlech.SshAgentLibTests
 
             PrepareLockMessage(false, password);
             agentLockedCalled = false;
-            agent.AnswerMessage(stream);
+            agent.AnswerMessage(stream, new ConnectionContext());
             RewindStream();
             replyHeader = parser.ReadHeader();
             Assert.That(
@@ -955,7 +956,7 @@ namespace dlech.SshAgentLibTests
 
             PrepareLockMessage(true, password);
             agentLockedCalled = false;
-            agent.AnswerMessage(stream);
+            agent.AnswerMessage(stream, new ConnectionContext());
             RewindStream();
             replyHeader = parser.ReadHeader();
             Assert.That(
@@ -970,7 +971,7 @@ namespace dlech.SshAgentLibTests
 
             PrepareLockMessage(true, password);
             agentLockedCalled = false;
-            agent.AnswerMessage(stream);
+            agent.AnswerMessage(stream, new ConnectionContext());
             RewindStream();
             replyHeader = parser.ReadHeader();
             Assert.That(
@@ -989,7 +990,7 @@ namespace dlech.SshAgentLibTests
 
             PrepareLockMessage(false, password + "x");
             agentLockedCalled = false;
-            agent.AnswerMessage(stream);
+            agent.AnswerMessage(stream, new ConnectionContext());
             RewindStream();
             replyHeader = parser.ReadHeader();
             Assert.That(
@@ -1008,7 +1009,7 @@ namespace dlech.SshAgentLibTests
 
             PrepareLockMessage(false, password);
             agentLockedCalled = false;
-            agent.AnswerMessage(stream);
+            agent.AnswerMessage(stream, new ConnectionContext());
             RewindStream();
             replyHeader = parser.ReadHeader();
             Assert.That(
