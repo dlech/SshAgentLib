@@ -56,4 +56,6 @@ jobs:
         run: xbuild
 
       - name: Test
+        env:
+          TEST_RANDOM_SEED: ${{ github.run_id}}
         run: ./scripts/run-tests-mono.sh
