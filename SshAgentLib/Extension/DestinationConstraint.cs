@@ -141,34 +141,24 @@ namespace SshAgentLib.Extension
                 return $"constraint {fromUser}{fromHost} {fromKeys} > {toUser}{toHost} {toKeys})";
             }
 
-            internal static IReadOnlyCollection<Constraint> Parse(byte[] constraintArray)
+            internal static Constraint Parse(byte[] blob)
             {
-                if (constraintArray == null)
+                if (blob == null)
                 {
-                    throw new ArgumentNullException(nameof(constraintArray));
+                    throw new ArgumentNullException(nameof(blob));
+                }
+                var parser = new BlobParser(blob);
+
+                var fromBlob = parser.ReadBlob();
+                var toBlob = parser.ReadBlob();
+                var extensionsBlob = parser.ReadBlob();
+
+                if (extensionsBlob.Length != 0)
+                {
+                    throw new NotSupportedException("unsupported extensions");
                 }
 
-                var parser = new BlobParser(constraintArray);
-                var list = new List<Constraint>();
-
-                while (parser.BaseStream.Position < constraintArray.Length)
-                {
-                    var constraintBlob = parser.ReadBlob();
-                    var constraintParser = new BlobParser(constraintBlob);
-
-                    var fromBlob = constraintParser.ReadBlob();
-                    var toBlob = constraintParser.ReadBlob();
-                    var extensionsBlob = constraintParser.ReadBlob();
-
-                    if (extensionsBlob.Length != 0)
-                    {
-                        throw new NotSupportedException("unsupported extensions");
-                    }
-
-                    list.Add(new Constraint(Hop.Parse(fromBlob), Hop.Parse(toBlob)));
-                }
-
-                return list;
+                return new Constraint(Hop.Parse(fromBlob), Hop.Parse(toBlob));
             }
 
             internal byte[] ToBlob()
@@ -183,7 +173,11 @@ namespace SshAgentLib.Extension
             }
         }
 
-        internal byte[] ToBlob()
+        /// <summary>
+        /// Converts the constraint to the over-the-wire binary format.
+        /// </summary>
+        /// <returns>A new binary blob.</returns>
+        public byte[] ToBlob()
         {
             var builder = new BlobBuilder();
 
@@ -397,14 +391,32 @@ namespace SshAgentLib.Extension
             Constraints = constraints ?? throw new ArgumentNullException(nameof(constraints));
         }
 
-        internal static DestinationConstraint Parse(byte[] constraints)
+        /// <summary>
+        /// Parses binary data for encoded destination constraint information.
+        /// </summary>
+        /// <param name="blob">The binary data.</param>
+        /// <returns></returns>
+        /// <exception cref="ArgumentNullException">
+        /// Throws in <paramref name="blob"/> is <c>null</c>.
+        /// </exception>
+        public static DestinationConstraint Parse(byte[] blob)
         {
-            if (constraints == null)
+            if (blob == null)
             {
-                throw new ArgumentNullException(nameof(constraints));
+                throw new ArgumentNullException(nameof(blob));
             }
 
-            return new DestinationConstraint(Constraint.Parse(constraints));
+            var parser = new BlobParser(blob);
+            var list = new List<Constraint>();
+
+            while (parser.BaseStream.Position < blob.Length)
+            {
+                var constraintBlob = parser.ReadBlob();
+
+                list.Add(Constraint.Parse(constraintBlob));
+            }
+
+            return new DestinationConstraint(list);
         }
     }
 }
