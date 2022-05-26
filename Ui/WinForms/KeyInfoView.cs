@@ -102,6 +102,7 @@ namespace dlech.SshAgentLib.WinForms
                 unlockAgentButton.Visible = true;
                 confirmDataGridViewCheckBoxColumn.Visible = true;
                 lifetimeDataGridViewCheckBoxColumn.Visible = true;
+                destinationDataGridViewCheckBoxColumn.Visible = true;
                 sourceDataGridViewTextBoxColumn.Visible = true;
                 agent.KeyAdded += AgentKeyAddedHandler;
                 agent.KeyRemoved += AgentKeyRemovedHandler;
@@ -124,6 +125,7 @@ namespace dlech.SshAgentLib.WinForms
 
                 confirmDataGridViewCheckBoxColumn.Visible = false;
                 lifetimeDataGridViewCheckBoxColumn.Visible = false;
+                destinationDataGridViewCheckBoxColumn.Visible = false;
                 sourceDataGridViewTextBoxColumn.Visible = false;
             }
 
@@ -446,7 +448,7 @@ namespace dlech.SshAgentLib.WinForms
             if (InvokeRequired)
             {
                 Invoke(
-                    (MethodInvoker)delegate()
+                    (MethodInvoker)delegate ()
                     {
                         AgentLockHandler(sender, e);
                     }
@@ -467,7 +469,7 @@ namespace dlech.SshAgentLib.WinForms
             if (InvokeRequired)
             {
                 Invoke(
-                    (MethodInvoker)delegate()
+                    (MethodInvoker)delegate ()
                     {
                         AgentKeyAddedHandler(sender, e);
                     }
@@ -489,7 +491,7 @@ namespace dlech.SshAgentLib.WinForms
             if (InvokeRequired)
             {
                 Invoke(
-                    (MethodInvoker)delegate()
+                    (MethodInvoker)delegate ()
                     {
                         AgentKeyRemovedHandler(sender, e);
                     }
@@ -849,6 +851,7 @@ namespace dlech.SshAgentLib.WinForms
                 && (
                     e.ColumnIndex == confirmDataGridViewCheckBoxColumn.Index
                     || e.ColumnIndex == lifetimeDataGridViewCheckBoxColumn.Index
+                    || e.ColumnIndex == destinationDataGridViewCheckBoxColumn.Index
                 )
             )
             {
