@@ -28,6 +28,22 @@ namespace dlech.SshAgentLib
 
         public BlobParser(Stream stream) : base(stream, Encoding.UTF8, leaveOpen: true) { }
 
+        public override byte[] ReadBytes(int count)
+        {
+            var bytes = base.ReadBytes(count);
+
+            // ReadBytes may return fewer bytes than we requested.
+            // This can lead to an IndexOutOfRange exception in
+            // other methods which is considered a critical error
+            // and may not be caught by Windows.Forms data bindings.
+            if (bytes.Length != count)
+            {
+                throw new EndOfStreamException();
+            }
+
+            return bytes;
+        }
+
         public override short ReadInt16()
         {
             return unchecked((short)ReadUInt16());
