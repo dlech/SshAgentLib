@@ -80,7 +80,7 @@ namespace dlech.SshAgentLibTests
                 /* try starting a second instance */
 
                 Assert.That(
-                    delegate()
+                    () =>
                     {
                         using (var agent2 = new PageantAgent()) { }
                     },

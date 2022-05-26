@@ -29,9 +29,7 @@ using System.ComponentModel;
 using System.Diagnostics;
 using System.Drawing;
 using System.Linq;
-using System.Reflection;
 using System.Runtime.InteropServices;
-using System.Text.RegularExpressions;
 using System.Windows.Forms;
 using FileDialogExtenders;
 using Microsoft.WindowsAPICodePack.Dialogs;
@@ -447,12 +445,7 @@ namespace dlech.SshAgentLib.WinForms
         {
             if (InvokeRequired)
             {
-                Invoke(
-                    (MethodInvoker)delegate ()
-                    {
-                        AgentLockHandler(sender, e);
-                    }
-                );
+                Invoke(new MethodInvoker(() => AgentLockHandler(sender, e)));
                 return;
             }
 
@@ -468,12 +461,7 @@ namespace dlech.SshAgentLib.WinForms
             }
             if (InvokeRequired)
             {
-                Invoke(
-                    (MethodInvoker)delegate ()
-                    {
-                        AgentKeyAddedHandler(sender, e);
-                    }
-                );
+                Invoke(new MethodInvoker(() => AgentKeyAddedHandler(sender, e)));
                 return;
             }
             mKeyCollection.Add(new KeyWrapper(e.Key));
@@ -490,12 +478,7 @@ namespace dlech.SshAgentLib.WinForms
 
             if (InvokeRequired)
             {
-                Invoke(
-                    (MethodInvoker)delegate ()
-                    {
-                        AgentKeyRemovedHandler(sender, e);
-                    }
-                );
+                Invoke(new MethodInvoker(() => AgentKeyRemovedHandler(sender, e)));
                 return;
             }
 
