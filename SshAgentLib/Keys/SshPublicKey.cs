@@ -145,6 +145,16 @@ namespace SshAgentLib.Keys
         }
 
         /// <summary>
+        /// Parses a string containing
+        /// </summary>
+        /// <param name="key"></param>
+        /// <returns></returns>
+        public static SshPublicKey Parse(string key)
+        {
+            return Read(new MemoryStream(Encoding.UTF8.GetBytes(key)));
+        }
+
+        /// <summary>
         /// Reads an SSH public key from a stream.
         /// </summary>
         /// <remarks>
