@@ -64,7 +64,11 @@ namespace dlech.SshAgentLib.WinForms
         void keyDataGridView_ColumnAdded(object sender, DataGridViewColumnEventArgs e)
         {
             e.Column.AutoSizeMode = DataGridViewAutoSizeColumnMode.AllCells;
-            if (e.Column.DataPropertyName == "Confirm" || e.Column.DataPropertyName == "Lifetime")
+            if (
+                e.Column.DataPropertyName == nameof(KeyWrapper.Confirm)
+                || e.Column.DataPropertyName == nameof(KeyWrapper.Lifetime)
+                || e.Column.DataPropertyName == nameof(KeyWrapper.Destination)
+            )
             {
                 e.Column.Visible = false;
             }
