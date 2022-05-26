@@ -353,12 +353,12 @@
   </Target>
   -->
   <ItemGroup>
-    <ProjectReference Include="..\..\SshAgentLib\SshAgentLib.csproj">
-      <Project>{9163B6B6-0603-4C6E-BC67-7111ED8CDDE1}</Project>
-      <Name>SshAgentLib</Name>
-    </ProjectReference>
+    <None Include="Resources\checkmark.png" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="Resources\checkmark.png" />
+    <ProjectReference Include="..\..\SshAgentLib\SshAgentLib.csproj">
+      <Project>{9163b6b6-0603-4c6e-bc67-7111ed8cdde1}</Project>
+      <Name>SshAgentLib</Name>
+    </ProjectReference>
   </ItemGroup>
 </Project>
