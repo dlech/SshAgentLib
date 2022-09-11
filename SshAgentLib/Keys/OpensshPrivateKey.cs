@@ -224,7 +224,6 @@ namespace SshAgentLib.Keys
                 kdfName != KdfName.None,
                 decrypt
             );
-            ;
         }
 
         internal static bool FirstLineMatches(string firstLine)
