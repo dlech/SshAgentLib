@@ -21,7 +21,7 @@ namespace dlech.SshAgentLib
     public sealed class WindowsOpenSshPipe : IDisposable
     {
         private const string agentPipeId = "openssh-ssh-agent";
-        private const int bufferSize = 5 * 1024;
+        private const int bufferSize = 5 * 1024; // 5 KiB
 
         private readonly CancellationTokenSource cancelSource;
         private readonly Task listenerTask;
@@ -34,7 +34,7 @@ namespace dlech.SshAgentLib
         /// </param>
         /// <exception cref="PageantRunningException">
         /// Thrown if the pipe file path is already in use.
-        /// exception>
+        /// </exception>
         public WindowsOpenSshPipe(ConnectionHandler connectionHandler)
         {
             if (File.Exists($"//./pipe/{agentPipeId}"))
@@ -63,8 +63,8 @@ namespace dlech.SshAgentLib
                 var security = new PipeSecurity();
 
                 // Limit access to the current user. This also has the effect
-                // of allowing non-elevated processes access the agent when the
-                // agent is running as an elevated process.
+                // of allowing non-elevated processes to access the agent when
+                // it is running as an elevated process.
                 security.AddAccessRule(
                     new PipeAccessRule(
                         WindowsIdentity.GetCurrent().User,
@@ -102,12 +102,20 @@ namespace dlech.SshAgentLib
                         );
                     }
 
-                    var proc = Process.GetProcessById((int)clientPid);
-
-                    using (cancellationToken.Register(() => server.Disconnect()))
+                    try
                     {
-                        await Task.Run(() => connectionHandler(server, proc), cancellationToken)
-                            .ConfigureAwait(false);
+                        var proc = Process.GetProcessById((int)clientPid);
+
+                        using (cancellationToken.Register(() => server.Disconnect()))
+                        {
+                            await Task.Run(() => connectionHandler(server, proc), cancellationToken)
+                                .ConfigureAwait(false);
+                        }
+                    }
+                    catch (ArgumentException)
+                    {
+                        // The SSH client process is gone! Nothing we can do ...
+                        Debug.WriteLine($"OpenSSH pipe client already exited (PID: {clientPid})");
                     }
                 }
             }
