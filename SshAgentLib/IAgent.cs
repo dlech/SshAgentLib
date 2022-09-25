@@ -98,7 +98,12 @@ namespace dlech.SshAgentLib
 
             try
             {
-                publicKey = SshPublicKey.Read(File.OpenRead($"{fileName}-cert.pub"));
+                var certificateKey = SshPublicKey.Read(File.OpenRead($"{fileName}-cert.pub"));
+
+                if (certificateKey != null)
+                {
+                    privateKey = privateKey.WithPublicKey(certificateKey);
+                }
             }
             catch
             {
@@ -109,9 +114,9 @@ namespace dlech.SshAgentLib
                 privateKey.PublicKey.Parameter,
                 privateKey.Decrypt(getPassPhraseCallback, progress),
                 privateKey.PublicKey.Comment,
-                publicKey.Nonce,
-                publicKey.Certificate,
-                publicKey.Application
+                privateKey.PublicKey.Nonce,
+                privateKey.PublicKey.Certificate,
+                privateKey.PublicKey.Application
             );
 
             if (constraints != null)
