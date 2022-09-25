@@ -38,14 +38,16 @@ You will need a more recent `nuget` than what is available in the Ubuntu archive
 
 Then run the following commands:
 
-    sudo add-apt-repository ppa:dlech/keepass2-plugins-beta
+    sudo add-apt-repository ppa:dlech/keepass2-plugins-beta --no-update
+    sudo add-apt-repository ppa:eofla/msbuild --no-update
     sudo apt update
-    sudo apt install mono-devel libbccrypto-cil libgtk2.0-cil-dev libglade2.0-cil-dev libargon2-dev
+    sudo apt install mono-devel msbuild msbuild-roslyn \
+        libbccrypto-cil libgtk2.0-cil-dev libglade2.0-cil-dev libargon2-dev
     ./scripts/install-nunit.sh
 
 To build the entire project:
 
-    xbuild
+    msbuild -restore
 
 To build and run unit tests:
 

@@ -48,12 +48,12 @@ jobs:
       - name: Install depedencies
         run: |
           sudo apt-add-repository ppa:dlech/keepass2-plugins-beta
-          sudo apt-get update
-          sudo apt-get install --no-install-recommends mono-devel libbccrypto-cil libgtk2.0-cil-dev libglade2.0-cil-dev libargon2-dev
+          sudo apt-get install --no-install-recommends \
+            libbccrypto-cil libgtk2.0-cil-dev libglade2.0-cil-dev libargon2-dev
           ./scripts/install-nunit.sh
 
       - name: Build
-        run: xbuild
+        run: msbuild -restore
 
       - name: Test
         env:

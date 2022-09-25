@@ -91,7 +91,7 @@ namespace dlech.SshAgentLib
             CancellationToken cancellationToken
         )
         {
-#if __MonoCS__
+#if NO_SYSTEM_NET_SOCKETS
             // socket.AcceptAsync() with no args requires nuget package
             await Task.Run(
                 () =>

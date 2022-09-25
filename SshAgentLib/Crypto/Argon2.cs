@@ -168,7 +168,7 @@ namespace SshAgentLib.Crypto
             }
         }
 
-#if __MonoCS__
+#if NO_MANAGED_ARGON2
         // no debian packaged Argon2 implementation is available
         private static DeriveBytes CreateManagedHasher(Parameters parameters, byte[] passphrase)
         {

@@ -92,9 +92,6 @@
     <Reference Include="BouncyCastle">
       <HintPath>/usr/lib/cli/bccrypto-csharp/BouncyCastle.dll</HintPath>
     </Reference>
-    <Reference Include="nunit.framework">
-      <HintPath>../packages/NUnit/lib/net45/nunit.framework.dll</HintPath>
-    </Reference>
   </ItemGroup>
   <ItemGroup>
     <Compile Include="IntegrationTests\CertTests.cs" />

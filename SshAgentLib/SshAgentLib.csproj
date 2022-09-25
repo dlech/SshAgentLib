@@ -141,6 +141,9 @@
     <Reference Include="System.Net" />
     <Reference Include="System.Management" />
   </ItemGroup>
+  <PropertyGroup Condition=" '$(OS)' == 'Unix' ">
+    <DefineConstants>$(DefineConstants);NO_MANAGED_ARGON2;NO_SYSTEM_NET_SOCKETS</DefineConstants>
+  </PropertyGroup>
   <ItemGroup Condition=" '$(OS)' == 'Unix' ">
     <Reference Include="Mono.Posix" />
     <Reference Include="BouncyCastle">
