@@ -1,9 +1,6 @@
 All code unless otherwise specified is licensed under the MIT License.
 [License.MIT.txt]
 
-packages/NUnit*/* is licensed under its own license.
-[License.NUnit.txt]
-
 SshAgentLib/Microsoft/* is licensed under the Microsoft Limited Public License.
 [License.MS-LPL.txt]
 
