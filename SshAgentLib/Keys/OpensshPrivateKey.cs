@@ -76,7 +76,7 @@ namespace SshAgentLib.Keys
             }
         }
 
-        public static SshPrivateKey Read(Stream stream)
+        public static SshPrivateKey Read(Stream stream, SshPublicKey publicKey)
         {
             var pem = ReadPem(stream);
 
@@ -125,6 +125,9 @@ namespace SshAgentLib.Keys
 
             var publicKeyBlob = parser.ReadBlob();
             var privateKeyBlob = parser.ReadBlob();
+
+            // if a separate public key has been provided, keep it
+            publicKey = publicKey ?? new SshPublicKey(publicKeyBlob);
 
             SshPrivateKey.DecryptFunc decrypt = (getPassphrase, progress) =>
             {
@@ -204,12 +207,12 @@ namespace SshAgentLib.Keys
                     throw new FormatException("checkint does not match in private key.");
                 }
 
-                var publicKey = privateKeyParser.ReadSsh2PublicKeyData(
+                var publicKeyFromPrivateKey = privateKeyParser.ReadSsh2PublicKeyData(
                     out var nonce,
                     out var cert,
                     out var application
                 );
-                var privateKey = privateKeyParser.ReadSsh2KeyData(publicKey);
+                var privateKey = privateKeyParser.ReadSsh2KeyData(publicKeyFromPrivateKey);
                 // var comment = privateKeyParser.ReadString();
                 // TODO: what to do with comment?
                 // TODO: should we throw if nonce/cert is not null?
@@ -219,7 +222,7 @@ namespace SshAgentLib.Keys
             };
 
             return new SshPrivateKey(
-                new SshPublicKey(publicKeyBlob),
+                publicKey,
                 cipherName != CipherName.None,
                 kdfName != KdfName.None,
                 decrypt

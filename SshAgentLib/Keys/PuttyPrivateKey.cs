@@ -84,7 +84,7 @@ namespace SshAgentLib.Keys
 
         private static readonly char[] headerDelimeter = { ':' };
 
-        public static SshPrivateKey Read(Stream stream)
+        public static SshPrivateKey Read(Stream stream, SshPublicKey publicKey)
         {
             if (stream == null)
             {
@@ -115,7 +115,8 @@ namespace SshAgentLib.Keys
 
             var publicKeyBlob = Convert.FromBase64String(publicKeyString.ToString());
 
-            var publicKey = new SshPublicKey(publicKeyBlob, comment);
+            // if a separate public key has been provided, keep it
+            publicKey = publicKey ?? new SshPublicKey(publicKeyBlob, comment);
 
             var argon2Parameter = new Argon2.Parameters();
 

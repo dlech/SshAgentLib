@@ -116,7 +116,9 @@ namespace SshAgentLib.Keys
         /// <param name="publicKey">
         /// A public key that matches the private key. This is required for legacy
         /// private key file formats that do not contain public key information and
-        /// ignored for private key file formats that already include the public key.
+        /// encrypted private key files which only reveal the public key information
+        /// after decryption. If this parameter is provided it will be preferred over
+        /// public key information already included in a private key file.
         /// </param>
         /// <returns>
         /// An object containing the information read from the file.
@@ -146,7 +148,7 @@ namespace SshAgentLib.Keys
 
                 if (PuttyPrivateKey.FirstLineMatches(firstLine))
                 {
-                    return PuttyPrivateKey.Read(reader.BaseStream);
+                    return PuttyPrivateKey.Read(reader.BaseStream, publicKey);
                 }
 
                 if (PemPrivateKey.FirstLineMatches(firstLine))
@@ -161,7 +163,7 @@ namespace SshAgentLib.Keys
 
                 if (OpensshPrivateKey.FirstLineMatches(firstLine))
                 {
-                    return OpensshPrivateKey.Read(reader.BaseStream);
+                    return OpensshPrivateKey.Read(reader.BaseStream, publicKey);
                 }
 
                 throw new FormatException("unsupported private key format");
