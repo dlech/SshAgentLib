@@ -15,4 +15,4 @@ then run it with
 docker run --rm -p 22221:22 test-openssh9.0
 ```
 
-You will get sshd debug output in the console. Use <kbd>CTRL</kbd>+<kbd>\</kbd> to stop.
+You will get sshd debug output in the console. Use <kbd>CTRL</kbd>+<kbd>\\</kbd> to stop.
