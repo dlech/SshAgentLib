@@ -150,7 +150,7 @@ namespace dlech.SshAgentLib.WinForms
                         "*.*"
                     );
 
-                    var result = openFileDialog.ShowDialog();
+                    var result = openFileDialog.ShowDialog(ParentForm);
                     if (result != DialogResult.OK)
                     {
                         return;
@@ -258,7 +258,7 @@ namespace dlech.SshAgentLib.WinForms
                         );
                 };
 
-                var result = win7OpenFileDialog.ShowDialog();
+                var result = win7OpenFileDialog.ShowDialog(ParentForm.Handle);
                 if (result != CommonFileDialogResult.Ok)
                 {
                     return;
@@ -311,8 +311,8 @@ namespace dlech.SshAgentLib.WinForms
 
                     var result =
                         xpOpenFileDialog == null
-                            ? openFileDialog.ShowDialog()
-                            : openFileDialog.ShowDialog(xpOpenFileDialog, null);
+                            ? openFileDialog.ShowDialog(ParentForm)
+                            : openFileDialog.ShowDialog(xpOpenFileDialog, ParentForm);
                     if (result != DialogResult.OK)
                         return;
 
@@ -532,7 +532,7 @@ namespace dlech.SshAgentLib.WinForms
                     )
                     {
                         var dialog = new ConstraintsInputDialog();
-                        dialog.ShowDialog();
+                        dialog.ShowDialog(ParentForm);
                         if (dialog.DialogResult == DialogResult.OK)
                         {
                             if (dialog.ConfirmConstraintChecked)
