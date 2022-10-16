@@ -93,32 +93,28 @@ namespace dlech.SshAgentLib
         {
 #if NO_SYSTEM_NET_SOCKETS
             // socket.AcceptAsync() with no args requires nuget package
-            await Task.Run(
-                () =>
-                {
-                    throw new NotImplementedException();
-                }
-            );
+            await Task.Run(() =>
+            {
+                throw new NotImplementedException();
+            });
 #else
-            cancellationToken.Register(
-                () =>
-                {
-                    // have to get endpoint before Dispose() to avoid exception.
-                    var endpoint = socket.LocalEndPoint as UnixDomainSocketEndPoint;
-                    socket.Dispose();
+            cancellationToken.Register(() =>
+            {
+                // have to get endpoint before Dispose() to avoid exception.
+                var endpoint = socket.LocalEndPoint as UnixDomainSocketEndPoint;
+                socket.Dispose();
 
-                    // In .NET core, the Socket.Dispose() will take care of this, but
-                    // for now...
-                    try
-                    {
-                        File.Delete(endpoint.CreateBoundEndPoint().BoundFileName);
-                    }
-                    catch
-                    {
-                        // we tried
-                    }
+                // In .NET core, the Socket.Dispose() will take care of this, but
+                // for now...
+                try
+                {
+                    File.Delete(endpoint.CreateBoundEndPoint().BoundFileName);
                 }
-            );
+                catch
+                {
+                    // we tried
+                }
+            });
 
             while (!cancellationToken.IsCancellationRequested)
             {
@@ -127,16 +123,14 @@ namespace dlech.SshAgentLib
                 {
                     Debug.WriteLine("Accepted WSL socket client connection");
 
-                    await Task.Run(
-                            () =>
+                    await Task.Run(() =>
+                        {
+                            using (var stream = new NetworkStream(clientSocket))
                             {
-                                using (var stream = new NetworkStream(clientSocket))
-                                {
-                                    var proc = default(Process);
-                                    connectionHandler(stream, proc);
-                                }
+                                var proc = default(Process);
+                                connectionHandler(stream, proc);
                             }
-                        )
+                        })
                         .ConfigureAwait(false);
                 }
             }

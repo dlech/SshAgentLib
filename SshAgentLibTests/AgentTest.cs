@@ -336,8 +336,8 @@ namespace dlech.SshAgentLibTests
         public void TestAnswerSSH2_AGENTC_ADD_IDENTITY_EcdsaCert()
         {
             var ecdsaPublicParameters = (ECPublicKeyParameters)ecdsa256Key.GetPublicKeyParameters();
-            var ecdsaPrivateParameters =
-                (ECPrivateKeyParameters)ecdsa256Key.GetPrivateKeyParameters();
+            var ecdsaPrivateParameters = (ECPrivateKeyParameters)
+                ecdsa256Key.GetPrivateKeyParameters();
 
             var certBuilder = new BlobBuilder();
             certBuilder.AddStringBlob("ecdsa-sha2-nistp256-cert-v01@openssh.com");
@@ -394,8 +394,8 @@ namespace dlech.SshAgentLibTests
         public void TestAnswerSSH2_AGENTC_ADD_IDENTITY_Ed25519()
         {
             var publicKeyParams = (Ed25519PublicKeyParameters)ed25519Key.GetPublicKeyParameters();
-            var privateKeyParams =
-                (Ed25519PrivateKeyParameters)ed25519Key.GetPrivateKeyParameters();
+            var privateKeyParams = (Ed25519PrivateKeyParameters)
+                ed25519Key.GetPrivateKeyParameters();
 
             var builder = new BlobBuilder();
             builder.AddStringBlob(ed25519Key.Algorithm.GetIdentifier());
@@ -434,8 +434,8 @@ namespace dlech.SshAgentLibTests
         public void TestAnswerSSH2_AGENTC_ADD_IDENTITY_Ed25519Cert()
         {
             var publicKeyParams = (Ed25519PublicKeyParameters)ed25519Key.GetPublicKeyParameters();
-            var privateKeyParams =
-                (Ed25519PrivateKeyParameters)ed25519Key.GetPrivateKeyParameters();
+            var privateKeyParams = (Ed25519PrivateKeyParameters)
+                ed25519Key.GetPrivateKeyParameters();
 
             var certBuilder = new BlobBuilder();
             certBuilder.AddStringBlob("ssh-ed25519-cert-v01@openssh.com");

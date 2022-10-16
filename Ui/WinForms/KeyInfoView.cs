@@ -223,10 +223,8 @@ namespace dlech.SshAgentLib.WinForms
                         switch (win32Msg)
                         {
                             case Win32Types.Msg.WM_HELP:
-                                var helpInfo = (HELPINFO)Marshal.PtrToStructure(
-                                    lParam,
-                                    typeof(HELPINFO)
-                                );
+                                var helpInfo = (HELPINFO)
+                                    Marshal.PtrToStructure(lParam, typeof(HELPINFO));
                                 // Ignore if we are on an unknown control or control 100.
                                 // These are the windows shell control. The help command is
                                 // issued by these controls so by not ignoring, we would call
@@ -253,10 +251,11 @@ namespace dlech.SshAgentLib.WinForms
                         WindowLongFlags.GWL_WNDPROC,
                         newWndProcPtr
                     );
-                    oldWndProc = (WndProcDelegate)Marshal.GetDelegateForFunctionPointer(
-                        oldWndProcPtr,
-                        typeof(WndProcDelegate)
-                    );
+                    oldWndProc = (WndProcDelegate)
+                        Marshal.GetDelegateForFunctionPointer(
+                            oldWndProcPtr,
+                            typeof(WndProcDelegate)
+                        );
                 };
 
                 var result = win7OpenFileDialog.ShowDialog();
@@ -840,8 +839,8 @@ namespace dlech.SshAgentLib.WinForms
             {
                 var backColorBrush = new SolidBrush(
                     e.State.HasFlag(DataGridViewElementStates.Selected)
-                      ? e.CellStyle.SelectionBackColor
-                      : e.CellStyle.BackColor
+                        ? e.CellStyle.SelectionBackColor
+                        : e.CellStyle.BackColor
                 );
 
                 e.Graphics.FillRectangle(backColorBrush, e.CellBounds);

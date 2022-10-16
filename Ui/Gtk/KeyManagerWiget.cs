@@ -320,11 +320,12 @@ public static class KeyManagerWigetExt
     {
         var count = 0;
         aNodeView.Model.Foreach(
-            (TreeModelForeachFunc)delegate(TreeModel aModel, TreePath aPath, TreeIter aIter)
-            {
-                count++;
-                return true;
-            }
+            (TreeModelForeachFunc)
+                delegate(TreeModel aModel, TreePath aPath, TreeIter aIter)
+                {
+                    count++;
+                    return true;
+                }
         );
         return count;
     }

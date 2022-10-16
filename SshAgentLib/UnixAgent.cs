@@ -138,34 +138,32 @@ namespace dlech.SshAgentLib
                 while (true)
                 {
                     var client = listener.AcceptUnixClient();
-                    var clientThread = new Thread(
-                        () =>
-                        {
-                            var context = new ConnectionContext();
+                    var clientThread = new Thread(() =>
+                    {
+                        var context = new ConnectionContext();
 
-                            try
+                        try
+                        {
+                            using (var stream = client.GetStream())
                             {
-                                using (var stream = client.GetStream())
+                                while (true)
                                 {
-                                    while (true)
-                                    {
-                                        AnswerMessage(stream, context);
-                                    }
-                                }
-                            }
-                            catch (Exception)
-                            {
-                                // client will throw when connection is closed
-                            }
-                            finally
-                            {
-                                lock (activeClientsLock)
-                                {
-                                    activeClients.Remove(client);
+                                    AnswerMessage(stream, context);
                                 }
                             }
                         }
-                    );
+                        catch (Exception)
+                        {
+                            // client will throw when connection is closed
+                        }
+                        finally
+                        {
+                            lock (activeClientsLock)
+                            {
+                                activeClients.Remove(client);
+                            }
+                        }
+                    });
                     lock (activeClientsLock)
                     {
                         activeClients.Add(client);

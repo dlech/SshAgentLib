@@ -196,10 +196,8 @@ namespace dlech.SshAgentLib
                 var match = (MIB_TCPROW_OWNER_PID?)null;
                 for (var i = 0; i < count; i++)
                 {
-                    var row = (MIB_TCPROW_OWNER_PID)Marshal.PtrToStructure(
-                        tablePtr,
-                        typeof(MIB_TCPROW_OWNER_PID)
-                    );
+                    var row = (MIB_TCPROW_OWNER_PID)
+                        Marshal.PtrToStructure(tablePtr, typeof(MIB_TCPROW_OWNER_PID));
                     if (
                         localAddress == row.dwLocalAddr
                         && localPort == row.dwLocalPort
@@ -276,10 +274,8 @@ namespace dlech.SshAgentLib
                 {
                     throw new Exception(result.ToString());
                 }
-                var info = (SYSTEM_HANDLE_INFORMATION)Marshal.PtrToStructure(
-                    sysInfoPtr,
-                    typeof(SYSTEM_HANDLE_INFORMATION)
-                );
+                var info = (SYSTEM_HANDLE_INFORMATION)
+                    Marshal.PtrToStructure(sysInfoPtr, typeof(SYSTEM_HANDLE_INFORMATION));
 
                 // set entryPtr to position of info.Handle
                 var entryPtr =
@@ -293,10 +289,8 @@ namespace dlech.SshAgentLib
                 var match = IntPtr.Zero;
                 for (var i = 0; i < info.Count; i++)
                 {
-                    var entry = (SYSTEM_HANDLE_ENTRY)Marshal.PtrToStructure(
-                        entryPtr,
-                        typeof(SYSTEM_HANDLE_ENTRY)
-                    );
+                    var entry = (SYSTEM_HANDLE_ENTRY)
+                        Marshal.PtrToStructure(entryPtr, typeof(SYSTEM_HANDLE_ENTRY));
                     // search for a handle for this process that matches the
                     // memory mapped file.
                     if (entry.OwnerPid == pid && entry.HandleValue == handle)

@@ -165,63 +165,61 @@ namespace dlech.SshAgentLib
                 try
                 {
                     var clientSocket = socket.Accept();
-                    var clientThread = new Thread(
-                        () =>
+                    var clientThread = new Thread(() =>
+                    {
+                        try
                         {
-                            try
+                            using (var stream = new NetworkStream(clientSocket))
                             {
-                                using (var stream = new NetworkStream(clientSocket))
+                                stream.Read(buffer, 0, 16);
+                                var incomingGuid = new Guid(buffer);
+                                if (incomingGuid != guid)
                                 {
-                                    stream.Read(buffer, 0, 16);
-                                    var incomingGuid = new Guid(buffer);
-                                    if (incomingGuid != guid)
-                                    {
-                                        return;
-                                    }
-                                    stream.Write(buffer, 0, 16);
-                                    stream.Flush();
-                                    stream.Read(buffer, 0, 12);
-                                    var pid = BitConverter.ToInt32(buffer, 0);
-                                    // var gid = BitConverter.ToInt32(buffer, 4);
-                                    // var uid = BitConverter.ToInt32(buffer, 8);
-                                    // FIXME: This should be a cygwin pid, not a windows pid
-                                    // seems to work fine though
-                                    pid = Process.GetCurrentProcess().Id;
-                                    Array.Copy(BitConverter.GetBytes(pid), buffer, 4);
-                                    stream.Write(buffer, 0, 12);
-                                    stream.Flush();
-                                    Process proc = null;
-                                    try
-                                    {
-                                        // remote and local are swapped because we are doing reverse lookup
-                                        proc = WinInternals.GetProcessForTcpPort(
-                                            (IPEndPoint)clientSocket.RemoteEndPoint,
-                                            (IPEndPoint)clientSocket.LocalEndPoint
-                                        );
-                                    }
-                                    catch (Exception ex)
-                                    {
-                                        Debug.Fail(ex.ToString());
-                                    }
-                                    if (ConnectionHandler != null)
-                                    {
-                                        ConnectionHandler(stream, proc);
-                                    }
+                                    return;
                                 }
-                            }
-                            catch
-                            {
-                                // can throw if remote closes the connection at a bad time
-                            }
-                            finally
-                            {
-                                lock (clientSocketsLock)
+                                stream.Write(buffer, 0, 16);
+                                stream.Flush();
+                                stream.Read(buffer, 0, 12);
+                                var pid = BitConverter.ToInt32(buffer, 0);
+                                // var gid = BitConverter.ToInt32(buffer, 4);
+                                // var uid = BitConverter.ToInt32(buffer, 8);
+                                // FIXME: This should be a cygwin pid, not a windows pid
+                                // seems to work fine though
+                                pid = Process.GetCurrentProcess().Id;
+                                Array.Copy(BitConverter.GetBytes(pid), buffer, 4);
+                                stream.Write(buffer, 0, 12);
+                                stream.Flush();
+                                Process proc = null;
+                                try
                                 {
-                                    clientSockets.Remove(clientSocket);
+                                    // remote and local are swapped because we are doing reverse lookup
+                                    proc = WinInternals.GetProcessForTcpPort(
+                                        (IPEndPoint)clientSocket.RemoteEndPoint,
+                                        (IPEndPoint)clientSocket.LocalEndPoint
+                                    );
+                                }
+                                catch (Exception ex)
+                                {
+                                    Debug.Fail(ex.ToString());
+                                }
+                                if (ConnectionHandler != null)
+                                {
+                                    ConnectionHandler(stream, proc);
                                 }
                             }
                         }
-                    );
+                        catch
+                        {
+                            // can throw if remote closes the connection at a bad time
+                        }
+                        finally
+                        {
+                            lock (clientSocketsLock)
+                            {
+                                clientSockets.Remove(clientSocket);
+                            }
+                        }
+                    });
                     lock (clientSocketsLock)
                     {
                         clientSockets.Add(clientSocket);

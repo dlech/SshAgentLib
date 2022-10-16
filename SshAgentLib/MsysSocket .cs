@@ -179,75 +179,71 @@ namespace dlech.SshAgentLib
                 try
                 {
                     var clientSocket = socket.Accept();
-                    var clientThread = new Thread(
-                        () =>
+                    var clientThread = new Thread(() =>
+                    {
+                        try
                         {
-                            try
+                            using (var stream = new NetworkStream(clientSocket))
                             {
-                                using (var stream = new NetworkStream(clientSocket))
+                                try
                                 {
-                                    try
-                                    {
-                                        var clientPort = (
-                                            (IPEndPoint)clientSocket.RemoteEndPoint
-                                        ).Port;
-                                        var clientWaitHandleName = string.Format(
-                                            "{0}.{1}.{2}",
-                                            waitHandleNamePrefix,
-                                            (UInt16)IPAddress.HostToNetworkOrder((Int16)clientPort),
-                                            guidString
-                                        );
-                                        var clientWaitHandle = EventWaitHandle.OpenExisting(
-                                            clientWaitHandleName
-                                        );
-                                        if (
-                                            !EventWaitHandle.SignalAndWait(
-                                                serverWaitHandle,
-                                                clientWaitHandle,
-                                                10000,
-                                                false
-                                            )
+                                    var clientPort = ((IPEndPoint)clientSocket.RemoteEndPoint).Port;
+                                    var clientWaitHandleName = string.Format(
+                                        "{0}.{1}.{2}",
+                                        waitHandleNamePrefix,
+                                        (UInt16)IPAddress.HostToNetworkOrder((Int16)clientPort),
+                                        guidString
+                                    );
+                                    var clientWaitHandle = EventWaitHandle.OpenExisting(
+                                        clientWaitHandleName
+                                    );
+                                    if (
+                                        !EventWaitHandle.SignalAndWait(
+                                            serverWaitHandle,
+                                            clientWaitHandle,
+                                            10000,
+                                            false
                                         )
-                                        {
-                                            return;
-                                        }
-                                    }
-                                    catch (Exception ex)
+                                    )
                                     {
-                                        Debug.Fail(ex.ToString());
-                                    }
-                                    Process proc = null;
-                                    try
-                                    {
-                                        // remote and local are swapped because we are doing reverse lookup
-                                        proc = WinInternals.GetProcessForTcpPort(
-                                            (IPEndPoint)clientSocket.RemoteEndPoint,
-                                            (IPEndPoint)clientSocket.LocalEndPoint
-                                        );
-                                    }
-                                    catch (Exception ex)
-                                    {
-                                        Debug.Fail(ex.ToString());
-                                    }
-                                    if (ConnectionHandler != null)
-                                    {
-                                        ConnectionHandler(stream, proc);
+                                        return;
                                     }
                                 }
-                            }
-                            catch
-                            {
-                                // can throw if remote closes the connection at a bad time
-                            }
-                            finally
-                            {
-                                lock (clientSocketsLock)
+                                catch (Exception ex)
                                 {
-                                    clientSockets.Remove(clientSocket);
+                                    Debug.Fail(ex.ToString());
+                                }
+                                Process proc = null;
+                                try
+                                {
+                                    // remote and local are swapped because we are doing reverse lookup
+                                    proc = WinInternals.GetProcessForTcpPort(
+                                        (IPEndPoint)clientSocket.RemoteEndPoint,
+                                        (IPEndPoint)clientSocket.LocalEndPoint
+                                    );
+                                }
+                                catch (Exception ex)
+                                {
+                                    Debug.Fail(ex.ToString());
+                                }
+                                if (ConnectionHandler != null)
+                                {
+                                    ConnectionHandler(stream, proc);
                                 }
                             }
                         }
-                    );
+                        catch
+                        {
+                            // can throw if remote closes the connection at a bad time
+                        }
+                        finally
+                        {
+                            lock (clientSocketsLock)
+                            {
+                                clientSockets.Remove(clientSocket);
+                            }
+                        }
+                    });
                     lock (clientSocketsLock)
                     {
                         clientSockets.Add(clientSocket);
