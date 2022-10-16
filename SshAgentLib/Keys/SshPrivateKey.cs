@@ -3,7 +3,6 @@
 
 using System;
 using System.IO;
-using System.Linq;
 using dlech.SshAgentLib;
 using Org.BouncyCastle.Crypto;
 
@@ -30,6 +29,9 @@ namespace SshAgentLib.Keys
 
         private readonly DecryptFunc decrypt;
 
+        /// <summary>
+        /// Gets the public key contained in the private key if available, otherwise <c>null</c>.
+        /// </summary>
         public SshPublicKey PublicKey { get; }
 
         /// <summary>
@@ -49,45 +51,10 @@ namespace SshAgentLib.Keys
             DecryptFunc decrypt
         )
         {
-            PublicKey = publicKey ?? throw new ArgumentNullException(nameof(publicKey));
+            PublicKey = publicKey;
             IsEncrypted = isEncrypted;
             HasKdf = hasKdf;
             this.decrypt = decrypt ?? throw new ArgumentNullException(nameof(decrypt));
-        }
-
-        /// <summary>
-        /// Creates a copy of the private key with a new public key.
-        /// </summary>
-        /// <remarks>
-        /// This is indented for use with certificates where the public key
-        /// with the certificate is loaded separately from the private key.
-        /// </remarks>
-        /// <param name="publicKey">The new public key.</param>
-        /// <returns>The new private key.</returns>
-        /// <exception cref="ArgumentException">
-        /// Thrown if the public key parameters of the new key do not match the
-        /// existing key.
-        /// <exception>
-        public SshPrivateKey WithPublicKey(SshPublicKey publicKey)
-        {
-            if (publicKey == null)
-            {
-                throw new ArgumentNullException(nameof(publicKey));
-            }
-
-            if (
-                !PublicKey
-                    .WithoutCertificate()
-                    .KeyBlob.SequenceEqual(publicKey.WithoutCertificate().KeyBlob)
-            )
-            {
-                throw new ArgumentException(
-                    "the public key parameters must match the existing public key",
-                    nameof(publicKey)
-                );
-            }
-
-            return new SshPrivateKey(publicKey, IsEncrypted, HasKdf, decrypt);
         }
 
         /// <summary>
@@ -113,24 +80,16 @@ namespace SshAgentLib.Keys
         /// Reads an SSH private key from <paramref name="stream"/>.
         /// </summary>
         /// <param name="stream">The stream containing the key data.</param>
-        /// <param name="publicKey">
-        /// A public key that matches the private key. This is required for legacy
-        /// private key file formats that do not contain public key information and
-        /// ignored for private key file formats that already include the public key.
-        /// </param>
         /// <returns>
         /// An object containing the information read from the file.
         /// </returns>
-        /// <exception cref="PublicKeyRequiredException">
-        /// Throw if <paramref name="publicKey"/> is required for the provided key.
-        /// </exception>
         /// <exception cref="ArgumentNullException">
         /// Thrown if <paramref name="stream"/> is <c>null</c>.
         /// </exception>
         /// <exception cref="FormatException">
         /// Thrown if the key file is not a supported private key format.
         /// </exception>
-        public static SshPrivateKey Read(Stream stream, SshPublicKey publicKey = null)
+        public static SshPrivateKey Read(Stream stream)
         {
             if (stream == null)
             {
@@ -151,12 +110,7 @@ namespace SshAgentLib.Keys
 
                 if (PemPrivateKey.FirstLineMatches(firstLine))
                 {
-                    if (publicKey == null)
-                    {
-                        throw new PublicKeyRequiredException();
-                    }
-
-                    return PemPrivateKey.Read(reader.BaseStream, publicKey);
+                    return PemPrivateKey.Read(reader.BaseStream);
                 }
 
                 if (OpensshPrivateKey.FirstLineMatches(firstLine))
@@ -209,15 +163,6 @@ namespace SshAgentLib.Keys
                     );
                 }
             }
-        }
-
-        /// <summary>
-        /// Indicates that a public key is required for the key type given.
-        /// </summary>
-        public sealed class PublicKeyRequiredException : ArgumentException
-        {
-            public PublicKeyRequiredException()
-                : base("public key is required for this key type", "publicKey") { }
         }
     }
 }

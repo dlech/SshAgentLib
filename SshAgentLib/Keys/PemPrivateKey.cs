@@ -6,8 +6,8 @@ using System.IO;
 using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
+using dlech.SshAgentLib;
 using Org.BouncyCastle.Crypto;
-using Org.BouncyCastle.Crypto.Parameters;
 using Org.BouncyCastle.OpenSsl;
 using Org.BouncyCastle.Utilities.IO.Pem;
 
@@ -15,16 +15,11 @@ namespace SshAgentLib.Keys
 {
     internal static class PemPrivateKey
     {
-        public static SshPrivateKey Read(Stream stream, SshPublicKey publicKey)
+        public static SshPrivateKey Read(Stream stream)
         {
             if (stream == null)
             {
                 throw new ArgumentNullException(nameof(stream));
-            }
-
-            if (publicKey == null)
-            {
-                throw new ArgumentNullException(nameof(publicKey));
             }
 
             // make a local copy of the file for easy decryption later
@@ -38,30 +33,6 @@ namespace SshAgentLib.Keys
 
             var isEncrypted = pem.Headers.Cast<PemHeader>().Any(h => h.Name == "DEK-Info");
 
-            switch (pem.Type)
-            {
-                case "RSA PRIVATE KEY":
-                    if (!(publicKey.Parameter is RsaKeyParameters))
-                    {
-                        throw new ArgumentException("private key is RSA but public key is not");
-                    }
-                    break;
-                case "DSA PRIVATE KEY":
-                    if (!(publicKey.Parameter is DsaPublicKeyParameters))
-                    {
-                        throw new ArgumentException("private key is DSA but public key is not");
-                    }
-                    break;
-                case "EC PRIVATE KEY":
-                    if (!(publicKey.Parameter is ECPublicKeyParameters))
-                    {
-                        throw new ArgumentException("private key is EC but public key is not");
-                    }
-                    break;
-                default:
-                    throw new NotSupportedException($"unsupported key type: '{pem.Type}'");
-            }
-
             SshPrivateKey.DecryptFunc decrypt = (getPassphrase, progress) =>
             {
                 var keyPair = ReadKeyPair(new StringReader(contents), getPassphrase);
@@ -71,7 +42,7 @@ namespace SshAgentLib.Keys
                 return keyPair.Private;
             };
 
-            return new SshPrivateKey(publicKey, isEncrypted, false, decrypt);
+            return new SshPrivateKey(null, isEncrypted, false, decrypt);
         }
 
         internal static AsymmetricCipherKeyPair ReadKeyPair(

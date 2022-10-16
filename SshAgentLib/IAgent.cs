@@ -82,41 +82,39 @@ namespace dlech.SshAgentLib
             IProgress<double> progress = null
         )
         {
-            var publicKey = default(SshPublicKey);
+            var privateKey = SshPrivateKey.Read(File.OpenRead(fileName));
+            var publicKey = privateKey.PublicKey;
 
             try
             {
-                publicKey = SshPublicKey.Read(File.OpenRead($"{fileName}.pub"));
+                // if there is a -cert.pub file, prefer it
+                publicKey = SshPublicKey.Read(File.OpenRead($"{fileName}-cert.pub"));
             }
             catch
             {
-                // silently ignore, SshPrivateKey.Read() will raise proper
-                // error if this file was required.
-            }
-
-            var privateKey = SshPrivateKey.Read(File.OpenRead(fileName), publicKey);
-
-            try
-            {
-                var certificateKey = SshPublicKey.Read(File.OpenRead($"{fileName}-cert.pub"));
-
-                if (certificateKey != null)
+                try
                 {
-                    privateKey = privateKey.WithPublicKey(certificateKey);
+                    // if there is a .pub file, use it
+                    publicKey = SshPublicKey.Read(File.OpenRead($"{fileName}.pub"));
+                }
+                catch
+                {
+                    // silently ignore, these files are optional
                 }
             }
-            catch
+
+            if (publicKey == null)
             {
-                // silently ignore, this file is optional
+                throw new FileNotFoundException("this key requires a .pub file");
             }
 
             var key = new SshKey(
-                privateKey.PublicKey.Parameter,
+                publicKey.Parameter,
                 privateKey.Decrypt(getPassPhraseCallback, progress),
-                privateKey.PublicKey.Comment,
-                privateKey.PublicKey.Nonce,
-                privateKey.PublicKey.Certificate,
-                privateKey.PublicKey.Application
+                publicKey.Comment,
+                publicKey.Nonce,
+                publicKey.Certificate,
+                publicKey.Application
             );
 
             if (constraints != null)

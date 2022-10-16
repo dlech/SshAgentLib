@@ -24,15 +24,13 @@ namespace SshAgentLibTests.Keys
             var q = ReadStringResourceFile("OpenSshTestData", $"{baseName}.param.q");
             var pw = ReadStringResourceFile("OpenSshTestData", "pw");
 
-            var publicKeyFile = OpenResourceFile("OpenSshTestData", $"{baseName}.pub");
-            var publicKey = SshPublicKey.Read(publicKeyFile);
-
             var suffix = isEncrypted ? "_pw" : "";
             var file = OpenResourceFile("OpenSshTestData", $"{baseName}{suffix}");
-            var key = SshPrivateKey.Read(file, publicKey);
+            var key = SshPrivateKey.Read(file);
 
             Assert.That(key.IsEncrypted, Is.EqualTo(isEncrypted));
             Assert.That(key.HasKdf, Is.False);
+            Assert.That(key.PublicKey, Is.Null);
 
             var getPassphrase = isEncrypted
                 ? () => Encoding.UTF8.GetBytes(pw)
@@ -58,15 +56,13 @@ namespace SshAgentLibTests.Keys
             var priv = ReadStringResourceFile("OpenSshTestData", $"{baseName}.param.priv");
             var pw = ReadStringResourceFile("OpenSshTestData", "pw");
 
-            var publicKeyFile = OpenResourceFile("OpenSshTestData", $"{baseName}.pub");
-            var publicKey = SshPublicKey.Read(publicKeyFile);
-
             var suffix = isEncrypted ? "_pw" : "";
             var file = OpenResourceFile("OpenSshTestData", $"{baseName}{suffix}");
-            var key = SshPrivateKey.Read(file, publicKey);
+            var key = SshPrivateKey.Read(file);
 
             Assert.That(key.IsEncrypted, Is.EqualTo(isEncrypted));
             Assert.That(key.HasKdf, Is.False);
+            Assert.That(key.PublicKey, Is.Null);
 
             var getPassphrase = isEncrypted
                 ? () => Encoding.UTF8.GetBytes(pw)
@@ -91,15 +87,13 @@ namespace SshAgentLibTests.Keys
             var priv = ReadStringResourceFile("OpenSshTestData", $"{baseName}.param.priv");
             var pw = ReadStringResourceFile("OpenSshTestData", "pw");
 
-            var publicKeyFile = OpenResourceFile("OpenSshTestData", $"{baseName}.pub");
-            var publicKey = SshPublicKey.Read(publicKeyFile);
-
             var suffix = isEncrypted ? "_pw" : "";
             var file = OpenResourceFile("OpenSshTestData", $"{baseName}{suffix}");
-            var key = SshPrivateKey.Read(file, publicKey);
+            var key = SshPrivateKey.Read(file);
 
             Assert.That(key.IsEncrypted, Is.EqualTo(isEncrypted));
             Assert.That(key.HasKdf, Is.False);
+            Assert.That(key.PublicKey, Is.Null);
 
             var getPassphrase = isEncrypted
                 ? () => Encoding.UTF8.GetBytes(pw)
