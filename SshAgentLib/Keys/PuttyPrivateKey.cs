@@ -9,7 +9,6 @@ using System.Security.Cryptography;
 using System.Text;
 using dlech.SshAgentLib;
 using SshAgentLib.Crypto;
-using Org.BouncyCastle.Crypto;
 
 namespace SshAgentLib.Keys
 {
@@ -182,7 +181,11 @@ namespace SshAgentLib.Keys
                         byte[] cipherKey;
                         byte[] vi;
 
-                        var passphrase = getPassphrase();
+                        // PuTTYgen uses an Windows ANSI input so we have to
+                        // convert the passphrase to match
+                        var passphrase = Util.UnicodeToAnsi(
+                            Encoding.UTF8.GetString(getPassphrase())
+                        );
 
                         switch (version)
                         {

@@ -255,5 +255,20 @@ namespace SshAgentLibTests.Keys
             Assert.That(privKey.GetEncoded(), Is.EqualTo(Util.FromHex(priv)));
             Assert.That(privKey.GeneratePublicKey(), Is.EqualTo(pubKey));
         }
+
+        [Test]
+        public void TestThatNonAsciiPassphraseWorks()
+        {
+            var pw = ReadStringResourceFile("RegressionTestData", "japanese-passphrase.txt");
+            byte[] getPassphrase() => Encoding.UTF8.GetBytes(pw);
+
+            var file = OpenResourceFile(
+                "RegressionTestData",
+                "putty-private-key-with-japanese-passphrase.ppk"
+            );
+            var key = SshPrivateKey.Read(file);
+
+            Assert.DoesNotThrow(() => key.Decrypt(getPassphrase));
+        }
     }
 }

@@ -46,26 +46,32 @@ namespace dlech.SshAgentLib
         static string assemblyTitle;
 
         /// <summary>
-        /// Convert a SecureString to an asni string in the form of a PinnnedArray&lt;byte&gt;
+        /// Convert a SecureString to a UTF-8 encoded byte array.
         /// </summary>
         /// <param name="ss"></param>
         /// <returns></returns>
-        public static byte[] ToAnsiArray(this SecureString ss)
+        public static byte[] ToUtf8(this SecureString ss)
         {
             if (ss == null)
             {
                 return null;
             }
 
-            var pw = new byte[ss.Length];
             var ptr = Marshal.SecureStringToGlobalAllocUnicode(ss);
-            for (var i = 0; i < pw.Length; i++)
-            {
-                pw[i] = UnicodeToAnsi(Marshal.ReadInt16(ptr + i * 2));
-            }
-            Marshal.ZeroFreeGlobalAllocUnicode(ptr);
 
-            return pw;
+            try
+            {
+                if (ptr == IntPtr.Zero)
+                {
+                    return null;
+                }
+
+                return Encoding.UTF8.GetBytes(Marshal.PtrToStringUni(ptr, ss.Length));
+            }
+            finally
+            {
+                Marshal.ZeroFreeGlobalAllocUnicode(ptr);
+            }
         }
 
         /// <summary>
@@ -358,6 +364,23 @@ namespace dlech.SshAgentLib
             }
         }
 
+        public static byte[] UnicodeToAnsi(string str)
+        {
+            if (str is null)
+            {
+                throw new ArgumentNullException(nameof(str));
+            }
+
+            var ansi = new byte[str.Length];
+
+            for (var i = 0; i < str.Length; i++)
+            {
+                ansi[i] = UnicodeToAnsi(str[i]);
+            }
+
+            return ansi;
+        }
+
         /// <summary>
         /// Unicode char to to ANSI char.
         /// </summary>
@@ -368,7 +391,7 @@ namespace dlech.SshAgentLib
         /// Unicode char.
         /// </param>
         /// <remarks>Based on http://www.unicode.org/Public/MAPPINGS/VENDORS/MICSFT/WindowsBestFit/bestfit1252.txt </remarks>
-        public static byte UnicodeToAnsi(this int unicodeChar)
+        private static byte UnicodeToAnsi(int unicodeChar)
         {
             switch (unicodeChar)
             {

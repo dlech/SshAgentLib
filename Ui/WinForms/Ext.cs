@@ -143,7 +143,7 @@ namespace dlech.SshAgentLib.WinForms
                         return null;
                     }
 
-                    passphrase = dialog.SecureEdit.SecureString.ToAnsiArray();
+                    passphrase = dialog.SecureEdit.SecureString.ToUtf8();
                 }
 
                 return passphrase;
