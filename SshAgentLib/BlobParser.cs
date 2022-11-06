@@ -564,14 +564,25 @@ namespace dlech.SshAgentLib
                 return ecPrivateKeyParams;
             }
 
-            if (publicKeyParameter is Ed25519PublicKeyParameters)
+            if (publicKeyParameter is Ed25519PublicKeyParameters ed25519PublicKeyParameters)
             {
                 var ed25519Signature = ReadBlob();
                 // the first 32 bytes are the private key, the last 32 bytes
-                // are the public key again and so are ignored
+                // are the public key
+
+                if (
+                    !ed25519Signature
+                        .Skip(32)
+                        .SequenceEqual(ed25519PublicKeyParameters.GetEncoded())
+                )
+                {
+                    throw new FormatException("public and private keys to not match");
+                }
+
                 var ed25519PrivateKey = new Ed25519PrivateKeyParameters(
                     ed25519Signature.Take(32).ToArray()
                 );
+
                 return ed25519PrivateKey;
             }
 

@@ -388,8 +388,14 @@ namespace dlech.SshAgentLib
                         key.GetPublicKeyParameters() as Ed25519PublicKeyParameters;
                     var ed25519PrivateKeyParameters =
                         key.GetPrivateKeyParameters() as Ed25519PrivateKeyParameters;
-                    builder.AddBlob(ed25519PublicKeyParameters.GetEncoded());
-                    builder.AddBlob(ed25519PrivateKeyParameters.GetEncoded());
+                    var ed25519PublicKeyBytes = ed25519PublicKeyParameters.GetEncoded();
+                    builder.AddBlob(ed25519PublicKeyBytes);
+                    builder.AddBlob(
+                        ed25519PrivateKeyParameters
+                            .GetEncoded()
+                            .Concat(ed25519PublicKeyBytes)
+                            .ToArray()
+                    );
                     break;
                 case PublicKeyAlgorithm.SshEd25519CertV1:
 
@@ -408,8 +414,11 @@ namespace dlech.SshAgentLib
                             key.GetPublicKeyParameters() as Ed25519PublicKeyParameters;
                         var ed25519Private =
                             key.GetPrivateKeyParameters() as Ed25519PrivateKeyParameters;
-                        builder.AddBlob(ed25519Public.GetEncoded());
-                        builder.AddBlob(ed25519Private.GetEncoded());
+                        var ed25519PublicBytes = ed25519Public.GetEncoded();
+                        builder.AddBlob(ed25519PublicBytes);
+                        builder.AddBlob(
+                            ed25519Private.GetEncoded().Concat(ed25519PublicBytes).ToArray()
+                        );
                     }
                     break;
                 default:

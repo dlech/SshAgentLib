@@ -241,10 +241,17 @@ namespace SshAgentLibTests
             {
                 agentClient.AddKey(key);
                 keyCount += 1;
-                Assert.That(agentClient.Agent.KeyCount, Is.EqualTo(keyCount));
                 Assert.That(
-                    agentClient.Agent.ListKeys().TryGet(key.GetPublicKeyBlob()),
-                    Is.Not.Null,
+                    agentClient.Agent.KeyCount,
+                    Is.EqualTo(keyCount),
+                    $"{key.Algorithm.GetIdentifier()}"
+                );
+
+                var sshKey = agentClient.Agent.ListKeys().TryGet(key.GetPublicKeyBlob());
+                Assert.That(sshKey, Is.Not.Null, $"{key.Algorithm.GetIdentifier()}");
+                Assert.That(
+                    () => sshKey.GetPrivateKeyParameters(),
+                    Throws.Nothing,
                     $"{key.Algorithm.GetIdentifier()}"
                 );
             }

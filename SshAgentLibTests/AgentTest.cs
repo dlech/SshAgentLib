@@ -400,7 +400,9 @@ namespace dlech.SshAgentLibTests
             var builder = new BlobBuilder();
             builder.AddStringBlob(ed25519Key.Algorithm.GetIdentifier());
             builder.AddBlob(publicKeyParams.GetEncoded());
-            builder.AddBlob(privateKeyParams.GetEncoded());
+            builder.AddBlob(
+                privateKeyParams.GetEncoded().Concat(publicKeyParams.GetEncoded()).ToArray()
+            );
             builder.AddStringBlob(ed25519Key.Comment);
             builder.InsertHeader(Agent.Message.SSH2_AGENTC_ADD_IDENTITY);
 
@@ -457,7 +459,9 @@ namespace dlech.SshAgentLibTests
             builder.AddStringBlob("ssh-ed25519-cert-v01@openssh.com");
             builder.AddBlob(certBuilder.GetBlob());
             builder.AddBlob(publicKeyParams.GetEncoded());
-            builder.AddBlob(privateKeyParams.GetEncoded());
+            builder.AddBlob(
+                privateKeyParams.GetEncoded().Concat(publicKeyParams.GetEncoded()).ToArray()
+            );
             builder.AddStringBlob(ed25519Key.Comment);
             builder.InsertHeader(Agent.Message.SSH2_AGENTC_ADD_IDENTITY);
 
