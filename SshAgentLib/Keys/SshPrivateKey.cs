@@ -1,3 +1,4 @@
+
 // SPDX-License-Identifier: MIT
 // Copyright (c) 2022 David Lechner <david@lechnology.com>
 
@@ -24,8 +25,15 @@ namespace SshAgentLib.Keys
         /// <returns>The decrypted parameters.</returns>
         public delegate AsymmetricKeyParameter DecryptFunc(
             GetPassphraseFunc getPassphrase,
-            IProgress<double> progress
+            IProgress<double> progress,
+            UpdateCommentFunc updateComment
         );
+
+        /// <summary>
+        /// Called if DecryptFunc found key comment
+        /// </summary>
+        /// <param name="comment">Found comment</param>
+        public delegate void UpdateCommentFunc(string comment);
 
         private readonly DecryptFunc decrypt;
 
@@ -64,16 +72,18 @@ namespace SshAgentLib.Keys
         /// Callback to get the passphrase. Can be <c>null</c> for unencrypted keys.
         /// </param>
         /// <param name="progress">Optional progress feedback.</param>
+        /// <param name="updateComment">Optional comment feedback.</param>
         /// <returns>The decrypted private key parameters.</returns>
         /// <remarks>
         /// This can be a long running/cpu intensive operation.
         /// </remarks>
         public AsymmetricKeyParameter Decrypt(
             GetPassphraseFunc getPassphrase,
-            IProgress<double> progress = null
+            IProgress<double> progress = null,
+            UpdateCommentFunc updateComment = null
         )
         {
-            return decrypt(getPassphrase, progress);
+            return decrypt(getPassphrase, progress, updateComment);
         }
 
         /// <summary>

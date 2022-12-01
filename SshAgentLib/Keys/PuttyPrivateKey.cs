@@ -155,7 +155,7 @@ namespace SshAgentLib.Keys
                 reader.ReadHeader(version == "1" ? HeaderKey.PrivateHash : HeaderKey.PrivateMAC)
             );
 
-            SshPrivateKey.DecryptFunc decrypt = (getPassphrase, progress) =>
+            SshPrivateKey.DecryptFunc decrypt = (getPassphrase, progress, updateComment) =>
             {
                 byte[] decryptedPrivateKeyBlob;
                 byte[] macKey;

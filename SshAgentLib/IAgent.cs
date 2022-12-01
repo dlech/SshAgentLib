@@ -108,10 +108,12 @@ namespace dlech.SshAgentLib
                 throw new FileNotFoundException("this key requires a .pub file");
             }
 
+            var comment = publicKey.Comment;
+            var decryptedKey = privateKey.Decrypt(getPassPhraseCallback, progress, newComment => comment = newComment);
             var key = new SshKey(
                 publicKey.Parameter,
-                privateKey.Decrypt(getPassPhraseCallback, progress),
-                publicKey.Comment,
+                decryptedKey,
+                comment,
                 publicKey.Nonce,
                 publicKey.Certificate,
                 publicKey.Application
