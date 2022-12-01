@@ -126,7 +126,7 @@ namespace SshAgentLib.Keys
             var publicKeyBlob = parser.ReadBlob();
             var privateKeyBlob = parser.ReadBlob();
 
-            SshPrivateKey.DecryptFunc decrypt = (getPassphrase, progress) =>
+            SshPrivateKey.DecryptFunc decrypt = (getPassphrase, progress, updateComment) =>
             {
                 var keyAndIV = new byte[32 + 16];
 
@@ -210,8 +210,8 @@ namespace SshAgentLib.Keys
                     out var application
                 );
                 var privateKey = privateKeyParser.ReadSsh2KeyData(publicKey);
-                // var comment = privateKeyParser.ReadString();
-                // TODO: what to do with comment?
+                var comment = privateKeyParser.ReadString();
+                updateComment?.Invoke(comment);
                 // TODO: should we throw if nonce/cert is not null?
                 // TODO: do we expect application?
 

@@ -33,7 +33,7 @@ namespace SshAgentLib.Keys
 
             var isEncrypted = pem.Headers.Cast<PemHeader>().Any(h => h.Name == "DEK-Info");
 
-            SshPrivateKey.DecryptFunc decrypt = (getPassphrase, progress) =>
+            SshPrivateKey.DecryptFunc decrypt = (getPassphrase, progress, updateComment) =>
             {
                 var keyPair = ReadKeyPair(new StringReader(contents), getPassphrase);
 
