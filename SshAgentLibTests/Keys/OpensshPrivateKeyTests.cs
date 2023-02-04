@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-// Copyright (c) 2022 David Lechner <david@lechnology.com>
+// Copyright (c) 2022-2023 David Lechner <david@lechnology.com>
 
 using System;
 using System.Text;
@@ -34,10 +34,11 @@ namespace SshAgentLibTests.Keys
             var pubKey = (RsaKeyParameters)key.PublicKey.Parameter;
             Assert.That(pubKey.Modulus, Is.EqualTo(new BigInteger(n, 16)));
 
-            var privParam = key.Decrypt(null);
+            var privParam = key.Decrypt(null, null, out var comment);
 
             Assert.That(privParam.IsPrivate);
             Assert.That(privParam, Is.TypeOf<RsaPrivateCrtKeyParameters>());
+            Assert.That(comment, Is.Empty);
 
             var privKey = (RsaPrivateCrtKeyParameters)privParam;
 
@@ -46,7 +47,7 @@ namespace SshAgentLibTests.Keys
             Assert.That(privKey.Q, Is.EqualTo(new BigInteger(q, 16)));
 
             // ensure that decrypting a second time works
-            privParam = key.Decrypt(null);
+            privParam = key.Decrypt(null, null, out comment);
             Assert.That(privParam.IsPrivate);
         }
 
@@ -69,10 +70,11 @@ namespace SshAgentLibTests.Keys
             var pubKey = (RsaKeyParameters)key.PublicKey.Parameter;
             Assert.That(pubKey.Modulus, Is.EqualTo(new BigInteger(n, 16)));
 
-            var privParam = key.Decrypt(() => Encoding.UTF8.GetBytes(pw));
+            var privParam = key.Decrypt(() => Encoding.UTF8.GetBytes(pw), null, out var comment);
 
             Assert.That(privParam.IsPrivate);
             Assert.That(privParam, Is.TypeOf<RsaPrivateCrtKeyParameters>());
+            Assert.That(comment, Is.Empty);
 
             var privKey = (RsaPrivateCrtKeyParameters)privParam;
 
@@ -81,7 +83,7 @@ namespace SshAgentLibTests.Keys
             Assert.That(privKey.Q, Is.EqualTo(new BigInteger(q, 16)));
 
             // ensure that decrypting a second time works
-            privParam = key.Decrypt(() => Encoding.UTF8.GetBytes(pw));
+            privParam = key.Decrypt(() => Encoding.UTF8.GetBytes(pw), null, out comment);
             Assert.That(privParam.IsPrivate);
         }
 
@@ -102,10 +104,11 @@ namespace SshAgentLibTests.Keys
             var pubKey = (DsaPublicKeyParameters)key.PublicKey.Parameter;
             Assert.That(pubKey.Y, Is.EqualTo(new BigInteger(pub, 16)));
 
-            var privParam = key.Decrypt(null);
+            var privParam = key.Decrypt(null, null, out var comment);
 
             Assert.That(privParam.IsPrivate);
             Assert.That(privParam, Is.TypeOf<DsaPrivateKeyParameters>());
+            Assert.That(comment, Is.Empty);
 
             var privKey = (DsaPrivateKeyParameters)privParam;
 
@@ -131,10 +134,11 @@ namespace SshAgentLibTests.Keys
             var pubKey = (DsaPublicKeyParameters)key.PublicKey.Parameter;
             Assert.That(pubKey.Y, Is.EqualTo(new BigInteger(pub, 16)));
 
-            var privParam = key.Decrypt(() => Encoding.UTF8.GetBytes(pw));
+            var privParam = key.Decrypt(() => Encoding.UTF8.GetBytes(pw), null, out var comment);
 
             Assert.That(privParam.IsPrivate);
             Assert.That(privParam, Is.TypeOf<DsaPrivateKeyParameters>());
+            Assert.That(comment, Is.Empty);
 
             var privKey = (DsaPrivateKeyParameters)privParam;
 
@@ -163,10 +167,11 @@ namespace SshAgentLibTests.Keys
             );
             Assert.That(pubKey.Q, Is.EqualTo(pubKey.Parameters.Curve.DecodePoint(Hex.Decode(pub))));
 
-            var privParam = key.Decrypt(null);
+            var privParam = key.Decrypt(null, null, out var comment);
 
             Assert.That(privParam.IsPrivate);
             Assert.That(privParam, Is.TypeOf<ECPrivateKeyParameters>());
+            Assert.That(comment, Is.Empty);
 
             var privKey = (ECPrivateKeyParameters)privParam;
 
@@ -199,10 +204,11 @@ namespace SshAgentLibTests.Keys
             );
             Assert.That(pubKey.Q, Is.EqualTo(pubKey.Parameters.Curve.DecodePoint(Hex.Decode(pub))));
 
-            var privParam = key.Decrypt(() => Encoding.UTF8.GetBytes(pw));
+            var privParam = key.Decrypt(() => Encoding.UTF8.GetBytes(pw), null, out var comment);
 
             Assert.That(privParam.IsPrivate);
             Assert.That(privParam, Is.TypeOf<ECPrivateKeyParameters>());
+            Assert.That(comment, Is.Empty);
 
             var privKey = (ECPrivateKeyParameters)privParam;
 
@@ -219,7 +225,8 @@ namespace SshAgentLibTests.Keys
 
             Assert.That(key.PublicKey.Parameter, Is.TypeOf<Ed25519PublicKeyParameters>());
 
-            var privParam = key.Decrypt(null);
+            var privParam = key.Decrypt(null, null, out var comment);
+            Assert.That(comment, Is.EqualTo("ED25519 test key #1"));
 
             Assert.That(privParam.IsPrivate);
             Assert.That(privParam, Is.TypeOf<Ed25519PrivateKeyParameters>());
@@ -237,10 +244,11 @@ namespace SshAgentLibTests.Keys
 
             Assert.That(key.PublicKey.Parameter, Is.TypeOf<Ed25519PublicKeyParameters>());
 
-            var privParam = key.Decrypt(() => Encoding.UTF8.GetBytes(pw));
+            var privParam = key.Decrypt(() => Encoding.UTF8.GetBytes(pw), null, out var comment);
 
             Assert.That(privParam.IsPrivate);
             Assert.That(privParam, Is.TypeOf<Ed25519PrivateKeyParameters>());
+            Assert.That(comment, Is.EqualTo("ED25519 test key #1"));
         }
 
         [Test]
@@ -253,10 +261,12 @@ namespace SshAgentLibTests.Keys
 
             Assert.That(key.PublicKey.Parameter, Is.TypeOf<Ed25519PublicKeyParameters>());
 
-            var privParam = key.Decrypt(null);
+            var privParam = key.Decrypt(null, null, out var comment);
 
             Assert.That(privParam.IsPrivate);
             Assert.That(privParam, Is.TypeOf<Ed25519PrivateKeyParameters>());
+            // upstream file has typo
+            Assert.That(comment, Is.EqualTo("ED25519 test key #1"));
         }
     }
 }

@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-// Copyright (c) 2022 David Lechner <david@lechnology.com>
+// Copyright (c) 2022-2023 David Lechner <david@lechnology.com>
 
 using System;
 using System.Text;
@@ -30,7 +30,7 @@ namespace SshAgentLibTests.Keys
             var p = ReadStringResourceFile("PuttyTestData", "rsa.param.p");
             var q = ReadStringResourceFile("PuttyTestData", "rsa.param.q");
 
-            var kdf = keyDerivation == null ? "" : $"-{keyDerivation}";
+            var kdf = keyDerivation == null ? string.Empty : $"-{keyDerivation}";
             var file = OpenResourceFile("PuttyTestData", $"rsa-{version}-{encryption}{kdf}.ppk");
             var key = SshPrivateKey.Read(file);
 
@@ -50,10 +50,11 @@ namespace SshAgentLibTests.Keys
                 getPassphrase = () => Encoding.UTF8.GetBytes(pw);
             }
 
-            var privParam = key.Decrypt(getPassphrase);
+            var privParam = key.Decrypt(getPassphrase, null, out var comment);
 
             Assert.That(privParam.IsPrivate);
             Assert.That(privParam, Is.TypeOf<RsaPrivateCrtKeyParameters>());
+            Assert.That(comment, Is.EqualTo("rsa-key-20220505"));
 
             var privKey = (RsaPrivateCrtKeyParameters)privParam;
 
@@ -75,7 +76,7 @@ namespace SshAgentLibTests.Keys
             var y = ReadStringResourceFile("PuttyTestData", "dsa.param.y");
             var x = ReadStringResourceFile("PuttyTestData", "dsa.param.x");
 
-            var kdf = keyDerivation == null ? "" : $"-{keyDerivation}";
+            var kdf = keyDerivation == null ? string.Empty : $"-{keyDerivation}";
             var file = OpenResourceFile("PuttyTestData", $"dsa-{version}-{encryption}{kdf}.ppk");
             var key = SshPrivateKey.Read(file);
 
@@ -95,10 +96,11 @@ namespace SshAgentLibTests.Keys
                 getPassphrase = () => Encoding.UTF8.GetBytes(pw);
             }
 
-            var privParam = key.Decrypt(getPassphrase);
+            var privParam = key.Decrypt(getPassphrase, null, out var comment);
 
             Assert.That(privParam.IsPrivate);
             Assert.That(privParam, Is.TypeOf<DsaPrivateKeyParameters>());
+            Assert.That(comment, Is.EqualTo("dsa-key-20220506"));
 
             var privKey = (DsaPrivateKeyParameters)privParam;
 
@@ -128,7 +130,7 @@ namespace SshAgentLibTests.Keys
             var q = ReadStringResourceFile("PuttyTestData", $"ecdsa-{curve}.param.q");
             var d = ReadStringResourceFile("PuttyTestData", $"ecdsa-{curve}.param.d");
 
-            var kdf = keyDerivation == null ? "" : $"-{keyDerivation}";
+            var kdf = keyDerivation == null ? string.Empty : $"-{keyDerivation}";
             var file = OpenResourceFile(
                 "PuttyTestData",
                 $"ecdsa-{curve}-{version}-{encryption}{kdf}.ppk"
@@ -154,10 +156,11 @@ namespace SshAgentLibTests.Keys
                 getPassphrase = () => Encoding.UTF8.GetBytes(pw);
             }
 
-            var privParam = key.Decrypt(getPassphrase);
+            var privParam = key.Decrypt(getPassphrase, null, out var comment);
 
             Assert.That(privParam.IsPrivate);
             Assert.That(privParam, Is.TypeOf<ECPrivateKeyParameters>());
+            Assert.That(comment, Is.EqualTo("ecdsa-key-20220506"));
 
             var privKey = (ECPrivateKeyParameters)privParam;
 
@@ -177,7 +180,7 @@ namespace SshAgentLibTests.Keys
             var pub = ReadStringResourceFile("PuttyTestData", $"eddsa-ed25519.param.pub");
             var priv = ReadStringResourceFile("PuttyTestData", $"eddsa-ed25519.param.priv");
 
-            var kdf = keyDerivation == null ? "" : $"-{keyDerivation}";
+            var kdf = keyDerivation == null ? string.Empty : $"-{keyDerivation}";
             var file = OpenResourceFile(
                 "PuttyTestData",
                 $"eddsa-ed25519-{version}-{encryption}{kdf}.ppk"
@@ -200,10 +203,11 @@ namespace SshAgentLibTests.Keys
                 getPassphrase = () => Encoding.UTF8.GetBytes(pw);
             }
 
-            var privParam = key.Decrypt(getPassphrase);
+            var privParam = key.Decrypt(getPassphrase, null, out var comment);
 
             Assert.That(privParam.IsPrivate);
             Assert.That(privParam, Is.TypeOf<Ed25519PrivateKeyParameters>());
+            Assert.That(comment, Is.EqualTo("eddsa-key-20220506"));
 
             var privKey = (Ed25519PrivateKeyParameters)privParam;
             Assert.That(privKey.GetEncoded(), Is.EqualTo(Util.FromHex(priv)));
@@ -223,7 +227,7 @@ namespace SshAgentLibTests.Keys
             var pub = ReadStringResourceFile("PuttyTestData", $"eddsa-ed448.param.pub");
             var priv = ReadStringResourceFile("PuttyTestData", $"eddsa-ed448.param.priv");
 
-            var kdf = keyDerivation == null ? "" : $"-{keyDerivation}";
+            var kdf = keyDerivation == null ? string.Empty : $"-{keyDerivation}";
             var file = OpenResourceFile(
                 "PuttyTestData",
                 $"eddsa-ed448-{version}-{encryption}{kdf}.ppk"
@@ -246,10 +250,11 @@ namespace SshAgentLibTests.Keys
                 getPassphrase = () => Encoding.UTF8.GetBytes(pw);
             }
 
-            var privParam = key.Decrypt(getPassphrase);
+            var privParam = key.Decrypt(getPassphrase, null, out var comment);
 
             Assert.That(privParam.IsPrivate);
             Assert.That(privParam, Is.TypeOf<Ed448PrivateKeyParameters>());
+            Assert.That(comment, Is.EqualTo("eddsa-key-20220506"));
 
             var privKey = (Ed448PrivateKeyParameters)privParam;
             Assert.That(privKey.GetEncoded(), Is.EqualTo(Util.FromHex(priv)));
@@ -268,7 +273,7 @@ namespace SshAgentLibTests.Keys
             );
             var key = SshPrivateKey.Read(file);
 
-            Assert.DoesNotThrow(() => key.Decrypt(getPassphrase));
+            Assert.DoesNotThrow(() => key.Decrypt(getPassphrase, null, out var comment));
         }
     }
 }

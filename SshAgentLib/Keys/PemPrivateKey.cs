@@ -1,12 +1,11 @@
 // SPDX-License-Identifier: MIT
-// Copyright (c) 2022 David Lechner <david@lechnology.com>
+// Copyright (c) 2022-2023 David Lechner <david@lechnology.com>
 
 using System;
 using System.IO;
 using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
-using dlech.SshAgentLib;
 using Org.BouncyCastle.Crypto;
 using Org.BouncyCastle.OpenSsl;
 using Org.BouncyCastle.Utilities.IO.Pem;
@@ -33,8 +32,14 @@ namespace SshAgentLib.Keys
 
             var isEncrypted = pem.Headers.Cast<PemHeader>().Any(h => h.Name == "DEK-Info");
 
-            SshPrivateKey.DecryptFunc decrypt = (getPassphrase, progress, updateComment) =>
+            SshPrivateKey.DecryptFunc decrypt = (
+                SshPrivateKey.GetPassphraseFunc getPassphrase,
+                IProgress<double> progress,
+                out string comment
+            ) =>
             {
+                comment = "";
+
                 var keyPair = ReadKeyPair(new StringReader(contents), getPassphrase);
 
                 // REVISIT: should we validate match with public key?
