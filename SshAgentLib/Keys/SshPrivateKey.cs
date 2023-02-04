@@ -1,6 +1,5 @@
-
 // SPDX-License-Identifier: MIT
-// Copyright (c) 2022 David Lechner <david@lechnology.com>
+// Copyright (c) 2022-2023 David Lechner <david@lechnology.com>
 
 using System;
 using System.IO;
@@ -20,13 +19,16 @@ namespace SshAgentLib.Keys
         /// A callback to get the passphrase. Can be <c>null</c> if the private key is not encrypted.
         /// </param>
         /// <param name="progress">
-        /// Optional progress callback. Returns normalized progres 0 to 1.
+        /// Optional progress callback. Returns normalized progress 0 to 1.
+        /// </param>
+        /// <param name="comment">
+        /// The private key comment.
         /// </param>
         /// <returns>The decrypted parameters.</returns>
         public delegate AsymmetricKeyParameter DecryptFunc(
             GetPassphraseFunc getPassphrase,
             IProgress<double> progress,
-            UpdateCommentFunc updateComment
+            out string comment
         );
 
         /// <summary>
@@ -71,19 +73,23 @@ namespace SshAgentLib.Keys
         /// <param name="getPassphrase">
         /// Callback to get the passphrase. Can be <c>null</c> for unencrypted keys.
         /// </param>
-        /// <param name="progress">Optional progress feedback.</param>
-        /// <param name="updateComment">Optional comment feedback.</param>
+        /// <param name="progress">
+        /// Optional progress feedback.
+        /// </param>
+        /// <param name="comment">
+        /// The private key comment.
+        /// </param>
         /// <returns>The decrypted private key parameters.</returns>
         /// <remarks>
         /// This can be a long running/cpu intensive operation.
         /// </remarks>
         public AsymmetricKeyParameter Decrypt(
             GetPassphraseFunc getPassphrase,
-            IProgress<double> progress = null,
-            UpdateCommentFunc updateComment = null
+            IProgress<double> progress,
+            out string comment
         )
         {
-            return decrypt(getPassphrase, progress, updateComment);
+            return decrypt(getPassphrase, progress, out comment);
         }
 
         /// <summary>

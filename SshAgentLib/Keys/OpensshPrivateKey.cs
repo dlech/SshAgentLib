@@ -1,12 +1,11 @@
 // SPDX-License-Identifier: MIT
-// Copyright (c) 2015,2022 David Lechner <david@lechnology.com>
+// Copyright (c) 2015,2022-2023 David Lechner <david@lechnology.com>
 
 using System;
 using System.IO;
 using System.Security.Cryptography;
 using System.Text;
 using dlech.SshAgentLib;
-using Org.BouncyCastle.Crypto;
 using Org.BouncyCastle.Crypto.Parameters;
 using Org.BouncyCastle.Security;
 using Org.BouncyCastle.Utilities.IO.Pem;
@@ -126,7 +125,11 @@ namespace SshAgentLib.Keys
             var publicKeyBlob = parser.ReadBlob();
             var privateKeyBlob = parser.ReadBlob();
 
-            SshPrivateKey.DecryptFunc decrypt = (getPassphrase, progress, updateComment) =>
+            SshPrivateKey.DecryptFunc decrypt = (
+                SshPrivateKey.GetPassphraseFunc getPassphrase,
+                IProgress<double> progress,
+                out string comment
+            ) =>
             {
                 var keyAndIV = new byte[32 + 16];
 
@@ -210,8 +213,7 @@ namespace SshAgentLib.Keys
                     out var application
                 );
                 var privateKey = privateKeyParser.ReadSsh2KeyData(publicKey);
-                var comment = privateKeyParser.ReadString();
-                updateComment?.Invoke(comment);
+                comment = privateKeyParser.ReadString();
                 // TODO: should we throw if nonce/cert is not null?
                 // TODO: do we expect application?
 

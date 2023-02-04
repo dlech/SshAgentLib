@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-// Copyright (c) 2022 David Lechner <david@lechnology.com>
+// Copyright (c) 2022-2023 David Lechner <david@lechnology.com>
 
 using System.IO;
 using System.Text;
@@ -24,7 +24,7 @@ namespace SshAgentLibTests.Keys
             var q = ReadStringResourceFile("OpenSshTestData", $"{baseName}.param.q");
             var pw = ReadStringResourceFile("OpenSshTestData", "pw");
 
-            var suffix = isEncrypted ? "_pw" : "";
+            var suffix = isEncrypted ? "_pw" : string.Empty;
             var file = OpenResourceFile("OpenSshTestData", $"{baseName}{suffix}");
             var key = SshPrivateKey.Read(file);
 
@@ -39,8 +39,9 @@ namespace SshAgentLibTests.Keys
             // decrypt multiple times to check for state corruption
             for (int i = 0; i < 2; i++)
             {
-                var privParam = key.Decrypt(getPassphrase);
+                var privParam = key.Decrypt(getPassphrase, null, out var comment);
                 Assert.That(privParam, Is.TypeOf<RsaPrivateCrtKeyParameters>());
+                Assert.That(comment, Is.Empty);
 
                 var rsa = (RsaPrivateCrtKeyParameters)privParam;
                 Assert.That(rsa.Modulus, Is.EqualTo(new BigInteger(n, 16)));
@@ -56,7 +57,7 @@ namespace SshAgentLibTests.Keys
             var priv = ReadStringResourceFile("OpenSshTestData", $"{baseName}.param.priv");
             var pw = ReadStringResourceFile("OpenSshTestData", "pw");
 
-            var suffix = isEncrypted ? "_pw" : "";
+            var suffix = isEncrypted ? "_pw" : string.Empty;
             var file = OpenResourceFile("OpenSshTestData", $"{baseName}{suffix}");
             var key = SshPrivateKey.Read(file);
 
@@ -71,8 +72,9 @@ namespace SshAgentLibTests.Keys
             // decrypt multiple times to check for state corruption
             for (int i = 0; i < 2; i++)
             {
-                var privParam = key.Decrypt(getPassphrase);
+                var privParam = key.Decrypt(getPassphrase, null, out var comment);
                 Assert.That(privParam, Is.TypeOf<DsaPrivateKeyParameters>());
+                Assert.That(comment, Is.Empty);
 
                 var dsa = (DsaPrivateKeyParameters)privParam;
                 Assert.That(dsa.X, Is.EqualTo(new BigInteger(priv, 16)));
@@ -87,7 +89,7 @@ namespace SshAgentLibTests.Keys
             var priv = ReadStringResourceFile("OpenSshTestData", $"{baseName}.param.priv");
             var pw = ReadStringResourceFile("OpenSshTestData", "pw");
 
-            var suffix = isEncrypted ? "_pw" : "";
+            var suffix = isEncrypted ? "_pw" : string.Empty;
             var file = OpenResourceFile("OpenSshTestData", $"{baseName}{suffix}");
             var key = SshPrivateKey.Read(file);
 
@@ -102,8 +104,9 @@ namespace SshAgentLibTests.Keys
             // decrypt multiple times to check for state corruption
             for (int i = 0; i < 2; i++)
             {
-                var privParam = key.Decrypt(getPassphrase);
+                var privParam = key.Decrypt(getPassphrase, null, out var comment);
                 Assert.That(privParam, Is.TypeOf<ECPrivateKeyParameters>());
+                Assert.That(comment, Is.Empty);
 
                 var ecdsa = (ECPrivateKeyParameters)privParam;
                 Assert.That(ecdsa.D, Is.EqualTo(new BigInteger(priv, 16)));

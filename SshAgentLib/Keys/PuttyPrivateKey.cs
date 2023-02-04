@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-// Copyright (c) 2012-2013,2015,2017,2022 David Lechner <david@lechnology.com>
+// Copyright (c) 2012-2013,2015,2017,2022-2023 David Lechner <david@lechnology.com>
 
 using System;
 using System.Collections.Generic;
@@ -155,8 +155,14 @@ namespace SshAgentLib.Keys
                 reader.ReadHeader(version == "1" ? HeaderKey.PrivateHash : HeaderKey.PrivateMAC)
             );
 
-            SshPrivateKey.DecryptFunc decrypt = (getPassphrase, progress, updateComment) =>
+            SshPrivateKey.DecryptFunc decrypt = (
+                SshPrivateKey.GetPassphraseFunc getPassphrase,
+                IProgress<double> progress,
+                out string comment2
+            ) =>
             {
+                comment2 = comment;
+
                 byte[] decryptedPrivateKeyBlob;
                 byte[] macKey;
 
