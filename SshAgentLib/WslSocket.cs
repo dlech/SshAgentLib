@@ -118,21 +118,21 @@ namespace dlech.SshAgentLib
 
             while (!cancellationToken.IsCancellationRequested)
             {
-                using (var clientSocket = await socket.AcceptAsync().ConfigureAwait(false))
-                using (cancellationToken.Register(() => clientSocket.Close()))
-                {
-                    Debug.WriteLine("Accepted WSL socket client connection");
+                var clientSocket = await socket.AcceptAsync().ConfigureAwait(false);
+                Debug.WriteLine("Accepted WSL socket client connection");
 
-                    await Task.Run(() =>
+                new Task(
+                    () =>
+                    {
+                        using (cancellationToken.Register(() => clientSocket.Close()))
+                        using (var stream = new NetworkStream(clientSocket))
                         {
-                            using (var stream = new NetworkStream(clientSocket))
-                            {
-                                var proc = default(Process);
-                                connectionHandler(stream, proc);
-                            }
-                        })
-                        .ConfigureAwait(false);
-                }
+                            var proc = default(Process);
+                            connectionHandler(stream, proc);
+                        }
+                    },
+                    cancellationToken
+                ).Start();
             }
 #endif
         }
