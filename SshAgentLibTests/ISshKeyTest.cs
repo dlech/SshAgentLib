@@ -14,7 +14,6 @@ namespace dlech.SshAgentLibTests
         [Test()]
         public void TestFormatSignature()
         {
-            var random = new Random();
             var dsa_key = new SshKey(
                 new DsaPublicKeyParameters(
                     new BigInteger(
@@ -34,8 +33,12 @@ namespace dlech.SshAgentLibTests
             // test that dsa signature works when values are not full 20 bytes.
             var r_bytes = new byte[19];
             var s_bytes = new byte[19];
+
+            var seed = Environment.GetEnvironmentVariable("TEST_RANDOM_SEED");
+            var random = seed == null ? new Random() : new Random((int)ulong.Parse(seed));
             random.NextBytes(r_bytes);
             random.NextBytes(s_bytes);
+
             var r = new DerInteger(r_bytes);
             var s = new DerInteger(s_bytes);
             var sequence = new DerSequence(r, s);
