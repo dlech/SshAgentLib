@@ -279,6 +279,10 @@ namespace SshAgentLib.Extension
 
             foreach (var c in Constraints)
             {
+                Debug.WriteLine(
+                    $"constraint {c.From.UserName}@{c.From.HostName ?? "(ORIGIN)"} ({c.From.HostKeys.Count} keys) > {c.To.UserName}@{c.To.HostName ?? "(ANY)"} ({c.To.HostKeys.Count} keys)"
+                );
+
                 if (fromKey == null)
                 {
                     // We are matching the first hop
