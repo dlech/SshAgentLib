@@ -4,7 +4,7 @@
 // Author(s): David Lechner <david@lechnology.com>
 //            Max Laverse
 //
-// Copyright (c) 2012-2013,2015,2017,2022 David Lechner
+// Copyright (c) 2012-2013,2015,2017,2022-2023 David Lechner
 //
 // Permission is hereby granted, free of charge, to any person obtaining a copy
 // of this software and associated documentation files (the "Software"), to deal
@@ -1027,6 +1027,41 @@ namespace dlech.SshAgentLibTests
             agent.Locked -= new Agent.LockEventHandler(agentLocked);
         }
 
+        [Test]
+        public void TestAnswer_SSH_AGENTC_EXTENSION_AgentBind()
+        {
+            foreach (var key in allKeys)
+            {
+                Agent agent = new TestAgent();
+
+                var sessionIdentifier = new byte[32];
+
+                var signer = key.GetSigner(out var algo);
+
+                signer.Init(true, key.GetPrivateKeyParameters());
+                signer.BlockUpdate(sessionIdentifier, 0, sessionIdentifier.Length);
+                var signatureBytes = signer.GenerateSignature();
+                var formattedSignature = key.FormatSignature(signatureBytes);
+
+                var signatureBuilder = new BlobBuilder();
+                signatureBuilder.AddStringBlob(algo);
+                signatureBuilder.AddBlob(formattedSignature);
+
+                var signature = signatureBuilder.GetBlob();
+
+                PrepareSessionBindExtensionMessage(key, sessionIdentifier, signature, false);
+                agent.AnswerMessage(stream, new ConnectionContext());
+                RewindStream();
+
+                var replyHeader = parser.ReadHeader();
+                Assert.That(
+                    replyHeader.Message,
+                    Is.EqualTo(Agent.Message.SSH_AGENT_SUCCESS),
+                    $"agent bind should have succeeded for {algo}"
+                );
+            }
+        }
+
         [Test()]
         public void TestOnKeyListChanged()
         {
@@ -1090,6 +1125,25 @@ namespace dlech.SshAgentLibTests
             {
                 builder.InsertHeader(Agent.Message.SSH_AGENTC_UNLOCK);
             }
+            PrepareMessage(builder);
+        }
+
+        private static void PrepareSessionBindExtensionMessage(
+            ISshKey hostKey,
+            byte[] sessionIdentifier,
+            byte[] signature,
+            bool isForwarding
+        )
+        {
+            var builder = new BlobBuilder();
+
+            builder.InsertHeader(Agent.Message.SSH_AGENTC_EXTENSION);
+            builder.AddStringBlob("session-bind@openssh.com");
+            builder.AddBlob(hostKey.GetPublicKeyBlob());
+            builder.AddBlob(sessionIdentifier);
+            builder.AddBlob(signature);
+            builder.AddBoolean(isForwarding);
+
             PrepareMessage(builder);
         }
 

@@ -1,5 +1,5 @@
 ﻿// SPDX-License-Identifier: MIT
-// Copyright (c) 2022 David Lechner <david@lechnology.com>
+// Copyright (c) 2022-2023 David Lechner <david@lechnology.com>
 
 using System;
 using System.IO;
@@ -7,12 +7,14 @@ using System.Linq;
 using System.Security.Cryptography;
 using System.Text;
 using dlech.SshAgentLib;
+using Org.BouncyCastle.Asn1;
 using Org.BouncyCastle.Asn1.Nist;
 using Org.BouncyCastle.Asn1.Pkcs;
 using Org.BouncyCastle.Asn1.X9;
 using Org.BouncyCastle.Crypto;
 using Org.BouncyCastle.Crypto.Parameters;
 using Org.BouncyCastle.Crypto.Signers;
+using Org.BouncyCastle.Math;
 using Org.BouncyCastle.Security;
 using static dlech.SshAgentLib.Agent;
 
@@ -326,10 +328,33 @@ namespace SshAgentLib.Keys
                 throw new ArgumentException($"wrong key type: {keyType}", nameof(signature));
             }
 
+            // a few types of keys need special encoding of the signature blob
+            byte[] encodedSignature;
+
+            if (Parameter is DsaPublicKeyParameters)
+            {
+                var r = new BigInteger(1, signatureBlob, 0, 20);
+                var s = new BigInteger(1, signatureBlob, 20, 20);
+                var seq = new DerSequence(new DerInteger(r), new DerInteger(s));
+                encodedSignature = seq.GetDerEncoded();
+            }
+            else if (Parameter is ECPublicKeyParameters)
+            {
+                var sigParser = new BlobParser(signatureBlob);
+                var r = new BigInteger(sigParser.ReadBlob());
+                var s = new BigInteger(sigParser.ReadBlob());
+                var seq = new DerSequence(new DerInteger(r), new DerInteger(s));
+                encodedSignature = seq.GetDerEncoded();
+            }
+            else
+            {
+                encodedSignature = signatureBlob;
+            }
+
             signer.Init(false, Parameter);
             signer.BlockUpdate(data, 0, data.Length);
 
-            return signer.VerifySignature(signatureBlob);
+            return signer.VerifySignature(encodedSignature);
         }
 
         internal static ISigner GetSigner(
