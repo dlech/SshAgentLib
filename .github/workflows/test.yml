@@ -23,9 +23,9 @@ jobs:
       run: |
         $vsDevPath = "${env:ProgramFiles}\Microsoft Visual Studio\2022\Enterprise"
         Import-Module "${vsDevPath}\Common7\Tools\Microsoft.VisualStudio.DevShell.dll"
-        Enter-VsDevShell -VsInstallPath "${vsDevPath}" -DevCmdArguments '-arch=x64'
+        Enter-VsDevShell -VsInstallPath "${vsDevPath}" -DevCmdArguments '-arch=x64' -SkipAutomaticLocation
         msbuild SshAgentLibTests
-        ./scripts/coverage.ps1
+        .\scripts\coverage.ps1
 
     - uses: codecov/codecov-action@v3
       with:
