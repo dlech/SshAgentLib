@@ -429,10 +429,7 @@ namespace dlech.SshAgentLib
                     var ed448PublicKeyBytes = ed448PublicKeyParameters.GetEncoded();
                     builder.AddBlob(ed448PublicKeyBytes);
                     builder.AddBlob(
-                        ed448PrivateKeyParameters
-                            .GetEncoded()
-                            .Concat(ed448PublicKeyBytes)
-                            .ToArray()
+                        ed448PrivateKeyParameters.GetEncoded().Concat(ed448PublicKeyBytes).ToArray()
                     );
                     break;
                 case PublicKeyAlgorithm.SshEd448CertV1:
@@ -448,8 +445,7 @@ namespace dlech.SshAgentLib
 
                         builder.AddBlob(key.GetPublicKeyBlob());
 
-                        var ed448Public =
-                            key.GetPublicKeyParameters() as Ed448PublicKeyParameters;
+                        var ed448Public = key.GetPublicKeyParameters() as Ed448PublicKeyParameters;
                         var ed448Private =
                             key.GetPrivateKeyParameters() as Ed448PrivateKeyParameters;
                         var ed448PublicBytes = ed448Public.GetEncoded();

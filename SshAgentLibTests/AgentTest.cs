@@ -107,10 +107,7 @@ namespace dlech.SshAgentLibTests
                 PublicKeyAlgorithm.SshEd25519,
                 "SSH2 ED25519 test key"
             );
-            ed448Key = KeyGenerator.CreateKey(
-                PublicKeyAlgorithm.SshEd448,
-                "SSH2 ED448 test key"
-            );
+            ed448Key = KeyGenerator.CreateKey(PublicKeyAlgorithm.SshEd448, "SSH2 ED448 test key");
 
             allKeys = new List<ISshKey>
             {

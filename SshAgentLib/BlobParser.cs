@@ -592,11 +592,7 @@ namespace dlech.SshAgentLib
                 // the first 57 bytes are the private key, the last 57 bytes
                 // are the public key
 
-                if (
-                    !ed448Signature
-                        .Skip(57)
-                        .SequenceEqual(ed448PublicKeyParameters.GetEncoded())
-                )
+                if (!ed448Signature.Skip(57).SequenceEqual(ed448PublicKeyParameters.GetEncoded()))
                 {
                     throw new FormatException("public and private keys to not match");
                 }

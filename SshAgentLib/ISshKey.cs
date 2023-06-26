@@ -309,7 +309,11 @@ namespace dlech.SshAgentLib
                 }
                 return formattedSignature.GetBlob();
             }
-            else if (publicKey is RsaKeyParameters || publicKey is Ed25519PublicKeyParameters ||  publicKey is Ed448PublicKeyParameters)
+            else if (
+                publicKey is RsaKeyParameters
+                || publicKey is Ed25519PublicKeyParameters
+                || publicKey is Ed448PublicKeyParameters
+            )
             {
                 return signature;
             }

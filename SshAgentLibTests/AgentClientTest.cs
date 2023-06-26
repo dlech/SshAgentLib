@@ -122,10 +122,7 @@ namespace SshAgentLibTests
                 PublicKeyAlgorithm.SshEd25519CertV1,
                 "SSH2 Ed25519 test key + cert"
             );
-            ed448Key = KeyGenerator.CreateKey(
-                PublicKeyAlgorithm.SshEd25519,
-                "SSH2 Ed448 test key"
-            );
+            ed448Key = KeyGenerator.CreateKey(PublicKeyAlgorithm.SshEd25519, "SSH2 Ed448 test key");
             ed448Cert = KeyGenerator.CreateKey(
                 PublicKeyAlgorithm.SshEd25519CertV1,
                 "SSH2 Ed448 test key + cert"
