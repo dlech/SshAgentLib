@@ -1,10 +1,11 @@
 # run tests with code coverage
 #
 # Requires:
-#   dotnet tool install --global coverlet.console
+#   dotnet tool restore
 
 $dll = "SshAgentLibTests\bin\Debug\SshAgentLibTests.dll"
-coverlet "$dll" --target "vstest.console.exe" --targetargs "$dll" --output "coverage/" --format "opencover"
+
+dotnet coverlet "$dll" --target "vstest.console.exe" --targetargs "$dll" --output "coverage/" --format "opencover"
 if ($LastExitCode) {
     exit $LastExitCode
 }

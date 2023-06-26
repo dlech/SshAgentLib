@@ -15,7 +15,7 @@ jobs:
       run: nuget restore
 
     - name: Install tools
-      run: dotnet tool install --global coverlet.console
+      run: dotnet tool restore
 
     - name: Run unit tests
       env:
