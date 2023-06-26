@@ -185,6 +185,25 @@ namespace dlech.SshAgentLib
 
                     return PublicKeyAlgorithm.SshEd25519;
                 }
+                else if (publicKeyParameter is Ed448PublicKeyParameters)
+                {
+                    if (Certificate != null)
+                    {
+                        if (Application != null)
+                        {
+                            return PublicKeyAlgorithm.SkSshEd448CertV1;
+                        }
+
+                        return PublicKeyAlgorithm.SshEd448CertV1;
+                    }
+
+                    if (Application != null)
+                    {
+                        return PublicKeyAlgorithm.SkSshEd448;
+                    }
+
+                    return PublicKeyAlgorithm.SshEd448;
+                }
                 throw new Exception("Unknown algorithm");
             }
         }
@@ -219,6 +238,10 @@ namespace dlech.SshAgentLib
                 else if (publicKeyParameter is Ed25519PublicKeyParameters)
                 {
                     return 255;
+                }
+                else if (publicKeyParameter is Ed448PublicKeyParameters)
+                {
+                    return 455;
                 }
                 // TODO need a better exception here
                 throw new Exception("Not Defined");

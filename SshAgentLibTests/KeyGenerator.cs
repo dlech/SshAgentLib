@@ -241,10 +241,17 @@ namespace dlech.SshAgentLibTests
 
                 case PublicKeyAlgorithm.SshEd25519:
                 case PublicKeyAlgorithm.SshEd25519CertV1:
-                    var privateKey = new Ed25519PrivateKeyParameters(secureRandom);
-                    var publicKey = privateKey.GeneratePublicKey();
-                    var ed25519Key = new SshKey(publicKey, privateKey, comment, nonce, certificate);
+                    var ed25519PrivateKey = new Ed25519PrivateKeyParameters(secureRandom);
+                    var ed25519PublicKey = ed25519PrivateKey.GeneratePublicKey();
+                    var ed25519Key = new SshKey(ed25519PublicKey, ed25519PrivateKey, comment, nonce, certificate);
                     return ed25519Key;
+
+                case PublicKeyAlgorithm.SshEd448:
+                case PublicKeyAlgorithm.SshEd448CertV1:
+                    var ed448PrivateKey = new Ed448PrivateKeyParameters(secureRandom);
+                    var ed448PublicKey = ed448PrivateKey.GeneratePublicKey();
+                    var ed448Key = new SshKey(ed448PublicKey, ed448PrivateKey, comment, nonce, certificate);
+                    return ed448Key;
 
                 default:
                     throw new Exception("unsupported algorithm");

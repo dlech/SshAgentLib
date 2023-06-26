@@ -586,6 +586,28 @@ namespace dlech.SshAgentLib
                 return ed25519PrivateKey;
             }
 
+            if (publicKeyParameter is Ed448PublicKeyParameters ed448PublicKeyParameters)
+            {
+                var ed448Signature = ReadBlob();
+                // the first 57 bytes are the private key, the last 57 bytes
+                // are the public key
+
+                if (
+                    !ed448Signature
+                        .Skip(57)
+                        .SequenceEqual(ed448PublicKeyParameters.GetEncoded())
+                )
+                {
+                    throw new FormatException("public and private keys to not match");
+                }
+
+                var ed448PrivateKey = new Ed448PrivateKeyParameters(
+                    ed448Signature.Take(57).ToArray()
+                );
+
+                return ed448PrivateKey;
+            }
+
             // unsupported encryption algorithm
             throw new Exception("Unsupported algorithm");
         }

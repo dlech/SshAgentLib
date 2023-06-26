@@ -35,6 +35,8 @@ namespace SshAgentLibTests
         private static readonly SshKey ecdsa521Cert;
         private static readonly SshKey ed25519Key;
         private static readonly SshKey ed25519Cert;
+        private static readonly SshKey ed448Key;
+        private static readonly SshKey ed448Cert;
         private static readonly ReadOnlyCollection<SshKey> allKeys;
 
         class TestAgentClient : AgentClient
@@ -120,6 +122,14 @@ namespace SshAgentLibTests
                 PublicKeyAlgorithm.SshEd25519CertV1,
                 "SSH2 Ed25519 test key + cert"
             );
+            ed448Key = KeyGenerator.CreateKey(
+                PublicKeyAlgorithm.SshEd25519,
+                "SSH2 Ed448 test key"
+            );
+            ed448Cert = KeyGenerator.CreateKey(
+                PublicKeyAlgorithm.SshEd25519CertV1,
+                "SSH2 Ed448 test key + cert"
+            );
 
             var keyList = new List<SshKey>
             {
@@ -134,7 +144,9 @@ namespace SshAgentLibTests
                 ecdsa521Key,
                 ecdsa521Cert,
                 ed25519Key,
-                ed25519Cert
+                ed25519Cert,
+                ed448Key,
+                ed448Cert,
             };
 
             allKeys = keyList.AsReadOnly();

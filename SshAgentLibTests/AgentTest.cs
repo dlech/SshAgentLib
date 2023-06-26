@@ -63,6 +63,7 @@ namespace dlech.SshAgentLibTests
         private static readonly SshKey ecdsa384Key;
         private static readonly SshKey ecdsa521Key;
         private static readonly SshKey ed25519Key;
+        private static readonly SshKey ed448Key;
         private static readonly ReadOnlyCollection<ISshKey> allKeys;
 
         // since Agent is an abstract class, we need to create a trivial
@@ -106,6 +107,10 @@ namespace dlech.SshAgentLibTests
                 PublicKeyAlgorithm.SshEd25519,
                 "SSH2 ED25519 test key"
             );
+            ed448Key = KeyGenerator.CreateKey(
+                PublicKeyAlgorithm.SshEd448,
+                "SSH2 ED448 test key"
+            );
 
             allKeys = new List<ISshKey>
             {
@@ -114,7 +119,8 @@ namespace dlech.SshAgentLibTests
                 ecdsa256Key,
                 ecdsa384Key,
                 ecdsa521Key,
-                ed25519Key
+                ed25519Key,
+                ed448Key,
             }.AsReadOnly();
         }
 
@@ -778,6 +784,10 @@ namespace dlech.SshAgentLibTests
                 else if (key.Algorithm == PublicKeyAlgorithm.SshEd25519)
                 {
                     Assert.That(signature.Length, Is.EqualTo(64));
+                }
+                else if (key.Algorithm == PublicKeyAlgorithm.SshEd448)
+                {
+                    Assert.That(signature.Length, Is.EqualTo(114));
                 }
                 signer = key.GetSigner(out var _);
                 signer.Init(false, key.GetPublicKeyParameters());

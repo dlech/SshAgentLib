@@ -421,6 +421,44 @@ namespace dlech.SshAgentLib
                         );
                     }
                     break;
+                case PublicKeyAlgorithm.SshEd448:
+                    var ed448PublicKeyParameters =
+                        key.GetPublicKeyParameters() as Ed448PublicKeyParameters;
+                    var ed448PrivateKeyParameters =
+                        key.GetPrivateKeyParameters() as Ed448PrivateKeyParameters;
+                    var ed448PublicKeyBytes = ed448PublicKeyParameters.GetEncoded();
+                    builder.AddBlob(ed448PublicKeyBytes);
+                    builder.AddBlob(
+                        ed448PrivateKeyParameters
+                            .GetEncoded()
+                            .Concat(ed448PublicKeyBytes)
+                            .ToArray()
+                    );
+                    break;
+                case PublicKeyAlgorithm.SshEd448CertV1:
+
+                    {
+                        if (key.Certificate == null)
+                        {
+                            throw new ArgumentException(
+                                "Certificate property cannot be null",
+                                nameof(key)
+                            );
+                        }
+
+                        builder.AddBlob(key.GetPublicKeyBlob());
+
+                        var ed448Public =
+                            key.GetPublicKeyParameters() as Ed448PublicKeyParameters;
+                        var ed448Private =
+                            key.GetPrivateKeyParameters() as Ed448PrivateKeyParameters;
+                        var ed448PublicBytes = ed448Public.GetEncoded();
+                        builder.AddBlob(ed448PublicBytes);
+                        builder.AddBlob(
+                            ed448Private.GetEncoded().Concat(ed448PublicBytes).ToArray()
+                        );
+                    }
+                    break;
                 default:
                     throw new Exception("Unsupported algorithm");
             }

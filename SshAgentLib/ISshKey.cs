@@ -191,9 +191,13 @@ namespace dlech.SshAgentLib
                 builder.AddStringBlob(key.Algorithm.GetCurveDomainIdentifier());
                 builder.AddBlob(ecdsaParameters.Q.GetEncoded());
             }
-            else if (parameters is Ed25519PublicKeyParameters ed15519Parameters)
+            else if (parameters is Ed25519PublicKeyParameters ed25519Parameters)
             {
-                builder.AddBlob(ed15519Parameters.GetEncoded());
+                builder.AddBlob(ed25519Parameters.GetEncoded());
+            }
+            else if (parameters is Ed448PublicKeyParameters ed448Parameters)
+            {
+                builder.AddBlob(ed448Parameters.GetEncoded());
             }
             else
             {
@@ -305,7 +309,7 @@ namespace dlech.SshAgentLib
                 }
                 return formattedSignature.GetBlob();
             }
-            else if (publicKey is RsaKeyParameters || publicKey is Ed25519PublicKeyParameters)
+            else if (publicKey is RsaKeyParameters || publicKey is Ed25519PublicKeyParameters ||  publicKey is Ed448PublicKeyParameters)
             {
                 return signature;
             }

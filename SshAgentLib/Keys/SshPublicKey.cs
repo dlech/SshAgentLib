@@ -423,6 +423,12 @@ namespace SshAgentLib.Keys
                 return new Ed25519Signer();
             }
 
+            if (publicKey is Ed448PublicKeyParameters)
+            {
+                algorithm = "ssh-ed448";
+                return new Ed448Signer(Array.Empty<byte>());
+            }
+
             throw new ArgumentException("Unsupported algorithm", nameof(publicKey));
         }
     }
